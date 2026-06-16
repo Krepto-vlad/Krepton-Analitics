@@ -1,0 +1,111 @@
+@use 'variables' as *;
+
+// ─── Breakpoints ─────────────────────────────────────────────────────────────
+
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+@mixin mobile {
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: $breakpoint-lg) {
+    @content;
+  }
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+
+@mixin card($padding: $space-5) {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  padding: $padding;
+}
+
+// ─── Truncate text ───────────────────────────────────────────────────────────
+
+@mixin truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// ─── Flex utilities ──────────────────────────────────────────────────────────
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// ─── Scrollbar ───────────────────────────────────────────────────────────────
+
+@mixin custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: $radius-full;
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+// ─── Focus ring ──────────────────────────────────────────────────────────────
+
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+// ─── Badge ───────────────────────────────────────────────────────────────────
+
+@mixin badge($bg, $color) {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-1 $space-2;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  background: $bg;
+  color: $color;
+  letter-spacing: 0.04em;
+}
+
+// ─── Positive / Negative values ──────────────────────────────────────────────
+
+@mixin positive {
+  color: $color-chart-up;
+}
+@mixin negative {
+  color: $color-chart-down;
+}

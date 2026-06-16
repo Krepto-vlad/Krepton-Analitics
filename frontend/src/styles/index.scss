@@ -1,0 +1,35 @@
+@use 'reset';
+@use 'variables' as *;
+
+// ─── Scrollbar global ────────────────────────────────────────────────────────
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: $radius-full;
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// ─── Selection ───────────────────────────────────────────────────────────────
+
+::selection {
+  background: $color-primary-muted;
+  color: $color-foreground;
+}
+
+// ─── App shell ───────────────────────────────────────────────────────────────
+
+#root {
+  display: flex;
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+}
