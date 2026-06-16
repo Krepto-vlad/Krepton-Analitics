@@ -123,6 +123,70 @@ export async function getStockHistory(
   return { ticker, interval, candles };
 }
 
+// ─── Ticker tape ─────────────────────────────────────────────────────────────
+// Strategy: fetch once on server startup, refresh in background every 24h.
+// Every user request is served from in-memory cache → 0 Yahoo Finance calls per visit.
+
+import { TICKER_TAPE_REFRESH_INTERVAL_MS } from '../constants.js';
+
+const TICKER_TAPE_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'TLT', 'GLD', 'VOO'];
+
+function buildFallbackQuote(symbol: string): StockQuote {
+  return {
+    ticker: symbol,
+    name: symbol,
+    price: 0,
+    change: 0,
+    changePercent: 0,
+    volume: 0,
+    marketCap: null,
+    currency: 'USD',
+  };
+}
+
+// Starts as fallback data so the endpoint never returns empty
+let tickerTapeData: StockQuote[] = TICKER_TAPE_SYMBOLS.map(buildFallbackQuote);
+
+async function refreshTickerTape(): Promise<void> {
+  const results = await Promise.allSettled(
+    TICKER_TAPE_SYMBOLS.map((symbol) => getStockQuote(symbol))
+  );
+
+  const fresh: StockQuote[] = results.map((result, index) =>
+    result.status === 'fulfilled' ? result.value : buildFallbackQuote(TICKER_TAPE_SYMBOLS[index])
+  );
+
+  // Only replace cache if at least one symbol fetched successfully
+  const successCount = results.filter((r) => r.status === 'fulfilled').length;
+  if (successCount > 0) {
+    tickerTapeData = fresh;
+    console.log(`[TickerTape] Refreshed ${successCount}/${TICKER_TAPE_SYMBOLS.length} symbols`);
+  } else {
+    console.warn('[TickerTape] All fetches failed — keeping previous data');
+  }
+}
+
+/**
+ * Call once on server startup.
+ * Fetches ticker data immediately, then schedules a background refresh every 24 h.
+ * Returns the NodeJS timer so the caller can cancel it if needed (e.g. in tests).
+ */
+export function initializeTickerTapeScheduler(): ReturnType<typeof setInterval> {
+  // Kick off first fetch without blocking startup
+  refreshTickerTape().catch((err) => console.error('[TickerTape] Initial fetch failed:', err));
+
+  return setInterval(() => {
+    refreshTickerTape().catch((err) =>
+      console.error('[TickerTape] Scheduled refresh failed:', err)
+    );
+  }, TICKER_TAPE_REFRESH_INTERVAL_MS);
+}
+
+/** Returns current in-memory cache — always instant, never calls Yahoo Finance. */
+export function getTickerTapeQuotes(): StockQuote[] {
+  return tickerTapeData;
+}
+
 export async function searchStocks(query: string): Promise<StockSearchResult[]> {
   const { data } = await yahooClient.get('/v1/finance/search', {
     params: {

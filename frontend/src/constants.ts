@@ -1,8 +1,11 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL as string;
 
 export const ROUTES = {
+  HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  PRICING: '/pricing',
+  SECURITY: '/security',
   DASHBOARD: '/dashboard',
   REBALANCING: '/rebalancing',
   SCREENER: '/screener',

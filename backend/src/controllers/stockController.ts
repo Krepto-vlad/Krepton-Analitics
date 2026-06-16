@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express';
-import { getStockQuote, getStockHistory, searchStocks } from '../services/stockService.js';
+import {
+  getStockQuote,
+  getStockHistory,
+  searchStocks,
+  getTickerTapeQuotes,
+} from '../services/stockService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { HISTORICAL_DATA_PERIODS, HISTORICAL_DATA_INTERVALS } from '../constants.js';
 import type {
@@ -38,6 +43,11 @@ export async function getHistory(
 
   const history = await getStockHistory(ticker.toUpperCase(), period, interval);
   res.json({ success: true, data: history });
+}
+
+export function getTickerTape(_req: Request, res: Response<ApiResponse<StockQuote[]>>): void {
+  // Synchronous — data is always in memory, no Yahoo Finance call on user request
+  res.json({ success: true, data: getTickerTapeQuotes() });
 }
 
 export async function searchTickers(

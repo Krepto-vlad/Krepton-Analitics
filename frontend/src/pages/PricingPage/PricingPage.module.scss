@@ -1,0 +1,494 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  min-height: 100vh;
+  width: 100%;
+  background: #09090b;
+  color: $color-foreground;
+  font-family: $font-family;
+  overflow-x: hidden;
+}
+
+// ─── Navbar ──────────────────────────────────────────────────────────────────
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: $z-sticky;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $space-10;
+  height: $header-height;
+  background: rgba(9, 9, 11, 0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  @include mobile {
+    padding: 0 $space-4;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-md;
+  background: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoText {
+  font-weight: $font-weight-bold;
+  font-size: $font-size-base;
+  letter-spacing: -0.02em;
+  color: $color-foreground;
+  span {
+    color: $color-primary;
+  }
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: $space-6;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.navLink {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.55);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: $font-family;
+  transition: color $transition-fast;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-foreground;
+  }
+  &.active {
+    color: $color-foreground;
+  }
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.btnOutline {
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: $color-foreground;
+  background: transparent;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-family: $font-family;
+  cursor: pointer;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.btnPrimary {
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  background: $color-primary;
+  color: #fff;
+  border: none;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+// ─── Content ──────────────────────────────────────────────────────────────────
+
+.content {
+  padding: calc(#{$header-height} + 64px) $space-6 64px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.glow {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(16, 185, 129, 0.08) 0%,
+    transparent 70%
+  );
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+
+.header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: 6px $space-3;
+  border-radius: $radius-full;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: $space-4;
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 800;
+  color: $color-foreground;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+// ─── Plans grid ───────────────────────────────────────────────────────────────
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: $space-4;
+  margin-bottom: 64px;
+}
+
+.planCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  padding: $space-6;
+  border-radius: $radius-lg;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: border-color $transition-base;
+
+  &.highlighted {
+    background: rgba(16, 185, 129, 0.06);
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.08);
+  }
+}
+
+.planBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px $space-3;
+  border-radius: $radius-full;
+  background: $color-primary;
+  font-family: $font-mono;
+  font-size: 0.62rem;
+  font-weight: $font-weight-bold;
+  color: #fff;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.planNameLabel {
+  font-family: $font-mono;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: $space-1;
+}
+
+.planPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-1;
+}
+
+.planPrice {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: $color-foreground;
+
+  .highlighted & {
+    color: $color-primary;
+  }
+}
+
+.planPeriod {
+  font-family: $font-mono;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.planDescription {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: $space-1;
+}
+
+.planFeatures {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.planFeatureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.btnPlanDefault {
+  width: 100%;
+  padding: 10px;
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: $font-family;
+  font-weight: $font-weight-semibold;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.btnPlanHighlighted {
+  width: 100%;
+  padding: 10px;
+  border-radius: $radius-md;
+  background: $color-primary;
+  color: #fff;
+  border: none;
+  font-family: $font-family;
+  font-weight: $font-weight-semibold;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+// ─── Privacy CTA ──────────────────────────────────────────────────────────────
+
+.privacyCard {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: $space-6;
+  padding: $space-8;
+  border-radius: $radius-xl;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+
+  @include mobile {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.privacyGlow {
+  position: absolute;
+  top: -48px;
+  left: -48px;
+  width: 192px;
+  height: 192px;
+  border-radius: $radius-full;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.privacyIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-lg;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.privacyBody {
+  flex: 1;
+}
+
+.privacyTitleRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-2;
+
+  @include mobile {
+    justify-content: center;
+  }
+}
+
+.privacyTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: $color-foreground;
+  letter-spacing: -0.03em;
+}
+
+.privacyCertBadge {
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: rgba(16, 185, 129, 0.15);
+  color: $color-primary;
+  font-family: $font-mono;
+  font-size: 0.6rem;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.06em;
+}
+
+.privacyText {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.7;
+  max-width: 600px;
+  strong {
+    color: rgba(255, 255, 255, 0.75);
+  }
+}
+
+.privacyFeatures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-top: $space-4;
+
+  @include mobile {
+    justify-content: center;
+  }
+}
+
+.privacyFeatureItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.btnCta {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3 $space-5;
+  border-radius: $radius-lg;
+  background: $color-primary;
+  color: #fff;
+  border: none;
+  font-family: $font-family;
+  font-weight: $font-weight-semibold;
+  font-size: 0.82rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+
+.footer {
+  padding: $space-8 $space-6;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 48px;
+}
+
+.footerInner {
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+
+  @include mobile {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.footerBrand {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: $font-weight-medium;
+}
+
+.footerBrandIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: $radius-sm;
+  background: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footerDisclaimer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.3);
+}
