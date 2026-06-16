@@ -37,3 +37,8 @@ export async function fetchStockSearch(query: string): Promise<StockSearchResult
   const { data } = await apiClient.get('/search', { params: { q: query } });
   return assertSuccess<StockSearchResult[]>(data);
 }
+
+export async function fetchTickerTape(): Promise<StockQuote[]> {
+  const { data } = await apiClient.get('/ticker-tape');
+  return assertSuccess<StockQuote[]>(data);
+}

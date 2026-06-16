@@ -1,0 +1,496 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $space-8 $space-4;
+  background: #09090b;
+  font-family: $font-family;
+  position: relative;
+  overflow: hidden;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 40% at 50% 0%,
+    rgba(16, 185, 129, 0.08) 0%,
+    transparent 70%
+  );
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.backButton {
+  position: absolute;
+  top: $space-6;
+  left: $space-6;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  color: rgba(255, 255, 255, 0.4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: $font-family;
+  font-size: 0.8rem;
+  transition: color $transition-fast;
+  z-index: 1;
+
+  &:hover {
+    color: $color-foreground;
+  }
+}
+
+.logoMark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: $space-8;
+  position: relative;
+  z-index: 1;
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-lg;
+  background: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoText {
+  font-weight: $font-weight-bold;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+  color: $color-foreground;
+  span {
+    color: $color-primary;
+  }
+}
+
+// ─── Mode toggle ──────────────────────────────────────────────────────────────
+
+.modeTabs {
+  display: flex;
+  border-radius: $radius-lg;
+  padding: 4px;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: $space-6;
+  position: relative;
+  z-index: 1;
+}
+
+.modeTab {
+  padding: $space-2 $space-5;
+  border-radius: $radius-md;
+  font-family: $font-family;
+  font-size: 0.82rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    color $transition-fast,
+    box-shadow $transition-fast;
+  font-weight: $font-weight-regular;
+
+  &.active {
+    background: #27272a;
+    color: $color-foreground;
+    font-weight: $font-weight-semibold;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+
+.card {
+  width: 100%;
+  max-width: 460px;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-xl;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 1;
+}
+
+.cardHeader {
+  padding: $space-6 $space-6 $space-5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cardTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: $color-foreground;
+  letter-spacing: -0.03em;
+  margin-bottom: $space-1;
+}
+
+.cardSubtitle {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+}
+
+.cardBody {
+  padding: $space-6 $space-6;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+// ─── Form fields ──────────────────────────────────────────────────────────────
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fieldInputWrap {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: 10px $space-3;
+  border-radius: $radius-md;
+  background: #27272a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color $transition-fast;
+
+  &:focus-within {
+    border-color: rgba(16, 185, 129, 0.5);
+  }
+
+  &.error {
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+
+  &.success {
+    border-color: rgba(16, 185, 129, 0.5);
+  }
+}
+
+.fieldInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: $font-family;
+  font-size: 0.85rem;
+  color: $color-foreground;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.fieldHint {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.fieldError {
+  font-size: 0.68rem;
+  color: #ef4444;
+}
+
+.fieldSuccess {
+  font-size: 0.68rem;
+  color: $color-primary;
+}
+
+.togglePasswordBtn {
+  color: rgba(255, 255, 255, 0.3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+// ─── Password strength ────────────────────────────────────────────────────────
+
+.strengthRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-top: 2px;
+}
+
+.strengthBars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.strengthBar {
+  height: 2px;
+  flex: 1;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background $transition-base;
+}
+
+.strengthLabel {
+  font-family: $font-mono;
+  font-size: 0.6rem;
+  font-weight: $font-weight-semibold;
+}
+
+// ─── Password rules ───────────────────────────────────────────────────────────
+
+.passwordRules {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px $space-3;
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.passwordRulesTitle {
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.passwordRule {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: 0.72rem;
+  transition: color $transition-fast;
+}
+
+.passwordRuleIcon {
+  width: 14px;
+  height: 14px;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    background $transition-base,
+    border-color $transition-base;
+}
+
+// ─── Privacy notice ───────────────────────────────────────────────────────────
+
+.privacyNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border-radius: $radius-lg;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.55;
+
+  strong {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// ─── Agreement ───────────────────────────────────────────────────────────────
+
+.agreement {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast;
+}
+
+.agreementText {
+  font-size: 0.73rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+}
+
+// ─── Forgot password ─────────────────────────────────────────────────────────
+
+.forgotPassword {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -#{$space-2};
+}
+
+.forgotPasswordBtn {
+  font-family: $font-family;
+  font-size: 0.75rem;
+  color: rgba(16, 185, 129, 0.7);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+// ─── Submit ───────────────────────────────────────────────────────────────────
+
+.submitBtn {
+  width: 100%;
+  padding: $space-3;
+  border-radius: $radius-lg;
+  background: $color-primary;
+  color: #fff;
+  border: none;
+  font-family: $font-family;
+  font-weight: $font-weight-bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  transition:
+    background $transition-fast,
+    box-shadow $transition-fast,
+    opacity $transition-fast;
+  margin-top: $space-1;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.3);
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: none;
+  }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: $radius-full;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ─── Footer link ─────────────────────────────────────────────────────────────
+
+.switchModeText {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+  margin-top: $space-1;
+}
+
+.switchModeBtn {
+  color: $color-primary;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family;
+  font-size: inherit;
+  padding: 0;
+}
+
+// ─── Security strip ───────────────────────────────────────────────────────────
+
+.securityStrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-3;
+  padding: $space-3 $space-6;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.securityStripItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+// ─── Disclaimer ───────────────────────────────────────────────────────────────
+
+.disclaimer {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.2);
+  text-align: center;
+  max-width: 360px;
+  margin-top: $space-5;
+  line-height: 1.5;
+  position: relative;
+  z-index: 1;
+}
