@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Eye,
@@ -13,6 +13,9 @@ import {
 import { ROUTES } from '../../constants';
 import { Button } from '../../components/ui';
 import { Input } from '../../components/ui';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useAppSelector } from '../../hooks/useAppSelector';
+import { registerThunk, loginThunk, clearAuthError } from '../../features/auth/authSlice';
 import styles from './AuthPage.module.scss';
 
 type AuthMode = 'login' | 'register';
@@ -50,14 +53,26 @@ interface AuthPageProps {
 
 export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isLoading, error, user } = useAppSelector((state) => state.auth);
+
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate(ROUTES.DASHBOARD);
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    dispatch(clearAuthError());
+  }, [mode, dispatch]);
 
   const passwordStrength = calculatePasswordStrength(password);
   const allRulesPassed = passwordStrength === PASSWORD_RULES.length;
@@ -69,14 +84,17 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     nickname.trim().length > 0 &&
     email.trim().length > 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === 'register' && !isRegisterReady) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigate(ROUTES.DASHBOARD);
-    }, 1200);
+
+    const credentials = { email: email.trim().toLowerCase(), password };
+
+    if (mode === 'register') {
+      await dispatch(registerThunk(credentials));
+    } else {
+      await dispatch(loginThunk(credentials));
+    }
   };
 
   const switchMode = () => {
@@ -88,7 +106,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     setAgreed(false);
   };
 
-  const isSubmitDisabled = loading || (mode === 'register' && !isRegisterReady);
+  const isSubmitDisabled = isLoading || (mode === 'register' && !isRegisterReady);
 
   return (
     <div className={styles.page}>
@@ -349,18 +367,26 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               </div>
             )}
 
+            {/* Error message */}
+            {error && (
+              <div className={styles.errorBanner}>
+                <AlertTriangle size={13} />
+                {error}
+              </div>
+            )}
+
             {/* Submit */}
             <Button
               type="submit"
               variant="primary"
               size="lg"
               fullWidth
-              loading={loading}
+              loading={isLoading}
               disabled={isSubmitDisabled}
-              leftIcon={!loading ? <Lock size={15} /> : undefined}
+              leftIcon={!isLoading ? <Lock size={15} /> : undefined}
               className={styles.submitBtn}
             >
-              {loading
+              {isLoading
                 ? mode === 'register'
                   ? 'Creating account…'
                   : 'Signing in…'
