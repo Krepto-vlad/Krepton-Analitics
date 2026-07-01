@@ -2,17 +2,21 @@ import 'dotenv/config';
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import stockRoutes from './routes/stockRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import { API_ROUTES } from './constants.js';
 import { initializeTickerTapeScheduler } from './services/stockService.js';
+import { checkDatabaseConnection } from './config/db.js';
 
 const app = express();
 
 app.use(cors({ origin: env.frontendUrl, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 app.use(requestLogger);
 
 app.get('/health', (_req, res) => {
@@ -20,6 +24,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use(API_ROUTES.STOCKS, stockRoutes);
+app.use(API_ROUTES.AUTH, authRoutes);
 app.use(errorHandler);
 
 const server = http.createServer(app);
@@ -30,7 +35,10 @@ server.listen(env.port, () => {
   console.log(`[Server] HTTP on http://localhost:${env.port}`);
   console.log(`[Server] Frontend: ${env.frontendUrl}`);
 
-  // Store the timer so it can be cancelled on graceful shutdown
+  checkDatabaseConnection().catch((err) => {
+    console.error('[DB] Connection failed:', err);
+  });
+
   tickerTapeTimer = initializeTickerTapeScheduler();
 });
 

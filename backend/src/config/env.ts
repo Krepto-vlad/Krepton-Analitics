@@ -9,6 +9,8 @@ export const env = {
   frontendUrl: optionalEnv('FRONTEND_URL', 'http://localhost:5173'),
   nodeEnv: optionalEnv('NODE_ENV', 'development'),
   jwtSecret: optionalEnv('JWT_SECRET', 'change-me-in-production'),
+  jwtExpiresIn: optionalEnv('JWT_EXPIRES_IN', '15m'),
+  jwtRefreshExpiresIn: optionalEnv('JWT_REFRESH_EXPIRES_IN', '7d'),
   databaseUrl: optionalEnv('DATABASE_URL', ''),
 } as const;
 

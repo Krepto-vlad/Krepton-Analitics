@@ -20,10 +20,21 @@ export const SEARCH_RESULTS_LIMIT = 10;
 
 export const API_ROUTES = {
   STOCKS: '/api/stocks',
+  AUTH: '/api/auth',
 } as const;
 
 export const WS_QUOTE_POLL_INTERVAL_MS = 5000;
 export const WS_MAX_SUBSCRIPTIONS_PER_CLIENT = 5;
+
+// Auth
+export const BCRYPT_SALT_ROUNDS = 12;
+export const JWT_COOKIE_NAME = 'accessToken';
+// 15 minutes in ms — matches JWT_EXPIRES_IN=15m
+export const JWT_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
+
+// Rate limiting on auth endpoints: max 10 attempts per 15 minutes
+export const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const AUTH_RATE_LIMIT_MAX_REQUESTS = 10;
 
 // Ticker tape is fetched once on startup and refreshed in the background every 24h.
 // This means 0 Yahoo Finance calls per user request.

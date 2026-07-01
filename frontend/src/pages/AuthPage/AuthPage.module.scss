@@ -489,6 +489,21 @@
   white-space: nowrap;
 }
 
+// ─── Error banner ─────────────────────────────────────────────────────────────
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3 $space-4;
+  border-radius: $radius-md;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: $font-size-sm;
+  font-family: $font-family;
+}
+
 // ─── Disclaimer ───────────────────────────────────────────────────────────────
 
 .disclaimer {
