@@ -1,0 +1,202 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: $z-sticky;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $space-10;
+  height: $header-height;
+  background: rgba(9, 9, 11, 0.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  @include mobile {
+    padding: 0 $space-4;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-md;
+  background: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-weight: $font-weight-bold;
+  font-size: $font-size-base;
+  letter-spacing: -0.02em;
+  color: $color-foreground;
+  font-family: $font-family;
+
+  span {
+    color: $color-primary;
+  }
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: $space-6;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.navLink {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.55);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: $font-family;
+  transition: color $transition-fast;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-foreground;
+  }
+
+  &.active {
+    color: $color-foreground;
+  }
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.btnSignIn {
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: $color-foreground;
+  background: transparent;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-family: $font-family;
+  cursor: pointer;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.btnGetStarted {
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  background: $color-primary;
+  color: #fff;
+  border: none;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  cursor: pointer;
+  color: $color-foreground;
+
+  @include mobile {
+    display: flex;
+  }
+}
+
+.mobileMenu {
+  position: fixed;
+  top: $header-height;
+  left: 0;
+  right: 0;
+  z-index: $z-dropdown;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-4;
+  background: rgba(17, 17, 19, 0.97);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mobileNavLink {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: $space-2 $space-1;
+  font-family: $font-family;
+}
+
+.mobileDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  margin: $space-1 0;
+}
+
+.mobileBtnSignIn {
+  font-size: 0.9rem;
+  font-weight: $font-weight-medium;
+  color: $color-foreground;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: $radius-md;
+  padding: $space-2 $space-4;
+  cursor: pointer;
+  font-family: $font-family;
+  text-align: center;
+}
+
+.mobileBtnGetStarted {
+  font-size: 0.9rem;
+  font-weight: $font-weight-bold;
+  color: #fff;
+  background: $color-primary;
+  border: none;
+  border-radius: $radius-md;
+  padding: $space-2 $space-4;
+  cursor: pointer;
+  font-family: $font-family;
+  text-align: center;
+}

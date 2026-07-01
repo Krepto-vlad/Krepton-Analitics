@@ -27,4 +27,8 @@ export const WS_MAX_SUBSCRIPTIONS_PER_CLIENT = 5;
 
 // Ticker tape is fetched once on startup and refreshed in the background every 24h.
 // This means 0 Yahoo Finance calls per user request.
-export const TICKER_TAPE_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const TICKER_TAPE_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+// Browser HTTP cache TTL for public ticker-tape endpoint.
+// All tabs in the same browser share one HTTP cache entry — no duplicate requests.
+export const TICKER_TAPE_BROWSER_CACHE_TTL_S = 60 * 60; // 1 hour

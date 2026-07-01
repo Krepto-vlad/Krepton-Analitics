@@ -39,5 +39,7 @@ export const DEFAULT_INTERVAL = '1d';
 
 export const WS_RECONNECT_DELAY_MS = 3000;
 
+export const TICKER_CACHE_TTL_MS = 60 * 60 * 1000;
+
 export const CURRENCY_OPTIONS = ['USD', 'RUB', 'EUR'] as const;
 export type Currency = (typeof CURRENCY_OPTIONS)[number];

@@ -13,12 +13,11 @@ import {
   Zap,
   BarChart3,
   Check,
-  Menu,
-  X,
 } from 'lucide-react';
-import { ROUTES } from '../../constants';
+import { ROUTES, TICKER_CACHE_TTL_MS } from '../../constants';
 import { fetchTickerTape } from '../../api/stockApi';
 import type { StockQuote } from '../../types/stock.types';
+import { Navbar, Footer } from '../../components/layout';
 import styles from './LandingPage.module.scss';
 
 // ─── Ticker data ──────────────────────────────────────────────────────────────
@@ -41,10 +40,11 @@ const TICKER_FALLBACK: TickerItem[] = [
   { symbol: 'VOO', price: '504.80', change: '+0.91%', positive: true },
 ];
 
-// Module-level cache — 1 request instead of 8, survives navigation
-const TICKER_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min (server already caches 2 min)
-let cachedTickerItems: TickerItem[] | null = null;
-let cacheTimestamp = 0;
+// In-memory fallback cache — primary caching is HTTP Cache-Control (1h) set by the server.
+// This module-level cache prevents duplicate fetches within a single SPA session
+// (e.g. navigating away and back before the HTTP cache is populated).
+let inMemoryCachedItems: TickerItem[] | null = null;
+let inMemoryCacheTimestamp = 0;
 
 function quoteToTickerItem(quote: StockQuote, fallback: TickerItem): TickerItem {
   if (quote.price === 0) return fallback; // backend returned a zero-value fallback
@@ -59,20 +59,17 @@ function quoteToTickerItem(quote: StockQuote, fallback: TickerItem): TickerItem 
 }
 
 async function loadTickerData(): Promise<TickerItem[]> {
-  const now = Date.now();
-  if (cachedTickerItems && now - cacheTimestamp < TICKER_CACHE_TTL_MS) {
-    return cachedTickerItems;
+  if (inMemoryCachedItems && Date.now() - inMemoryCacheTimestamp < TICKER_CACHE_TTL_MS) {
+    return inMemoryCachedItems;
   }
 
-  // Single request — backend fetches all symbols in parallel and caches server-side
   const quotes = await fetchTickerTape();
-
   const items = quotes.map((quote, i) =>
     quoteToTickerItem(quote, TICKER_FALLBACK[i] ?? TICKER_FALLBACK[0])
   );
 
-  cachedTickerItems = items;
-  cacheTimestamp = now;
+  inMemoryCachedItems = items;
+  inMemoryCacheTimestamp = Date.now();
   return items;
 }
 
@@ -276,7 +273,6 @@ function DashboardPreview() {
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tickerItems, setTickerItems] = useState<TickerItem[]>(TICKER_FALLBACK);
   const tickerTrackRef = useRef<HTMLDivElement>(null);
 
@@ -328,106 +324,10 @@ export function LandingPage() {
 
   const handleLogin = () => navigate(ROUTES.LOGIN);
   const handleRegister = () => navigate(ROUTES.REGISTER);
-  const handlePricing = () => navigate(ROUTES.PRICING);
-  const handleSecurity = () => navigate(ROUTES.SECURITY);
-
-  const scrollToFeatures = () =>
-    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
 
   return (
     <div className={styles.page}>
-      {/* ── Navbar — always dark ── */}
-      <nav className={styles.navbar}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}>
-            <TrendingUp size={14} color="#fff" />
-          </div>
-          <span className={styles.logoText}>
-            Krepton <span>Analytics</span>
-          </span>
-        </div>
-
-        <div className={styles.navLinks}>
-          <button className={styles.navLink} onClick={scrollToFeatures}>
-            Features
-          </button>
-          <button className={styles.navLink} onClick={handlePricing}>
-            Pricing
-          </button>
-          <button className={styles.navLink} onClick={handleSecurity}>
-            Security
-          </button>
-        </div>
-
-        <div className={styles.navActions}>
-          <button className={styles.btnOutline} onClick={handleLogin}>
-            Log In
-          </button>
-          <button className={styles.btnPrimary} onClick={handleRegister}>
-            Get Started
-          </button>
-        </div>
-
-        <button
-          className={styles.hamburger}
-          onClick={() => setMobileMenuOpen((v) => !v)}
-          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-        >
-          {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
-      </nav>
-
-      {/* ── Mobile menu ── */}
-      {mobileMenuOpen && (
-        <div className={styles.mobileMenu}>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              scrollToFeatures();
-            }}
-          >
-            Features
-          </button>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handlePricing();
-            }}
-          >
-            Pricing
-          </button>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handleSecurity();
-            }}
-          >
-            Security
-          </button>
-          <div className={styles.mobileDivider} />
-          <button
-            className={styles.mobileBtnOutline}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handleLogin();
-            }}
-          >
-            Log In
-          </button>
-          <button
-            className={styles.mobileBtnPrimary}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handleRegister();
-            }}
-          >
-            Get Started Free
-          </button>
-        </div>
-      )}
+      <Navbar activeRoute="home" />
 
       {/* ── Hero ── */}
       <section className={styles.hero}>
@@ -600,23 +500,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrand}>
-            <div className={styles.footerBrandIcon}>
-              <TrendingUp size={10} color="#fff" />
-            </div>
-            <span className={styles.footerBrandText}>
-              Krepton Analytics — Privacy-first portfolio intelligence
-            </span>
-          </div>
-          <div className={styles.footerDisclaimer}>
-            <Lock size={11} color="#10B981" />
-            Not financial advice. For educational purposes only.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

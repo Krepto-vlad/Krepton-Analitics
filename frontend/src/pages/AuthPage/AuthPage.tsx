@@ -11,6 +11,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { Button } from '../../components/ui';
+import { Input } from '../../components/ui';
 import styles from './AuthPage.module.scss';
 
 type AuthMode = 'login' | 'register';
@@ -98,323 +100,311 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         Back to home
       </button>
 
-      <div className={styles.logoMark}>
-        <div className={styles.logoIcon}>
-          <TrendingUp size={16} color="#fff" />
-        </div>
-        <span className={styles.logoText}>
-          Krepton <span>Analytics</span>
-        </span>
-      </div>
-
-      {/* ── Mode tabs ── */}
-      <div className={styles.modeTabs}>
-        <button
-          className={`${styles.modeTab} ${mode === 'register' ? styles.active : ''}`}
-          onClick={() => mode !== 'register' && switchMode()}
-        >
-          Create Account
-        </button>
-        <button
-          className={`${styles.modeTab} ${mode === 'login' ? styles.active : ''}`}
-          onClick={() => mode !== 'login' && switchMode()}
-        >
-          Sign In
-        </button>
-      </div>
-
-      {/* ── Card ── */}
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h1 className={styles.cardTitle}>
-            {mode === 'register' ? 'Join Krepton' : 'Welcome back'}
-          </h1>
-          <p className={styles.cardSubtitle}>
-            {mode === 'register'
-              ? 'No KYC, no names. Just a nickname and password.'
-              : 'Sign in to access your portfolio analytics.'}
-          </p>
+      <div className={styles.content}>
+        <div className={styles.logoMark}>
+          <div className={styles.logoIcon}>
+            <TrendingUp size={16} color="#fff" />
+          </div>
+          <span className={styles.logoText}>
+            Krepton <span>Analytics</span>
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.cardBody}>
-          {/* Nickname (register only) */}
-          {mode === 'register' && (
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel} htmlFor="nickname">
-                Choose a Nickname
-              </label>
-              <div className={styles.fieldInputWrap}>
-                <input
-                  id="nickname"
-                  className={styles.fieldInput}
-                  type="text"
-                  placeholder="investor_42"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-              </div>
-              <span className={styles.fieldHint}>No real names. This is your only identifier.</span>
-            </div>
-          )}
+        {/* ── Mode tabs ── */}
+        <div className={styles.modeTabs}>
+          <button
+            className={`${styles.modeTab} ${mode === 'register' ? styles.active : ''}`}
+            onClick={() => mode !== 'register' && switchMode()}
+          >
+            Sign Up
+          </button>
+          <button
+            className={`${styles.modeTab} ${mode === 'login' ? styles.active : ''}`}
+            onClick={() => mode !== 'login' && switchMode()}
+          >
+            Sign In
+          </button>
+        </div>
 
-          {/* Email */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="email">
-              {mode === 'register' ? 'Email Address' : 'Email or Nickname'}
-            </label>
-            <div className={styles.fieldInputWrap}>
-              <input
-                id="email"
-                className={styles.fieldInput}
-                type="email"
-                placeholder={mode === 'register' ? 'name@example.com' : 'your@email.com'}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="off"
-              />
-            </div>
+        {/* ── Card ── */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h1 className={styles.cardTitle}>
+              {mode === 'register' ? 'Join Krepton' : 'Welcome back'}
+            </h1>
+            <p className={styles.cardSubtitle}>
+              {mode === 'register'
+                ? 'No KYC, no names. Just a nickname and password.'
+                : 'Sign in to access your portfolio analytics.'}
+            </p>
           </div>
 
-          {/* Password */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="password">
-              Password
-            </label>
-            <div className={styles.fieldInputWrap}>
-              <input
+          <form onSubmit={handleSubmit} className={styles.cardBody}>
+            {/* Nickname (register only) */}
+            {mode === 'register' && (
+              <Input
+                id="nickname"
+                label="Choose a Nickname"
+                type="text"
+                placeholder="investor_42"
+                value={nickname}
+                onChange={setNickname}
+                hint="No real names. This is your only identifier."
+                autoComplete="off"
+                spellCheck={false}
+              />
+            )}
+
+            {/* Email */}
+            <Input
+              id="email"
+              label={mode === 'register' ? 'Email Address' : 'Email or Nickname'}
+              type="email"
+              placeholder={mode === 'register' ? 'name@example.com' : 'your@email.com'}
+              value={email}
+              onChange={setEmail}
+              autoComplete="off"
+            />
+
+            {/* Password */}
+            <div className={styles.fieldGroup}>
+              <Input
                 id="password"
-                className={styles.fieldInput}
+                label="Password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder={
                   mode === 'register' ? 'Min. 10 chars, uppercase, number, symbol' : 'Your password'
                 }
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={setPassword}
                 autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                rightElement={
+                  <button
+                    type="button"
+                    className={styles.togglePasswordBtn}
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                }
               />
-              <button
-                type="button"
-                className={styles.togglePasswordBtn}
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
+
+              {/* Strength bar */}
+              {password.length > 0 && (
+                <div className={styles.strengthRow}>
+                  <div className={styles.strengthBars}>
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className={styles.strengthBar}
+                        style={{
+                          background:
+                            i <= passwordStrength
+                              ? STRENGTH_COLORS[passwordStrength]
+                              : 'rgba(255,255,255,0.1)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <span
+                    className={styles.strengthLabel}
+                    style={{ color: STRENGTH_COLORS[passwordStrength] }}
+                  >
+                    {STRENGTH_LABELS[passwordStrength]}
+                  </span>
+                </div>
+              )}
+
+              {/* Rules (register only) */}
+              {mode === 'register' && (
+                <div className={styles.passwordRules}>
+                  <p className={styles.passwordRulesTitle}>Password requirements</p>
+                  {PASSWORD_RULES.map((rule) => {
+                    const passed = password.length > 0 && rule.test(password);
+                    const touched = password.length > 0;
+                    return (
+                      <div
+                        key={rule.id}
+                        className={styles.passwordRule}
+                        style={{
+                          color: passed
+                            ? 'rgba(255,255,255,0.65)'
+                            : touched
+                              ? 'rgba(239,68,68,0.7)'
+                              : 'rgba(255,255,255,0.3)',
+                        }}
+                      >
+                        <div
+                          className={styles.passwordRuleIcon}
+                          style={{
+                            background: passed
+                              ? 'rgba(16,185,129,0.2)'
+                              : touched
+                                ? 'rgba(239,68,68,0.15)'
+                                : 'rgba(255,255,255,0.06)',
+                            border: `1px solid ${
+                              passed
+                                ? 'rgba(16,185,129,0.5)'
+                                : touched
+                                  ? 'rgba(239,68,68,0.4)'
+                                  : 'rgba(255,255,255,0.1)'
+                            }`,
+                          }}
+                        >
+                          {passed && <Check size={8} color="#10B981" />}
+                          {!passed && touched && (
+                            <span
+                              style={{ fontSize: '0.45rem', color: '#EF4444', fontWeight: 700 }}
+                            >
+                              ✕
+                            </span>
+                          )}
+                        </div>
+                        {rule.label}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* Strength bar */}
-            {password.length > 0 && (
-              <div className={styles.strengthRow}>
-                <div className={styles.strengthBars}>
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className={styles.strengthBar}
-                      style={{
-                        background:
-                          i <= passwordStrength
-                            ? STRENGTH_COLORS[passwordStrength]
-                            : 'rgba(255,255,255,0.1)',
-                      }}
-                    />
-                  ))}
-                </div>
-                <span
-                  className={styles.strengthLabel}
-                  style={{ color: STRENGTH_COLORS[passwordStrength] }}
+            {/* Confirm password (register only) */}
+            {mode === 'register' && (
+              <Input
+                id="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+                error={
+                  confirmPassword.length > 0 && !passwordsMatch
+                    ? 'Passwords do not match'
+                    : undefined
+                }
+                success={passwordsMatch ? 'Passwords match ✓' : undefined}
+                rightElement={
+                  confirmPassword.length > 0 ? (
+                    passwordsMatch ? (
+                      <Check size={14} color="#10B981" />
+                    ) : (
+                      <span style={{ fontSize: '0.7rem', color: '#EF4444', fontWeight: 700 }}>
+                        ✕
+                      </span>
+                    )
+                  ) : undefined
+                }
+              />
+            )}
+
+            {/* Privacy notice (register only) */}
+            {mode === 'register' && (
+              <div
+                className={styles.privacyNotice}
+                role="note"
+                aria-label="Privacy protection notice"
+              >
+                <Shield size={15} color="#10B981" style={{ flexShrink: 0, marginTop: 1 }} />
+                <p>
+                  <strong>Privacy Protection Active:</strong> Real names or phone numbers are
+                  strictly prohibited. Your identity is never linked to your financial data.
+                </p>
+              </div>
+            )}
+
+            {/* Agreement (register only) */}
+            {mode === 'register' && (
+              <div
+                className={styles.agreement}
+                onClick={() => setAgreed((v) => !v)}
+                role="checkbox"
+                aria-checked={agreed}
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && setAgreed((v) => !v)}
+              >
+                <div
+                  className={styles.checkbox}
+                  style={{
+                    background: agreed ? '#10B981' : 'transparent',
+                    border: agreed ? '1px solid #10B981' : '1px solid rgba(255,255,255,0.2)',
+                  }}
                 >
-                  {STRENGTH_LABELS[passwordStrength]}
+                  {agreed && <Check size={10} color="#fff" />}
+                </div>
+                <span className={styles.agreementText}>
+                  I understand that Krepton does not collect personal data and insights are for
+                  educational purposes only.
                 </span>
               </div>
             )}
 
-            {/* Rules (register only) */}
-            {mode === 'register' && (
-              <div className={styles.passwordRules}>
-                <p className={styles.passwordRulesTitle}>Password requirements</p>
-                {PASSWORD_RULES.map((rule) => {
-                  const passed = password.length > 0 && rule.test(password);
-                  const touched = password.length > 0;
-                  return (
-                    <div
-                      key={rule.id}
-                      className={styles.passwordRule}
-                      style={{
-                        color: passed
-                          ? 'rgba(255,255,255,0.65)'
-                          : touched
-                            ? 'rgba(239,68,68,0.7)'
-                            : 'rgba(255,255,255,0.3)',
-                      }}
-                    >
-                      <div
-                        className={styles.passwordRuleIcon}
-                        style={{
-                          background: passed
-                            ? 'rgba(16,185,129,0.2)'
-                            : touched
-                              ? 'rgba(239,68,68,0.15)'
-                              : 'rgba(255,255,255,0.06)',
-                          border: `1px solid ${
-                            passed
-                              ? 'rgba(16,185,129,0.5)'
-                              : touched
-                                ? 'rgba(239,68,68,0.4)'
-                                : 'rgba(255,255,255,0.1)'
-                          }`,
-                        }}
-                      >
-                        {passed && <Check size={8} color="#10B981" />}
-                        {!passed && touched && (
-                          <span style={{ fontSize: '0.45rem', color: '#EF4444', fontWeight: 700 }}>
-                            ✕
-                          </span>
-                        )}
-                      </div>
-                      {rule.label}
-                    </div>
-                  );
-                })}
+            {/* Forgot password (login only) */}
+            {mode === 'login' && (
+              <div className={styles.forgotPassword}>
+                <button type="button" className={styles.forgotPasswordBtn}>
+                  Forgot password?
+                </button>
               </div>
             )}
-          </div>
 
-          {/* Confirm password (register only) */}
-          {mode === 'register' && (
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel} htmlFor="confirmPassword">
-                Confirm Password
-              </label>
-              <div
-                className={`${styles.fieldInputWrap} ${
-                  confirmPassword.length > 0 ? (passwordsMatch ? styles.success : styles.error) : ''
-                }`}
-              >
-                <input
-                  id="confirmPassword"
-                  className={styles.fieldInput}
-                  type="password"
-                  placeholder="Repeat your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                />
-                {confirmPassword.length > 0 &&
-                  (passwordsMatch ? (
-                    <Check size={14} color="#10B981" />
-                  ) : (
-                    <span style={{ fontSize: '0.7rem', color: '#EF4444', fontWeight: 700 }}>✕</span>
-                  ))}
-              </div>
-              {confirmPassword.length > 0 && !passwordsMatch && (
-                <span className={styles.fieldError}>Passwords do not match</span>
+            {/* Submit */}
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
+              disabled={isSubmitDisabled}
+              leftIcon={!loading ? <Lock size={15} /> : undefined}
+              className={styles.submitBtn}
+            >
+              {loading
+                ? mode === 'register'
+                  ? 'Creating account…'
+                  : 'Signing in…'
+                : mode === 'register'
+                  ? 'Launch Dashboard'
+                  : 'Sign In'}
+            </Button>
+
+            {/* Switch mode */}
+            <p className={styles.switchModeText}>
+              {mode === 'register' ? (
+                <>
+                  Already have an account?{' '}
+                  <button type="button" className={styles.switchModeBtn} onClick={switchMode}>
+                    Sign In
+                  </button>
+                </>
+              ) : (
+                <>
+                  Don&apos;t have an account?{' '}
+                  <button type="button" className={styles.switchModeBtn} onClick={switchMode}>
+                    Sign Up
+                  </button>
+                </>
               )}
-              {passwordsMatch && <span className={styles.fieldSuccess}>Passwords match ✓</span>}
-            </div>
-          )}
+            </p>
+          </form>
 
-          {/* Privacy notice (register only) */}
-          {mode === 'register' && (
-            <div
-              className={styles.privacyNotice}
-              role="note"
-              aria-label="Privacy protection notice"
-            >
-              <Shield size={15} color="#10B981" style={{ flexShrink: 0, marginTop: 1 }} />
-              <p>
-                <strong>Privacy Protection Active:</strong> Real names or phone numbers are strictly
-                prohibited. Your identity is never linked to your financial data.
-              </p>
-            </div>
-          )}
-
-          {/* Agreement (register only) */}
-          {mode === 'register' && (
-            <div
-              className={styles.agreement}
-              onClick={() => setAgreed((v) => !v)}
-              role="checkbox"
-              aria-checked={agreed}
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && setAgreed((v) => !v)}
-            >
-              <div
-                className={styles.checkbox}
-                style={{
-                  background: agreed ? '#10B981' : 'transparent',
-                  border: agreed ? '1px solid #10B981' : '1px solid rgba(255,255,255,0.2)',
-                }}
-              >
-                {agreed && <Check size={10} color="#fff" />}
+          {/* Security strip */}
+          <div className={styles.securityStrip}>
+            {SECURITY_STRIP_ITEMS.map(({ icon: Icon, label }) => (
+              <div key={label} className={styles.securityStripItem}>
+                <Icon size={10} />
+                {label}
               </div>
-              <span className={styles.agreementText}>
-                I understand that Krepton does not collect personal data and insights are for
-                educational purposes only.
-              </span>
-            </div>
-          )}
-
-          {/* Forgot password (login only) */}
-          {mode === 'login' && (
-            <div className={styles.forgotPassword}>
-              <button type="button" className={styles.forgotPasswordBtn}>
-                Forgot password?
-              </button>
-            </div>
-          )}
-
-          {/* Submit */}
-          <button type="submit" className={styles.submitBtn} disabled={isSubmitDisabled}>
-            {loading ? (
-              <>
-                <span className={styles.spinner} />
-                {mode === 'register' ? 'Creating account…' : 'Signing in…'}
-              </>
-            ) : (
-              <>
-                <Lock size={15} />
-                {mode === 'register' ? 'Launch Dashboard' : 'Sign In'}
-              </>
-            )}
-          </button>
-
-          {/* Switch mode */}
-          <p className={styles.switchModeText}>
-            {mode === 'register' ? (
-              <>
-                Already have an account?{' '}
-                <button type="button" className={styles.switchModeBtn} onClick={switchMode}>
-                  Sign in
-                </button>
-              </>
-            ) : (
-              <>
-                Don&apos;t have an account?{' '}
-                <button type="button" className={styles.switchModeBtn} onClick={switchMode}>
-                  Sign up
-                </button>
-              </>
-            )}
-          </p>
-        </form>
-
-        {/* Security strip */}
-        <div className={styles.securityStrip}>
-          {SECURITY_STRIP_ITEMS.map(({ icon: Icon, label }) => (
-            <div key={label} className={styles.securityStripItem}>
-              <Icon size={10} />
-              {label}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      <p className={styles.disclaimer}>
-        By continuing, you acknowledge that Krepton provides analytical tools for educational
-        purposes only and does not constitute formal financial advice.
-      </p>
+        <p className={styles.disclaimer}>
+          By continuing, you acknowledge that Krepton provides analytical tools for educational
+          purposes only and does not constitute formal financial advice.
+        </p>
+      </div>
     </div>
   );
 }
