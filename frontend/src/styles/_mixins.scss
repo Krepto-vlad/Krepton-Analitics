@@ -13,6 +13,12 @@ $breakpoint-xl: 1280px;
   }
 }
 
+@mixin tablet {
+  @media (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
 @mixin tablet-up {
   @media (min-width: $breakpoint-md) {
     @content;
