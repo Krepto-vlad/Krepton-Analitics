@@ -1,0 +1,67 @@
+@use '../../../styles/variables' as *;
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: 10px $space-3;
+  border-radius: $radius-md;
+  background: #27272a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color $transition-fast;
+
+  &:focus-within {
+    border-color: rgba(16, 185, 129, 0.5);
+  }
+
+  &.error {
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+
+  &.success {
+    border-color: rgba(16, 185, 129, 0.5);
+  }
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: $color-foreground;
+  font-family: $font-family;
+  font-size: $font-size-base;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.hint {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.errorText {
+  font-size: 0.72rem;
+  color: rgba(239, 68, 68, 0.8);
+}
+
+.successText {
+  font-size: 0.72rem;
+  color: rgba(16, 185, 129, 0.8);
+}

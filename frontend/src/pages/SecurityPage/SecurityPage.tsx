@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import {
-  TrendingUp,
   Shield,
   Lock,
   Eye,
@@ -15,6 +14,7 @@ import {
   Check,
 } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { Navbar, Footer } from '../../components/layout';
 import styles from './SecurityPage.module.scss';
 
 interface Pillar {
@@ -175,51 +175,11 @@ export function SecurityPage() {
   const navigate = useNavigate();
 
   const handleRegister = () => navigate(ROUTES.REGISTER);
-  const handleLogin = () => navigate(ROUTES.LOGIN);
-  const handleHome = () => navigate(ROUTES.HOME);
   const handlePricing = () => navigate(ROUTES.PRICING);
-  const handleSecurity = () => navigate(ROUTES.SECURITY);
 
   return (
     <div className={styles.page}>
-      {/* ── Navbar ── */}
-      <nav className={styles.navbar}>
-        <div
-          className={styles.logo}
-          onClick={handleHome}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleHome()}
-        >
-          <div className={styles.logoIcon}>
-            <TrendingUp size={14} color="#fff" />
-          </div>
-          <span className={styles.logoText}>
-            Krepton <span>Analytics</span>
-          </span>
-        </div>
-
-        <div className={styles.navLinks}>
-          <button className={styles.navLink} onClick={handleHome}>
-            Features
-          </button>
-          <button className={styles.navLink} onClick={handlePricing}>
-            Pricing
-          </button>
-          <button className={`${styles.navLink} ${styles.active}`} onClick={handleSecurity}>
-            Security
-          </button>
-        </div>
-
-        <div className={styles.navActions}>
-          <button className={styles.btnOutline} onClick={handleLogin}>
-            Log In
-          </button>
-          <button className={styles.btnPrimary} onClick={handleRegister}>
-            Get Started
-          </button>
-        </div>
-      </nav>
+      <Navbar activeRoute="security" />
 
       <div className={styles.body}>
         {/* ── Hero ── */}
@@ -375,21 +335,7 @@ export function SecurityPage() {
           </div>
         </section>
 
-        {/* ── Footer ── */}
-        <footer className={styles.footer}>
-          <div className={styles.footerInner}>
-            <div className={styles.footerBrand}>
-              <div className={styles.footerBrandIcon}>
-                <TrendingUp size={10} color="#fff" />
-              </div>
-              Krepton Analytics — Privacy-first portfolio intelligence
-            </div>
-            <div className={styles.footerDisclaimer}>
-              <Lock size={11} color="#10B981" />
-              Not financial advice. For educational purposes only.
-            </div>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </div>
   );

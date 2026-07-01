@@ -28,6 +28,8 @@ interface YahooQuoteResult {
   regularMarketVolume?: number;
   marketCap?: number;
   currency?: string;
+  chartPreviousClose?: number;
+  previousClose?: number;
 }
 
 interface YahooChartQuote {
@@ -56,12 +58,21 @@ export async function getStockQuote(ticker: string): Promise<StockQuote> {
   const meta = data?.chart?.result?.[0]?.meta as YahooQuoteResult;
   if (!meta) throw new Error(`No data found for ticker: ${ticker}`);
 
+  const currentPrice = meta.regularMarketPrice ?? 0;
+  const previousClose = meta.chartPreviousClose ?? meta.previousClose ?? 0;
+
+  const change = previousClose > 0 ? currentPrice - previousClose : (meta.regularMarketChange ?? 0);
+  const changePercent =
+    previousClose > 0
+      ? ((currentPrice - previousClose) / previousClose) * 100
+      : (meta.regularMarketChangePercent ?? 0);
+
   return {
     ticker: meta.symbol ?? ticker,
     name: meta.longName ?? meta.shortName ?? ticker,
-    price: meta.regularMarketPrice ?? 0,
-    change: meta.regularMarketChange ?? 0,
-    changePercent: meta.regularMarketChangePercent ?? 0,
+    price: currentPrice,
+    change,
+    changePercent,
     volume: meta.regularMarketVolume ?? 0,
     marketCap: meta.marketCap ?? null,
     currency: meta.currency ?? 'USD',

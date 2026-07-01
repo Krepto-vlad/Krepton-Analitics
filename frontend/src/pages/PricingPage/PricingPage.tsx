@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Star, Check, Shield, Lock, Globe, ChevronRight } from 'lucide-react';
+import { Star, Check, Shield, Lock, Globe, ChevronRight } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { Navbar, Footer } from '../../components/layout';
 import styles from './PricingPage.module.scss';
 
 interface PricingPlan {
@@ -75,64 +76,11 @@ export function PricingPage() {
   const navigate = useNavigate();
 
   const handleRegister = () => navigate(ROUTES.REGISTER);
-  const handleLogin = () => navigate(ROUTES.LOGIN);
-  const handleHome = () => navigate(ROUTES.HOME);
-  const handlePricing = () => navigate(ROUTES.PRICING);
-  const handleFeatures = () => {
-    navigate(ROUTES.HOME);
-    setTimeout(() => {
-      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-  const handleSecurity = () => {
-    navigate(ROUTES.HOME);
-    setTimeout(() => {
-      document.getElementById('security')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
 
   return (
     <div className={styles.page}>
       <div className={styles.glow} />
-
-      {/* ── Navbar ── */}
-      <nav className={styles.navbar}>
-        <div
-          className={styles.logo}
-          onClick={handleHome}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleHome()}
-        >
-          <div className={styles.logoIcon}>
-            <TrendingUp size={14} color="#fff" />
-          </div>
-          <span className={styles.logoText}>
-            Krepton <span>Analytics</span>
-          </span>
-        </div>
-
-        <div className={styles.navLinks}>
-          <button className={styles.navLink} onClick={handleFeatures}>
-            Features
-          </button>
-          <button className={`${styles.navLink} ${styles.active}`} onClick={handlePricing}>
-            Pricing
-          </button>
-          <button className={styles.navLink} onClick={handleSecurity}>
-            Security
-          </button>
-        </div>
-
-        <div className={styles.navActions}>
-          <button className={styles.btnOutline} onClick={handleLogin}>
-            Log In
-          </button>
-          <button className={styles.btnPrimary} onClick={handleRegister}>
-            Get Started
-          </button>
-        </div>
-      </nav>
+      <Navbar activeRoute="pricing" />
 
       {/* ── Content ── */}
       <main className={styles.content}>
@@ -213,21 +161,7 @@ export function PricingPage() {
         </div>
       </main>
 
-      {/* ── Footer ── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrand}>
-            <div className={styles.footerBrandIcon}>
-              <TrendingUp size={10} color="#fff" />
-            </div>
-            Krepton Analytics — Privacy-first portfolio intelligence
-          </div>
-          <div className={styles.footerDisclaimer}>
-            <Lock size={11} color="#10B981" />
-            Not financial advice. For educational purposes only.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

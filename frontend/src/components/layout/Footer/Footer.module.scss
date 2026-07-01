@@ -1,0 +1,51 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.footer {
+  padding: $space-8 $space-6;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 48px;
+}
+
+.footerInner {
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+
+  @include mobile {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.footerBrand {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: $font-weight-medium;
+  font-family: $font-family;
+}
+
+.footerBrandIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: $radius-sm;
+  background: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footerDisclaimer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.3);
+}
