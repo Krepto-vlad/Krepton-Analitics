@@ -1,0 +1,132 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cardHeader {
+  @include flex-between;
+  align-items: flex-start;
+  gap: $space-3;
+}
+
+.cardLabelRow {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  color: $color-foreground-subtle;
+}
+
+.cardLabelIcon {
+  flex-shrink: 0;
+}
+
+.cardLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.periodSelector {
+  display: flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: $radius-sm;
+  padding: 2px;
+}
+
+.periodButton {
+  padding: 3px $space-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-muted;
+  background: transparent;
+  border: none;
+  border-radius: calc($radius-sm - 2px);
+  cursor: pointer;
+  transition:
+    color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    color: $color-foreground;
+  }
+}
+
+.activePeriod {
+  background: $color-surface-elevated;
+  color: $color-foreground;
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-3;
+}
+
+.totalValue {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.totalPnlPercent {
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+}
+
+.statsRow {
+  display: flex;
+  gap: $space-5;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statValue {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+}
+
+.chartContainer {
+  flex: 1;
+  height: 0;
+  min-height: 130px;
+  max-height: 450px;
+
+  // Hide TradingView attribution logo injected by lightweight-charts v5
+  :global(a) {
+    display: none !important;
+  }
+}
+
+.positive {
+  color: $color-chart-up;
+}
+
+.negative {
+  color: $color-chart-down;
+}

@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ROUTES } from '../constants';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 import { useAppSelector } from '../hooks/useAppSelector';
 import { fetchCurrentUserThunk } from '../features/auth/authSlice';
+import { AppShell } from '../components/layout';
 
 const LandingPage = lazy(() =>
   import('../pages/LandingPage/LandingPage').then((m) => ({ default: m.LandingPage }))
@@ -25,12 +26,20 @@ const RegisterPage = lazy(() =>
   }))
 );
 
-// Protected app pages — stubs until implemented
-const DashboardPage = () => <div style={{ color: '#fff', padding: 40 }}>Dashboard — TODO</div>;
-const RebalancingPage = () => <div style={{ color: '#fff', padding: 40 }}>Rebalancing — TODO</div>;
-const ScreenerPage = () => <div style={{ color: '#fff', padding: 40 }}>Screener — TODO</div>;
-const BacktestingPage = () => <div style={{ color: '#fff', padding: 40 }}>Backtesting — TODO</div>;
-const WatchlistPage = () => <div style={{ color: '#fff', padding: 40 }}>Watchlist — TODO</div>;
+const DashboardPage = lazy(() =>
+  import('../pages/DashboardPage/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const RebalancingPage = () => (
+  <div style={{ color: '#fff', padding: 40 }}>Rebalancing — coming soon</div>
+);
+const ScreenerPage = () => <div style={{ color: '#fff', padding: 40 }}>Screener — coming soon</div>;
+const BacktestingPage = () => (
+  <div style={{ color: '#fff', padding: 40 }}>Backtesting — coming soon</div>
+);
+const WatchlistPage = () => (
+  <div style={{ color: '#fff', padding: 40 }}>Watchlist — coming soon</div>
+);
+const HistoryPage = () => <div style={{ color: '#fff', padding: 40 }}>History — coming soon</div>;
 const NotFoundPage = () => <div style={{ color: '#fff', padding: 40 }}>404 — Not Found</div>;
 
 function PageLoader() {
@@ -47,17 +56,18 @@ function PageLoader() {
   );
 }
 
-interface ProtectedRouteProps {
-  element: React.ReactElement;
-}
-
-function ProtectedRoute({ element }: ProtectedRouteProps) {
+// Single AppShell instance for all protected pages — sidebar state persists across navigation
+function ProtectedLayout() {
   const { user, isInitialized } = useAppSelector((state) => state.auth);
 
   if (!isInitialized) return <PageLoader />;
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
 
-  return element;
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
 }
 
 function AppRoutes() {
@@ -70,22 +80,23 @@ function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        {/* Public marketing pages */}
         <Route path={ROUTES.HOME} element={<LandingPage />} />
         <Route path={ROUTES.PRICING} element={<PricingPage />} />
         <Route path={ROUTES.SECURITY} element={<SecurityPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
-        <Route path={ROUTES.DASHBOARD} element={<ProtectedRoute element={<DashboardPage />} />} />
-        <Route
-          path={ROUTES.REBALANCING}
-          element={<ProtectedRoute element={<RebalancingPage />} />}
-        />
-        <Route path={ROUTES.SCREENER} element={<ProtectedRoute element={<ScreenerPage />} />} />
-        <Route
-          path={ROUTES.BACKTESTING}
-          element={<ProtectedRoute element={<BacktestingPage />} />}
-        />
-        <Route path={ROUTES.WATCHLIST} element={<ProtectedRoute element={<WatchlistPage />} />} />
+
+        {/* Protected app — single AppShell, only content changes on navigation */}
+        <Route element={<ProtectedLayout />}>
+          <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+          <Route path={ROUTES.REBALANCING} element={<RebalancingPage />} />
+          <Route path={ROUTES.SCREENER} element={<ScreenerPage />} />
+          <Route path={ROUTES.BACKTESTING} element={<BacktestingPage />} />
+          <Route path={ROUTES.WATCHLIST} element={<WatchlistPage />} />
+          <Route path={ROUTES.HISTORY} element={<HistoryPage />} />
+        </Route>
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

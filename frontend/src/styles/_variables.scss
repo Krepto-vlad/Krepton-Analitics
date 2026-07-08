@@ -1,17 +1,29 @@
 // ─── Color Palette ───────────────────────────────────────────────────────────
-// Translated from Design/default_shadcn_theme.css (dark mode)
+// Dark mode defaults as CSS custom properties on :root.
+// Light mode overrides live in styles/index.scss under [data-theme="light"].
 
-$color-background: #111113;
-$color-surface: #161618; // card / panels
-$color-surface-elevated: #1c1c1f; // modals, dropdowns
-$color-sidebar: #141416;
+:root {
+  --color-background: #111113;
+  --color-surface: #161618;
+  --color-surface-elevated: #1c1c1f;
+  --color-sidebar: #0d0d10;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+  --color-foreground: #fafafa;
+  --color-foreground-muted: #8a8a96;
+  --color-foreground-subtle: #555560;
+}
 
-$color-border: rgba(255, 255, 255, 0.08);
-$color-border-strong: rgba(255, 255, 255, 0.14);
-
-$color-foreground: #fafafa;
-$color-foreground-muted: #8a8a96;
-$color-foreground-subtle: #555560;
+// SCSS aliases that consume the CSS custom properties
+$color-background: var(--color-background);
+$color-surface: var(--color-surface);
+$color-surface-elevated: var(--color-surface-elevated);
+$color-sidebar: var(--color-sidebar);
+$color-border: var(--color-border);
+$color-border-strong: var(--color-border-strong);
+$color-foreground: var(--color-foreground);
+$color-foreground-muted: var(--color-foreground-muted);
+$color-foreground-subtle: var(--color-foreground-subtle);
 
 $color-primary: #10b981; // green — brand accent
 $color-primary-hover: #0ea571;
@@ -37,8 +49,8 @@ $font-family:
   sans-serif;
 $font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 
-$font-size-xs: 0.625rem; // 10px
-$font-size-sm: 0.75rem; // 12px
+$font-size-xs: 0.8125rem; // 13px — accessibility minimum
+$font-size-sm: 0.8125rem; // 13px — accessibility minimum
 $font-size-base: 0.875rem; // 14px
 $font-size-md: 1rem; // 16px
 $font-size-lg: 1.125rem; // 18px

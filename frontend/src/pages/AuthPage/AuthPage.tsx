@@ -176,7 +176,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
             {/* Email */}
             <Input
               id="email"
-              label={mode === 'register' ? 'Email Address' : 'Email or Nickname'}
+              label={mode === 'register' ? 'Email Address' : 'Email'}
               type="email"
               placeholder={mode === 'register' ? 'name@example.com' : 'your@email.com'}
               value={email}
@@ -208,8 +208,8 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 }
               />
 
-              {/* Strength bar */}
-              {password.length > 0 && (
+              {/* Strength bar — register only */}
+              {mode === 'register' && password.length > 0 && (
                 <div className={styles.strengthRow}>
                   <div className={styles.strengthBars}>
                     {[1, 2, 3, 4].map((i) => (
