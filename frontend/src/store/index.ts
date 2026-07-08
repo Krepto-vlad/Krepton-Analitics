@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authReducer } from '../features/auth/authSlice';
+import { portfolioReducer } from '../features/portfolio/portfolioSlice';
+import { uiReducer } from '../features/ui/uiSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    // stock: stockReducer,
-    // rebalancing: rebalancingReducer,
+    portfolio: portfolioReducer,
+    ui: uiReducer,
   },
 });
 

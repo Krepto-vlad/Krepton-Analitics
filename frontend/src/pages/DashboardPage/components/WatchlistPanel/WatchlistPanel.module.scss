@@ -1,0 +1,206 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cardHeader {
+  @include flex-between;
+  gap: $space-3;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.cardLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.liveClock {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  color: $color-primary;
+}
+
+.liveIcon {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.clockText {
+  font-size: $font-size-xs;
+  font-variant-numeric: tabular-nums;
+  font-family: $font-mono;
+}
+
+.divider {
+  height: 1px;
+  background: $color-border;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: $space-3;
+  align-items: center;
+  padding: 0 $space-1;
+}
+
+.colTicker,
+.colPrice,
+.colChange,
+.colAlert {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.colPrice,
+.colChange,
+.colAlert {
+  text-align: right;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  @include custom-scrollbar;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: $space-3;
+  align-items: center;
+  padding: $space-2 $space-1;
+  border-radius: $radius-md;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+.itemTicker {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.tickerAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: $radius-sm;
+  background: $color-surface-elevated;
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: $color-foreground-muted;
+  flex-shrink: 0;
+}
+
+.tickerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.tickerSymbol {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.companyName {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  @include truncate;
+}
+
+.itemPrice {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+  color: $color-foreground;
+}
+
+.itemChange {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+  text-align: right;
+}
+
+.itemAlert {
+  width: 44px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alertBadge {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  padding: 2px 6px;
+  border-radius: $radius-full;
+  letter-spacing: 0.04em;
+}
+
+.buyAlert {
+  background: rgba(16, 185, 129, 0.15);
+  color: $color-primary;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.sellAlert {
+  background: rgba(239, 68, 68, 0.12);
+  color: $color-danger;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+}
+
+.positive {
+  color: $color-chart-up;
+}
+
+.negative {
+  color: $color-chart-down;
+}

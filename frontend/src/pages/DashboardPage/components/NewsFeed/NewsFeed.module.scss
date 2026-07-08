@@ -1,0 +1,118 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.cardHeader {
+  @include flex-between;
+  gap: $space-3;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.cardLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.filteredLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.newsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.newsItem {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  grid-template-rows: auto auto;
+  gap: 2px $space-3;
+  align-items: start;
+  padding: $space-3 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    .headline {
+      color: $color-foreground;
+    }
+  }
+}
+
+.tickerTags {
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-1;
+  padding-top: 2px;
+}
+
+.tickerTag {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  background: $color-primary-muted;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: $radius-sm;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.newsMeta {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.source {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+}
+
+.dot {
+  color: $color-foreground-subtle;
+  font-size: $font-size-xs;
+}
+
+.timeAgo {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.headline {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  line-height: 1.5;
+  transition: color $transition-fast;
+  margin: 0;
+}

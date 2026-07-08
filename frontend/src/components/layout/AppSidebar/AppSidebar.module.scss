@@ -1,0 +1,270 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+$sidebar-width-expanded: 220px;
+$sidebar-width-collapsed: 64px;
+$transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Sidebar starts collapsed, expands on hover
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: $sidebar-width-collapsed;
+  background: #0d0d10;
+  border-right: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  transition: width $transition;
+  z-index: $z-sticky;
+  overflow: hidden;
+
+  &:hover {
+    width: $sidebar-width-expanded;
+  }
+}
+
+// ─── Top ─────────────────────────────────────────────────────────────────────
+
+.top {
+  display: flex;
+  align-items: center;
+  padding: 0 $space-3;
+  height: 60px;
+  border-bottom: 1px solid $color-border;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+  user-select: none;
+  min-width: 0;
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+    border-radius: $radius-sm;
+  }
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, $color-primary, $color-primary-hover);
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: $shadow-glow-primary;
+}
+
+.logoText {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity $transition,
+    transform $transition;
+
+  .sidebar:hover & {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  span {
+    color: $color-primary;
+  }
+}
+
+// ─── Nav ─────────────────────────────────────────────────────────────────────
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-3 $space-2;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  @include custom-scrollbar;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: none;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color $transition-fast,
+    background $transition-fast;
+  text-align: left;
+  // Always center icon when collapsed, flex-start when expanded
+  justify-content: flex-start;
+
+  &:hover {
+    color: $color-foreground;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  &.active {
+    color: $color-primary;
+    background: $color-primary-muted;
+  }
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.navLabel {
+  flex: 1;
+  @include truncate;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity $transition,
+    transform $transition;
+
+  .sidebar:hover & {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.activeIndicator {
+  width: 4px;
+  height: 4px;
+  border-radius: $radius-full;
+  background: $color-primary;
+  flex-shrink: 0;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity $transition;
+
+  .sidebar:hover & {
+    opacity: 1;
+  }
+}
+
+// ─── Bottom ──────────────────────────────────────────────────────────────────
+
+.bottom {
+  border-top: 1px solid $color-border;
+  padding: $space-3 $space-2;
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex: 1;
+  min-width: 0;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, $color-primary, #0891b2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+// width: 0 trick — element takes no space when collapsed, no layout jerk
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  flex-shrink: 0;
+  transition:
+    width $transition,
+    opacity $transition;
+
+  .sidebar:hover & {
+    width: 128px;
+    opacity: 1;
+  }
+}
+
+.userEmail {
+  font-size: $font-size-xs;
+  color: $color-foreground;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
+.userRole {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  white-space: nowrap;
+}
+
+.logoutButton {
+  width: 0;
+  height: 28px;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-foreground-muted;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    width $transition,
+    opacity $transition,
+    color $transition-fast,
+    background $transition-fast;
+
+  .sidebar:hover & {
+    width: 28px;
+    opacity: 1;
+  }
+
+  &:hover {
+    color: $color-danger;
+    background: $color-danger-muted;
+  }
+}

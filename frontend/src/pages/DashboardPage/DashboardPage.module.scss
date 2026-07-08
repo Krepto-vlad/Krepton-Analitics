@@ -1,0 +1,50 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding: $space-5;
+  // Don't set height: 100% — flex: 1 fills the parent flex container
+}
+
+.topRow {
+  flex: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-4;
+  min-height: 380px;
+  // Prevents dead space when chart is capped: 450px chart + ~190px other content = 640px
+  max-height: 640px;
+
+  @include tablet {
+    flex: none;
+    grid-template-columns: 1fr;
+  }
+}
+
+.middleRow {
+  flex: 1.5;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: $space-4;
+  min-height: 300px;
+
+  @include tablet {
+    flex: none;
+    grid-template-columns: 1fr;
+  }
+}
+
+.bottomRow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+
+  > * {
+    flex: 1;
+  }
+}

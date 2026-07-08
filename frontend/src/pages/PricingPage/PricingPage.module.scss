@@ -1,4 +1,4 @@
-@use '../../styles/variables' as *;
+﻿@use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
 .page {
@@ -171,7 +171,7 @@
   background: rgba(255, 255, 255, 0.04);
   margin-bottom: $space-4;
   font-family: $font-mono;
-  font-size: 0.65rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -221,7 +221,7 @@
   border-radius: $radius-full;
   background: $color-primary;
   font-family: $font-mono;
-  font-size: 0.62rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-bold;
   color: #fff;
   letter-spacing: 0.06em;
@@ -230,7 +230,7 @@
 
 .planNameLabel {
   font-family: $font-mono;
-  font-size: 0.68rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -256,12 +256,12 @@
 
 .planPeriod {
   font-family: $font-mono;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.35);
 }
 
 .planDescription {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.4);
   margin-top: $space-1;
 }
@@ -277,7 +277,7 @@
   display: flex;
   align-items: flex-start;
   gap: $space-2;
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.65);
 }
 
@@ -388,7 +388,7 @@
   background: rgba(16, 185, 129, 0.15);
   color: $color-primary;
   font-family: $font-mono;
-  font-size: 0.6rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-bold;
   letter-spacing: 0.06em;
 }
@@ -418,7 +418,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.55);
 }
 
@@ -469,7 +469,7 @@
   display: flex;
   align-items: center;
   gap: $space-2;
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.4);
   font-weight: $font-weight-medium;
 }
@@ -489,6 +489,6 @@
   align-items: center;
   gap: 6px;
   font-family: $font-mono;
-  font-size: 0.65rem;
+  font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.3);
 }

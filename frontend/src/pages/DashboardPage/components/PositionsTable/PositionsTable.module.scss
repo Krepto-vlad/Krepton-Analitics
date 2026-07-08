@@ -1,0 +1,193 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cardHeader {
+  @include flex-between;
+  gap: $space-3;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.cardLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-2 $space-3;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  background: $color-primary-muted;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow: auto;
+  @include custom-scrollbar;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  padding: $space-2 $space-3;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  border-bottom: 1px solid $color-border;
+  white-space: nowrap;
+}
+
+.row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background $transition-fast;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.025);
+  }
+}
+
+.td {
+  padding: $space-3;
+  font-size: $font-size-sm;
+  color: $color-foreground;
+  white-space: nowrap;
+}
+
+.alignRight {
+  text-align: right;
+}
+
+.tickerCell {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.tickerAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: $radius-sm;
+  background: $color-surface-elevated;
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: $color-foreground-muted;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tickerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tickerSymbol {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.companyName {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  max-width: 120px;
+  @include truncate;
+}
+
+.dateText {
+  color: $color-foreground-muted;
+  font-variant-numeric: tabular-nums;
+}
+
+.priceText {
+  font-variant-numeric: tabular-nums;
+}
+
+.sharesText {
+  color: $color-foreground-muted;
+  font-variant-numeric: tabular-nums;
+}
+
+.pnlCell {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+}
+
+.pnlPercent {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  padding: 2px 6px;
+  border-radius: $radius-full;
+  font-variant-numeric: tabular-nums;
+}
+
+.positive {
+  color: $color-chart-up;
+
+  &.pnlPercent {
+    background: rgba(38, 166, 154, 0.12);
+  }
+}
+
+.negative {
+  color: $color-chart-down;
+
+  &.pnlPercent {
+    background: rgba(239, 83, 80, 0.12);
+  }
+}

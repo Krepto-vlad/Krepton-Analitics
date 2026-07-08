@@ -41,5 +41,16 @@ export const WS_RECONNECT_DELAY_MS = 3000;
 
 export const TICKER_CACHE_TTL_MS = 60 * 60 * 1000;
 
-export const CURRENCY_OPTIONS = ['USD', 'RUB', 'EUR'] as const;
+export const CURRENCY_OPTIONS = ['USD', 'EUR'] as const;
 export type Currency = (typeof CURRENCY_OPTIONS)[number];
+
+export const EQUITY_PERIODS = [
+  { label: '1W', value: '1W' },
+  { label: '1M', value: '1M' },
+  { label: '3M', value: '3M' },
+  { label: '6M', value: '6M' },
+  { label: '1Y', value: '1Y' },
+  { label: 'ALL', value: 'ALL' },
+] as const;
+
+export const PORTFOLIO_RISK_SCORE = 67;
