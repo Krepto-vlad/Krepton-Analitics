@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import {
   getStockQuote,
   getStockHistory,
+  getStockSector,
   searchStocks,
   getTickerTapeQuotes,
 } from '../services/stockService.js';
@@ -16,6 +17,7 @@ import type {
   StockQuote,
   StockHistoryResponse,
   StockSearchResult,
+  StockSector,
 } from '../types/stock.types.js';
 
 const VALID_PERIODS = Object.values(HISTORICAL_DATA_PERIODS) as string[];
@@ -52,6 +54,15 @@ export async function getHistory(
 export function getTickerTape(_req: Request, res: Response<ApiResponse<StockQuote[]>>): void {
   res.set('Cache-Control', `public, max-age=${TICKER_TAPE_BROWSER_CACHE_TTL_S}`);
   res.json({ success: true, data: getTickerTapeQuotes() });
+}
+
+export async function getSectorForTicker(
+  req: Request,
+  res: Response<ApiResponse<StockSector>>
+): Promise<void> {
+  const ticker = (req.params as { ticker: string }).ticker;
+  const result = await getStockSector(ticker.toUpperCase());
+  res.json({ success: true, data: result });
 }
 
 export async function searchTickers(

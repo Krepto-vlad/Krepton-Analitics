@@ -58,3 +58,6 @@ Design/
 # Temporary
 tmp/
 temp/
+
+# Internal docs (not for public repo)
+Docs/SECURITY.md

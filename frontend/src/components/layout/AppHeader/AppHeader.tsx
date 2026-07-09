@@ -16,8 +16,9 @@ interface AppHeaderProps {
 
 const PAGE_TITLES: Record<string, string> = {
   [ROUTES.DASHBOARD]: 'Dashboard',
+  [ROUTES.PORTFOLIO]: 'Portfolio',
   [ROUTES.REBALANCING]: 'Rebalancing',
-  [ROUTES.SCREENER]: 'Screener',
+  [ROUTES.SCREENER]: 'Stock Matrix',
   [ROUTES.BACKTESTING]: 'Backtesting',
   [ROUTES.WATCHLIST]: 'Watchlist',
   [ROUTES.HISTORY]: 'History',

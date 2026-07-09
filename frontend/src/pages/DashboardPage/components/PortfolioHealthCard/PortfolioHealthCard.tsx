@@ -43,11 +43,11 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
   const bgArcPath = `M ${GAUGE_CX - GAUGE_RADIUS} ${GAUGE_CY} A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 ${GAUGE_CX + GAUGE_RADIUS} ${GAUGE_CY}`;
   const progressArcPath = buildGaugeArcPath(score);
 
-  const isHighRisk = score > 65;
-  const topSector = sectors.reduce(
-    (max, s) => (s.percentage > max.percentage ? s : max),
-    sectors[0]
-  );
+  const isHighRisk = score > 65 && sectors.length > 0;
+  const topSector =
+    sectors.length > 0
+      ? sectors.reduce((max, s) => (s.percentage > max.percentage ? s : max), sectors[0])
+      : null;
 
   return (
     <div className={styles.card}>
@@ -112,7 +112,7 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
           </text>
         </svg>
 
-        {isHighRisk && (
+        {isHighRisk && topSector && (
           <div className={styles.alertBanner}>
             <AlertTriangle size={13} className={styles.alertIcon} />
             <span>

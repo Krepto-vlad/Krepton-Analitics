@@ -7,6 +7,7 @@ export const ROUTES = {
   PRICING: '/pricing',
   SECURITY: '/security',
   DASHBOARD: '/dashboard',
+  PORTFOLIO: '/portfolio',
   REBALANCING: '/rebalancing',
   SCREENER: '/screener',
   BACKTESTING: '/backtesting',
@@ -43,6 +44,9 @@ export const TICKER_CACHE_TTL_MS = 60 * 60 * 1000;
 
 export const CURRENCY_OPTIONS = ['USD', 'EUR'] as const;
 export type Currency = (typeof CURRENCY_OPTIONS)[number];
+
+export const HOLDINGS_PAGE_SIZE = 10;
+export const TRANSACTIONS_PAGE_SIZE = 5;
 
 export const EQUITY_PERIODS = [
   { label: '1W', value: '1W' },

@@ -1,0 +1,586 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+// ─── Panel wrapper ────────────────────────────────────────────────────────────
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding: $space-5;
+}
+
+// ─── Loading / Error states ───────────────────────────────────────────────────
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-3;
+  padding: $space-10 $space-5;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingSpinner {
+  animation: spin 1s linear infinite;
+  color: $color-primary;
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-10 $space-5;
+  text-align: center;
+}
+
+.errorText {
+  color: $color-danger;
+  font-size: $font-size-sm;
+}
+
+// ─── Stats row ────────────────────────────────────────────────────────────────
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-3;
+}
+
+.statCard {
+  @include card($space-4);
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.statCardPositive {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.statCardNegative {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.06em;
+}
+
+.statValue {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+// ─── Charts row ───────────────────────────────────────────────────────────────
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: $space-4;
+  // Height is driven by the donut card content — no fixed constraints
+}
+
+// ─── Mini equity chart ────────────────────────────────────────────────────────
+
+.chartCard {
+  @include card($space-4);
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  overflow: hidden;
+  // Stretches to match the donut card height via CSS grid align-items: stretch
+}
+
+.chartCardHeader {
+  @include flex-between;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.chartCardLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.06em;
+}
+
+.chartCardValue {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+.chartChangeBadge {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  padding: 3px $space-2;
+  border-radius: $radius-full;
+}
+
+.periodSelector {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.periodButton {
+  padding: 3px $space-2;
+  border-radius: $radius-sm;
+  border: none;
+  background: transparent;
+  color: $color-foreground-subtle;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition:
+    color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    color: $color-foreground;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.periodButtonActive {
+  color: $color-primary;
+  background: $color-primary-muted;
+}
+
+.chartContainer {
+  flex: 1;
+  min-height: 180px;
+}
+
+// ─── Donut / Allocation chart ─────────────────────────────────────────────────
+
+.allocationCard {
+  @include card($space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-3;
+}
+
+.allocationTitle {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.06em;
+  align-self: flex-start;
+}
+
+.allocationBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-4;
+  width: 100%;
+}
+
+.donutSvg {
+  flex-shrink: 0;
+}
+
+.allocationLegend {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  width: 100%;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: $radius-full;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  flex: 1;
+  @include truncate;
+}
+
+.legendValue {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  font-family: $font-mono;
+  flex-shrink: 0;
+}
+
+// ─── Holdings table ───────────────────────────────────────────────────────────
+
+.holdingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.holdingsHeader {
+  @include flex-between;
+  gap: $space-3;
+}
+
+.holdingsTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  letter-spacing: -0.01em;
+}
+
+.holdingsActions {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: $space-3;
+  color: $color-foreground-subtle;
+  pointer-events: none;
+}
+
+.searchInput {
+  padding: $space-1 $space-3 $space-1 $space-8;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.03);
+  color: $color-foreground;
+  font-size: $font-size-sm;
+  font-family: $font-family;
+  width: 160px;
+  line-height: 1.5;
+  transition: border-color $transition-fast;
+
+  &::placeholder {
+    color: $color-foreground-subtle;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-border-strong;
+  }
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+  @include custom-scrollbar;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+// ─── Table head ───────────────────────────────────────────────────────────────
+
+.thTicker,
+.thName,
+.thNum,
+.thActions {
+  padding: $space-3 $space-4;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.04em;
+  text-align: left;
+  border-bottom: 1px solid $color-border;
+  white-space: nowrap;
+  background: $color-surface;
+  user-select: none;
+}
+
+.thNum {
+  text-align: right;
+}
+
+.thActions {
+  text-align: center;
+}
+
+.sortable {
+  cursor: pointer;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-foreground-muted;
+  }
+}
+
+.sortActive {
+  color: $color-primary;
+}
+
+// ─── Table rows ───────────────────────────────────────────────────────────────
+
+.tableRow {
+  border-bottom: 1px solid $color-border;
+  transition: background $transition-fast;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+.tdTicker {
+  padding: $space-3 $space-4;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  white-space: nowrap;
+}
+
+.tickerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: $radius-full;
+  flex-shrink: 0;
+}
+
+.tickerSymbol {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+  font-family: $font-mono;
+  letter-spacing: 0.02em;
+}
+
+.tdName {
+  padding: $space-3 $space-4;
+  min-width: 160px;
+}
+
+.companyName {
+  font-size: $font-size-sm;
+  color: $color-foreground;
+  font-weight: $font-weight-medium;
+}
+
+.sectorLabel {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  margin-top: 2px;
+}
+
+.tdNum {
+  padding: $space-3 $space-4;
+  text-align: right;
+  font-size: $font-size-sm;
+  color: $color-foreground; // bright white for all numeric values
+  white-space: nowrap;
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+}
+
+.tdActions {
+  padding: $space-3 $space-4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-sm;
+  border: none;
+  background: transparent;
+  color: $color-foreground-subtle;
+  cursor: pointer;
+  transition:
+    color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: $color-foreground;
+  }
+}
+
+.actionBtnClose {
+  color: #3b82f6;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+  }
+}
+
+.actionBtnDanger {
+  // Always red — no hover needed to understand the intent
+  color: $color-danger;
+
+  &:hover {
+    background: $color-danger-muted;
+    color: $color-danger;
+  }
+}
+
+// ─── Color helpers ────────────────────────────────────────────────────────────
+
+.positive {
+  color: $color-chart-up;
+}
+
+.negative {
+  color: $color-chart-down;
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-4;
+  padding: $space-12 $space-5;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: $radius-xl;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-foreground-subtle;
+}
+
+.emptyTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  letter-spacing: -0.01em;
+}
+
+.emptyText {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  max-width: 340px;
+  line-height: 1.65;
+}
+
+.emptyActions {
+  display: flex;
+  gap: $space-3;
+  margin-top: $space-1;
+}
+
+// ─── Pagination / History ─────────────────────────────────────────────────────
+
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding-top: $space-3;
+}
+
+.inlineLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: $space-6 $space-4;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+}
+
+.emptyHistoryText {
+  padding: $space-5 $space-4;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  text-align: center;
+  border: 1px dashed $color-border;
+  border-radius: $radius-lg;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px $space-2;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.04em;
+}
+
+.typeBadgeBuy {
+  background: rgba(16, 185, 129, 0.15);
+  color: $color-success;
+}
+
+.typeBadgeSell {
+  background: rgba(239, 68, 68, 0.15);
+  color: $color-danger;
+}
+
+.historyTd {
+  padding: $space-3 $space-4;
+  font-size: $font-size-sm;
+  color: $color-foreground;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.historyTdNum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.historyTicker {
+  font-family: $font-mono;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.02em;
+}

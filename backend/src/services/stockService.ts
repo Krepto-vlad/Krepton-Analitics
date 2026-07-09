@@ -1,4 +1,7 @@
 import axios from 'axios';
+import YahooFinance from 'yahoo-finance2';
+
+const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 import {
   StockQuote,
   OhlcvCandle,
@@ -30,15 +33,6 @@ interface YahooQuoteResult {
   currency?: string;
   chartPreviousClose?: number;
   previousClose?: number;
-}
-
-interface YahooChartQuote {
-  date: number;
-  open: number | null;
-  high: number | null;
-  low: number | null;
-  close: number | null;
-  volume: number | null;
 }
 
 interface YahooSearchQuote {
@@ -79,56 +73,50 @@ export async function getStockQuote(ticker: string): Promise<StockQuote> {
   };
 }
 
+/**
+ * Converts a Yahoo Finance "range" string (e.g. '6mo', '1y') into a Date
+ * representing the start of that window relative to now.
+ */
+function periodToStartDate(period: string): Date {
+  const periodDays: Record<string, number> = {
+    '1mo': 30,
+    '3mo': 90,
+    '6mo': 180,
+    '1y': 365,
+    '2y': 730,
+    '5y': 1825,
+  };
+  const days = periodDays[period] ?? 365;
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}
+
 export async function getStockHistory(
   ticker: string,
   period: string,
   interval: string
 ): Promise<StockHistoryResponse> {
-  const { data } = await yahooClient.get('/v8/finance/chart/' + ticker, {
-    params: {
-      interval,
-      range: period,
-      includePrePost: false,
-      events: 'div,split',
-    },
+  const period1 = periodToStartDate(period);
+  const period2 = new Date();
+
+  const rows = await yahooFinance.historical(ticker, {
+    period1: period1.toISOString().slice(0, 10),
+    period2: period2.toISOString().slice(0, 10),
+    interval: interval as '1d' | '1wk' | '1mo',
   });
 
-  const result = data?.chart?.result?.[0];
-  if (!result) throw new Error(`No history found for ticker: ${ticker}`);
+  if (!rows || rows.length === 0) {
+    throw new Error(`No history found for ticker: ${ticker}`);
+  }
 
-  const timestamps: number[] = result.timestamp ?? [];
-  const ohlcv = result.indicators?.quote?.[0] ?? {};
-
-  const opens: (number | null)[] = ohlcv.open ?? [];
-  const highs: (number | null)[] = ohlcv.high ?? [];
-  const lows: (number | null)[] = ohlcv.low ?? [];
-  const closes: (number | null)[] = ohlcv.close ?? [];
-  const volumes: (number | null)[] = ohlcv.volume ?? [];
-
-  const candles: OhlcvCandle[] = timestamps
-    .map(
-      (timestamp, index): YahooChartQuote => ({
-        date: timestamp,
-        open: opens[index] ?? null,
-        high: highs[index] ?? null,
-        low: lows[index] ?? null,
-        close: closes[index] ?? null,
-        volume: volumes[index] ?? null,
-      })
-    )
-    .filter(
-      (
-        quote
-      ): quote is YahooChartQuote & { open: number; high: number; low: number; close: number } =>
-        quote.open !== null && quote.high !== null && quote.low !== null && quote.close !== null
-    )
-    .map((quote) => ({
-      time: quote.date,
-      open: quote.open,
-      high: quote.high,
-      low: quote.low,
-      close: quote.close,
-      volume: quote.volume ?? 0,
+  const candles: OhlcvCandle[] = rows
+    .filter((row) => row.close != null)
+    .map((row) => ({
+      time: Math.floor(new Date(row.date).getTime() / 1000),
+      open: row.open ?? row.close,
+      high: row.high ?? row.close,
+      low: row.low ?? row.close,
+      close: row.close,
+      volume: row.volume ?? 0,
     }));
 
   return { ticker, interval, candles };
@@ -196,6 +184,36 @@ export function initializeTickerTapeScheduler(): ReturnType<typeof setInterval> 
 /** Returns current in-memory cache — always instant, never calls Yahoo Finance. */
 export function getTickerTapeQuotes(): StockQuote[] {
   return tickerTapeData;
+}
+
+/**
+ * Returns sector and industry for a given ticker using Yahoo Finance assetProfile module.
+ * Returns a fallback { sector: 'Other', industry: '' } when the data is unavailable
+ * (e.g. ETFs, indices, or Yahoo API hiccups) — never throws.
+ */
+/**
+ * Returns sector and industry for a given ticker using yahoo-finance2 which
+ * handles Yahoo Finance auth (crumb + cookies) automatically.
+ * Falls back to { sector: 'Other', industry: '' } for ETFs / indices / errors.
+ */
+export async function getStockSector(
+  ticker: string
+): Promise<{ sector: string; industry: string }> {
+  try {
+    const result = (await yahooFinance.quoteSummary(ticker, {
+      modules: ['assetProfile'],
+    })) as { assetProfile?: { sector?: string; industry?: string } };
+
+    const profile = result.assetProfile;
+    const sector = typeof profile?.sector === 'string' && profile.sector ? profile.sector : 'Other';
+    const industry = typeof profile?.industry === 'string' ? profile.industry : '';
+
+    console.log(`[Sector] ${ticker} → ${sector} / ${industry}`);
+    return { sector, industry };
+  } catch (err) {
+    console.warn(`[Sector] ${ticker} fetch failed — fallback "Other":`, (err as Error).message);
+    return { sector: 'Other', industry: '' };
+  }
 }
 
 export async function searchStocks(query: string): Promise<StockSearchResult[]> {

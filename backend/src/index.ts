@@ -8,6 +8,7 @@ import { requestLogger } from './middleware/requestLogger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import stockRoutes from './routes/stockRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import portfolioRoutes from './routes/portfolioRoutes.js';
 import { API_ROUTES } from './constants.js';
 import { initializeTickerTapeScheduler } from './services/stockService.js';
 import { checkDatabaseConnection } from './config/db.js';
@@ -25,6 +26,7 @@ app.get('/health', (_req, res) => {
 
 app.use(API_ROUTES.STOCKS, stockRoutes);
 app.use(API_ROUTES.AUTH, authRoutes);
+app.use(API_ROUTES.PORTFOLIO, portfolioRoutes);
 app.use(errorHandler);
 
 const server = http.createServer(app);

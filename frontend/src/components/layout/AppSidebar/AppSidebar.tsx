@@ -2,12 +2,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
   LayoutDashboard,
+  BriefcaseBusiness,
   Scale,
-  SlidersHorizontal,
+  BarChart3,
   FlaskConical,
   Clock,
   LogOut,
-  Star,
 } from 'lucide-react';
 import { ROUTES } from '../../../constants';
 import { useAppSelector } from '../../../hooks/useAppSelector';
@@ -23,10 +23,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: <LayoutDashboard size={18} />, route: ROUTES.DASHBOARD },
+  { label: 'Portfolio', icon: <BriefcaseBusiness size={18} />, route: ROUTES.PORTFOLIO },
   { label: 'Rebalancing', icon: <Scale size={18} />, route: ROUTES.REBALANCING },
-  { label: 'Screener', icon: <SlidersHorizontal size={18} />, route: ROUTES.SCREENER },
+  { label: 'Stock Matrix', icon: <BarChart3 size={18} />, route: ROUTES.SCREENER },
   { label: 'Backtesting', icon: <FlaskConical size={18} />, route: ROUTES.BACKTESTING },
-  { label: 'Watchlist', icon: <Star size={18} />, route: ROUTES.WATCHLIST },
   { label: 'History', icon: <Clock size={18} />, route: ROUTES.HISTORY },
 ];
 

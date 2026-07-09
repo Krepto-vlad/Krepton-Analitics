@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getQuote,
   getHistory,
+  getSectorForTicker,
   searchTickers,
   getTickerTape,
 } from '../controllers/stockController.js';
@@ -13,6 +14,7 @@ const router = Router();
 router.get('/ticker-tape', getTickerTape);
 router.get('/search', asyncHandler(searchTickers));
 router.get('/quote/:ticker', asyncHandler(getQuote));
+router.get('/sector/:ticker', asyncHandler(getSectorForTicker));
 router.get('/history/:ticker', asyncHandler(getHistory));
 
 export default router;

@@ -29,6 +29,9 @@ const RegisterPage = lazy(() =>
 const DashboardPage = lazy(() =>
   import('../pages/DashboardPage/DashboardPage').then((m) => ({ default: m.DashboardPage }))
 );
+const PortfolioPage = lazy(() =>
+  import('../pages/PortfolioPage/PortfolioPage').then((m) => ({ default: m.PortfolioPage }))
+);
 const RebalancingPage = () => (
   <div style={{ color: '#fff', padding: 40 }}>Rebalancing — coming soon</div>
 );
@@ -90,6 +93,7 @@ function AppRoutes() {
         {/* Protected app — single AppShell, only content changes on navigation */}
         <Route element={<ProtectedLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+          <Route path={ROUTES.PORTFOLIO} element={<PortfolioPage />} />
           <Route path={ROUTES.REBALANCING} element={<RebalancingPage />} />
           <Route path={ROUTES.SCREENER} element={<ScreenerPage />} />
           <Route path={ROUTES.BACKTESTING} element={<BacktestingPage />} />
