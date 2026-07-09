@@ -31,6 +31,11 @@ export interface StockSearchResult {
   type: string;
 }
 
+export interface StockSector {
+  sector: string;
+  industry: string;
+}
+
 export interface ApiSuccessResponse<T> {
   success: true;
   data: T;

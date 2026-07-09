@@ -4,9 +4,12 @@ export interface PortfolioPosition {
   companyName: string;
   shares: number;
   avgBuyPrice: number;
-  entryDate: string; // ISO YYYY-MM-DD
+  entryDate: string | null;
+  // Fetched live from /api/stocks/quote/:ticker after loading stored positions.
+  // Falls back to avgBuyPrice if the quote request fails.
   currentPrice: number;
-  currency: 'USD' | 'EUR';
+  currency: string;
+  sector: string | null;
 }
 
 export interface PortfolioStats {
@@ -46,8 +49,35 @@ export interface EquityDataPoint {
   value: number;
 }
 
+export interface PortfolioTransaction {
+  id: string;
+  ticker: string;
+  companyName: string;
+  shares: number;
+  pricePerShare: number;
+  currency: string;
+  transactionDate: string | null;
+  transactionType: 'BUY' | 'SELL';
+  createdAt: string;
+}
+
+export interface InvestmentSummary {
+  totalInvested: number;
+  totalWithdrawn: number;
+}
+
 export interface PortfolioState {
   positions: PortfolioPosition[];
+  positionsTotal: number;
+  positionsHasMore: boolean;
+  isLoadingMorePositions: boolean;
+  summaryPositions: PortfolioPosition[];
+  investmentSummary: InvestmentSummary;
+  transactions: PortfolioTransaction[];
+  transactionsTotal: number;
+  transactionsHasMore: boolean;
+  isLoadingTransactions: boolean;
+  isLoadingMoreTransactions: boolean;
   stats: PortfolioStats;
   sectorAllocations: SectorAllocation[];
   watchlist: WatchlistItem[];

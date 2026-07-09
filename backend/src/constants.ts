@@ -21,6 +21,7 @@ export const SEARCH_RESULTS_LIMIT = 10;
 export const API_ROUTES = {
   STOCKS: '/api/stocks',
   AUTH: '/api/auth',
+  PORTFOLIO: '/api/portfolio',
 } as const;
 
 export const WS_QUOTE_POLL_INTERVAL_MS = 5000;
@@ -35,6 +36,22 @@ export const JWT_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
 // Rate limiting on auth endpoints: max 10 attempts per 15 minutes
 export const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AUTH_RATE_LIMIT_MAX_REQUESTS = 10;
+
+// Rate limiting on portfolio write endpoints: max 60 writes per 15 minutes
+export const PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS = 60;
+
+// Portfolio input validation limits
+export const TICKER_MAX_LENGTH = 10;
+export const COMPANY_NAME_MAX_LENGTH = 255;
+export const MAX_SHARES = 999_999_999;
+export const MAX_PRICE = 999_999_999;
+export const ALLOWED_CURRENCIES: ReadonlyArray<string> = ['USD', 'EUR'] as const;
+
+// Portfolio pagination defaults
+export const HOLDINGS_PAGE_SIZE = 10;
+export const TRANSACTIONS_PAGE_SIZE = 5;
+export const MAX_PAGE_SIZE = 50;
 
 // Ticker tape is fetched once on startup and refreshed in the background every 24h.
 // This means 0 Yahoo Finance calls per user request.

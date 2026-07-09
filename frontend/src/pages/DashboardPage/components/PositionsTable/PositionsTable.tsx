@@ -44,7 +44,8 @@ function formatPnlPercent(value: number): string {
   return `${prefix}${value.toFixed(2)}%`;
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',
     month: '2-digit',

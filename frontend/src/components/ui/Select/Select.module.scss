@@ -1,0 +1,136 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-muted;
+}
+
+.selectWrap {
+  position: relative;
+}
+
+.selectWrapOpen .trigger {
+  border-color: $color-primary;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: $color-surface-elevated;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  color: $color-foreground;
+  font-family: $font-family;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  padding: $space-2 $space-3;
+  cursor: pointer;
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
+
+  &:hover:not(:disabled) {
+    border-color: $color-border-strong;
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.triggerValue {
+  text-align: left;
+}
+
+.chevron {
+  color: $color-foreground-muted;
+  flex-shrink: 0;
+  transition: transform $transition-fast;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: $space-1;
+  list-style: none;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  z-index: 1010;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  @include custom-scrollbar;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-foreground;
+  font-family: $font-family;
+  font-size: $font-size-sm;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    box-shadow $transition-fast;
+
+  // Hover / keyboard focus — neutral elevated background
+  &:hover:not(.optionSelected),
+  &.optionHighlighted:not(.optionSelected) {
+    background: $color-surface-elevated;
+  }
+
+  // Currently selected value — subtle green tint + checkmark
+  &.optionSelected {
+    background: $color-primary-muted;
+    color: $color-foreground;
+    box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.25);
+  }
+
+  // Selected item under cursor — slightly stronger green, still distinct from hover
+  &.optionSelected:hover,
+  &.optionSelected.optionHighlighted {
+    background: rgba(16, 185, 129, 0.2);
+    box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.4);
+  }
+}
+
+.checkIcon {
+  flex-shrink: 0;
+  color: $color-primary;
+}

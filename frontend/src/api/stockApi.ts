@@ -5,6 +5,7 @@ import type {
   StockQuote,
   StockHistoryResponse,
   StockSearchResult,
+  StockSector,
 } from '../types/stock.types';
 
 const apiClient = axios.create({
@@ -41,4 +42,9 @@ export async function fetchStockSearch(query: string): Promise<StockSearchResult
 export async function fetchTickerTape(): Promise<StockQuote[]> {
   const { data } = await apiClient.get('/ticker-tape');
   return assertSuccess<StockQuote[]>(data);
+}
+
+export async function fetchStockSector(ticker: string): Promise<StockSector> {
+  const { data } = await apiClient.get(`/sector/${ticker}`);
+  return assertSuccess<StockSector>(data);
 }
