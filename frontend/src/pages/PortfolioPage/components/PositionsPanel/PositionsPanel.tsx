@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Trash2, HandCoins, Search, TrendingUp, ArrowUpDown, Loader } from 'lucide-react';
 import { Button } from '../../../../components/ui';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
@@ -332,14 +332,6 @@ export function PositionsPanel() {
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [buysRefreshKey, setBuysRefreshKey] = useState(0);
   const [closeTarget, setCloseTarget] = useState<PortfolioPosition | null>(null);
-
-  useEffect(() => {
-    void dispatch(fetchPortfolioSummaryThunk());
-    void dispatch(fetchInvestmentSummaryThunk());
-    void dispatch(fetchPositionsPageThunk({ offset: 0, append: false }));
-    void dispatch(fetchTransactionsPageThunk({ offset: 0, append: false }));
-    void dispatch(fetchPortfolioEquityHistoryThunk());
-  }, [dispatch]);
 
   const computedSummaryPositions = useMemo(() => {
     return summaryPositions.map((position) => {

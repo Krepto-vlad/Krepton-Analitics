@@ -1,0 +1,318 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+// ─── Overlay ──────────────────────────────────────────────────────────────────
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $space-4;
+}
+
+// ─── Modal card ───────────────────────────────────────────────────────────────
+
+.modal {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-xl;
+  padding: $space-6;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 32px 96px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-5;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: $radius-md;
+  background: transparent;
+  border: 1px solid transparent;
+  color: $color-danger;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    color $transition-fast,
+    border-color $transition-fast;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.25);
+    color: #f87171;
+  }
+}
+
+// ─── Form ────────────────────────────────────────────────────────────────────
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-muted;
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+// ─── Shared input styles ──────────────────────────────────────────────────────
+
+%input-base {
+  width: 100%;
+  background: $color-surface-elevated;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  color: $color-foreground;
+  font-family: $font-family;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  padding: $space-2 $space-3;
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
+  appearance: none;
+
+  &::placeholder {
+    color: $color-foreground-muted;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  }
+}
+
+.input {
+  @extend %input-base;
+
+  /* Remove number arrows (Chrome/Safari) */
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  /* Remove number arrows (Firefox) */
+  &[type='number'] {
+    appearance: textfield;
+  }
+
+  /* Date input calendar icon color */
+  &[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+  }
+}
+
+// ─── Ticker search ────────────────────────────────────────────────────────────
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: $space-3;
+  color: $color-foreground-muted;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  @extend %input-base;
+  padding-left: calc(#{$space-3} + 14px + #{$space-2});
+  padding-right: $space-8;
+
+  &.searchInputSelected {
+    border-color: $color-success;
+    color: $color-foreground;
+  }
+}
+
+.searchSpinner {
+  position: absolute;
+  right: $space-3;
+  color: $color-foreground-muted;
+  animation: spin 0.8s linear infinite;
+}
+
+.searchCheck {
+  position: absolute;
+  right: $space-3;
+  color: $color-success;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ─── Search dropdown ──────────────────────────────────────────────────────────
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  list-style: none;
+  margin: 0;
+  padding: $space-1;
+  z-index: 1010;
+  overflow: hidden;
+
+  @include custom-scrollbar;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: baseline;
+  gap: $space-2;
+  width: 100%;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-surface-elevated;
+  }
+}
+
+.dropdownTicker {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+}
+
+.dropdownName {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdownExchange {
+  font-size: 11px;
+  color: $color-foreground-subtle;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+// ─── Inline spinner (for price loading label) ─────────────────────────────────
+
+.inlineSpinner {
+  animation: spin 0.8s linear infinite;
+  color: $color-foreground-muted;
+}
+
+// ─── Total cost preview ───────────────────────────────────────────────────────
+
+.totalPreview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-3 $space-4;
+  background: $color-primary-muted;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: $radius-md;
+}
+
+.totalLabel {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+.totalValue {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  font-variant-numeric: tabular-nums;
+}
+
+// ─── Error ────────────────────────────────────────────────────────────────────
+
+.errorText {
+  font-size: $font-size-sm;
+  color: $color-danger;
+  margin: 0;
+}
+
+// ─── Actions ─────────────────────────────────────────────────────────────────
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-2;
+  padding-top: $space-2;
+}
+
+.cancelButton {
+  color: $color-danger;
+
+  &:hover:not(:disabled) {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.12);
+  }
+}

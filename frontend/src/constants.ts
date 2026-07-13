@@ -40,6 +40,17 @@ export const DEFAULT_INTERVAL = '1d';
 
 export const WS_RECONNECT_DELAY_MS = 3000;
 
+// Scope-gated on the frontend: polling runs only while the matching view is mounted.
+// See livePollingSlice + useLivePollingScope.
+
+// Keep in sync with backend YAHOO_QUOTE_CACHE_TTL_MS (30s).
+export const WATCHLIST_CLIENT_POLL_INTERVAL_MS = 30_000;
+export const HOLDINGS_CLIENT_POLL_INTERVAL_MS = 30_000;
+
+// Leader tab heartbeat — only one browser tab polls per user session.
+export const TAB_LEADER_HEARTBEAT_MS = 2_000;
+export const TAB_LEADER_TTL_MS = 5_000;
+
 export const TICKER_CACHE_TTL_MS = 60 * 60 * 1000;
 
 export const CURRENCY_OPTIONS = ['USD', 'EUR'] as const;

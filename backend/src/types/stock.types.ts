@@ -7,6 +7,8 @@ export interface StockQuote {
   volume: number;
   marketCap: number | null;
   currency: string;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
 }
 
 export interface OhlcvCandle {

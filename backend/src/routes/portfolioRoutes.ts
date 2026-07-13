@@ -13,6 +13,11 @@ import {
   deleteTransaction,
   postClosePosition,
 } from '../controllers/portfolioController.js';
+import {
+  getWatchlist,
+  postWatchlistItem,
+  deleteWatchlistItemHandler,
+} from '../controllers/watchlistController.js';
 import rateLimit from 'express-rate-limit';
 import {
   PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS,
@@ -37,6 +42,13 @@ router.get('/', asyncHandler(getPositions));
 router.get('/transactions', asyncHandler(getTransactions));
 router.get('/equity-history', asyncHandler(getEquityHistory));
 router.get('/investment-summary', asyncHandler(getInvestmentSummaryHandler));
+router.get('/watchlist', asyncHandler(getWatchlist));
+router.post('/watchlist', portfolioWriteLimiter, asyncHandler(postWatchlistItem));
+router.delete(
+  '/watchlist/:itemId',
+  portfolioWriteLimiter,
+  asyncHandler(deleteWatchlistItemHandler)
+);
 router.get('/buys/:ticker', asyncHandler(getBuyTransactions));
 router.delete(
   '/transactions/:transactionId',

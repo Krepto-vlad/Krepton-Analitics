@@ -23,6 +23,20 @@ export async function fetchStockQuote(ticker: string): Promise<StockQuote> {
   return assertSuccess<StockQuote>(data);
 }
 
+export async function fetchStockQuotesBatch(tickers: string[]): Promise<StockQuote[]> {
+  const normalizedTickers = [...new Set(tickers.map((ticker) => ticker.toUpperCase()))].sort();
+
+  if (normalizedTickers.length === 0) {
+    return [];
+  }
+
+  const { data } = await apiClient.get('/quotes', {
+    params: { tickers: normalizedTickers.join(',') },
+  });
+
+  return assertSuccess<StockQuote[]>(data);
+}
+
 export async function fetchStockHistory(
   ticker: string,
   period: string,

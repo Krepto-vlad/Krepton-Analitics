@@ -118,8 +118,6 @@ const TECH_CARDS: TechCard[] = [
     iconBg: 'rgba(16,185,129,0.10)',
     iconColor: '#10B981',
     title: 'AI Feature Privacy',
-    description:
-      'AI-powered insights use only anonymised, aggregated portfolio metrics — no raw transaction data or personal identifiers are sent to any external model. Rate limiting is enforced per account to prevent bulk data extraction.',
     body: 'AI-powered insights use only anonymised, aggregated portfolio metrics — ticker symbols, weights, and basic statistics. No raw transaction details or personal identifiers are ever sent to an external model. All AI calls are rate-limited per account.',
     tags: ['Anonymised metrics only', 'No raw transactions', 'Rate limited', 'No PII to AI'],
   },

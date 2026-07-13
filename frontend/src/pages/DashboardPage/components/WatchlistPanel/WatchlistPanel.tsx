@@ -1,5 +1,5 @@
 import { Radio } from 'lucide-react';
-import type { WatchlistItem } from '../../../../types/portfolio.types';
+import type { WatchlistItem } from '../../../../types/watchlist.types';
 import styles from './WatchlistPanel.module.scss';
 
 interface WatchlistPanelProps {
@@ -28,7 +28,7 @@ export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
       <div className={styles.cardHeader}>
         <div className={styles.headerLeft}>
           <span className={styles.cardLabel}>REAL-TIME FEED</span>
-          <span className={styles.cardTitle}>Watchlist &amp; Alerts</span>
+          <span className={styles.cardTitle}>Watchlist</span>
         </div>
         <div className={styles.liveClock}>
           <Radio size={12} className={styles.liveIcon} />
@@ -38,45 +38,45 @@ export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
 
       <div className={styles.divider} />
 
-      <div className={styles.headerRow}>
-        <span className={styles.colTicker}>TICKER</span>
-        <span className={styles.colPrice}>PRICE</span>
-        <span className={styles.colChange}>CHANGE</span>
-        <span className={styles.colAlert}>ALERT</span>
-      </div>
+      {watchlist.length === 0 ? (
+        <p className={styles.emptyText}>No tickers in your watchlist yet.</p>
+      ) : (
+        <>
+          <div className={styles.headerRow}>
+            <span className={styles.colTicker}>TICKER</span>
+            <span className={styles.colPrice}>PRICE</span>
+            <span className={styles.colChange}>CHANGE</span>
+          </div>
 
-      <div className={styles.list}>
-        {watchlist.map((item) => {
-          const isPositive = item.changePercent >= 0;
-          return (
-            <div key={item.ticker} className={styles.item}>
-              <div className={styles.itemTicker}>
-                <div className={styles.tickerAvatar}>{item.ticker.slice(0, 2)}</div>
-                <div className={styles.tickerInfo}>
-                  <span className={styles.tickerSymbol}>${item.ticker}</span>
-                  <span className={styles.companyName}>{item.companyName}</span>
-                </div>
-              </div>
-              <span className={styles.itemPrice}>{formatPrice(item.price, currency)}</span>
-              <span
-                className={`${styles.itemChange} ${isPositive ? styles.positive : styles.negative}`}
-              >
-                {isPositive ? '+' : ''}
-                {item.changePercent.toFixed(2)}%
-              </span>
-              <div className={styles.itemAlert}>
-                {item.alertType && (
-                  <span
-                    className={`${styles.alertBadge} ${item.alertType === 'BUY' ? styles.buyAlert : styles.sellAlert}`}
-                  >
-                    {item.alertType}
+          <div className={styles.list}>
+            {watchlist.map((item) => {
+              const isPositive = item.changePercent >= 0;
+              const displayCurrency = currency || item.currency;
+
+              return (
+                <div key={item.id} className={styles.item}>
+                  <div className={styles.itemTicker}>
+                    <div className={styles.tickerAvatar}>{item.ticker.slice(0, 2)}</div>
+                    <div className={styles.tickerInfo}>
+                      <span className={styles.tickerSymbol}>{item.ticker}</span>
+                      <span className={styles.companyName}>{item.companyName}</span>
+                    </div>
+                  </div>
+                  <span className={styles.itemPrice}>
+                    {formatPrice(item.price, displayCurrency)}
                   </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                  <span
+                    className={`${styles.itemChange} ${isPositive ? styles.positive : styles.negative}`}
+                  >
+                    {isPositive ? '+' : ''}
+                    {item.changePercent.toFixed(2)}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

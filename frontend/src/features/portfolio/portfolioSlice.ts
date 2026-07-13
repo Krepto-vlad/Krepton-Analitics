@@ -21,7 +21,9 @@ import type {
   StoredPosition,
   InvestmentSummary,
 } from '../../api/portfolioApi';
-import { fetchStockQuote } from '../../api/stockApi';
+import { fetchStockQuotesBatch } from '../../api/stockApi';
+import type { StockQuote } from '../../types/stock.types';
+import type { RootState } from '../../store';
 import { HOLDINGS_PAGE_SIZE, TRANSACTIONS_PAGE_SIZE } from '../../constants';
 
 // ─── Equity history (simulated — dashboard placeholder) ───────────────────────
@@ -62,15 +64,11 @@ async function enrichStoredPositions(stored: StoredPosition[]): Promise<Portfoli
   if (stored.length === 0) return [];
 
   const uniqueTickers = [...new Set(stored.map((position) => position.ticker))];
-  const priceResults = await Promise.allSettled(
-    uniqueTickers.map((ticker) => fetchStockQuote(ticker))
-  );
+  const quoteResults = await fetchStockQuotesBatch(uniqueTickers);
 
   const priceMap: Record<string, number> = {};
-  priceResults.forEach((result, index) => {
-    if (result.status === 'fulfilled') {
-      priceMap[uniqueTickers[index]] = result.value.price;
-    }
+  quoteResults.forEach((quote) => {
+    priceMap[quote.ticker] = quote.price;
   });
 
   return stored.map(
@@ -86,6 +84,23 @@ async function enrichStoredPositions(stored: StoredPosition[]): Promise<Portfoli
       currentPrice: priceMap[storedPosition.ticker] ?? storedPosition.avgBuyPrice,
     })
   );
+}
+
+function mergeQuotePricesIntoPositions(
+  positions: PortfolioPosition[],
+  quotes: StockQuote[]
+): PortfolioPosition[] {
+  const priceMap = new Map(quotes.map((quote) => [quote.ticker, quote.price]));
+
+  return positions.map((position) => ({
+    ...position,
+    currentPrice: priceMap.get(position.ticker) ?? position.currentPrice,
+  }));
+}
+
+export interface HoldingsQuotesSyncPayload {
+  summaryPositions: PortfolioPosition[];
+  positions: PortfolioPosition[];
 }
 
 async function refreshPortfolioData(dispatch: (action: unknown) => unknown): Promise<void> {
@@ -190,6 +205,36 @@ export const fetchPortfolioEquityHistoryThunk = createAsyncThunk<
   }
 });
 
+export const refreshHoldingsQuotesThunk = createAsyncThunk<
+  HoldingsQuotesSyncPayload,
+  void,
+  { rejectValue: string; state: RootState }
+>('portfolio/refreshQuotes', async (_, { getState, rejectWithValue }) => {
+  try {
+    const { summaryPositions, positions } = getState().portfolio;
+
+    if (summaryPositions.length === 0 && positions.length === 0) {
+      return { summaryPositions: [], positions: [] };
+    }
+
+    const uniqueTickers = [
+      ...new Set([
+        ...summaryPositions.map((position) => position.ticker),
+        ...positions.map((position) => position.ticker),
+      ]),
+    ];
+
+    const quotes = await fetchStockQuotesBatch(uniqueTickers);
+
+    return {
+      summaryPositions: mergeQuotePricesIntoPositions(summaryPositions, quotes),
+      positions: mergeQuotePricesIntoPositions(positions, quotes),
+    };
+  } catch {
+    return rejectWithValue('Failed to refresh holdings quotes');
+  }
+});
+
 export const deletePositionThunk = createAsyncThunk<string, string, { rejectValue: string }>(
   'portfolio/deletePosition',
   async (positionId, { dispatch, rejectWithValue }) => {
@@ -271,50 +316,6 @@ const initialState: PortfolioState = {
     { sector: 'Industrials', percentage: 4, color: '#3b82f6' },
     { sector: 'Energy', percentage: 4, color: '#8b5cf6' },
   ],
-  watchlist: [
-    {
-      ticker: 'AAPL',
-      companyName: 'Apple Inc.',
-      price: 213.4,
-      changePercent: 2.15,
-      alertType: 'BUY',
-    },
-    {
-      ticker: 'SBER',
-      companyName: 'Sberbank PJSC',
-      price: 3.15,
-      changePercent: -0.32,
-      alertType: 'SELL',
-    },
-    {
-      ticker: 'MSFT',
-      companyName: 'Microsoft Corp.',
-      price: 447.98,
-      changePercent: -0.09,
-      alertType: null,
-    },
-    {
-      ticker: 'NVDA',
-      companyName: 'Nvidia Corp.',
-      price: 875.48,
-      changePercent: 1.9,
-      alertType: 'BUY',
-    },
-    {
-      ticker: 'GAZP',
-      companyName: 'Gazprom PAO',
-      price: 1.48,
-      changePercent: -8.72,
-      alertType: 'SELL',
-    },
-    {
-      ticker: 'GOOGL',
-      companyName: 'Alphabet Inc.',
-      price: 168.78,
-      changePercent: 3.47,
-      alertType: null,
-    },
-  ],
   news: [
     {
       id: '1',
@@ -375,7 +376,14 @@ const initialState: PortfolioState = {
 const portfolioSlice = createSlice({
   name: 'portfolio',
   initialState,
-  reducers: {},
+  reducers: {
+    syncHoldingsQuotes: (state, action: { payload: HoldingsQuotesSyncPayload }) => {
+      state.summaryPositions = action.payload.summaryPositions;
+      state.positions = action.payload.positions;
+      state.isLoading = false;
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchPortfolioPositionsThunk.pending, (state) => {
@@ -451,8 +459,16 @@ const portfolioSlice = createSlice({
         if (action.payload.length > 0) {
           state.equityHistory = action.payload;
         }
+      })
+      .addCase(refreshHoldingsQuotesThunk.fulfilled, (state, action) => {
+        state.summaryPositions = action.payload.summaryPositions;
+        state.positions = action.payload.positions;
+      })
+      .addCase(refreshHoldingsQuotesThunk.rejected, (state, action) => {
+        state.error = action.payload ?? 'Unknown error';
       });
   },
 });
 
+export const { syncHoldingsQuotes } = portfolioSlice.actions;
 export const portfolioReducer = portfolioSlice.reducer;

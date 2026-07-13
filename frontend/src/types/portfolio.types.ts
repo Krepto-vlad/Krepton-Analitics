@@ -28,14 +28,6 @@ export interface SectorAllocation {
   color: string;
 }
 
-export interface WatchlistItem {
-  ticker: string;
-  companyName: string;
-  price: number;
-  changePercent: number;
-  alertType: 'BUY' | 'SELL' | null;
-}
-
 export interface NewsItem {
   id: string;
   tickers: string[];
@@ -80,7 +72,6 @@ export interface PortfolioState {
   isLoadingMoreTransactions: boolean;
   stats: PortfolioStats;
   sectorAllocations: SectorAllocation[];
-  watchlist: WatchlistItem[];
   news: NewsItem[];
   equityHistory: EquityDataPoint[];
   isLoading: boolean;

@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import {
   getStockQuote,
+  getStockQuotes,
   getStockHistory,
   getStockSector,
   searchStocks,
@@ -11,6 +12,8 @@ import {
   HISTORICAL_DATA_PERIODS,
   HISTORICAL_DATA_INTERVALS,
   TICKER_TAPE_BROWSER_CACHE_TTL_S,
+  QUOTE_BATCH_BROWSER_CACHE_TTL_S,
+  YAHOO_QUOTE_BATCH_MAX_SIZE,
 } from '../constants.js';
 import type {
   ApiResponse,
@@ -30,6 +33,41 @@ export async function getQuote(
   const ticker = (req.params as { ticker: string }).ticker;
   const quote = await getStockQuote(ticker.toUpperCase());
   res.json({ success: true, data: quote });
+}
+
+export async function getQuotes(
+  req: Request,
+  res: Response<ApiResponse<StockQuote[]>>
+): Promise<void> {
+  const rawTickers = req.query.tickers as string | undefined;
+
+  if (!rawTickers || rawTickers.trim().length === 0) {
+    throw new AppError(400, 'Query parameter "tickers" is required');
+  }
+
+  const tickers = [
+    ...new Set(
+      rawTickers
+        .split(',')
+        .map((ticker) => ticker.trim().toUpperCase())
+        .filter((ticker) => ticker.length > 0)
+    ),
+  ];
+
+  if (tickers.length === 0) {
+    throw new AppError(400, 'At least one ticker is required');
+  }
+
+  if (tickers.length > YAHOO_QUOTE_BATCH_MAX_SIZE) {
+    throw new AppError(
+      400,
+      `Cannot request more than ${YAHOO_QUOTE_BATCH_MAX_SIZE} tickers at once`
+    );
+  }
+
+  const quotes = await getStockQuotes(tickers);
+  res.set('Cache-Control', `private, max-age=${QUOTE_BATCH_BROWSER_CACHE_TTL_S}`);
+  res.json({ success: true, data: quotes });
 }
 
 export async function getHistory(

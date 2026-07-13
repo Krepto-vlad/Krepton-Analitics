@@ -1,7 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { LayoutList, Star, Upload, CloudUpload, Plus, Eye, EyeOff, ArrowUp } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { LayoutList, Star, Upload, CloudUpload, ArrowUp } from 'lucide-react';
 import { Button } from '../../components/ui';
+import { useLivePollingScope } from '../../hooks/useLivePollingScope';
+import type { LivePollingScope } from '../../features/livePolling/livePollingSlice';
 import { PositionsPanel } from './components/PositionsPanel/PositionsPanel';
+import { WatchlistPanel } from './components/WatchlistPanel/WatchlistPanel';
 import styles from './PortfolioPage.module.scss';
 
 type PortfolioSection = 'positions' | 'watchlist' | 'importer';
@@ -146,49 +149,6 @@ function BrokerImporterPanel() {
   );
 }
 
-function WatchlistPanel() {
-  const [isHidden, setIsHidden] = useState(false);
-
-  return (
-    <div className={styles.panelContent}>
-      <div className={styles.panelHeader}>
-        <div className={styles.panelHeaderIcon}>
-          <Star size={16} />
-        </div>
-        <div>
-          <h2 className={styles.panelTitle}>Watchlist</h2>
-          <p className={styles.panelSubtitle}>Monitor stocks you&apos;re interested in</p>
-        </div>
-        <div className={styles.panelHeaderActions}>
-          <button
-            className={styles.iconButton}
-            onClick={() => setIsHidden((prev) => !prev)}
-            title={isHidden ? 'Show prices' : 'Hide prices'}
-          >
-            {isHidden ? <EyeOff size={15} /> : <Eye size={15} />}
-          </button>
-          <Button variant="primary" size="sm" leftIcon={<Plus size={13} />}>
-            Add Ticker
-          </Button>
-        </div>
-      </div>
-
-      <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>
-          <Star size={28} />
-        </div>
-        <h3 className={styles.emptyTitle}>Watchlist is empty</h3>
-        <p className={styles.emptyText}>
-          Add tickers you want to follow. You&apos;ll see live price updates and alerts here.
-        </p>
-        <Button variant="primary" leftIcon={<Plus size={14} />}>
-          Add Ticker
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 const PANEL_MAP: Record<PortfolioSection, React.ReactNode> = {
   positions: <PositionsPanel />,
   watchlist: <WatchlistPanel />,
@@ -202,13 +162,21 @@ export function PortfolioPage() {
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const mainContentRef = useRef<HTMLElement>(null);
 
+  const activePollingScope = useMemo<LivePollingScope | null>(() => {
+    if (activeSection === 'positions') return 'holdings';
+    if (activeSection === 'watchlist') return 'watchlist';
+    return null;
+  }, [activeSection]);
+
+  useLivePollingScope(activePollingScope);
+
   useEffect(() => {
     const scrollContainer = mainContentRef.current;
     if (!scrollContainer) return;
 
-    function handleScroll() {
+    const handleScroll = (): void => {
       setShowScrollToTop(scrollContainer.scrollTop > SCROLL_TO_TOP_THRESHOLD_PX);
-    }
+    };
 
     handleScroll();
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });

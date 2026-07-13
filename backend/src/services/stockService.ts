@@ -9,6 +9,7 @@ import {
   StockSearchResult,
 } from '../types/stock.types.js';
 import { SEARCH_RESULTS_LIMIT } from '../constants.js';
+import { getCachedStockQuote, getCachedStockQuotes } from './quoteCacheService.js';
 
 const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com';
 
@@ -21,20 +22,6 @@ const yahooClient = axios.create({
   timeout: 10000,
 });
 
-interface YahooQuoteResult {
-  symbol: string;
-  longName?: string;
-  shortName?: string;
-  regularMarketPrice?: number;
-  regularMarketChange?: number;
-  regularMarketChangePercent?: number;
-  regularMarketVolume?: number;
-  marketCap?: number;
-  currency?: string;
-  chartPreviousClose?: number;
-  previousClose?: number;
-}
-
 interface YahooSearchQuote {
   symbol: string;
   longname?: string;
@@ -45,32 +32,15 @@ interface YahooSearchQuote {
 }
 
 export async function getStockQuote(ticker: string): Promise<StockQuote> {
-  const { data } = await yahooClient.get('/v8/finance/chart/' + ticker, {
-    params: { interval: '1d', range: '1d', includePrePost: false },
-  });
+  const quote = await getCachedStockQuote(ticker.toUpperCase());
+  if (quote.price <= 0) {
+    throw new Error(`No data found for ticker: ${ticker}`);
+  }
+  return quote;
+}
 
-  const meta = data?.chart?.result?.[0]?.meta as YahooQuoteResult;
-  if (!meta) throw new Error(`No data found for ticker: ${ticker}`);
-
-  const currentPrice = meta.regularMarketPrice ?? 0;
-  const previousClose = meta.chartPreviousClose ?? meta.previousClose ?? 0;
-
-  const change = previousClose > 0 ? currentPrice - previousClose : (meta.regularMarketChange ?? 0);
-  const changePercent =
-    previousClose > 0
-      ? ((currentPrice - previousClose) / previousClose) * 100
-      : (meta.regularMarketChangePercent ?? 0);
-
-  return {
-    ticker: meta.symbol ?? ticker,
-    name: meta.longName ?? meta.shortName ?? ticker,
-    price: currentPrice,
-    change,
-    changePercent,
-    volume: meta.regularMarketVolume ?? 0,
-    marketCap: meta.marketCap ?? null,
-    currency: meta.currency ?? 'USD',
-  };
+export async function getStockQuotes(tickers: string[]): Promise<StockQuote[]> {
+  return getCachedStockQuotes(tickers.map((ticker) => ticker.toUpperCase()));
 }
 
 /**
@@ -140,6 +110,8 @@ function buildFallbackQuote(symbol: string): StockQuote {
     volume: 0,
     marketCap: null,
     currency: 'USD',
+    fiftyTwoWeekHigh: null,
+    fiftyTwoWeekLow: null,
   };
 }
 
@@ -147,21 +119,18 @@ function buildFallbackQuote(symbol: string): StockQuote {
 let tickerTapeData: StockQuote[] = TICKER_TAPE_SYMBOLS.map(buildFallbackQuote);
 
 async function refreshTickerTape(): Promise<void> {
-  const results = await Promise.allSettled(
-    TICKER_TAPE_SYMBOLS.map((symbol) => getStockQuote(symbol))
-  );
+  try {
+    const fresh = await getCachedStockQuotes(TICKER_TAPE_SYMBOLS);
+    const successCount = fresh.filter((quote) => quote.price > 0).length;
 
-  const fresh: StockQuote[] = results.map((result, index) =>
-    result.status === 'fulfilled' ? result.value : buildFallbackQuote(TICKER_TAPE_SYMBOLS[index])
-  );
-
-  // Only replace cache if at least one symbol fetched successfully
-  const successCount = results.filter((r) => r.status === 'fulfilled').length;
-  if (successCount > 0) {
-    tickerTapeData = fresh;
-    console.log(`[TickerTape] Refreshed ${successCount}/${TICKER_TAPE_SYMBOLS.length} symbols`);
-  } else {
-    console.warn('[TickerTape] All fetches failed — keeping previous data');
+    if (successCount > 0) {
+      tickerTapeData = fresh;
+      console.log(`[TickerTape] Refreshed ${successCount}/${TICKER_TAPE_SYMBOLS.length} symbols`);
+    } else {
+      console.warn('[TickerTape] All fetches failed — keeping previous data');
+    }
+  } catch (error) {
+    console.warn('[TickerTape] Refresh failed — keeping previous data:', (error as Error).message);
   }
 }
 

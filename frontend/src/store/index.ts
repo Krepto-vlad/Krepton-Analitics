@@ -1,12 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authReducer } from '../features/auth/authSlice';
 import { portfolioReducer } from '../features/portfolio/portfolioSlice';
+import { watchlistReducer } from '../features/watchlist/watchlistSlice';
+import { livePollingReducer } from '../features/livePolling/livePollingSlice';
 import { uiReducer } from '../features/ui/uiSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     portfolio: portfolioReducer,
+    watchlist: watchlistReducer,
+    livePolling: livePollingReducer,
     ui: uiReducer,
   },
 });

@@ -4,6 +4,8 @@ import { ROUTES } from '../constants';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 import { useAppSelector } from '../hooks/useAppSelector';
 import { fetchCurrentUserThunk } from '../features/auth/authSlice';
+import { useWatchlistPolling } from '../hooks/useWatchlistPolling';
+import { useHoldingsPolling } from '../hooks/useHoldingsPolling';
 import { AppShell } from '../components/layout';
 
 const LandingPage = lazy(() =>
@@ -59,6 +61,17 @@ function PageLoader() {
   );
 }
 
+function AuthenticatedShell() {
+  useWatchlistPolling();
+  useHoldingsPolling();
+
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}
+
 // Single AppShell instance for all protected pages — sidebar state persists across navigation
 function ProtectedLayout() {
   const { user, isInitialized } = useAppSelector((state) => state.auth);
@@ -66,11 +79,7 @@ function ProtectedLayout() {
   if (!isInitialized) return <PageLoader />;
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
 
-  return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  );
+  return <AuthenticatedShell />;
 }
 
 function AppRoutes() {
