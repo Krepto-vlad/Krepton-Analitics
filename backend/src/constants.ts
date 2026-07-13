@@ -24,8 +24,29 @@ export const API_ROUTES = {
   PORTFOLIO: '/api/portfolio',
 } as const;
 
-export const WS_QUOTE_POLL_INTERVAL_MS = 5000;
+export const WS_QUOTE_POLL_INTERVAL_MS = 30_000;
 export const WS_MAX_SUBSCRIPTIONS_PER_CLIENT = 5;
+
+// ─── Yahoo Finance quote cache (shared by watchlist, portfolio, modals, WS) ───
+// All on-demand quote reads go through one in-memory cache on the server.
+// Tune TTL to balance freshness vs. Yahoo rate limits (unofficial API, IP-based).
+export const YAHOO_QUOTE_CACHE_TTL_MS = 30_000;
+
+// Max symbols per Yahoo batch request (watchlist cap matches MAX_WATCHLIST_ITEMS).
+export const YAHOO_QUOTE_BATCH_MAX_SIZE = 50;
+
+// Soft global budget for Yahoo outbound calls per minute (all features combined).
+// Leaves headroom for history, search, sector, and future modules.
+export const YAHOO_EXTERNAL_CALLS_BUDGET_PER_MINUTE = 20;
+
+// Minimum gap between Yahoo batch fetches to avoid burst traffic.
+export const YAHOO_QUOTE_MIN_FETCH_GAP_MS = 10_000;
+
+// Browser HTTP cache for batch quotes GET — deduplicates polls across tabs.
+export const QUOTE_BATCH_BROWSER_CACHE_TTL_S = 25;
+
+// Client poll intervals are configured on the frontend (watchlist + holdings).
+// Both features share this server cache and Yahoo budget.
 
 // Auth
 export const BCRYPT_SALT_ROUNDS = 12;
@@ -52,6 +73,7 @@ export const ALLOWED_CURRENCIES: ReadonlyArray<string> = ['USD', 'EUR'] as const
 export const HOLDINGS_PAGE_SIZE = 10;
 export const TRANSACTIONS_PAGE_SIZE = 5;
 export const MAX_PAGE_SIZE = 50;
+export const MAX_WATCHLIST_ITEMS = 50;
 
 // Ticker tape is fetched once on startup and refreshed in the background every 24h.
 // This means 0 Yahoo Finance calls per user request.

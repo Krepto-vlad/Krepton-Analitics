@@ -1,6 +1,5 @@
-import { createHmac } from 'node:crypto';
-import { env } from '../config/env.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
 import { getStockSector, getStockHistory } from './stockService.js';
 import {
   findOrCreatePortfolioAccount,
@@ -48,21 +47,7 @@ import {
 
 // ─── HMAC indirection ─────────────────────────────────────────────────────────
 
-/**
- * Derives a portfolio owner token from the user's UUID.
- *
- * HMAC-SHA256(userId, PORTFOLIO_SECRET) produces a 64-char hex string that:
- *   - Is deterministic: same userId + same secret = same token (idempotent lookup)
- *   - Is one-way: you cannot reverse it to find the userId without the secret
- *   - Is stored in portfolio_accounts instead of the user's UUID
- *
- * Therefore the DB never holds a direct mapping between a user email and their
- * portfolio positions. An attacker who dumps the DB cannot link them without
- * also having access to the server's PORTFOLIO_SECRET environment variable.
- */
-function computeOwnerToken(userId: string): string {
-  return createHmac('sha256', env.portfolioSecret).update(userId).digest('hex');
-}
+// Owner token derivation lives in utils/portfolioOwnerToken.ts (shared with watchlist).
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -221,7 +206,7 @@ function validateUpdatePositionDto(dto: UpdatePositionDto): void {
 // ─── Service functions ────────────────────────────────────────────────────────
 
 export async function getUserPositions(userId: string): Promise<PositionResponse[]> {
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getPositionsByPortfolioId(portfolioId);
   const enrichedRows = await enrichPositionsWithSectors(portfolioId, rows);
@@ -234,7 +219,7 @@ export async function getUserPositionsPaginated(
   rawOffset: unknown
 ): Promise<PaginatedResponse<PositionResponse>> {
   const { limit, offset } = parsePaginationParams(rawLimit, rawOffset, HOLDINGS_PAGE_SIZE);
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
   const [rows, total] = await Promise.all([
@@ -254,7 +239,7 @@ export async function getUserTransactionsPaginated(
   rawOffset: unknown
 ): Promise<PaginatedResponse<TransactionResponse>> {
   const { limit, offset } = parsePaginationParams(rawLimit, rawOffset, TRANSACTIONS_PAGE_SIZE);
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
   const [rows, total] = await Promise.all([
@@ -267,7 +252,7 @@ export async function getUserTransactionsPaginated(
 }
 
 export async function getInvestmentSummary(userId: string): Promise<InvestmentSummaryResponse> {
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const totals = await getInvestmentTotals(portfolioId);
 
@@ -289,7 +274,7 @@ export async function createPosition(userId: string, rawDto: unknown): Promise<P
     dto.sector = sector;
   }
 
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
   // Always record the individual transaction for history
@@ -316,7 +301,7 @@ export async function editPosition(
   const dto = rawDto as UpdatePositionDto;
   validateUpdatePositionDto(dto);
 
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
   const row = await updatePosition(positionId, portfolioId, dto);
@@ -400,14 +385,14 @@ export async function getBuyTransactionsForTicker(
     throw new AppError(400, 'Invalid ticker');
   }
 
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getBuyTransactionsByTicker(portfolioId, normalizedTicker);
   return rows.map(mapTransactionRowToResponse);
 }
 
 export async function removeBuyTransaction(userId: string, transactionId: string): Promise<void> {
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
   const transaction = await getTransactionById(transactionId, portfolioId);
@@ -427,7 +412,7 @@ export async function removeBuyTransaction(userId: string, transactionId: string
 }
 
 export async function removePosition(userId: string, positionId: string): Promise<void> {
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
   const deleted = await deletePosition(positionId, portfolioId);
@@ -482,7 +467,7 @@ function rangeForDays(days: number): string {
  * reflected — the chart shows the value of CURRENT holdings over time.
  */
 export async function getPortfolioEquityHistory(userId: string): Promise<EquityPoint[]> {
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getPositionsByPortfolioId(portfolioId);
 
@@ -615,7 +600,7 @@ export async function closePosition(
     throw new AppError(400, 'saleDate must be in YYYY-MM-DD format');
   }
 
-  const ownerToken = computeOwnerToken(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
   const position = await getPositionById(positionId, portfolioId);

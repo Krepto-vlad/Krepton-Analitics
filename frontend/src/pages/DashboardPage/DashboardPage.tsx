@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useDashboardLivePollingScopes } from '../../hooks/useLivePollingScope';
 import { fetchPortfolioEquityHistoryThunk } from '../../features/portfolio/portfolioSlice';
 import { PORTFOLIO_RISK_SCORE } from '../../constants';
 import { PortfolioHealthCard } from './components/PortfolioHealthCard/PortfolioHealthCard';
@@ -11,10 +12,13 @@ import { NewsFeed } from './components/NewsFeed/NewsFeed';
 import styles from './DashboardPage.module.scss';
 
 export function DashboardPage() {
+  useDashboardLivePollingScopes();
+
   const dispatch = useAppDispatch();
-  const { positions, stats, sectorAllocations, watchlist, news, equityHistory } = useAppSelector(
+  const { positions, stats, sectorAllocations, news, equityHistory } = useAppSelector(
     (state) => state.portfolio
   );
+  const watchlist = useAppSelector((state) => state.watchlist.items);
   const currency = useAppSelector((state) => state.ui.currency);
 
   useEffect(() => {
