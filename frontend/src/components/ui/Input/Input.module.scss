@@ -1,4 +1,5 @@
 ﻿@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
 .fieldGroup {
   display: flex;
@@ -49,6 +50,8 @@
   &::placeholder {
     color: rgba(255, 255, 255, 0.2);
   }
+
+  @include suppress-autofill-highlight(#27272a, #fafafa);
 }
 
 .hint {

@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { Upload, CloudUpload, Loader } from 'lucide-react';
-import { Button } from '../../../../components/ui';
+import { Button, ErrorBanner } from '../../../../components/ui';
+import { ERROR_MESSAGES } from '../../../../constants';
+import { getRejectedMessage } from '../../../../utils/apiError';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import {
   fetchPortfolioSummaryThunk,
@@ -123,8 +125,7 @@ export function BrokerImporterPanel() {
       const result = await previewBrokerImport(selectedBroker, uploadedFile);
       setPreview(result);
     } catch (previewError) {
-      const message = previewError instanceof Error ? previewError.message : 'Failed to parse file';
-      setError(message);
+      setError(getRejectedMessage(previewError, ERROR_MESSAGES.IMPORT_PREVIEW_FAILED));
       setPreview(null);
     } finally {
       setIsPreviewLoading(false);
@@ -163,11 +164,10 @@ export function BrokerImporterPanel() {
         fileInputRef.current.value = '';
       }
     } catch (confirmError) {
-      const message = confirmError instanceof Error ? confirmError.message : 'Import failed';
       setImportResultModal({
         type: 'error',
         title: 'Import failed',
-        message,
+        message: getRejectedMessage(confirmError, ERROR_MESSAGES.IMPORT_CONFIRM_FAILED),
       });
     } finally {
       setIsConfirmLoading(false);
@@ -285,7 +285,7 @@ export function BrokerImporterPanel() {
         )}
       </div>
 
-      {error && <p className={styles.errorText}>{error}</p>}
+      {error && <ErrorBanner message={error} className={styles.errorText} />}
 
       <ImportResultModal
         isOpen={importResultModal !== null}

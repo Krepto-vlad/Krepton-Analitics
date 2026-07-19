@@ -39,6 +39,8 @@ export interface NewsItem {
 export interface EquityDataPoint {
   time: string; // YYYY-MM-DD (lightweight-charts format)
   value: number;
+  displayValue?: number;
+  displayCurrency?: 'USD' | 'EUR';
 }
 
 export interface PortfolioTransaction {
@@ -51,11 +53,19 @@ export interface PortfolioTransaction {
   transactionDate: string | null;
   transactionType: 'BUY' | 'SELL';
   createdAt: string;
+  displayCurrency?: 'USD' | 'EUR';
+  displayPricePerShare?: number;
+  displayTotalAmount?: number;
+  displayFxRate?: number;
+  displayFxRateDate?: string;
 }
 
 export interface InvestmentSummary {
   totalInvested: number;
   totalWithdrawn: number;
+  displayCurrency?: 'USD' | 'EUR';
+  displayTotalInvested?: number;
+  displayTotalWithdrawn?: number;
 }
 
 export interface PortfolioState {

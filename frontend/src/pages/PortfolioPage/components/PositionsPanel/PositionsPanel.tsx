@@ -1,11 +1,18 @@
 import { useMemo, useState } from 'react';
 import { Plus, Trash2, HandCoins, Search, TrendingUp, ArrowUpDown, Loader } from 'lucide-react';
-import { Button } from '../../../../components/ui';
+import { Button, AsyncStatePanel } from '../../../../components/ui';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import { EQUITY_PERIODS } from '../../../../constants';
+import type { Currency } from '../../../../constants';
 import { useEquityChart, formatChartPrice } from '../../../../hooks/useEquityChart';
 import type { EquityPeriod } from '../../../../hooks/useEquityChart';
+import {
+  formatMoney,
+  formatMoneyWhole,
+  formatSignedMoney,
+  resolveInvestmentSummaryForDisplay,
+} from '../../../../utils/moneyDisplay';
 import type {
   EquityDataPoint,
   PortfolioPosition,
@@ -43,22 +50,8 @@ type SortDir = 'asc' | 'desc';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatUsd(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatUsdDecimal(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+function formatUsdDecimal(value: number, currency: Currency): string {
+  return formatMoney(value, currency);
 }
 
 function formatPercent(value: number): string {
@@ -66,9 +59,8 @@ function formatPercent(value: number): string {
   return `${prefix}${value.toFixed(2)}%`;
 }
 
-function formatPnl(value: number): string {
-  const prefix = value >= 0 ? '+' : '';
-  return `${prefix}${formatUsd(value)}`;
+function formatPnl(value: number, currency: Currency): string {
+  return formatSignedMoney(value, currency);
 }
 
 function formatTransactionDate(transaction: PortfolioTransaction): string {
@@ -151,12 +143,19 @@ interface MiniEquityChartProps {
   equityHistory: EquityDataPoint[];
   totalPnl: number;
   totalInvested: number;
+  currency: Currency;
 }
 
-function MiniEquityChart({ equityHistory, totalPnl, totalInvested }: MiniEquityChartProps) {
+function MiniEquityChart({
+  equityHistory,
+  totalPnl,
+  totalInvested,
+  currency,
+}: MiniEquityChartProps) {
   const { containerRef, selectedPeriod, setSelectedPeriod, currentValue } = useEquityChart(
     equityHistory,
-    '1Y'
+    '1Y',
+    currency
   );
 
   const returnPct = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
@@ -170,7 +169,7 @@ function MiniEquityChart({ equityHistory, totalPnl, totalInvested }: MiniEquityC
             <TrendingUp size={12} />
             PORTFOLIO VALUE OVER TIME
           </p>
-          <p className={styles.chartCardValue}>{formatChartPrice(currentValue)}</p>
+          <p className={styles.chartCardValue}>{formatChartPrice(currentValue, currency)}</p>
         </div>
         <span
           className={`${styles.chartChangeBadge} ${isPositive ? styles.positive : styles.negative}`}
@@ -323,6 +322,7 @@ export function PositionsPanel() {
   const error = useAppSelector((state) => state.portfolio.error);
   const equityHistory = useAppSelector((state) => state.portfolio.equityHistory);
   const investmentSummary = useAppSelector((state) => state.portfolio.investmentSummary);
+  const displayCurrency = useAppSelector((state) => state.ui.currency);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('marketValue');
@@ -363,12 +363,18 @@ export function PositionsPanel() {
     [computedSummaryPositions]
   );
 
-  const totalInvested = useMemo(() => {
-    const grossInvested = investmentSummary.totalInvested;
-    return grossInvested > 0 ? grossInvested : costBasisOpen;
-  }, [investmentSummary.totalInvested, costBasisOpen]);
+  const resolvedInvestmentSummary = useMemo(
+    () => resolveInvestmentSummaryForDisplay(investmentSummary, displayCurrency),
+    [investmentSummary, displayCurrency]
+  );
 
-  const totalWithdrawn = investmentSummary.totalWithdrawn;
+  const totalInvested = useMemo(() => {
+    return resolvedInvestmentSummary.totalInvested > 0
+      ? resolvedInvestmentSummary.totalInvested
+      : costBasisOpen;
+  }, [resolvedInvestmentSummary.totalInvested, costBasisOpen]);
+
+  const totalWithdrawn = resolvedInvestmentSummary.totalWithdrawn;
 
   const unrealizedPnl = totalMarketValue - costBasisOpen;
   const totalPnl = totalMarketValue + totalWithdrawn - totalInvested;
@@ -439,10 +445,7 @@ export function PositionsPanel() {
   if (isLoading) {
     return (
       <>
-        <div className={styles.loadingState}>
-          <Loader size={24} className={styles.loadingSpinner} />
-          <p>Loading portfolio…</p>
-        </div>
+        <AsyncStatePanel isLoading loadingMessage="Loading portfolio…" />
         <AddPositionModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
       </>
     );
@@ -451,12 +454,11 @@ export function PositionsPanel() {
   if (error) {
     return (
       <>
-        <div className={styles.errorState}>
-          <p className={styles.errorText}>{error}</p>
-          <Button variant="outline" size="sm" onClick={handleRetry}>
-            Retry
-          </Button>
-        </div>
+        <AsyncStatePanel
+          error={error}
+          errorTitle="Unable to load portfolio"
+          onRetry={handleRetry}
+        />
         <AddPositionModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
       </>
     );
@@ -494,14 +496,14 @@ export function PositionsPanel() {
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <p className={styles.statLabel}>TOTAL INVESTED</p>
-          <p className={styles.statValue}>{formatUsd(totalInvested)}</p>
+          <p className={styles.statValue}>{formatMoneyWhole(totalInvested, displayCurrency)}</p>
         </div>
         <div
           className={`${styles.statCard} ${totalPnl >= 0 ? styles.statCardPositive : styles.statCardNegative}`}
         >
           <p className={styles.statLabel}>TOTAL RETURN</p>
           <p className={`${styles.statValue} ${totalPnl >= 0 ? styles.positive : styles.negative}`}>
-            {formatPnl(totalPnl)}
+            {formatPnl(totalPnl, displayCurrency)}
           </p>
         </div>
         <div
@@ -511,7 +513,7 @@ export function PositionsPanel() {
           <p
             className={`${styles.statValue} ${unrealizedPnl >= 0 ? styles.positive : styles.negative}`}
           >
-            {formatPnl(unrealizedPnl)}
+            {formatPnl(unrealizedPnl, displayCurrency)}
           </p>
         </div>
         <div
@@ -532,6 +534,7 @@ export function PositionsPanel() {
           equityHistory={equityHistory}
           totalPnl={totalPnl}
           totalInvested={totalInvested}
+          currency={displayCurrency}
         />
         <DonutChart sectors={sectorAllocations} />
       </div>
@@ -614,13 +617,19 @@ export function PositionsPanel() {
                       <p className={styles.sectorLabel}>{sectorLabel}</p>
                     </td>
                     <td className={styles.tdNum}>{position.shares}</td>
-                    <td className={styles.tdNum}>{formatUsdDecimal(position.avgBuyPrice)}</td>
-                    <td className={styles.tdNum}>{formatUsdDecimal(position.currentPrice)}</td>
-                    <td className={styles.tdNum}>{formatUsd(position.marketValue)}</td>
+                    <td className={styles.tdNum}>
+                      {formatUsdDecimal(position.avgBuyPrice, displayCurrency)}
+                    </td>
+                    <td className={styles.tdNum}>
+                      {formatUsdDecimal(position.currentPrice, displayCurrency)}
+                    </td>
+                    <td className={styles.tdNum}>
+                      {formatMoneyWhole(position.marketValue, displayCurrency)}
+                    </td>
                     <td
                       className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
                     >
-                      {formatPnl(position.pnlAbs)}
+                      {formatPnl(position.pnlAbs, displayCurrency)}
                     </td>
                     <td
                       className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
@@ -699,7 +708,9 @@ export function PositionsPanel() {
                 </thead>
                 <tbody>
                   {transactions.map((transaction) => {
-                    const totalAmount = transaction.shares * transaction.pricePerShare;
+                    const totalAmount =
+                      transaction.displayTotalAmount ??
+                      transaction.shares * transaction.pricePerShare;
                     const isBuy = transaction.transactionType === 'BUY';
 
                     return (
@@ -720,13 +731,13 @@ export function PositionsPanel() {
                           {transaction.shares}
                         </td>
                         <td className={`${styles.historyTd} ${styles.historyTdNum}`}>
-                          {formatUsdDecimal(transaction.pricePerShare)}
+                          {formatUsdDecimal(transaction.pricePerShare, displayCurrency)}
                         </td>
                         <td className={`${styles.historyTd} ${styles.historyTdNum}`}>
-                          {formatUsdDecimal(totalAmount)}
+                          {formatUsdDecimal(totalAmount, displayCurrency)}
                         </td>
                         <td className={`${styles.historyTd} ${styles.historyTdNum}`}>
-                          {transaction.currency}
+                          {displayCurrency}
                         </td>
                       </tr>
                     );

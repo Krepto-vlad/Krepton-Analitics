@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { createApiClient, assertSuccess } from './apiClient';
 import { API_BASE_URL } from '../constants';
 import type {
   ApiErrorResponse,
@@ -6,21 +6,16 @@ import type {
   StockHistoryResponse,
   StockSearchResult,
   StockSector,
+  ApiSuccessResponse,
 } from '../types/stock.types';
 
-const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api/stocks`,
-  withCredentials: true,
-});
-
-function assertSuccess<T>(data: { success: boolean; data?: T; error?: string }): T {
-  if (!data.success) throw new Error((data as ApiErrorResponse).error ?? 'Unknown error');
-  return data.data as T;
-}
+const apiClient = createApiClient(`${API_BASE_URL}/api/stocks`);
 
 export async function fetchStockQuote(ticker: string): Promise<StockQuote> {
-  const { data } = await apiClient.get(`/quote/${ticker}`);
-  return assertSuccess<StockQuote>(data);
+  const { data } = await apiClient.get<ApiSuccessResponse<StockQuote> | ApiErrorResponse>(
+    `/quote/${ticker}`
+  );
+  return assertSuccess(data);
 }
 
 export async function fetchStockQuotesBatch(tickers: string[]): Promise<StockQuote[]> {
@@ -30,11 +25,14 @@ export async function fetchStockQuotesBatch(tickers: string[]): Promise<StockQuo
     return [];
   }
 
-  const { data } = await apiClient.get('/quotes', {
-    params: { tickers: normalizedTickers.join(',') },
-  });
+  const { data } = await apiClient.get<ApiSuccessResponse<StockQuote[]> | ApiErrorResponse>(
+    '/quotes',
+    {
+      params: { tickers: normalizedTickers.join(',') },
+    }
+  );
 
-  return assertSuccess<StockQuote[]>(data);
+  return assertSuccess(data);
 }
 
 export async function fetchStockHistory(
@@ -42,23 +40,33 @@ export async function fetchStockHistory(
   period: string,
   interval: string
 ): Promise<StockHistoryResponse> {
-  const { data } = await apiClient.get(`/history/${ticker}`, {
-    params: { period, interval },
-  });
-  return assertSuccess<StockHistoryResponse>(data);
+  const { data } = await apiClient.get<ApiSuccessResponse<StockHistoryResponse> | ApiErrorResponse>(
+    `/history/${ticker}`,
+    {
+      params: { period, interval },
+    }
+  );
+  return assertSuccess(data);
 }
 
 export async function fetchStockSearch(query: string): Promise<StockSearchResult[]> {
-  const { data } = await apiClient.get('/search', { params: { q: query } });
-  return assertSuccess<StockSearchResult[]>(data);
+  const { data } = await apiClient.get<ApiSuccessResponse<StockSearchResult[]> | ApiErrorResponse>(
+    '/search',
+    { params: { q: query } }
+  );
+  return assertSuccess(data);
 }
 
 export async function fetchTickerTape(): Promise<StockQuote[]> {
-  const { data } = await apiClient.get('/ticker-tape');
-  return assertSuccess<StockQuote[]>(data);
+  const { data } = await apiClient.get<ApiSuccessResponse<StockQuote[]> | ApiErrorResponse>(
+    '/ticker-tape'
+  );
+  return assertSuccess(data);
 }
 
 export async function fetchStockSector(ticker: string): Promise<StockSector> {
-  const { data } = await apiClient.get(`/sector/${ticker}`);
-  return assertSuccess<StockSector>(data);
+  const { data } = await apiClient.get<ApiSuccessResponse<StockSector> | ApiErrorResponse>(
+    `/sector/${ticker}`
+  );
+  return assertSuccess(data);
 }

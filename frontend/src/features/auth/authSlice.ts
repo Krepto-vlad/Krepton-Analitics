@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiRegister, apiLogin, apiLogout, apiGetMe } from '../../api/authApi';
+import { ERROR_MESSAGES } from '../../constants';
+import { getRejectedMessage } from '../../utils/apiError';
 import type { AuthState, LoginCredentials, RegisterCredentials } from '../../types/auth.types';
 
 const initialState: AuthState = {
@@ -15,8 +17,7 @@ export const registerThunk = createAsyncThunk(
     try {
       return await apiRegister(credentials);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Registration failed';
-      return rejectWithValue(message);
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.AUTH_REGISTER_FAILED));
     }
   }
 );
@@ -27,8 +28,7 @@ export const loginThunk = createAsyncThunk(
     try {
       return await apiLogin(credentials);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Login failed';
-      return rejectWithValue(message);
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.AUTH_LOGIN_FAILED));
     }
   }
 );

@@ -5,6 +5,7 @@ import { useTheme } from '../../../hooks/useTheme';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { setCurrency } from '../../../features/ui/uiSlice';
+import { usePortfolioCurrencyRefresh } from '../../../hooks/usePortfolioCurrencyRefresh';
 import type { Currency } from '../../../constants';
 import styles from './AppShell.module.scss';
 
@@ -17,6 +18,8 @@ export function AppShell({ children }: AppShellProps) {
   const { theme, toggleTheme } = useTheme();
   const dispatch = useAppDispatch();
   const currency = useAppSelector((state) => state.ui.currency);
+
+  usePortfolioCurrencyRefresh();
 
   const handleCurrencyChange = (newCurrency: Currency) => {
     dispatch(setCurrency(newCurrency));

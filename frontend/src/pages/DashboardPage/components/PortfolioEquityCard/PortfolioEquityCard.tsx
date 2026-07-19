@@ -3,30 +3,22 @@ import type { PortfolioStats, EquityDataPoint } from '../../../../types/portfoli
 import { EQUITY_PERIODS } from '../../../../constants';
 import { useEquityChart } from '../../../../hooks/useEquityChart';
 import type { EquityPeriod } from '../../../../hooks/useEquityChart';
+import type { Currency } from '../../../../constants';
+import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
 import styles from './PortfolioEquityCard.module.scss';
 
 interface PortfolioEquityCardProps {
   stats: PortfolioStats;
   equityHistory: EquityDataPoint[];
-  currency: string;
-}
-
-function formatCurrency(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    notation: 'compact',
-    maximumFractionDigits: 1,
-  }).format(value);
-}
-
-function formatPnl(value: number, currency: string): string {
-  const prefix = value >= 0 ? '+' : '';
-  return `${prefix}${formatCurrency(value, currency)}`;
+  currency: Currency;
 }
 
 export function PortfolioEquityCard({ stats, equityHistory, currency }: PortfolioEquityCardProps) {
-  const { containerRef, selectedPeriod, setSelectedPeriod } = useEquityChart(equityHistory, '1Y');
+  const { containerRef, selectedPeriod, setSelectedPeriod } = useEquityChart(
+    equityHistory,
+    '1Y',
+    currency
+  );
 
   const isPnlPositive = stats.totalPnl >= 0;
   const isDayPnlPositive = stats.dayPnl >= 0;
@@ -52,7 +44,13 @@ export function PortfolioEquityCard({ stats, equityHistory, currency }: Portfoli
       </div>
 
       <div className={styles.valueRow}>
-        <span className={styles.totalValue}>{formatCurrency(stats.totalValue, currency)}</span>
+        <span className={styles.totalValue}>
+          {formatMoney(stats.totalValue, currency, {
+            compact: true,
+            maximumFractionDigits: 1,
+            minimumFractionDigits: 1,
+          })}
+        </span>
         <span
           className={`${styles.totalPnlPercent} ${isPnlPositive ? styles.positive : styles.negative}`}
         >
@@ -67,7 +65,7 @@ export function PortfolioEquityCard({ stats, equityHistory, currency }: Portfoli
           <span
             className={`${styles.statValue} ${isPnlPositive ? styles.positive : styles.negative}`}
           >
-            {formatPnl(stats.totalPnl, currency)}
+            {formatSignedMoney(stats.totalPnl, currency, true)}
           </span>
         </div>
         <div className={styles.statItem}>
@@ -75,7 +73,7 @@ export function PortfolioEquityCard({ stats, equityHistory, currency }: Portfoli
           <span
             className={`${styles.statValue} ${stats.unrealizedPnl >= 0 ? styles.positive : styles.negative}`}
           >
-            {formatPnl(stats.unrealizedPnl, currency)}
+            {formatSignedMoney(stats.unrealizedPnl, currency, true)}
           </span>
         </div>
         <div className={styles.statItem}>
@@ -83,7 +81,7 @@ export function PortfolioEquityCard({ stats, equityHistory, currency }: Portfoli
           <span
             className={`${styles.statValue} ${stats.realizedPnl >= 0 ? styles.positive : styles.negative}`}
           >
-            {formatPnl(stats.realizedPnl, currency)}
+            {formatSignedMoney(stats.realizedPnl, currency, true)}
           </span>
         </div>
         <div className={styles.statItem}>
@@ -91,7 +89,7 @@ export function PortfolioEquityCard({ stats, equityHistory, currency }: Portfoli
           <span
             className={`${styles.statValue} ${isDayPnlPositive ? styles.positive : styles.negative}`}
           >
-            {formatPnl(stats.dayPnl, currency)}
+            {formatSignedMoney(stats.dayPnl, currency, true)}
           </span>
         </div>
       </div>

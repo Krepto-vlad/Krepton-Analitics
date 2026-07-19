@@ -22,31 +22,43 @@ function requireUserId(req: Request): string {
 }
 
 export async function getPositions(req: Request, res: Response): Promise<void> {
-  const { limit, offset } = req.query;
+  const { limit, offset, displayCurrency } = req.query;
 
   if (limit !== undefined || offset !== undefined) {
-    const paginated = await getUserPositionsPaginated(requireUserId(req), limit, offset);
+    const paginated = await getUserPositionsPaginated(
+      requireUserId(req),
+      limit,
+      offset,
+      displayCurrency
+    );
     res.json({ success: true, data: paginated });
     return;
   }
 
-  const positions = await getUserPositions(requireUserId(req));
+  const positions = await getUserPositions(requireUserId(req), displayCurrency);
   res.json({ success: true, data: positions });
 }
 
 export async function getTransactions(req: Request, res: Response): Promise<void> {
-  const { limit, offset } = req.query;
-  const paginated = await getUserTransactionsPaginated(requireUserId(req), limit, offset);
+  const { limit, offset, displayCurrency } = req.query;
+  const paginated = await getUserTransactionsPaginated(
+    requireUserId(req),
+    limit,
+    offset,
+    displayCurrency
+  );
   res.json({ success: true, data: paginated });
 }
 
 export async function getEquityHistory(req: Request, res: Response): Promise<void> {
-  const equityHistory = await getPortfolioEquityHistory(requireUserId(req));
+  const { displayCurrency } = req.query;
+  const equityHistory = await getPortfolioEquityHistory(requireUserId(req), displayCurrency);
   res.json({ success: true, data: equityHistory });
 }
 
 export async function getInvestmentSummaryHandler(req: Request, res: Response): Promise<void> {
-  const summary = await getInvestmentSummary(requireUserId(req));
+  const { displayCurrency } = req.query;
+  const summary = await getInvestmentSummary(requireUserId(req), displayCurrency);
   res.json({ success: true, data: summary });
 }
 

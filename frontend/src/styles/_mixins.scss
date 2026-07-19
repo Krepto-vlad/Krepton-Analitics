@@ -115,3 +115,21 @@ $breakpoint-xl: 1280px;
 @mixin negative {
   color: $color-chart-down;
 }
+
+// ─── Browser autofill (dark inputs) ──────────────────────────────────────────
+
+@mixin suppress-autofill-highlight($background: #27272a, $text-color: #fafafa) {
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active,
+  &:autofill {
+    -webkit-box-shadow: 0 0 0 1000px #{$background} inset !important;
+    box-shadow: 0 0 0 1000px #{$background} inset !important;
+    -webkit-text-fill-color: #{$text-color} !important;
+    caret-color: #{$text-color};
+    border: none;
+    outline: none;
+    transition: background-color 99999s ease-out 0s;
+  }
+}

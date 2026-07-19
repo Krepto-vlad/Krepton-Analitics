@@ -23,10 +23,15 @@ export function filterHistoryByPeriod(
   return history.filter((point) => point.time >= cutoffStr);
 }
 
-export function formatChartPrice(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${Math.round(value / 1_000)}K`;
-  return `$${Math.round(value)}`;
+export function formatChartPrice(value: number, currency = 'USD'): string {
+  const formatted = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    notation: value >= 1_000 ? 'compact' : 'standard',
+    maximumFractionDigits: value >= 1_000 ? 1 : 0,
+  }).format(value);
+
+  return formatted;
 }
 
 export interface UseEquityChartResult {
@@ -43,7 +48,8 @@ export interface UseEquityChartResult {
  */
 export function useEquityChart(
   history: EquityDataPoint[],
-  defaultPeriod: EquityPeriod = '1Y'
+  defaultPeriod: EquityPeriod = '1Y',
+  currency = 'USD'
 ): UseEquityChartResult {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -69,7 +75,7 @@ export function useEquityChart(
         textColor: '#8a8a96',
         attributionLogo: false,
       },
-      localization: { priceFormatter: formatChartPrice },
+      localization: { priceFormatter: (value: number) => formatChartPrice(value, currency) },
       grid: {
         vertLines: { visible: false },
         horzLines: { color: 'rgba(255,255,255,0.04)' },
@@ -109,7 +115,7 @@ export function useEquityChart(
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, []);
+  }, [currency]);
 
   // Push new data whenever the filtered slice changes
   useEffect(() => {

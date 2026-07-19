@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, X, Check, Loader } from 'lucide-react';
-import { Button, Select, DatePicker } from '../../../../components/ui';
+import { Button, Select, DatePicker, ErrorBanner } from '../../../../components/ui';
+import { ERROR_MESSAGES } from '../../../../constants';
+import { getRejectedMessage } from '../../../../utils/apiError';
 import { toIsoDate } from '../../../../components/ui/DatePicker/datePickerUtils';
 import { fetchStockSearch, fetchStockQuote } from '../../../../api/stockApi';
 import type { StockSearchResult } from '../../../../types/stock.types';
@@ -130,8 +132,8 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
         })
       ).unwrap();
       onClose();
-    } catch {
-      setSubmitError('Failed to add position. Please try again.');
+    } catch (error) {
+      setSubmitError(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_POSITION_ADD_FAILED));
     } finally {
       setIsSubmitting(false);
     }
@@ -263,7 +265,7 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          {submitError && <p className={styles.errorText}>{submitError}</p>}
+          {submitError && <ErrorBanner message={submitError} />}
 
           {/* Actions */}
           <div className={styles.actions}>

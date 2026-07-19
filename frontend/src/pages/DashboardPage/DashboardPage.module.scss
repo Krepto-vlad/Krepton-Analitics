@@ -10,6 +10,10 @@
   // Don't set height: 100% — flex: 1 fills the parent flex container
 }
 
+.pageErrorBanner {
+  width: 100%;
+}
+
 .topRow {
   flex: 2;
   display: grid;

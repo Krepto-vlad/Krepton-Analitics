@@ -20,11 +20,21 @@ import type {
   ClosePositionPayload,
   StoredPosition,
   InvestmentSummary,
+  PortfolioTransaction,
 } from '../../api/portfolioApi';
 import { fetchStockQuotesBatch } from '../../api/stockApi';
+import { ERROR_MESSAGES } from '../../constants';
+import { getRejectedMessage } from '../../utils/apiError';
+import { fetchLiveFxRates } from '../../api/fxApi';
 import type { StockQuote } from '../../types/stock.types';
 import type { RootState } from '../../store';
+import type { Currency } from '../../constants';
 import { HOLDINGS_PAGE_SIZE, TRANSACTIONS_PAGE_SIZE } from '../../constants';
+import {
+  convertAmountWithRate,
+  getTodayIsoDate,
+  resolveEquityHistoryForDisplay,
+} from '../../utils/moneyDisplay';
 
 // ─── Equity history (simulated — dashboard placeholder) ───────────────────────
 
@@ -60,42 +70,88 @@ function generateEquityHistory(): EquityDataPoint[] {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-async function enrichStoredPositions(stored: StoredPosition[]): Promise<PortfolioPosition[]> {
+async function enrichStoredPositions(
+  stored: StoredPosition[],
+  displayCurrency: Currency
+): Promise<PortfolioPosition[]> {
   if (stored.length === 0) return [];
 
   const uniqueTickers = [...new Set(stored.map((position) => position.ticker))];
   const quoteResults = await fetchStockQuotesBatch(uniqueTickers);
 
-  const priceMap: Record<string, number> = {};
+  const quoteMap = new Map<string, StockQuote>();
   quoteResults.forEach((quote) => {
-    priceMap[quote.ticker] = quote.price;
+    quoteMap.set(quote.ticker, quote);
   });
 
-  return stored.map(
-    (storedPosition): PortfolioPosition => ({
+  const quoteCurrencies = quoteResults.map((quote) => quote.currency as Currency);
+  const liveFxRates = await fetchLiveFxRates(quoteCurrencies, displayCurrency, getTodayIsoDate());
+
+  return stored.map((storedPosition): PortfolioPosition => {
+    const quote = quoteMap.get(storedPosition.ticker);
+    const quoteCurrency = (quote?.currency ?? storedPosition.currency) as Currency;
+    const nativeCurrentPrice = quote?.price ?? storedPosition.avgBuyPrice;
+    const displayAvgBuyPrice = storedPosition.displayAvgBuyPrice ?? storedPosition.avgBuyPrice;
+    const fxRate = quoteCurrency === displayCurrency ? 1 : (liveFxRates[quoteCurrency] ?? 1);
+    const displayCurrentPrice = convertAmountWithRate(nativeCurrentPrice, fxRate);
+
+    return {
       id: storedPosition.id,
       ticker: storedPosition.ticker,
       companyName: storedPosition.companyName,
       shares: storedPosition.shares,
-      avgBuyPrice: storedPosition.avgBuyPrice,
-      currency: storedPosition.currency,
+      avgBuyPrice: displayAvgBuyPrice,
+      currency: displayCurrency,
       sector: storedPosition.sector,
       entryDate: storedPosition.entryDate,
-      currentPrice: priceMap[storedPosition.ticker] ?? storedPosition.avgBuyPrice,
-    })
-  );
+      currentPrice: displayCurrentPrice,
+    };
+  });
+}
+
+function mapTransactionForDisplay(
+  transaction: PortfolioTransaction,
+  displayCurrency: Currency
+): PortfolioState['transactions'][number] {
+  const displayPricePerShare = transaction.displayPricePerShare ?? transaction.pricePerShare;
+  const displayTotalAmount =
+    transaction.displayTotalAmount ?? transaction.shares * transaction.pricePerShare;
+
+  return {
+    ...transaction,
+    pricePerShare: displayPricePerShare,
+    currency: displayCurrency,
+    displayCurrency,
+    displayPricePerShare,
+    displayTotalAmount,
+    displayFxRate: transaction.displayFxRate,
+    displayFxRateDate: transaction.displayFxRateDate,
+  };
 }
 
 function mergeQuotePricesIntoPositions(
   positions: PortfolioPosition[],
-  quotes: StockQuote[]
+  quotes: StockQuote[],
+  displayCurrency: Currency,
+  liveFxRates: Record<Currency, number>
 ): PortfolioPosition[] {
-  const priceMap = new Map(quotes.map((quote) => [quote.ticker, quote.price]));
+  const quoteMap = new Map(quotes.map((quote) => [quote.ticker, quote]));
 
-  return positions.map((position) => ({
-    ...position,
-    currentPrice: priceMap.get(position.ticker) ?? position.currentPrice,
-  }));
+  return positions.map((position) => {
+    const quote = quoteMap.get(position.ticker);
+    if (!quote) {
+      return position;
+    }
+
+    const quoteCurrency = quote.currency as Currency;
+    const fxRate = quoteCurrency === displayCurrency ? 1 : (liveFxRates[quoteCurrency] ?? 1);
+
+    return {
+      ...position,
+      currentPrice: convertAmountWithRate(quote.price, fxRate),
+      currency: displayCurrency,
+    };
+  });
 }
 
 export interface HoldingsQuotesSyncPayload {
@@ -119,13 +175,14 @@ async function refreshPortfolioData(dispatch: (action: unknown) => unknown): Pro
 export const fetchPortfolioPositionsThunk = createAsyncThunk<
   PortfolioPosition[],
   void,
-  { rejectValue: string }
->('portfolio/fetchPositions', async (_, { rejectWithValue }) => {
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchPositions', async (_, { getState, rejectWithValue }) => {
+  const displayCurrency = getState().ui.currency;
   try {
-    const stored = await fetchPortfolioPositions();
-    return enrichStoredPositions(stored);
-  } catch {
-    return rejectWithValue('Failed to load portfolio positions');
+    const stored = await fetchPortfolioPositions(displayCurrency);
+    return enrichStoredPositions(stored, displayCurrency);
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_LOAD_FAILED));
   }
 });
 
@@ -133,39 +190,42 @@ export const fetchPortfolioPositionsThunk = createAsyncThunk<
 export const fetchPortfolioSummaryThunk = createAsyncThunk<
   PortfolioPosition[],
   void,
-  { rejectValue: string }
->('portfolio/fetchSummary', async (_, { rejectWithValue }) => {
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchSummary', async (_, { getState, rejectWithValue }) => {
+  const displayCurrency = getState().ui.currency;
   try {
-    const stored = await fetchPortfolioPositions();
-    return enrichStoredPositions(stored);
-  } catch {
-    return rejectWithValue('Failed to load portfolio summary');
+    const stored = await fetchPortfolioPositions(displayCurrency);
+    return enrichStoredPositions(stored, displayCurrency);
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_LOAD_FAILED));
   }
 });
 
 export const fetchInvestmentSummaryThunk = createAsyncThunk<
   InvestmentSummary,
   void,
-  { rejectValue: string }
->('portfolio/fetchInvestmentSummary', async (_, { rejectWithValue }) => {
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchInvestmentSummary', async (_, { getState, rejectWithValue }) => {
+  const displayCurrency = getState().ui.currency;
   try {
-    return await apiFetchInvestmentSummary();
-  } catch {
-    return rejectWithValue('Failed to load investment summary');
+    return await apiFetchInvestmentSummary(displayCurrency);
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_LOAD_FAILED));
   }
 });
 
 export const fetchPositionsPageThunk = createAsyncThunk<
   { items: PortfolioPosition[]; total: number; hasMore: boolean; append: boolean },
   { offset: number; append: boolean },
-  { rejectValue: string }
->('portfolio/fetchPositionsPage', async ({ offset, append }, { rejectWithValue }) => {
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchPositionsPage', async ({ offset, append }, { getState, rejectWithValue }) => {
+  const displayCurrency = getState().ui.currency;
   try {
-    const page = await fetchPortfolioPositionsPage(HOLDINGS_PAGE_SIZE, offset);
-    const items = await enrichStoredPositions(page.items);
+    const page = await fetchPortfolioPositionsPage(HOLDINGS_PAGE_SIZE, offset, displayCurrency);
+    const items = await enrichStoredPositions(page.items, displayCurrency);
     return { items, total: page.total, hasMore: page.hasMore, append };
-  } catch {
-    return rejectWithValue('Failed to load holdings');
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_LOAD_FAILED));
   }
 });
 
@@ -177,31 +237,39 @@ export const fetchTransactionsPageThunk = createAsyncThunk<
     append: boolean;
   },
   { offset: number; append: boolean },
-  { rejectValue: string }
->('portfolio/fetchTransactionsPage', async ({ offset, append }, { rejectWithValue }) => {
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchTransactionsPage', async ({ offset, append }, { getState, rejectWithValue }) => {
+  const displayCurrency = getState().ui.currency;
   try {
-    const page = await fetchPortfolioTransactionsPage(TRANSACTIONS_PAGE_SIZE, offset);
+    const page = await fetchPortfolioTransactionsPage(
+      TRANSACTIONS_PAGE_SIZE,
+      offset,
+      displayCurrency
+    );
     return {
-      items: page.items,
+      items: page.items.map((transaction) =>
+        mapTransactionForDisplay(transaction, displayCurrency)
+      ),
       total: page.total,
       hasMore: page.hasMore,
       append,
     };
-  } catch {
-    return rejectWithValue('Failed to load transaction history');
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_LOAD_FAILED));
   }
 });
 
 export const fetchPortfolioEquityHistoryThunk = createAsyncThunk<
   EquityDataPoint[],
   void,
-  { rejectValue: string }
->('portfolio/fetchEquityHistory', async (_, { rejectWithValue }) => {
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchEquityHistory', async (_, { getState, rejectWithValue }) => {
+  const displayCurrency = getState().ui.currency;
   try {
-    const points = await apiFetchEquityHistory();
-    return points;
-  } catch {
-    return rejectWithValue('Failed to load equity history');
+    const points = await apiFetchEquityHistory(displayCurrency);
+    return resolveEquityHistoryForDisplay(points, displayCurrency);
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_LOAD_FAILED));
   }
 });
 
@@ -211,6 +279,7 @@ export const refreshHoldingsQuotesThunk = createAsyncThunk<
   { rejectValue: string; state: RootState }
 >('portfolio/refreshQuotes', async (_, { getState, rejectWithValue }) => {
   try {
+    const displayCurrency = getState().ui.currency;
     const { summaryPositions, positions } = getState().portfolio;
 
     if (summaryPositions.length === 0 && positions.length === 0) {
@@ -225,13 +294,23 @@ export const refreshHoldingsQuotesThunk = createAsyncThunk<
     ];
 
     const quotes = await fetchStockQuotesBatch(uniqueTickers);
+    const liveFxRates = await fetchLiveFxRates(
+      quotes.map((quote) => quote.currency as Currency),
+      displayCurrency,
+      getTodayIsoDate()
+    );
 
     return {
-      summaryPositions: mergeQuotePricesIntoPositions(summaryPositions, quotes),
-      positions: mergeQuotePricesIntoPositions(positions, quotes),
+      summaryPositions: mergeQuotePricesIntoPositions(
+        summaryPositions,
+        quotes,
+        displayCurrency,
+        liveFxRates
+      ),
+      positions: mergeQuotePricesIntoPositions(positions, quotes, displayCurrency, liveFxRates),
     };
-  } catch {
-    return rejectWithValue('Failed to refresh holdings quotes');
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_LOAD_FAILED));
   }
 });
 
@@ -242,8 +321,10 @@ export const deletePositionThunk = createAsyncThunk<string, string, { rejectValu
       await apiDeletePosition(positionId);
       await refreshPortfolioData(dispatch);
       return positionId;
-    } catch {
-      return rejectWithValue('Failed to delete position');
+    } catch (error) {
+      return rejectWithValue(
+        getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_POSITION_DELETE_FAILED)
+      );
     }
   }
 );
@@ -255,8 +336,10 @@ export const deleteBuyTransactionThunk = createAsyncThunk<string, string, { reje
       await apiDeleteBuyTransaction(transactionId);
       await refreshPortfolioData(dispatch);
       return transactionId;
-    } catch {
-      return rejectWithValue('Failed to remove purchase');
+    } catch (error) {
+      return rejectWithValue(
+        getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_TRANSACTION_DELETE_FAILED)
+      );
     }
   }
 );
@@ -269,8 +352,10 @@ export const closePositionThunk = createAsyncThunk<
   try {
     await apiClosePosition(positionId, payload);
     await refreshPortfolioData(dispatch);
-  } catch {
-    return rejectWithValue('Failed to close position');
+  } catch (error) {
+    return rejectWithValue(
+      getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_POSITION_CLOSE_FAILED)
+    );
   }
 });
 
@@ -280,8 +365,10 @@ export const addPositionThunk = createAsyncThunk<void, AddPositionPayload, { rej
     try {
       await createPortfolioPosition(payload);
       await refreshPortfolioData(dispatch);
-    } catch {
-      return rejectWithValue('Failed to add position');
+    } catch (error) {
+      return rejectWithValue(
+        getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_POSITION_ADD_FAILED)
+      );
     }
   }
 );
@@ -396,7 +483,7 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolioPositionsThunk.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(fetchPortfolioSummaryThunk.pending, (state) => {
         state.isLoading = true;
@@ -408,7 +495,7 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolioSummaryThunk.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(fetchInvestmentSummaryThunk.fulfilled, (state, action) => {
         state.investmentSummary = action.payload;
@@ -433,7 +520,7 @@ const portfolioSlice = createSlice({
       .addCase(fetchPositionsPageThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.isLoadingMorePositions = false;
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(fetchTransactionsPageThunk.pending, (state, action) => {
         if (action.meta.arg.append) {
@@ -465,7 +552,7 @@ const portfolioSlice = createSlice({
         state.positions = action.payload.positions;
       })
       .addCase(refreshHoldingsQuotesThunk.rejected, (state, action) => {
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       });
   },
 });

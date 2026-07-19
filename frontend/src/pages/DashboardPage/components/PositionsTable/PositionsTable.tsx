@@ -1,10 +1,12 @@
 import { TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import type { Currency } from '../../../../constants';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
+import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
 import styles from './PositionsTable.module.scss';
 
 interface PositionsTableProps {
   positions: PortfolioPosition[];
-  currency: string;
+  currency: Currency;
 }
 
 interface ComputedPosition extends PortfolioPosition {
@@ -21,22 +23,8 @@ function computePositions(positions: PortfolioPosition[]): ComputedPosition[] {
   });
 }
 
-function formatPrice(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatPnlAmount(value: number, currency: string): string {
-  const prefix = value >= 0 ? '+' : '';
-  return `${prefix}${new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value)}`;
+function formatPnlAmount(value: number, currency: Currency): string {
+  return formatSignedMoney(value, currency);
 }
 
 function formatPnlPercent(value: number): string {
@@ -101,12 +89,12 @@ export function PositionsTable({ positions, currency }: PositionsTableProps) {
                   </td>
                   <td className={`${styles.td} ${styles.alignRight}`}>
                     <span className={styles.priceText}>
-                      {formatPrice(position.avgBuyPrice, currency)}
+                      {formatMoney(position.avgBuyPrice, currency)}
                     </span>
                   </td>
                   <td className={`${styles.td} ${styles.alignRight}`}>
                     <span className={styles.priceText}>
-                      {formatPrice(position.currentPrice, currency)}
+                      {formatMoney(position.currentPrice, currency)}
                     </span>
                   </td>
                   <td className={`${styles.td} ${styles.alignRight}`}>

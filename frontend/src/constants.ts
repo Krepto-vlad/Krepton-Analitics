@@ -69,3 +69,28 @@ export const EQUITY_PERIODS = [
 ] as const;
 
 export const PORTFOLIO_RISK_SCORE = 67;
+
+export const ERROR_MESSAGES = {
+  UNKNOWN: 'Something went wrong. Please try again.',
+  NETWORK: 'Unable to connect. Check your internet connection and try again.',
+  TIMEOUT: 'The request timed out. Please try again.',
+  SERVER: 'The service is temporarily unavailable. Please try again later.',
+  UNAUTHORIZED: 'Your session has expired. Please sign in again.',
+  FORBIDDEN: 'You do not have permission to perform this action.',
+  NOT_FOUND: 'The requested resource was not found.',
+  CONFLICT: 'This action conflicts with existing data.',
+  RATE_LIMIT: 'Too many requests. Please wait a moment and try again.',
+  AUTH_LOGIN_FAILED: 'Unable to sign in. Please check your credentials and try again.',
+  AUTH_REGISTER_FAILED: 'Unable to create your account. Please try again.',
+  PORTFOLIO_LOAD_FAILED: 'Unable to load portfolio data. Please try again.',
+  PORTFOLIO_POSITION_ADD_FAILED: 'Unable to add the position. Please try again.',
+  PORTFOLIO_POSITION_CLOSE_FAILED: 'Unable to close the position. Please try again.',
+  PORTFOLIO_POSITION_DELETE_FAILED: 'Unable to delete the position. Please try again.',
+  PORTFOLIO_TRANSACTION_DELETE_FAILED: 'Unable to remove the purchase. Please try again.',
+  WATCHLIST_LOAD_FAILED: 'Unable to load watchlist. Please try again.',
+  WATCHLIST_ADD_FAILED: 'Unable to add the ticker. Please try again.',
+  WATCHLIST_DELETE_FAILED: 'Unable to remove the ticker. Please try again.',
+  IMPORT_PREVIEW_FAILED: 'Unable to read the broker file. Please check the format and try again.',
+  IMPORT_CONFIRM_FAILED: 'Unable to complete the import. Please try again.',
+  STOCK_SEARCH_FAILED: 'Unable to search tickers right now. Please try again.',
+} as const;

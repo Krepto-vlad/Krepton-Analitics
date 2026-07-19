@@ -5,7 +5,7 @@ import { readSafeXlsxBuffer } from '../../../utils/excelSafeReader.js';
 
 const SAMPLE_FILE_PATH = resolve(
   process.cwd(),
-  '../Docs/statements/trading_account_statement_2026_01_01_2026_07_13_en_us_3b3ee6.xlsx'
+  '../Docs/statements/trading_account_statement_2026_01_01_2026_07_13_en_us_3b3ee6 copy.xlsx'
 );
 
 describe('revolutParser', () => {
