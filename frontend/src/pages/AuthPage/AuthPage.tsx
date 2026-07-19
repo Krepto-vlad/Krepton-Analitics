@@ -11,7 +11,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { ROUTES } from '../../constants';
-import { Button } from '../../components/ui';
+import { Button, ErrorBanner } from '../../components/ui';
 import { Input } from '../../components/ui';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
@@ -181,7 +181,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               placeholder={mode === 'register' ? 'name@example.com' : 'your@email.com'}
               value={email}
               onChange={setEmail}
-              autoComplete="off"
+              autoComplete={mode === 'register' ? 'email' : 'username'}
             />
 
             {/* Password */}
@@ -368,12 +368,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
             )}
 
             {/* Error message */}
-            {error && (
-              <div className={styles.errorBanner}>
-                <AlertTriangle size={13} />
-                {error}
-              </div>
-            )}
+            {error && <ErrorBanner message={error} />}
 
             {/* Submit */}
             <Button

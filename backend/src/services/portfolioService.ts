@@ -8,7 +8,6 @@ import {
   countPositionsByPortfolioId,
   getTransactionsByPortfolioIdPaginated,
   countTransactionsByPortfolioId,
-  getInvestmentTotals,
   upsertPosition,
   addTransaction,
   getPositionById,
@@ -37,6 +36,17 @@ import type {
   InvestmentSummaryResponse,
   EquityPoint,
 } from '../types/portfolio.types.js';
+import type { DisplayCurrency } from '../types/fx.types.js';
+import {
+  convertAmountForDisplay,
+  convertWithRate,
+  createFxRateLookup,
+  collectConversionRequests,
+  roundMoney,
+  computeNativeInvestmentTotals,
+} from './currencyConversionService.js';
+import { getFxRateFromLookup, preloadFxRates } from './fxRateService.js';
+import { getTodayIsoDate, parseDisplayCurrency } from '../utils/displayCurrency.js';
 import {
   COMPANY_NAME_MAX_LENGTH,
   MAX_SHARES,
@@ -208,21 +218,144 @@ function validateUpdatePositionDto(dto: UpdatePositionDto): void {
   }
 }
 
+function resolveTransactionRateDate(row: TransactionRow): string {
+  return normalizeDbDate(row.transaction_date) ?? row.created_at.toISOString().slice(0, 10);
+}
+
+function resolvePositionRateDate(row: PositionRow): string {
+  return normalizeDbDate(row.entry_date) ?? row.created_at.toISOString().slice(0, 10);
+}
+
+async function applyDisplayFieldsToPosition(
+  position: PositionResponse,
+  sourceRow: PositionRow,
+  displayCurrency: DisplayCurrency,
+  lookup: Map<string, number>
+): Promise<PositionResponse> {
+  if (position.currency === displayCurrency) {
+    return {
+      ...position,
+      displayCurrency,
+      displayAvgBuyPrice: position.avgBuyPrice,
+      displayFxRate: 1,
+      displayFxRateDate: resolvePositionRateDate(sourceRow),
+    };
+  }
+
+  const rateDate = resolvePositionRateDate(sourceRow);
+  const converted = await convertAmountForDisplay(
+    position.avgBuyPrice,
+    position.currency,
+    rateDate,
+    displayCurrency,
+    lookup
+  );
+
+  return {
+    ...position,
+    displayCurrency,
+    displayAvgBuyPrice: converted.displayAmount,
+    displayFxRate: converted.fxRate,
+    displayFxRateDate: rateDate,
+  };
+}
+
+async function applyDisplayFieldsToTransaction(
+  transaction: TransactionResponse,
+  sourceRow: TransactionRow,
+  displayCurrency: DisplayCurrency,
+  lookup: Map<string, number>
+): Promise<TransactionResponse> {
+  const nativeTotal = roundMoney(transaction.shares * transaction.pricePerShare);
+  const rateDate = resolveTransactionRateDate(sourceRow);
+
+  if (transaction.currency === displayCurrency) {
+    return {
+      ...transaction,
+      displayCurrency,
+      displayPricePerShare: transaction.pricePerShare,
+      displayTotalAmount: nativeTotal,
+      displayFxRate: 1,
+      displayFxRateDate: rateDate,
+    };
+  }
+
+  const convertedPrice = await convertAmountForDisplay(
+    transaction.pricePerShare,
+    transaction.currency,
+    rateDate,
+    displayCurrency,
+    lookup
+  );
+
+  return {
+    ...transaction,
+    displayCurrency,
+    displayPricePerShare: convertedPrice.displayAmount,
+    displayTotalAmount: convertWithRate(nativeTotal, convertedPrice.fxRate),
+    displayFxRate: convertedPrice.fxRate,
+    displayFxRateDate: rateDate,
+  };
+}
+
+async function buildDisplayLookupForTransactions(
+  rows: TransactionRow[],
+  displayCurrency: DisplayCurrency
+): Promise<Map<string, number>> {
+  return createFxRateLookup(
+    displayCurrency,
+    collectConversionRequests(
+      rows.map((row) => ({
+        currency: row.currency,
+        rateDate: resolveTransactionRateDate(row),
+      }))
+    )
+  );
+}
+
+async function buildDisplayLookupForPositions(
+  rows: PositionRow[],
+  displayCurrency: DisplayCurrency
+): Promise<Map<string, number>> {
+  return createFxRateLookup(
+    displayCurrency,
+    collectConversionRequests(
+      rows.map((row) => ({
+        currency: row.currency,
+        rateDate: resolvePositionRateDate(row),
+      }))
+    )
+  );
+}
+
 // ─── Service functions ────────────────────────────────────────────────────────
 
-export async function getUserPositions(userId: string): Promise<PositionResponse[]> {
+export async function getUserPositions(
+  userId: string,
+  rawDisplayCurrency?: unknown
+): Promise<PositionResponse[]> {
+  const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getPositionsByPortfolioId(portfolioId);
   const enrichedRows = await enrichPositionsWithSectors(portfolioId, rows);
-  return enrichedRows.map(mapRowToResponse);
+  const items = enrichedRows.map(mapRowToResponse);
+  const lookup = await buildDisplayLookupForPositions(enrichedRows, displayCurrency);
+
+  return Promise.all(
+    items.map((item, index) =>
+      applyDisplayFieldsToPosition(item, enrichedRows[index], displayCurrency, lookup)
+    )
+  );
 }
 
 export async function getUserPositionsPaginated(
   userId: string,
   rawLimit: unknown,
-  rawOffset: unknown
+  rawOffset: unknown,
+  rawDisplayCurrency?: unknown
 ): Promise<PaginatedResponse<PositionResponse>> {
+  const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const { limit, offset } = parsePaginationParams(rawLimit, rawOffset, HOLDINGS_PAGE_SIZE);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
@@ -233,7 +366,13 @@ export async function getUserPositionsPaginated(
   ]);
 
   const enrichedRows = await enrichPositionsWithSectors(portfolioId, rows);
-  const items = enrichedRows.map(mapRowToResponse);
+  const mappedItems = enrichedRows.map(mapRowToResponse);
+  const lookup = await buildDisplayLookupForPositions(enrichedRows, displayCurrency);
+  const items = await Promise.all(
+    mappedItems.map((item, index) =>
+      applyDisplayFieldsToPosition(item, enrichedRows[index], displayCurrency, lookup)
+    )
+  );
 
   return buildPaginatedResponse(items, total, limit, offset);
 }
@@ -241,8 +380,10 @@ export async function getUserPositionsPaginated(
 export async function getUserTransactionsPaginated(
   userId: string,
   rawLimit: unknown,
-  rawOffset: unknown
+  rawOffset: unknown,
+  rawDisplayCurrency?: unknown
 ): Promise<PaginatedResponse<TransactionResponse>> {
+  const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const { limit, offset } = parsePaginationParams(rawLimit, rawOffset, TRANSACTIONS_PAGE_SIZE);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
@@ -252,19 +393,68 @@ export async function getUserTransactionsPaginated(
     countTransactionsByPortfolioId(portfolioId),
   ]);
 
-  const items = rows.map(mapTransactionRowToResponse);
+  const mappedItems = rows.map(mapTransactionRowToResponse);
+  const lookup = await buildDisplayLookupForTransactions(rows, displayCurrency);
+  const items = await Promise.all(
+    mappedItems.map((item, index) =>
+      applyDisplayFieldsToTransaction(item, rows[index], displayCurrency, lookup)
+    )
+  );
+
   return buildPaginatedResponse(items, total, limit, offset);
 }
 
-export async function getInvestmentSummary(userId: string): Promise<InvestmentSummaryResponse> {
+export async function getInvestmentSummary(
+  userId: string,
+  rawDisplayCurrency?: unknown
+): Promise<InvestmentSummaryResponse> {
+  const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
-  const totals = await getInvestmentTotals(portfolioId);
+  const transactions = await getAllTransactionsForDedup(portfolioId);
+  const nativeTotals = computeNativeInvestmentTotals(transactions);
 
-  return {
-    totalInvested: totals.totalInvested,
-    totalWithdrawn: totals.totalWithdrawn,
+  const response: InvestmentSummaryResponse = {
+    totalInvested: nativeTotals.totalInvested,
+    totalWithdrawn: nativeTotals.totalWithdrawn,
+    displayCurrency,
   };
+
+  const lookup = await buildDisplayLookupForTransactions(transactions, displayCurrency);
+  let displayTotalInvested = 0;
+  let displayTotalWithdrawn = 0;
+  const tickersWithBuy = new Set(
+    transactions
+      .filter((transaction) => transaction.transaction_type === 'BUY')
+      .map((transaction) => transaction.ticker)
+  );
+
+  for (const transaction of transactions) {
+    const nativeTotal = parseFloat(transaction.shares) * parseFloat(transaction.price_per_share);
+    const rateDate = resolveTransactionRateDate(transaction);
+    const converted = await convertAmountForDisplay(
+      nativeTotal,
+      transaction.currency,
+      rateDate,
+      displayCurrency,
+      lookup
+    );
+
+    if (transaction.transaction_type === 'BUY') {
+      displayTotalInvested += converted.displayAmount;
+      continue;
+    }
+
+    displayTotalWithdrawn += converted.displayAmount;
+    if (!tickersWithBuy.has(transaction.ticker)) {
+      displayTotalInvested += converted.displayAmount;
+    }
+  }
+
+  response.displayTotalInvested = roundMoney(displayTotalInvested);
+  response.displayTotalWithdrawn = roundMoney(displayTotalWithdrawn);
+
+  return response;
 }
 
 export async function createPosition(userId: string, rawDto: unknown): Promise<PositionResponse> {
@@ -485,7 +675,11 @@ function rangeForDays(days: number): string {
  * works reliably even when transactions lack explicit dates.  Sells are not
  * reflected — the chart shows the value of CURRENT holdings over time.
  */
-export async function getPortfolioEquityHistory(userId: string): Promise<EquityPoint[]> {
+export async function getPortfolioEquityHistory(
+  userId: string,
+  rawDisplayCurrency?: unknown
+): Promise<EquityPoint[]> {
+  const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getPositionsByPortfolioId(portfolioId);
@@ -494,7 +688,7 @@ export async function getPortfolioEquityHistory(userId: string): Promise<EquityP
 
   if (rows.length === 0) return [];
 
-  const todayDate = new Date().toISOString().slice(0, 10);
+  const todayDate = getTodayIsoDate();
 
   // Default start = 6 months ago (used when entry_date is NULL)
   const sixMonthsAgo = new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000)
@@ -504,8 +698,7 @@ export async function getPortfolioEquityHistory(userId: string): Promise<EquityP
   const positionEntries = rows.map((row) => ({
     ticker: row.ticker,
     shares: parseFloat(row.shares),
-    // Normalize to YYYY-MM-DD regardless of how pg returns the DATE column
-    // (pg may return a Date object, an ISO datetime string, or a plain date string).
+    currency: row.currency,
     startDate: row.entry_date
       ? new Date(row.entry_date as unknown as string | Date).toISOString().slice(0, 10)
       : sixMonthsAgo,
@@ -566,6 +759,19 @@ export async function getPortfolioEquityHistory(userId: string): Promise<EquityP
   );
   if (sortedDates.length === 0) return [];
 
+  const fxLookup = new Map<string, number>();
+  const sourceCurrencies = [
+    ...new Set(positionEntries.map((entry) => entry.currency)),
+  ] as DisplayCurrency[];
+
+  await Promise.all(
+    sourceCurrencies
+      .filter((sourceCurrency) => sourceCurrency !== displayCurrency)
+      .map((sourceCurrency) =>
+        preloadFxRates(fxLookup, sourceCurrency, displayCurrency, sortedDates)
+      )
+  );
+
   const lastKnownPrices: Record<string, number> = {};
   const equityHistory: EquityPoint[] = [];
 
@@ -578,17 +784,30 @@ export async function getPortfolioEquityHistory(userId: string): Promise<EquityP
 
     // Sum the value of every position active on this date
     let portfolioValue = 0;
-    for (const { ticker, shares, startDate } of positionEntries) {
+    let displayPortfolioValue = 0;
+    for (const { ticker, shares, startDate, currency } of positionEntries) {
       if (date >= startDate) {
         const price = lastKnownPrices[ticker];
         if (price !== undefined) {
-          portfolioValue += shares * price;
+          const nativeContribution = shares * price;
+          portfolioValue += nativeContribution;
+
+          const fxRate =
+            currency === displayCurrency
+              ? 1
+              : await getFxRateFromLookup(fxLookup, currency, displayCurrency, date);
+          displayPortfolioValue += convertWithRate(nativeContribution, fxRate);
         }
       }
     }
 
     if (portfolioValue > 0) {
-      equityHistory.push({ time: date, value: Math.round(portfolioValue * 100) / 100 });
+      equityHistory.push({
+        time: date,
+        value: roundMoney(portfolioValue),
+        displayCurrency,
+        displayValue: roundMoney(displayPortfolioValue),
+      });
     }
   }
 

@@ -1,27 +1,59 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Radio } from 'lucide-react';
+import type { Currency } from '../../../../constants';
 import type { WatchlistItem } from '../../../../types/watchlist.types';
+import { fetchLiveFxRates } from '../../../../api/fxApi';
+import {
+  convertAmountWithRate,
+  formatMoney,
+  getTodayIsoDate,
+} from '../../../../utils/moneyDisplay';
 import styles from './WatchlistPanel.module.scss';
 
 interface WatchlistPanelProps {
   watchlist: WatchlistItem[];
-  currency: string;
-}
-
-function formatPrice(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+  currency: Currency;
 }
 
 export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
+  const [fxRates, setFxRates] = useState<Record<Currency, number>>({ USD: 1, EUR: 1 });
+
+  const sourceCurrencies = useMemo(
+    () => [...new Set(watchlist.map((item) => item.currency as Currency))],
+    [watchlist]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchLiveFxRates(sourceCurrencies, currency, getTodayIsoDate())
+      .then((rates) => {
+        if (!cancelled) {
+          setFxRates(rates);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFxRates({ USD: 1, EUR: 1 });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currency, sourceCurrencies]);
+
   const now = new Date().toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
   });
+
+  function getDisplayPrice(item: WatchlistItem): number {
+    const sourceCurrency = item.currency as Currency;
+    const fxRate = sourceCurrency === currency ? 1 : (fxRates[sourceCurrency] ?? 1);
+    return convertAmountWithRate(item.price, fxRate);
+  }
 
   return (
     <div className={styles.card}>
@@ -51,7 +83,6 @@ export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
           <div className={styles.list}>
             {watchlist.map((item) => {
               const isPositive = item.changePercent >= 0;
-              const displayCurrency = currency || item.currency;
 
               return (
                 <div key={item.id} className={styles.item}>
@@ -63,7 +94,7 @@ export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
                     </div>
                   </div>
                   <span className={styles.itemPrice}>
-                    {formatPrice(item.price, displayCurrency)}
+                    {formatMoney(getDisplayPrice(item), currency)}
                   </span>
                   <span
                     className={`${styles.itemChange} ${isPositive ? styles.positive : styles.negative}`}

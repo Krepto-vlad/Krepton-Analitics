@@ -63,7 +63,9 @@ export interface UpdatePositionDto {
 
 export interface EquityPoint {
   time: string; // YYYY-MM-DD
-  value: number; // portfolio market value in USD
+  value: number;
+  displayCurrency?: 'USD' | 'EUR';
+  displayValue?: number;
 }
 
 // ─── API response shape ───────────────────────────────────────────────────────
@@ -79,6 +81,10 @@ export interface PositionResponse {
   entryDate: string | null;
   createdAt: string;
   updatedAt: string;
+  displayCurrency?: 'USD' | 'EUR';
+  displayAvgBuyPrice?: number;
+  displayFxRate?: number;
+  displayFxRateDate?: string;
 }
 
 export interface TransactionResponse {
@@ -91,6 +97,11 @@ export interface TransactionResponse {
   transactionDate: string | null;
   transactionType: 'BUY' | 'SELL';
   createdAt: string;
+  displayCurrency?: 'USD' | 'EUR';
+  displayPricePerShare?: number;
+  displayTotalAmount?: number;
+  displayFxRate?: number;
+  displayFxRateDate?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -106,4 +117,7 @@ export interface InvestmentSummaryResponse {
   totalInvested: number;
   /** Gross proceeds from sales — sum of all SELL transaction totals. */
   totalWithdrawn: number;
+  displayCurrency?: 'USD' | 'EUR';
+  displayTotalInvested?: number;
+  displayTotalWithdrawn?: number;
 }

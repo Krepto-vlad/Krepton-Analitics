@@ -13,6 +13,8 @@ import {
   deleteWatchlistItem,
 } from '../../api/watchlistApi';
 import { fetchStockQuotesBatch } from '../../api/stockApi';
+import { ERROR_MESSAGES } from '../../constants';
+import { getRejectedMessage } from '../../utils/apiError';
 
 function mapQuoteToWatchlistItem(
   item: StoredWatchlistItem,
@@ -67,8 +69,8 @@ export const fetchWatchlistThunk = createAsyncThunk<
   try {
     const stored = await fetchWatchlistItems();
     return enrichWatchlistItems(stored);
-  } catch {
-    return rejectWithValue('Failed to load watchlist');
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.WATCHLIST_LOAD_FAILED));
   }
 });
 
@@ -83,8 +85,8 @@ export const refreshWatchlistQuotesThunk = createAsyncThunk<
 
     const quotes = await fetchStockQuotesBatch(currentItems.map((item) => item.ticker));
     return mergeWatchlistQuotes(currentItems, quotes);
-  } catch {
-    return rejectWithValue('Failed to refresh watchlist quotes');
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.WATCHLIST_LOAD_FAILED));
   }
 });
 
@@ -97,8 +99,7 @@ export const addWatchlistItemThunk = createAsyncThunk<
     await createWatchlistItem(payload);
     await dispatch(fetchWatchlistThunk());
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to add ticker';
-    return rejectWithValue(message);
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.WATCHLIST_ADD_FAILED));
   }
 });
 
@@ -109,8 +110,8 @@ export const deleteWatchlistItemThunk = createAsyncThunk<string, string, { rejec
       await deleteWatchlistItem(itemId);
       await dispatch(fetchWatchlistThunk());
       return itemId;
-    } catch {
-      return rejectWithValue('Failed to remove ticker');
+    } catch (error) {
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.WATCHLIST_DELETE_FAILED));
     }
   }
 );
@@ -144,13 +145,13 @@ const watchlistSlice = createSlice({
       })
       .addCase(fetchWatchlistThunk.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(refreshWatchlistQuotesThunk.fulfilled, (state, action) => {
         state.items = action.payload;
       })
       .addCase(refreshWatchlistQuotesThunk.rejected, (state, action) => {
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(addWatchlistItemThunk.pending, (state) => {
         state.isSubmitting = true;
@@ -161,13 +162,13 @@ const watchlistSlice = createSlice({
       })
       .addCase(addWatchlistItemThunk.rejected, (state, action) => {
         state.isSubmitting = false;
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(deleteWatchlistItemThunk.pending, (state) => {
         state.error = null;
       })
       .addCase(deleteWatchlistItemThunk.rejected, (state, action) => {
-        state.error = action.payload ?? 'Unknown error';
+        state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       });
   },
 });

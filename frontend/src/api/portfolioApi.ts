@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { createApiClient, assertSuccess } from './apiClient';
 import { API_BASE_URL } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
 
@@ -15,6 +15,10 @@ export interface StoredPosition {
   entryDate: string | null;
   createdAt: string;
   updatedAt: string;
+  displayCurrency?: 'USD' | 'EUR';
+  displayAvgBuyPrice?: number;
+  displayFxRate?: number;
+  displayFxRateDate?: string;
 }
 
 export interface AddPositionPayload {
@@ -57,6 +61,11 @@ export interface PortfolioTransaction {
   transactionDate: string | null;
   transactionType: 'BUY' | 'SELL';
   createdAt: string;
+  displayCurrency?: 'USD' | 'EUR';
+  displayPricePerShare?: number;
+  displayTotalAmount?: number;
+  displayFxRate?: number;
+  displayFxRateDate?: string;
 }
 
 export interface PaginatedResult<T> {
@@ -70,46 +79,58 @@ export interface PaginatedResult<T> {
 export interface InvestmentSummary {
   totalInvested: number;
   totalWithdrawn: number;
+  displayCurrency?: 'USD' | 'EUR';
+  displayTotalInvested?: number;
+  displayTotalWithdrawn?: number;
+}
+
+export interface EquityHistoryPoint {
+  time: string;
+  value: number;
+  displayCurrency?: 'USD' | 'EUR';
+  displayValue?: number;
 }
 
 // ─── Client ───────────────────────────────────────────────────────────────────
 
-const portfolioApiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api/portfolio`,
-  withCredentials: true,
-});
-
-function assertSuccess<T>(data: ApiSuccessResponse<T> | ApiErrorResponse): T {
-  if (!data.success) throw new Error((data as ApiErrorResponse).error ?? 'Unknown error');
-  return (data as ApiSuccessResponse<T>).data;
-}
+const portfolioApiClient = createApiClient(`${API_BASE_URL}/api/portfolio`);
 
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
-export async function fetchPortfolioPositions(): Promise<StoredPosition[]> {
+import type { Currency } from '../constants';
+
+function withDisplayCurrency(displayCurrency?: Currency): Record<string, Currency> | undefined {
+  return displayCurrency ? { displayCurrency } : undefined;
+}
+
+export async function fetchPortfolioPositions(
+  displayCurrency?: Currency
+): Promise<StoredPosition[]> {
   const { data } = await portfolioApiClient.get<
     ApiSuccessResponse<StoredPosition[]> | ApiErrorResponse
-  >('/');
+  >('/', { params: withDisplayCurrency(displayCurrency) });
   return assertSuccess(data);
 }
 
 export async function fetchPortfolioPositionsPage(
   limit: number,
-  offset: number
+  offset: number,
+  displayCurrency?: Currency
 ): Promise<PaginatedResult<StoredPosition>> {
   const { data } = await portfolioApiClient.get<
     ApiSuccessResponse<PaginatedResult<StoredPosition>> | ApiErrorResponse
-  >('/', { params: { limit, offset } });
+  >('/', { params: { limit, offset, ...withDisplayCurrency(displayCurrency) } });
   return assertSuccess(data);
 }
 
 export async function fetchPortfolioTransactionsPage(
   limit: number,
-  offset: number
+  offset: number,
+  displayCurrency?: Currency
 ): Promise<PaginatedResult<PortfolioTransaction>> {
   const { data } = await portfolioApiClient.get<
     ApiSuccessResponse<PaginatedResult<PortfolioTransaction>> | ApiErrorResponse
-  >('/transactions', { params: { limit, offset } });
+  >('/transactions', { params: { limit, offset, ...withDisplayCurrency(displayCurrency) } });
   return assertSuccess(data);
 }
 
@@ -150,17 +171,21 @@ export async function deletePortfolioPosition(positionId: string): Promise<void>
   await portfolioApiClient.delete(`/${positionId}`);
 }
 
-export async function fetchPortfolioEquityHistory(): Promise<{ time: string; value: number }[]> {
+export async function fetchPortfolioEquityHistory(
+  displayCurrency?: Currency
+): Promise<EquityHistoryPoint[]> {
   const { data } = await portfolioApiClient.get<
-    ApiSuccessResponse<{ time: string; value: number }[]> | ApiErrorResponse
-  >('/equity-history');
+    ApiSuccessResponse<EquityHistoryPoint[]> | ApiErrorResponse
+  >('/equity-history', { params: withDisplayCurrency(displayCurrency) });
   return assertSuccess(data);
 }
 
-export async function fetchInvestmentSummary(): Promise<InvestmentSummary> {
+export async function fetchInvestmentSummary(
+  displayCurrency?: Currency
+): Promise<InvestmentSummary> {
   const { data } = await portfolioApiClient.get<
     ApiSuccessResponse<InvestmentSummary> | ApiErrorResponse
-  >('/investment-summary');
+  >('/investment-summary', { params: withDisplayCurrency(displayCurrency) });
   return assertSuccess(data);
 }
 
@@ -168,9 +193,15 @@ export async function closePortfolioPosition(
   positionId: string,
   payload: ClosePositionPayload
 ): Promise<ClosePositionResponse> {
-  const { data } = await portfolioApiClient.post<ClosePositionResponse>(
-    `/${positionId}/close`,
-    payload
-  );
-  return data;
+  const { data } = await portfolioApiClient.post<
+    ApiSuccessResponse<StoredPosition | null> | ApiErrorResponse
+  >(`/${positionId}/close`, payload);
+
+  const position = assertSuccess(data);
+
+  return {
+    success: true,
+    data: position,
+    closed: position === null,
+  };
 }

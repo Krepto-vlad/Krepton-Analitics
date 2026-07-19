@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
-import { Button, Select } from '../../../../components/ui';
+import { Button, Select, ErrorBanner } from '../../../../components/ui';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import { closePositionThunk } from '../../../../features/portfolio/portfolioSlice';
 import { fetchStockQuote } from '../../../../api/stockApi';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
-import { CURRENCY_OPTIONS } from '../../../../constants';
+import { CURRENCY_OPTIONS, ERROR_MESSAGES } from '../../../../constants';
+import { getRejectedMessage } from '../../../../utils/apiError';
 import styles from './ClosePositionModal.module.scss';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -95,8 +96,8 @@ function ClosePositionModalForm({
         })
       ).unwrap();
       onClose();
-    } catch {
-      setSubmitError('Failed to record sale. Please try again.');
+    } catch (error) {
+      setSubmitError(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_POSITION_CLOSE_FAILED));
     } finally {
       setIsSubmitting(false);
     }
@@ -231,7 +232,7 @@ function ClosePositionModalForm({
             </div>
           )}
 
-          {submitError && <p className={styles.errorText}>{submitError}</p>}
+          {submitError && <ErrorBanner message={submitError} />}
 
           <div className={styles.actions}>
             <Button

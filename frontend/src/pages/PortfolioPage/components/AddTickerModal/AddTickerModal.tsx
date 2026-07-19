@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, X, Check, Loader } from 'lucide-react';
-import { Button } from '../../../../components/ui';
+import { Button, ErrorBanner } from '../../../../components/ui';
+import { ERROR_MESSAGES } from '../../../../constants';
+import { getRejectedMessage } from '../../../../utils/apiError';
 import { fetchStockSearch } from '../../../../api/stockApi';
 import type { StockSearchResult } from '../../../../types/stock.types';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
@@ -87,7 +89,7 @@ function AddTickerModalForm({ onClose }: { onClose: () => void }) {
       ).unwrap();
       onClose();
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Failed to add ticker');
+      setSubmitError(getRejectedMessage(error, ERROR_MESSAGES.WATCHLIST_ADD_FAILED));
     } finally {
       setIsSubmitting(false);
     }
@@ -146,7 +148,7 @@ function AddTickerModalForm({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          {submitError && <p className={styles.errorText}>{submitError}</p>}
+          {submitError && <ErrorBanner message={submitError} />}
 
           <div className={styles.actions}>
             <Button

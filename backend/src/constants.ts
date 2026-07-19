@@ -22,6 +22,7 @@ export const API_ROUTES = {
   STOCKS: '/api/stocks',
   AUTH: '/api/auth',
   PORTFOLIO: '/api/portfolio',
+  FX: '/api/fx',
 } as const;
 
 export const WS_QUOTE_POLL_INTERVAL_MS = 30_000;
@@ -68,6 +69,14 @@ export const COMPANY_NAME_MAX_LENGTH = 255;
 export const MAX_SHARES = 999_999_999;
 export const MAX_PRICE = 999_999_999;
 export const ALLOWED_CURRENCIES: ReadonlyArray<string> = ['USD', 'EUR'] as const;
+export type AllowedCurrency = (typeof ALLOWED_CURRENCIES)[number];
+
+// ─── FX rates (Frankfurter API) ───────────────────────────────────────────────
+export const FRANKFURTER_API_BASE_URL = 'https://api.frankfurter.app';
+export const FX_HISTORICAL_RATE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+export const FX_TODAY_RATE_CACHE_TTL_MS = 30 * 60 * 1000;
+export const FX_API_TIMEOUT_MS = 8_000;
+export const FX_MAX_RANGE_DAYS = 365 * 5;
 
 // Portfolio pagination defaults
 export const HOLDINGS_PAGE_SIZE = 10;

@@ -1,8 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Search, Loader, Star } from 'lucide-react';
-import { Button } from '../../../../components/ui';
+import { Button, AsyncStatePanel, ErrorBanner } from '../../../../components/ui';
+import type { Currency } from '../../../../constants';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
+import { fetchLiveFxRates } from '../../../../api/fxApi';
+import {
+  convertAmountWithRate,
+  formatMoney,
+  getTodayIsoDate,
+} from '../../../../utils/moneyDisplay';
 import {
   fetchWatchlistThunk,
   deleteWatchlistItemThunk,
@@ -10,18 +17,9 @@ import {
 import { AddTickerModal } from '../AddTickerModal/AddTickerModal';
 import styles from './WatchlistPanel.module.scss';
 
-function formatPrice(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatOptionalPrice(value: number | null, currency: string): string {
+function formatOptionalPrice(value: number | null, currency: Currency): string {
   if (value === null || value <= 0) return '—';
-  return formatPrice(value, currency);
+  return formatMoney(value, currency);
 }
 
 function formatPercent(value: number): string {
@@ -32,12 +30,45 @@ function formatPercent(value: number): string {
 export function WatchlistPanel() {
   const dispatch = useAppDispatch();
   const items = useAppSelector((state) => state.watchlist.items);
+  const displayCurrency = useAppSelector((state) => state.ui.currency);
   const isLoading = useAppSelector((state) => state.watchlist.isLoading);
   const error = useAppSelector((state) => state.watchlist.error);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [fxRates, setFxRates] = useState<Record<Currency, number>>({ USD: 1, EUR: 1 });
+
+  const sourceCurrencies = useMemo(
+    () => [...new Set(items.map((item) => item.currency as Currency))],
+    [items]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchLiveFxRates(sourceCurrencies, displayCurrency, getTodayIsoDate())
+      .then((rates) => {
+        if (!cancelled) {
+          setFxRates(rates);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFxRates({ USD: 1, EUR: 1 });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [displayCurrency, sourceCurrencies]);
+
+  function getDisplayPrice(price: number, sourceCurrency: string): number {
+    const fromCurrency = sourceCurrency as Currency;
+    const fxRate = fromCurrency === displayCurrency ? 1 : (fxRates[fromCurrency] ?? 1);
+    return convertAmountWithRate(price, fxRate);
+  }
 
   const filteredItems = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -63,10 +94,7 @@ export function WatchlistPanel() {
   if (isLoading && items.length === 0) {
     return (
       <div className={styles.panel}>
-        <div className={styles.loadingState}>
-          <Loader size={20} className={styles.loadingSpinner} />
-          <span>Loading watchlist…</span>
-        </div>
+        <AsyncStatePanel isLoading loadingMessage="Loading watchlist…" />
       </div>
     );
   }
@@ -74,12 +102,11 @@ export function WatchlistPanel() {
   if (error && items.length === 0) {
     return (
       <div className={styles.panel}>
-        <div className={styles.errorState}>
-          <p className={styles.errorText}>{error}</p>
-          <Button variant="outline" size="sm" onClick={handleRetry}>
-            Retry
-          </Button>
-        </div>
+        <AsyncStatePanel
+          error={error}
+          errorTitle="Unable to load watchlist"
+          onRetry={handleRetry}
+        />
       </div>
     );
   }
@@ -179,12 +206,24 @@ export function WatchlistPanel() {
                         </div>
                       </td>
                       <td className={styles.tdName}>{item.companyName}</td>
-                      <td className={styles.tdNum}>{formatPrice(item.price, item.currency)}</td>
                       <td className={styles.tdNum}>
-                        {formatOptionalPrice(item.fiftyTwoWeekHigh, item.currency)}
+                        {formatMoney(getDisplayPrice(item.price, item.currency), displayCurrency)}
                       </td>
                       <td className={styles.tdNum}>
-                        {formatOptionalPrice(item.fiftyTwoWeekLow, item.currency)}
+                        {formatOptionalPrice(
+                          item.fiftyTwoWeekHigh !== null
+                            ? getDisplayPrice(item.fiftyTwoWeekHigh, item.currency)
+                            : null,
+                          displayCurrency
+                        )}
+                      </td>
+                      <td className={styles.tdNum}>
+                        {formatOptionalPrice(
+                          item.fiftyTwoWeekLow !== null
+                            ? getDisplayPrice(item.fiftyTwoWeekLow, item.currency)
+                            : null,
+                          displayCurrency
+                        )}
                       </td>
                       <td className={styles.tdNum}>
                         <span className={isPositive ? styles.positive : styles.negative}>
@@ -213,7 +252,7 @@ export function WatchlistPanel() {
             </table>
           </div>
 
-          {error && <p className={styles.inlineError}>{error}</p>}
+          {error && <ErrorBanner message={error} className={styles.inlineError} />}
         </div>
       )}
 

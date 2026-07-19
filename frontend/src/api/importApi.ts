@@ -1,19 +1,9 @@
-import axios from 'axios';
+import { createApiClient, assertSuccess } from './apiClient';
 import { API_BASE_URL } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
 import type { ImportConfirmResponse, ImportPreviewResponse } from '../types/import.types';
 
-const importApiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api/portfolio`,
-  withCredentials: true,
-});
-
-function assertSuccess<T>(data: ApiSuccessResponse<T> | ApiErrorResponse): T {
-  if (!data.success) {
-    throw new Error(data.error ?? 'Unknown error');
-  }
-  return data.data;
-}
+const importApiClient = createApiClient(`${API_BASE_URL}/api/portfolio`);
 
 export async function previewBrokerImport(
   broker: string,
