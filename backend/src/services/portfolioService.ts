@@ -22,6 +22,8 @@ import {
   getBuyTransactionsByTicker,
   deleteTransactionById,
   updatePositionSector,
+  getAllTransactionsForDedup,
+  insertPositionFromLedger,
 } from '../repositories/portfolioRepository.js';
 import type {
   AddPositionDto,
@@ -44,6 +46,9 @@ import {
   TRANSACTIONS_PAGE_SIZE,
   MAX_PAGE_SIZE,
 } from '../constants.js';
+import type { SupportedBrokerId } from '../constants.js';
+import type { NormalizedTrade, ImportConfirmResponse } from '../types/import.types.js';
+import { buildTradeFingerprint } from '../utils/tradeFingerprint.js';
 
 // ─── HMAC indirection ─────────────────────────────────────────────────────────
 
@@ -365,6 +370,20 @@ async function syncPositionFromTransactions(portfolioId: string, ticker: string)
   }
 
   if (!existingPosition) {
+    if (shares <= SHARES_EPSILON) {
+      return;
+    }
+
+    const companyName = transactions[0]?.company_name ?? ticker;
+    await insertPositionFromLedger(portfolioId, {
+      ticker,
+      companyName,
+      shares,
+      avgBuyPrice,
+      currency,
+      entryDate,
+      sector: null,
+    });
     return;
   }
 
@@ -637,4 +656,72 @@ export async function closePosition(
   }
 
   return mapRowToResponse(updatedRow);
+}
+
+export async function confirmImportedTrades(
+  userId: string,
+  broker: SupportedBrokerId,
+  trades: NormalizedTrade[]
+): Promise<ImportConfirmResponse> {
+  void broker;
+
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+  const existingTransactions = await getAllTransactionsForDedup(portfolioId);
+
+  const existingFingerprints = new Set(
+    existingTransactions.map((transaction) =>
+      buildTradeFingerprint({
+        ticker: transaction.ticker,
+        transactionDate:
+          normalizeDbDate(transaction.transaction_date) ??
+          transaction.created_at.toISOString().slice(0, 10),
+        transactionType: transaction.transaction_type,
+        shares: Number.parseFloat(transaction.shares),
+        pricePerShare: Number.parseFloat(transaction.price_per_share),
+      })
+    )
+  );
+
+  let importedCount = 0;
+  let skippedDuplicateCount = 0;
+  const affectedTickers = new Set<string>();
+
+  for (const trade of trades) {
+    const fingerprint = buildTradeFingerprint(trade);
+    if (existingFingerprints.has(fingerprint)) {
+      skippedDuplicateCount += 1;
+      continue;
+    }
+
+    await addTransaction(portfolioId, {
+      ticker: trade.ticker,
+      companyName: trade.companyName,
+      shares: trade.shares,
+      pricePerShare: trade.pricePerShare,
+      currency: trade.currency as 'USD' | 'EUR',
+      transactionDate: trade.transactionDate,
+      transactionType: trade.transactionType,
+    });
+
+    existingFingerprints.add(fingerprint);
+    affectedTickers.add(trade.ticker);
+    importedCount += 1;
+  }
+
+  for (const ticker of affectedTickers) {
+    await syncPositionFromTransactions(portfolioId, ticker);
+
+    const position = await getPositionByTicker(portfolioId, ticker);
+    if (position && !position.sector) {
+      const { sector } = await getStockSector(ticker);
+      await updatePositionSector(position.id, portfolioId, sector);
+    }
+  }
+
+  return {
+    importedCount,
+    skippedDuplicateCount,
+    affectedTickers: [...affectedTickers].sort(),
+  };
 }

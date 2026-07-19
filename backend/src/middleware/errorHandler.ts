@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import multer from 'multer';
 import type { ApiErrorResponse } from '../types/stock.types.js';
 
 export class AppError extends Error {
@@ -21,6 +22,21 @@ export function errorHandler(
 
   if (error instanceof AppError) {
     res.status(error.statusCode).json({ success: false, error: error.message });
+    return;
+  }
+
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      res.status(400).json({ success: false, error: 'File exceeds the maximum upload size' });
+      return;
+    }
+
+    res.status(400).json({ success: false, error: error.message });
+    return;
+  }
+
+  if (error.message.includes('.xlsx')) {
+    res.status(400).json({ success: false, error: error.message });
     return;
   }
 

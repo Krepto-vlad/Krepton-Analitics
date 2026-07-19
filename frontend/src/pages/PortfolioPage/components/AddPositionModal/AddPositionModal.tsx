@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, X, Check, Loader } from 'lucide-react';
-import { Button, Select } from '../../../../components/ui';
+import { Button, Select, DatePicker } from '../../../../components/ui';
+import { toIsoDate } from '../../../../components/ui/DatePicker/datePickerUtils';
 import { fetchStockSearch, fetchStockQuote } from '../../../../api/stockApi';
 import type { StockSearchResult } from '../../../../types/stock.types';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
@@ -11,7 +12,7 @@ import styles from './AddPositionModal.module.scss';
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const SEARCH_DEBOUNCE_MS = 350;
-const TODAY = new Date().toISOString().slice(0, 10);
+const TODAY = toIsoDate(new Date());
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -109,6 +110,10 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
       setSubmitError('Price per share must be a positive number');
       return;
     }
+    if (!entryDate) {
+      setSubmitError('Purchase date is required');
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -140,6 +145,7 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
     selectedResult !== null &&
     shares.trim() !== '' &&
     pricePerShare.trim() !== '' &&
+    entryDate.trim() !== '' &&
     !isNaN(parseFloat(shares)) &&
     !isNaN(parseFloat(pricePerShare));
 
@@ -228,16 +234,12 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
 
           {/* Date + Currency row */}
           <div className={styles.row}>
-            <div className={styles.field}>
-              <label className={styles.label}>Purchase date</label>
-              <input
-                type="date"
-                className={styles.input}
-                value={entryDate}
-                max={TODAY}
-                onChange={(e) => setEntryDate(e.target.value)}
-              />
-            </div>
+            <DatePicker
+              label="Purchase date"
+              value={entryDate}
+              max={TODAY}
+              onChange={setEntryDate}
+            />
 
             <Select
               label="Currency"
