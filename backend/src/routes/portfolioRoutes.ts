@@ -6,6 +6,7 @@ import {
   getTransactions,
   getEquityHistory,
   getInvestmentSummaryHandler,
+  getPortfolioNewsHandler,
   getBuyTransactions,
   postPosition,
   patchPosition,
@@ -54,6 +55,7 @@ router.get('/', asyncHandler(getPositions));
 router.get('/transactions', asyncHandler(getTransactions));
 router.get('/equity-history', asyncHandler(getEquityHistory));
 router.get('/investment-summary', asyncHandler(getInvestmentSummaryHandler));
+router.get('/news', asyncHandler(getPortfolioNewsHandler));
 router.post(
   '/import/preview',
   importLimiter,

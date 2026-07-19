@@ -70,6 +70,32 @@ export const EQUITY_PERIODS = [
 
 export const PORTFOLIO_RISK_SCORE = 67;
 
+export const DASHBOARD_NEWS_INITIAL_VISIBLE = 6;
+export const DASHBOARD_NEWS_LOAD_MORE_STEP = 6;
+
+export const STOCK_COMPARE_MAX_TICKERS = 4;
+export const STOCK_COMPARE_MIN_TICKERS = 2;
+export const STOCK_SEARCH_DEBOUNCE_MS = 350;
+export const STOCK_SEARCH_DROPDOWN_LIMIT = 8;
+
+export const BACKTEST_MAX_TICKERS = 4;
+export const BACKTEST_MIN_TICKERS = 1;
+export const BACKTEST_DEFAULT_AMOUNT = 1000;
+export const BACKTEST_MIN_AMOUNT = 1;
+export const BACKTEST_MAX_AMOUNT = 10_000_000;
+export const BACKTEST_BENCHMARK_LABEL = 'S&P 500';
+export const BACKTEST_ALLOCATION_TOTAL_PERCENT = 100;
+export const BACKTEST_ALLOCATION_TOLERANCE = 0.01;
+
+export const BACKTEST_PERIODS = [
+  { value: '1y', label: '1Y' },
+  { value: '3y', label: '3Y' },
+  { value: '5y', label: '5Y' },
+  { value: '10y', label: '10Y' },
+] as const;
+
+export type BacktestPeriod = (typeof BACKTEST_PERIODS)[number]['value'];
+
 export const ERROR_MESSAGES = {
   UNKNOWN: 'Something went wrong. Please try again.',
   NETWORK: 'Unable to connect. Check your internet connection and try again.',
@@ -83,6 +109,7 @@ export const ERROR_MESSAGES = {
   AUTH_LOGIN_FAILED: 'Unable to sign in. Please check your credentials and try again.',
   AUTH_REGISTER_FAILED: 'Unable to create your account. Please try again.',
   PORTFOLIO_LOAD_FAILED: 'Unable to load portfolio data. Please try again.',
+  PORTFOLIO_NEWS_FAILED: 'Unable to load portfolio news. Please try again.',
   PORTFOLIO_POSITION_ADD_FAILED: 'Unable to add the position. Please try again.',
   PORTFOLIO_POSITION_CLOSE_FAILED: 'Unable to close the position. Please try again.',
   PORTFOLIO_POSITION_DELETE_FAILED: 'Unable to delete the position. Please try again.',
@@ -93,4 +120,6 @@ export const ERROR_MESSAGES = {
   IMPORT_PREVIEW_FAILED: 'Unable to read the broker file. Please check the format and try again.',
   IMPORT_CONFIRM_FAILED: 'Unable to complete the import. Please try again.',
   STOCK_SEARCH_FAILED: 'Unable to search tickers right now. Please try again.',
+  STOCK_COMPARE_FAILED: 'Unable to load comparison data. Please try again.',
+  STOCK_BACKTEST_FAILED: 'Unable to run backtest. Please try again.',
 } as const;

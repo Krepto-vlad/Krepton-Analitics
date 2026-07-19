@@ -7,7 +7,9 @@ export const HISTORICAL_DATA_PERIODS = {
   SIX_MONTHS: '6mo',
   ONE_YEAR: '1y',
   TWO_YEARS: '2y',
+  THREE_YEARS: '3y',
   FIVE_YEARS: '5y',
+  TEN_YEARS: '10y',
 } as const;
 
 export const HISTORICAL_DATA_INTERVALS = {
@@ -104,3 +106,28 @@ export const IMPORT_PREVIEW_TTL_MS = 15 * 60 * 1000; // 15 minutes
 export const IMPORT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const IMPORT_RATE_LIMIT_MAX_REQUESTS = 10;
 export const IMPORT_MAX_TRADES_PER_FILE = 2_000;
+
+// ─── Portfolio news (Yahoo Finance search) ─────────────────────────────────────
+export const PORTFOLIO_NEWS_MAX_TICKERS = 10;
+export const PORTFOLIO_NEWS_PER_TICKER = 5;
+export const PORTFOLIO_NEWS_MAX_ITEMS = 20;
+export const PORTFOLIO_NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
+
+// ─── Stock comparison matrix ───────────────────────────────────────────────────
+export const STOCK_COMPARE_MAX_TICKERS = 4;
+export const STOCK_COMPARE_MIN_TICKERS = 2;
+export const STOCK_COMPARE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+// ─── Light backtesting ─────────────────────────────────────────────────────────
+export const BACKTEST_MAX_TICKERS = 4;
+export const BACKTEST_MIN_TICKERS = 1;
+export const BACKTEST_BENCHMARK_TICKER = 'SPY';
+export const BACKTEST_BENCHMARK_LABEL = 'S&P 500';
+export const BACKTEST_PERIODS = ['1y', '3y', '5y', '10y'] as const;
+export type BacktestPeriod = (typeof BACKTEST_PERIODS)[number];
+export const BACKTEST_DEFAULT_AMOUNT = 1000;
+export const BACKTEST_MIN_AMOUNT = 1;
+export const BACKTEST_MAX_AMOUNT = 10_000_000;
+export const BACKTEST_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
+export const BACKTEST_ALLOCATION_TOTAL_PERCENT = 100;
+export const BACKTEST_ALLOCATION_TOLERANCE = 0.01;

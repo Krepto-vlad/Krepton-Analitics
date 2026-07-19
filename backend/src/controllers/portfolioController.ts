@@ -11,6 +11,7 @@ import {
   removePosition,
   removeBuyTransaction,
   closePosition,
+  getUserPortfolioNews,
 } from '../services/portfolioService.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -60,6 +61,11 @@ export async function getInvestmentSummaryHandler(req: Request, res: Response): 
   const { displayCurrency } = req.query;
   const summary = await getInvestmentSummary(requireUserId(req), displayCurrency);
   res.json({ success: true, data: summary });
+}
+
+export async function getPortfolioNewsHandler(req: Request, res: Response): Promise<void> {
+  const news = await getUserPortfolioNews(requireUserId(req));
+  res.json({ success: true, data: news });
 }
 
 export async function getBuyTransactions(req: Request, res: Response): Promise<void> {

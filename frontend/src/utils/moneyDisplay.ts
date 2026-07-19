@@ -66,3 +66,15 @@ export function getTodayIsoDate(): string {
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+export function getCurrencySymbol(currency: Currency): string {
+  const currencyPart = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+  })
+    .formatToParts(0)
+    .find((part) => part.type === 'currency');
+
+  return currencyPart?.value ?? currency;
+}
