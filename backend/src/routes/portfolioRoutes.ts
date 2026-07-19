@@ -18,10 +18,14 @@ import {
   postWatchlistItem,
   deleteWatchlistItemHandler,
 } from '../controllers/watchlistController.js';
+import { previewImport, confirmImport } from '../controllers/importController.js';
+import { brokerImportUploadMiddleware } from '../middleware/brokerImportUpload.js';
 import rateLimit from 'express-rate-limit';
 import {
   PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS,
   PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS,
+  IMPORT_RATE_LIMIT_WINDOW_MS,
+  IMPORT_RATE_LIMIT_MAX_REQUESTS,
 } from '../constants.js';
 
 // Apply rate limiting only to write operations to prevent abuse
@@ -29,6 +33,14 @@ const portfolioWriteLimiter = rateLimit({
   windowMs: PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS,
   max: PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS,
   message: { success: false, error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const importLimiter = rateLimit({
+  windowMs: IMPORT_RATE_LIMIT_WINDOW_MS,
+  max: IMPORT_RATE_LIMIT_MAX_REQUESTS,
+  message: { success: false, error: 'Too many import attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -42,6 +54,13 @@ router.get('/', asyncHandler(getPositions));
 router.get('/transactions', asyncHandler(getTransactions));
 router.get('/equity-history', asyncHandler(getEquityHistory));
 router.get('/investment-summary', asyncHandler(getInvestmentSummaryHandler));
+router.post(
+  '/import/preview',
+  importLimiter,
+  brokerImportUploadMiddleware,
+  asyncHandler(previewImport)
+);
+router.post('/import/confirm', importLimiter, portfolioWriteLimiter, asyncHandler(confirmImport));
 router.get('/watchlist', asyncHandler(getWatchlist));
 router.post('/watchlist', portfolioWriteLimiter, asyncHandler(postWatchlistItem));
 router.delete(

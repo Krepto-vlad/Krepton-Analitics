@@ -82,3 +82,16 @@ export const TICKER_TAPE_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 // Browser HTTP cache TTL for public ticker-tape endpoint.
 // All tabs in the same browser share one HTTP cache entry — no duplicate requests.
 export const TICKER_TAPE_BROWSER_CACHE_TTL_S = 60 * 60; // 1 hour
+
+// ─── Broker import ────────────────────────────────────────────────────────────
+export const SUPPORTED_BROKER_IDS = ['REVOLUT'] as const;
+export type SupportedBrokerId = (typeof SUPPORTED_BROKER_IDS)[number];
+
+export const IMPORT_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+export const IMPORT_MAX_ROWS = 5_000;
+export const IMPORT_MAX_COLUMNS = 20;
+export const IMPORT_MAX_SHEETS = 3;
+export const IMPORT_PREVIEW_TTL_MS = 15 * 60 * 1000; // 15 minutes
+export const IMPORT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const IMPORT_RATE_LIMIT_MAX_REQUESTS = 10;
+export const IMPORT_MAX_TRADES_PER_FILE = 2_000;

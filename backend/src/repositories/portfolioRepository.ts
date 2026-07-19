@@ -444,6 +444,50 @@ export async function getTransactionsByPortfolioIdPaginated(
   return result.rows;
 }
 
+export async function getAllTransactionsForDedup(portfolioId: string): Promise<TransactionRow[]> {
+  const result = await pool.query<TransactionRow>(
+    `SELECT id, portfolio_id, ticker, company_name, shares, price_per_share,
+            currency, transaction_date, transaction_type, created_at
+     FROM transactions
+     WHERE portfolio_id = $1`,
+    [portfolioId]
+  );
+
+  return result.rows;
+}
+
+export async function insertPositionFromLedger(
+  portfolioId: string,
+  params: {
+    ticker: string;
+    companyName: string;
+    shares: number;
+    avgBuyPrice: number;
+    currency: string;
+    entryDate: string | null;
+    sector?: string | null;
+  }
+): Promise<PositionRow> {
+  const result = await pool.query<PositionRow>(
+    `INSERT INTO positions
+       (portfolio_id, ticker, company_name, shares, avg_buy_price, currency, entry_date, sector)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     RETURNING *`,
+    [
+      portfolioId,
+      params.ticker,
+      params.companyName,
+      params.shares,
+      params.avgBuyPrice,
+      params.currency,
+      params.entryDate,
+      params.sector ?? null,
+    ]
+  );
+
+  return result.rows[0];
+}
+
 /**
  * Backfill a single position's sector.
  * Called fire-and-forget when getUserPositions detects null sectors.

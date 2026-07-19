@@ -243,6 +243,12 @@
   border-style: solid;
   border-color: rgba(16, 185, 129, 0.3);
   background: rgba(16, 185, 129, 0.04);
+  cursor: default;
+
+  &:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.04);
+  }
 }
 
 .fileInput {
@@ -275,19 +281,11 @@
 }
 
 .browseLink {
-  background: none;
-  border: none;
-  padding: 0;
   color: $color-primary;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
-  cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
-
-  &:hover {
-    color: $color-primary-hover;
-  }
 }
 
 .dropZoneHint {
@@ -363,10 +361,16 @@
   border-radius: $radius-md;
   border: 1px solid $color-border;
   background: rgba(255, 255, 255, 0.02);
+  font: inherit;
+  color: inherit;
   transition: border-color $transition-fast;
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: $color-border-strong;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
   }
 }
 
