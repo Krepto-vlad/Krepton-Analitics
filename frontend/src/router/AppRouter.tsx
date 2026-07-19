@@ -37,9 +37,11 @@ const PortfolioPage = lazy(() =>
 const RebalancingPage = () => (
   <div style={{ color: '#fff', padding: 40 }}>Rebalancing — coming soon</div>
 );
-const ScreenerPage = () => <div style={{ color: '#fff', padding: 40 }}>Screener — coming soon</div>;
-const BacktestingPage = () => (
-  <div style={{ color: '#fff', padding: 40 }}>Backtesting — coming soon</div>
+const ScreenerPage = lazy(() =>
+  import('../pages/ScreenerPage/ScreenerPage').then((m) => ({ default: m.ScreenerPage }))
+);
+const BacktestingPage = lazy(() =>
+  import('../pages/BacktestingPage/BacktestingPage').then((m) => ({ default: m.BacktestingPage }))
 );
 const WatchlistPage = () => (
   <div style={{ color: '#fff', padding: 40 }}>Watchlist — coming soon</div>

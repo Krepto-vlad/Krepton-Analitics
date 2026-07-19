@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
-import { Radio } from 'lucide-react';
+import { Radio, ChevronRight, Star } from 'lucide-react';
 import type { Currency } from '../../../../constants';
+import { ROUTES } from '../../../../constants';
 import type { WatchlistItem } from '../../../../types/watchlist.types';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
 import {
@@ -8,14 +10,16 @@ import {
   formatMoney,
   getTodayIsoDate,
 } from '../../../../utils/moneyDisplay';
+import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import styles from './WatchlistPanel.module.scss';
 
 interface WatchlistPanelProps {
   watchlist: WatchlistItem[];
   currency: Currency;
+  isLoading?: boolean;
 }
 
-export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
+export function WatchlistPanel({ watchlist, currency, isLoading = false }: WatchlistPanelProps) {
   const [fxRates, setFxRates] = useState<Record<Currency, number>>({ USD: 1, EUR: 1 });
 
   const sourceCurrencies = useMemo(
@@ -55,6 +59,8 @@ export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
     return convertAmountWithRate(item.price, fxRate);
   }
 
+  const isEmpty = !isLoading && watchlist.length === 0;
+
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
@@ -62,16 +68,34 @@ export function WatchlistPanel({ watchlist, currency }: WatchlistPanelProps) {
           <span className={styles.cardLabel}>REAL-TIME FEED</span>
           <span className={styles.cardTitle}>Watchlist</span>
         </div>
-        <div className={styles.liveClock}>
-          <Radio size={12} className={styles.liveIcon} />
-          <span className={styles.clockText}>{now}</span>
+        <div className={styles.headerActions}>
+          {!isEmpty && (
+            <Link to={`${ROUTES.PORTFOLIO}?section=watchlist`} className={styles.portfolioLink}>
+              View Watchlist
+              <ChevronRight size={14} />
+            </Link>
+          )}
+          {!isLoading && !isEmpty && (
+            <div className={styles.liveClock}>
+              <Radio size={12} className={styles.liveIcon} />
+              <span className={styles.clockText}>{now}</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className={styles.divider} />
 
-      {watchlist.length === 0 ? (
-        <p className={styles.emptyText}>No tickers in your watchlist yet.</p>
+      {isLoading || isEmpty ? (
+        <DashboardPanelEmptyState
+          isLoading={isLoading}
+          loadingMessage="Loading watchlist…"
+          icon={<Star size={24} />}
+          title="Watchlist is empty"
+          description="You haven't added any tickers yet. Follow stocks you're interested in and see live price updates here."
+          actionLabel="Add Ticker"
+          actionTo={`${ROUTES.PORTFOLIO}?section=watchlist`}
+        />
       ) : (
         <>
           <div className={styles.headerRow}>

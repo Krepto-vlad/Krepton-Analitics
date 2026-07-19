@@ -34,6 +34,8 @@ export interface NewsItem {
   source: string;
   timeAgo: string;
   headline: string;
+  url: string;
+  publishedAt?: string;
 }
 
 export interface EquityDataPoint {
@@ -83,6 +85,8 @@ export interface PortfolioState {
   stats: PortfolioStats;
   sectorAllocations: SectorAllocation[];
   news: NewsItem[];
+  isLoadingNews: boolean;
+  newsError: string | null;
   equityHistory: EquityDataPoint[];
   isLoading: boolean;
   error: string | null;

@@ -7,8 +7,10 @@ import {
   OhlcvCandle,
   StockHistoryResponse,
   StockSearchResult,
+  StockCompareItem,
+  StockCompareResponse,
 } from '../types/stock.types.js';
-import { SEARCH_RESULTS_LIMIT } from '../constants.js';
+import { SEARCH_RESULTS_LIMIT, STOCK_COMPARE_CACHE_TTL_MS } from '../constants.js';
 import { getCachedStockQuote, getCachedStockQuotes } from './quoteCacheService.js';
 
 const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com';
@@ -54,7 +56,9 @@ function periodToStartDate(period: string): Date {
     '6mo': 180,
     '1y': 365,
     '2y': 730,
+    '3y': 1095,
     '5y': 1825,
+    '10y': 3650,
   };
   const days = periodDays[period] ?? 365;
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -183,6 +187,169 @@ export async function getStockSector(
     console.warn(`[Sector] ${ticker} fetch failed — fallback "Other":`, (err as Error).message);
     return { sector: 'Other', industry: '' };
   }
+}
+
+interface YahooCompareSummary {
+  assetProfile?: { sector?: string; industry?: string };
+  summaryDetail?: {
+    trailingPE?: number;
+    forwardPE?: number;
+    pegRatio?: number;
+    dividendYield?: number;
+    payoutRatio?: number;
+    marketCap?: number;
+    enterpriseValue?: number;
+    priceToBook?: number;
+    priceToSalesTrailing12Months?: number;
+    enterpriseToEbitda?: number;
+    beta?: number;
+    profitMargins?: number;
+    operatingMargins?: number;
+  };
+  financialData?: {
+    returnOnEquity?: number;
+    returnOnAssets?: number;
+    profitMargins?: number;
+    operatingMargins?: number;
+    revenueGrowth?: number;
+    earningsGrowth?: number;
+    debtToEquity?: number;
+    currentRatio?: number;
+    currentPrice?: number;
+  };
+  defaultKeyStatistics?: {
+    trailingPE?: number;
+    forwardPE?: number;
+    pegRatio?: number;
+    priceToBook?: number;
+    priceToSalesTrailing12Months?: number;
+    enterpriseToEbitda?: number;
+    enterpriseValue?: number;
+    trailingEps?: number;
+    beta?: number;
+    profitMargins?: number;
+    payoutRatio?: number;
+  };
+}
+
+const stockCompareCache = new Map<string, { item: StockCompareItem; expiresAt: number }>();
+
+function toPercentValue(...values: Array<number | undefined | null>): number | null {
+  for (const value of values) {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(value)) {
+      continue;
+    }
+    const normalized = Math.abs(value) <= 1 ? value * 100 : value;
+    return normalized;
+  }
+  return null;
+}
+
+function pickFirstPositiveNumber(...values: Array<number | undefined | null>): number | null {
+  for (const value of values) {
+    if (value != null && Number.isFinite(value) && value > 0) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function pickFirstFiniteNumber(...values: Array<number | undefined | null>): number | null {
+  for (const value of values) {
+    if (value != null && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
+
+async function fetchStockCompareItem(ticker: string): Promise<StockCompareItem> {
+  const upperTicker = ticker.toUpperCase();
+  const cached = stockCompareCache.get(upperTicker);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.item;
+  }
+
+  const [quote, summaryResult] = await Promise.all([
+    getCachedStockQuote(upperTicker).catch(() => null),
+    yahooFinance
+      .quoteSummary(upperTicker, {
+        modules: ['assetProfile', 'summaryDetail', 'financialData', 'defaultKeyStatistics'],
+      })
+      .catch(() => null),
+  ]);
+
+  const summary = (summaryResult ?? {}) as YahooCompareSummary;
+  const profile = summary.assetProfile;
+  const summaryDetail = summary.summaryDetail;
+  const financialData = summary.financialData;
+  const keyStats = summary.defaultKeyStatistics;
+
+  const item: StockCompareItem = {
+    ticker: upperTicker,
+    name: quote?.name ?? upperTicker,
+    currency: quote?.currency ?? 'USD',
+    price: quote?.price ?? financialData?.currentPrice ?? null,
+    sector: profile?.sector ?? null,
+    industry: profile?.industry ?? null,
+    marketCap: quote?.marketCap ?? summaryDetail?.marketCap ?? null,
+    enterpriseValue: pickFirstPositiveNumber(
+      keyStats?.enterpriseValue,
+      summaryDetail?.enterpriseValue
+    ),
+    trailingEps: pickFirstFiniteNumber(keyStats?.trailingEps),
+    peRatio: pickFirstPositiveNumber(
+      summaryDetail?.trailingPE,
+      keyStats?.trailingPE,
+      summaryDetail?.forwardPE
+    ),
+    forwardPeRatio: pickFirstPositiveNumber(summaryDetail?.forwardPE, keyStats?.forwardPE),
+    pegRatio: pickFirstPositiveNumber(keyStats?.pegRatio, summaryDetail?.pegRatio),
+    psRatio: pickFirstPositiveNumber(
+      keyStats?.priceToSalesTrailing12Months,
+      summaryDetail?.priceToSalesTrailing12Months
+    ),
+    priceToBook: pickFirstPositiveNumber(keyStats?.priceToBook, summaryDetail?.priceToBook),
+    evToEbitda: pickFirstPositiveNumber(
+      keyStats?.enterpriseToEbitda,
+      summaryDetail?.enterpriseToEbitda
+    ),
+    roe: toPercentValue(financialData?.returnOnEquity),
+    roa: toPercentValue(financialData?.returnOnAssets),
+    profitMargin: toPercentValue(
+      financialData?.profitMargins,
+      keyStats?.profitMargins,
+      summaryDetail?.profitMargins
+    ),
+    operatingMargin: toPercentValue(
+      financialData?.operatingMargins,
+      summaryDetail?.operatingMargins
+    ),
+    revenueGrowth: toPercentValue(financialData?.revenueGrowth),
+    earningsGrowth: toPercentValue(financialData?.earningsGrowth),
+    debtToEquity: pickFirstFiniteNumber(financialData?.debtToEquity),
+    currentRatio: pickFirstPositiveNumber(financialData?.currentRatio),
+    dividendYield: toPercentValue(summaryDetail?.dividendYield),
+    payoutRatio: toPercentValue(keyStats?.payoutRatio, summaryDetail?.payoutRatio),
+    beta: pickFirstFiniteNumber(keyStats?.beta, summaryDetail?.beta),
+  };
+
+  stockCompareCache.set(upperTicker, {
+    item,
+    expiresAt: Date.now() + STOCK_COMPARE_CACHE_TTL_MS,
+  });
+
+  return item;
+}
+
+export async function getStockCompare(tickers: string[]): Promise<StockCompareResponse> {
+  const normalizedTickers = [...new Set(tickers.map((ticker) => ticker.toUpperCase()))];
+  const items = await Promise.all(normalizedTickers.map((ticker) => fetchStockCompareItem(ticker)));
+
+  return {
+    tickers: normalizedTickers,
+    items,
+  };
 }
 
 export async function searchStocks(query: string): Promise<StockSearchResult[]> {

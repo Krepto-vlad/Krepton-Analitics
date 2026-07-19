@@ -1,6 +1,7 @@
 import { createApiClient, assertSuccess } from './apiClient';
 import { API_BASE_URL } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
+import type { NewsItem } from '../types/portfolio.types';
 
 // ─── Types matching backend PositionResponse ──────────────────────────────────
 
@@ -186,6 +187,13 @@ export async function fetchInvestmentSummary(
   const { data } = await portfolioApiClient.get<
     ApiSuccessResponse<InvestmentSummary> | ApiErrorResponse
   >('/investment-summary', { params: withDisplayCurrency(displayCurrency) });
+  return assertSuccess(data);
+}
+
+export async function fetchPortfolioNews(): Promise<NewsItem[]> {
+  const { data } = await portfolioApiClient.get<ApiSuccessResponse<NewsItem[]> | ApiErrorResponse>(
+    '/news'
+  );
   return assertSuccess(data);
 }
 

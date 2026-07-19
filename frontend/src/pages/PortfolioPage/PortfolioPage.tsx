@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LayoutList, Star, Upload, ArrowUp } from 'lucide-react';
 import { useLivePollingScope } from '../../hooks/useLivePollingScope';
 import type { LivePollingScope } from '../../features/livePolling/livePollingSlice';
@@ -29,8 +30,14 @@ const PANEL_MAP: Record<PortfolioSection, React.ReactNode> = {
 
 const SCROLL_TO_TOP_THRESHOLD_PX = 320;
 
+function parsePortfolioSection(value: string | null): PortfolioSection {
+  if (value === 'watchlist' || value === 'importer') return value;
+  return 'positions';
+}
+
 export function PortfolioPage() {
-  const [activeSection, setActiveSection] = useState<PortfolioSection>('positions');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeSection = parsePortfolioSection(searchParams.get('section'));
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const mainContentRef = useRef<HTMLElement>(null);
 
@@ -60,7 +67,7 @@ export function PortfolioPage() {
   }
 
   function handleSectionChange(section: PortfolioSection) {
-    setActiveSection(section);
+    setSearchParams({ section }, { replace: true });
     mainContentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   }
 

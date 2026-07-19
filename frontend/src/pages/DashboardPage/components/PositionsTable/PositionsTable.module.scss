@@ -35,26 +35,28 @@
   color: $color-foreground;
 }
 
-.addButton {
-  display: flex;
+.portfolioLink {
+  display: inline-flex;
   align-items: center;
-  gap: $space-1;
+  gap: 4px;
   padding: $space-2 $space-3;
   font-size: $font-size-xs;
   font-weight: $font-weight-medium;
-  color: $color-primary;
-  background: $color-primary-muted;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: $color-foreground-muted;
+  text-decoration: none;
+  border: 1px solid $color-border;
   border-radius: $radius-md;
-  cursor: pointer;
-  transition:
-    background $transition-fast,
-    border-color $transition-fast;
+  background: rgba(255, 255, 255, 0.02);
   white-space: nowrap;
+  transition:
+    color $transition-fast,
+    border-color $transition-fast,
+    background $transition-fast;
 
   &:hover {
-    background: rgba(16, 185, 129, 0.18);
+    color: $color-primary;
     border-color: rgba(16, 185, 129, 0.35);
+    background: $color-primary-muted;
   }
 }
 

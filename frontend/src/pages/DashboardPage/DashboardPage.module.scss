@@ -2,53 +2,60 @@
 @use '../../styles/mixins' as *;
 
 .page {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: $space-4;
   padding: $space-5;
-  // Don't set height: 100% — flex: 1 fills the parent flex container
+  min-height: min-content;
 }
 
 .pageErrorBanner {
   width: 100%;
+  flex-shrink: 0;
 }
 
 .topRow {
-  flex: 2;
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: $space-4;
   min-height: 380px;
-  // Prevents dead space when chart is capped: 450px chart + ~190px other content = 640px
   max-height: 640px;
 
+  > * {
+    min-height: 0;
+    min-width: 0;
+  }
+
   @include tablet {
-    flex: none;
     grid-template-columns: 1fr;
   }
 }
 
 .middleRow {
-  flex: 1.5;
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 3fr 2fr;
   gap: $space-4;
-  min-height: 300px;
+  // ~6 position rows: header + table head + 6 data rows + card chrome
+  min-height: 520px;
+  height: 520px;
+  max-height: 520px;
+
+  > * {
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
 
   @include tablet {
-    flex: none;
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 420px;
+    max-height: none;
   }
 }
 
 .bottomRow {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 200px;
-
-  > * {
-    flex: 1;
-  }
+  flex: 0 0 auto;
 }

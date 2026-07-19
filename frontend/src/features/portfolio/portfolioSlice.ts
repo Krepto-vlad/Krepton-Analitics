@@ -3,6 +3,7 @@ import type {
   PortfolioState,
   PortfolioPosition,
   EquityDataPoint,
+  NewsItem,
 } from '../../types/portfolio.types';
 import {
   fetchPortfolioPositions,
@@ -10,6 +11,7 @@ import {
   fetchPortfolioTransactionsPage,
   fetchPortfolioEquityHistory as apiFetchEquityHistory,
   fetchInvestmentSummary as apiFetchInvestmentSummary,
+  fetchPortfolioNews as apiFetchPortfolioNews,
   createPortfolioPosition,
   deletePortfolioPosition as apiDeletePosition,
   deleteBuyTransaction as apiDeleteBuyTransaction,
@@ -166,6 +168,7 @@ async function refreshPortfolioData(dispatch: (action: unknown) => unknown): Pro
     dispatch(fetchPositionsPageThunk({ offset: 0, append: false })),
     dispatch(fetchTransactionsPageThunk({ offset: 0, append: false })),
     dispatch(fetchPortfolioEquityHistoryThunk()),
+    dispatch(fetchPortfolioNewsThunk()),
   ]);
 }
 
@@ -373,6 +376,23 @@ export const addPositionThunk = createAsyncThunk<void, AddPositionPayload, { rej
   }
 );
 
+export const fetchPortfolioNewsThunk = createAsyncThunk<
+  NewsItem[],
+  void,
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchNews', async (_, { getState, rejectWithValue }) => {
+  const tickers = getState().portfolio.summaryPositions.map((position) => position.ticker);
+  if (tickers.length === 0) {
+    return [];
+  }
+
+  try {
+    return await apiFetchPortfolioNews();
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_NEWS_FAILED));
+  }
+});
+
 // ─── Initial state ────────────────────────────────────────────────────────────
 
 const initialState: PortfolioState = {
@@ -403,56 +423,9 @@ const initialState: PortfolioState = {
     { sector: 'Industrials', percentage: 4, color: '#3b82f6' },
     { sector: 'Energy', percentage: 4, color: '#8b5cf6' },
   ],
-  news: [
-    {
-      id: '1',
-      tickers: ['AAPL'],
-      source: 'Bloomberg',
-      timeAgo: '24 min ago',
-      headline:
-        'Apple exceeds Q2 earnings expectations with record services revenue of $73.8B, beating analyst forecasts by 4.7%',
-    },
-    {
-      id: '2',
-      tickers: ['SBER'],
-      source: 'BBC',
-      timeAgo: '38 min ago',
-      headline:
-        'Sberbank reports decline in net profit amid geopolitical headwinds; shares react to revised guidance',
-    },
-    {
-      id: '3',
-      tickers: ['MSFT'],
-      source: 'Reuters',
-      timeAgo: '1 hr ago',
-      headline:
-        'Microsoft Azure cloud growth accelerates to 33% YoY — CIO Satya Nadella cites AI adoption as primary driver',
-    },
-    {
-      id: '4',
-      tickers: ['NVDA'],
-      source: 'The Verge',
-      timeAgo: '2 hr ago',
-      headline:
-        'NVIDIA announces next-gen Blackwell Ultra GPU architecture; H100 supply chain constraints ease heading into H2',
-    },
-    {
-      id: '5',
-      tickers: ['GOOGL'],
-      source: 'FT',
-      timeAgo: '3 hr ago',
-      headline:
-        'Alphabet antitrust ruling could reshape global advertising market — GOOGL sees modest pre-market reaction',
-    },
-    {
-      id: '6',
-      tickers: ['GAZP'],
-      source: 'Reuters',
-      timeAgo: '4 hr ago',
-      headline:
-        'Gazprom LNG export volumes fall for third consecutive quarter; European demand substitute accelerates',
-    },
-  ],
+  news: [],
+  isLoadingNews: false,
+  newsError: null,
   equityHistory: generateEquityHistory(),
   isLoading: false,
   error: null,
@@ -553,6 +526,18 @@ const portfolioSlice = createSlice({
       })
       .addCase(refreshHoldingsQuotesThunk.rejected, (state, action) => {
         state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
+      })
+      .addCase(fetchPortfolioNewsThunk.pending, (state) => {
+        state.isLoadingNews = true;
+        state.newsError = null;
+      })
+      .addCase(fetchPortfolioNewsThunk.fulfilled, (state, action) => {
+        state.isLoadingNews = false;
+        state.news = action.payload;
+      })
+      .addCase(fetchPortfolioNewsThunk.rejected, (state, action) => {
+        state.isLoadingNews = false;
+        state.newsError = action.payload ?? ERROR_MESSAGES.PORTFOLIO_NEWS_FAILED;
       });
   },
 });
