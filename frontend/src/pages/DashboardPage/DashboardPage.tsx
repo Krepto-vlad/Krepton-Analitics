@@ -2,13 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useDashboardLivePollingScopes } from '../../hooks/useLivePollingScope';
-import {
-  fetchPortfolioSummaryThunk,
-  fetchPortfolioEquityHistoryThunk,
-  fetchInvestmentSummaryThunk,
-  fetchPositionsPageThunk,
-  fetchPortfolioNewsThunk,
-} from '../../features/portfolio/portfolioSlice';
+import { fetchPortfolioNewsThunk } from '../../features/portfolio/portfolioSlice';
 import {
   selectPortfolioStats,
   selectSectorAllocations,
@@ -45,14 +39,22 @@ export function DashboardPage() {
     [portfolioError, watchlistError]
   );
 
+  const holdingsTickerKey = useMemo(
+    () =>
+      summaryPositions
+        .map((position) => position.ticker)
+        .sort()
+        .join(','),
+    [summaryPositions]
+  );
+
   useEffect(() => {
-    void dispatch(fetchPortfolioSummaryThunk()).then(() => {
-      void dispatch(fetchPortfolioNewsThunk());
-    });
-    void dispatch(fetchInvestmentSummaryThunk());
-    void dispatch(fetchPositionsPageThunk({ offset: 0, append: false }));
-    void dispatch(fetchPortfolioEquityHistoryThunk());
-  }, [dispatch]);
+    if (holdingsTickerKey.length === 0) {
+      return;
+    }
+
+    void dispatch(fetchPortfolioNewsThunk());
+  }, [dispatch, holdingsTickerKey]);
 
   function handleRetryNews() {
     void dispatch(fetchPortfolioNewsThunk());

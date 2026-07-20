@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAppDispatch } from './useAppDispatch';
 import { useAppSelector } from './useAppSelector';
 import {
@@ -11,13 +11,20 @@ import {
 import { clearLiveFxRateCache } from '../api/fxApi';
 
 /**
- * Refetches portfolio datasets whenever the header display currency changes.
+ * Refetches portfolio datasets when the header display currency changes.
+ * Skips the initial mount — live polling hooks already load portfolio data.
  */
 export function usePortfolioCurrencyRefresh(): void {
   const dispatch = useAppDispatch();
   const currency = useAppSelector((state) => state.ui.currency);
+  const isInitialMountRef = useRef(true);
 
   useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
+
     clearLiveFxRateCache();
 
     void Promise.all([

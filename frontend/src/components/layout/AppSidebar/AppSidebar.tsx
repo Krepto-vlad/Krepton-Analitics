@@ -6,6 +6,8 @@ import {
   Scale,
   BarChart3,
   FlaskConical,
+  CalendarRange,
+  Newspaper,
   Clock,
   LogOut,
 } from 'lucide-react';
@@ -24,9 +26,11 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: <LayoutDashboard size={18} />, route: ROUTES.DASHBOARD },
   { label: 'Portfolio', icon: <BriefcaseBusiness size={18} />, route: ROUTES.PORTFOLIO },
+  { label: 'News', icon: <Newspaper size={18} />, route: ROUTES.NEWS },
   { label: 'Rebalancing', icon: <Scale size={18} />, route: ROUTES.REBALANCING },
   { label: 'Stock Matrix', icon: <BarChart3 size={18} />, route: ROUTES.SCREENER },
   { label: 'Backtesting', icon: <FlaskConical size={18} />, route: ROUTES.BACKTESTING },
+  { label: 'Dividend Calendar', icon: <CalendarRange size={18} />, route: ROUTES.DIVIDENDS },
   { label: 'History', icon: <Clock size={18} />, route: ROUTES.HISTORY },
 ];
 

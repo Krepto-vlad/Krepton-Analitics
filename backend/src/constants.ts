@@ -131,3 +131,23 @@ export const BACKTEST_MAX_AMOUNT = 10_000_000;
 export const BACKTEST_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
 export const BACKTEST_ALLOCATION_TOTAL_PERCENT = 100;
 export const BACKTEST_ALLOCATION_TOLERANCE = 0.01;
+
+// ─── Dividend calendar ─────────────────────────────────────────────────────────
+export const DIVIDEND_CALENDAR_CACHE_TTL_MS = 10 * 60 * 1000;
+export const DIVIDEND_HISTORY_LOOKBACK_YEARS = 2;
+export const DIVIDEND_PROJECTION_MONTHS = 12;
+export const DIVIDEND_UPCOMING_PAYMENTS_LIMIT = 8;
+export const MONTH_LABELS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;

@@ -11,6 +11,8 @@ export const ROUTES = {
   REBALANCING: '/rebalancing',
   SCREENER: '/screener',
   BACKTESTING: '/backtesting',
+  DIVIDENDS: '/dividends',
+  NEWS: '/news',
   WATCHLIST: '/watchlist',
   HISTORY: '/history',
 } as const;
@@ -27,10 +29,10 @@ export const STOCK_PERIODS = [
 
 export const CHART_COLORS = {
   UP: '#26a69a',
-  DOWN: '#ef5350',
+  DOWN: '#f87171',
   BACKGROUND: '#111113',
   GRID: 'rgba(255,255,255,0.04)',
-  TEXT: '#8a8a96',
+  TEXT: '#a8a8b3',
   BORDER: 'rgba(255,255,255,0.08)',
 } as const;
 
@@ -72,6 +74,8 @@ export const PORTFOLIO_RISK_SCORE = 67;
 
 export const DASHBOARD_NEWS_INITIAL_VISIBLE = 6;
 export const DASHBOARD_NEWS_LOAD_MORE_STEP = 6;
+export const NEWS_PAGE_INITIAL_VISIBLE = 12;
+export const NEWS_PAGE_LOAD_MORE_STEP = 10;
 
 export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
@@ -122,4 +126,5 @@ export const ERROR_MESSAGES = {
   STOCK_SEARCH_FAILED: 'Unable to search tickers right now. Please try again.',
   STOCK_COMPARE_FAILED: 'Unable to load comparison data. Please try again.',
   STOCK_BACKTEST_FAILED: 'Unable to run backtest. Please try again.',
+  DIVIDEND_CALENDAR_FAILED: 'Unable to load dividend calendar. Please try again.',
 } as const;

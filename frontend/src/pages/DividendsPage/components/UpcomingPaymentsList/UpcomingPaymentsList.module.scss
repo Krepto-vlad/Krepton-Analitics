@@ -1,0 +1,136 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.headerIcon {
+  color: $color-primary;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-foreground-subtle;
+}
+
+.emptyState {
+  margin: 0;
+  padding: $space-4 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  text-align: center;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.asset {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  flex-shrink: 0;
+}
+
+.avatarDividend {
+  color: $color-primary;
+  background: $color-primary-muted;
+}
+
+.avatarCoupon {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.textDividend {
+  color: $color-primary;
+}
+
+.textCoupon {
+  color: #60a5fa;
+}
+
+.assetMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ticker {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.paymentType {
+  font-size: $font-size-xs;
+  text-transform: capitalize;
+}
+
+.amountBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.amount {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.perShare {
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  font-variant-numeric: tabular-nums;
+}
+
+.date {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}

@@ -2,6 +2,7 @@ import { createApiClient, assertSuccess } from './apiClient';
 import { API_BASE_URL } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
 import type { NewsItem } from '../types/portfolio.types';
+import type { DividendCalendarResponse } from '../types/dividend.types';
 
 // ─── Types matching backend PositionResponse ──────────────────────────────────
 
@@ -194,6 +195,15 @@ export async function fetchPortfolioNews(): Promise<NewsItem[]> {
   const { data } = await portfolioApiClient.get<ApiSuccessResponse<NewsItem[]> | ApiErrorResponse>(
     '/news'
   );
+  return assertSuccess(data);
+}
+
+export async function fetchPortfolioDividends(
+  displayCurrency?: Currency
+): Promise<DividendCalendarResponse> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<DividendCalendarResponse> | ApiErrorResponse
+  >('/dividends', { params: withDisplayCurrency(displayCurrency) });
   return assertSuccess(data);
 }
 

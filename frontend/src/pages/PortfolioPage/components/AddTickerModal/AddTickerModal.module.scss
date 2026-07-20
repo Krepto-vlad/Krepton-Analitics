@@ -64,7 +64,7 @@
   &:hover {
     background: rgba(239, 68, 68, 0.12);
     border-color: rgba(239, 68, 68, 0.25);
-    color: #f87171;
+    color: $color-danger-hover;
   }
 }
 
@@ -312,7 +312,7 @@
   color: $color-danger;
 
   &:hover:not(:disabled) {
-    color: #f87171;
+    color: $color-danger-hover;
     background: rgba(239, 68, 68, 0.12);
   }
 }

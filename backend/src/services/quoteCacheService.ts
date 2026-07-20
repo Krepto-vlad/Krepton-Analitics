@@ -35,6 +35,10 @@ const pendingRefreshTickers = new Set<string>();
 let lastYahooFetchAt = 0;
 let activeYahooFetch: Promise<void> | null = null;
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function buildFallbackQuote(ticker: string): StockQuote {
   return {
     ticker,
@@ -91,9 +95,8 @@ function recordYahooCall(): void {
   yahooCallTimestamps.push(Date.now());
 }
 
-function canFetchFromYahooNow(): boolean {
-  const now = Date.now();
-  return now - lastYahooFetchAt >= YAHOO_QUOTE_MIN_FETCH_GAP_MS && hasYahooBudget();
+function getMinGapWaitMs(): number {
+  return Math.max(0, YAHOO_QUOTE_MIN_FETCH_GAP_MS - (Date.now() - lastYahooFetchAt));
 }
 
 function getCachedQuoteEvenIfExpired(ticker: string): StockQuote | null {
@@ -157,6 +160,42 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
   }
 }
 
+async function drainPendingRefreshQueue(): Promise<void> {
+  while (pendingRefreshTickers.size > 0) {
+    if (!hasYahooBudget()) {
+      console.warn(
+        '[QuoteCache] Yahoo minute budget exhausted — serving stale quotes for remaining tickers'
+      );
+      return;
+    }
+
+    const minGapWaitMs = getMinGapWaitMs();
+    if (minGapWaitMs > 0) {
+      await sleep(minGapWaitMs);
+      continue;
+    }
+
+    const batch = [...pendingRefreshTickers];
+    pendingRefreshTickers.clear();
+    lastYahooFetchAt = Date.now();
+    await fetchTickersFromYahoo(batch);
+  }
+}
+
+async function ensurePendingTickersRefreshed(): Promise<void> {
+  if (pendingRefreshTickers.size === 0) {
+    return;
+  }
+
+  if (!activeYahooFetch) {
+    activeYahooFetch = drainPendingRefreshQueue().finally(() => {
+      activeYahooFetch = null;
+    });
+  }
+
+  await activeYahooFetch;
+}
+
 async function refreshStaleTickers(staleTickers: string[]): Promise<void> {
   if (staleTickers.length === 0) return;
 
@@ -164,33 +203,12 @@ async function refreshStaleTickers(staleTickers: string[]): Promise<void> {
     pendingRefreshTickers.add(ticker);
   }
 
-  if (!canFetchFromYahooNow()) {
-    console.warn('[QuoteCache] Yahoo budget or min-gap reached — serving stale quotes');
-    return;
-  }
-
-  if (activeYahooFetch) {
-    await activeYahooFetch;
-    return;
-  }
-
-  activeYahooFetch = (async (): Promise<void> => {
-    while (pendingRefreshTickers.size > 0 && canFetchFromYahooNow()) {
-      const batch = [...pendingRefreshTickers];
-      pendingRefreshTickers.clear();
-      lastYahooFetchAt = Date.now();
-      await fetchTickersFromYahoo(batch);
-    }
-  })().finally(() => {
-    activeYahooFetch = null;
-  });
-
-  await activeYahooFetch;
+  await ensurePendingTickersRefreshed();
 }
 
 /**
  * Returns quotes for the requested tickers using a shared server-side cache.
- * Stale symbols are refreshed in as few Yahoo batch calls as possible.
+ * Concurrent callers coalesce into one refresh queue to respect Yahoo rate limits.
  */
 export async function getCachedStockQuotes(tickers: string[]): Promise<StockQuote[]> {
   const normalized = [...new Set(tickers.map((ticker) => ticker.toUpperCase()))];
