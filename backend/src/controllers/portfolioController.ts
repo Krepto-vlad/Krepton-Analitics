@@ -12,6 +12,7 @@ import {
   removeBuyTransaction,
   closePosition,
   getUserPortfolioNews,
+  getUserPortfolioDividendCalendar,
 } from '../services/portfolioService.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -66,6 +67,12 @@ export async function getInvestmentSummaryHandler(req: Request, res: Response): 
 export async function getPortfolioNewsHandler(req: Request, res: Response): Promise<void> {
   const news = await getUserPortfolioNews(requireUserId(req));
   res.json({ success: true, data: news });
+}
+
+export async function getPortfolioDividendsHandler(req: Request, res: Response): Promise<void> {
+  const { displayCurrency } = req.query;
+  const calendar = await getUserPortfolioDividendCalendar(requireUserId(req), displayCurrency);
+  res.json({ success: true, data: calendar });
 }
 
 export async function getBuyTransactions(req: Request, res: Response): Promise<void> {

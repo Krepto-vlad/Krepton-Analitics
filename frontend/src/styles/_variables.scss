@@ -10,8 +10,15 @@
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-strong: rgba(255, 255, 255, 0.14);
   --color-foreground: #fafafa;
-  --color-foreground-muted: #8a8a96;
-  --color-foreground-subtle: #555560;
+  // Muted/subtle grays tuned for WCAG AA (4.5:1) on surface (#161618).
+  --color-foreground-muted: #a8a8b3;
+  --color-foreground-subtle: #9494a0;
+  // Danger reds tuned for WCAG AA on dark surfaces.
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-muted: rgba(248, 113, 113, 0.14);
+  --color-danger-border: rgba(248, 113, 113, 0.35);
+  --color-chart-down: #f87171;
 }
 
 // SCSS aliases that consume the CSS custom properties
@@ -30,13 +37,15 @@ $color-primary-hover: #0ea571;
 $color-primary-muted: rgba(16, 185, 129, 0.12);
 $color-primary-glow: rgba(16, 185, 129, 0.35);
 
-$color-danger: #ef4444;
-$color-danger-muted: rgba(239, 68, 68, 0.12);
+$color-danger: var(--color-danger);
+$color-danger-hover: var(--color-danger-hover);
+$color-danger-muted: var(--color-danger-muted);
+$color-danger-border: var(--color-danger-border);
 $color-warning: #f59e0b;
 $color-success: #10b981;
 
 $color-chart-up: #26a69a;
-$color-chart-down: #ef5350;
+$color-chart-down: var(--color-chart-down);
 $color-chart-grid: rgba(255, 255, 255, 0.04);
 
 // ─── Typography ──────────────────────────────────────────────────────────────

@@ -1,0 +1,40 @@
+@use '../../styles/variables' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  padding: $space-5;
+  min-height: min-content;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.titleIcon {
+  color: $color-primary;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  max-width: 720px;
+}

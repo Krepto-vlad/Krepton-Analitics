@@ -12,8 +12,15 @@
   --color-border: rgba(0, 0, 0, 0.08);
   --color-border-strong: rgba(0, 0, 0, 0.14);
   --color-foreground: #111113;
-  --color-foreground-muted: #5a5a65;
-  --color-foreground-subtle: #9a9aaa;
+  // Muted/subtle grays tuned for WCAG AA (4.5:1) on white / light surfaces.
+  --color-foreground-muted: #52525e;
+  --color-foreground-subtle: #6b6b78;
+  // Darker danger reds for WCAG AA on white / light surfaces.
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-muted: rgba(220, 38, 38, 0.12);
+  --color-danger-border: rgba(220, 38, 38, 0.28);
+  --color-chart-down: #dc2626;
 }
 
 // ─── Scrollbar global ────────────────────────────────────────────────────────

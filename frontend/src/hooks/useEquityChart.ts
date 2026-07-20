@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi, AreaData, Time } from 'lightweight-charts';
 import type { EquityDataPoint } from '../types/portfolio.types';
-import { EQUITY_PERIODS } from '../constants';
+import { EQUITY_PERIODS, CHART_COLORS } from '../constants';
 
 export type EquityPeriod = (typeof EQUITY_PERIODS)[number]['value'];
 
@@ -72,7 +72,7 @@ export function useEquityChart(
       height: containerRef.current.clientHeight || 180,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#8a8a96',
+        textColor: CHART_COLORS.TEXT,
         attributionLogo: false,
       },
       localization: { priceFormatter: (value: number) => formatChartPrice(value, currency) },

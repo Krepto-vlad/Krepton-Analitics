@@ -48,7 +48,7 @@
 
 .iconWrapperError {
   background: rgba(239, 68, 68, 0.12);
-  color: #f87171;
+  color: $color-danger-hover;
 }
 
 .headerText {
@@ -79,7 +79,7 @@
 }
 
 .errorButton {
-  background: #ef4444;
+  background: $color-danger;
   border-color: transparent;
 
   &:hover:not(:disabled) {

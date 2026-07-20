@@ -380,12 +380,7 @@ export const fetchPortfolioNewsThunk = createAsyncThunk<
   NewsItem[],
   void,
   { rejectValue: string; state: RootState }
->('portfolio/fetchNews', async (_, { getState, rejectWithValue }) => {
-  const tickers = getState().portfolio.summaryPositions.map((position) => position.ticker);
-  if (tickers.length === 0) {
-    return [];
-  }
-
+>('portfolio/fetchNews', async (_, { rejectWithValue }) => {
   try {
     return await apiFetchPortfolioNews();
   } catch (error) {

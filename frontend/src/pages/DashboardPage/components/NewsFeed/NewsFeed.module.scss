@@ -8,8 +8,16 @@ $news-ticker-column-width: 11rem;
   display: flex;
   flex-direction: column;
   gap: $space-4;
-  max-height: 520px;
   overflow: hidden;
+}
+
+.cardCompact {
+  max-height: 520px;
+}
+
+.cardFull {
+  max-height: none;
+  min-height: 480px;
 }
 
 .cardHeader {

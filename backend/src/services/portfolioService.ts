@@ -2,6 +2,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
 import { getStockSector, getStockHistory } from './stockService.js';
 import { getPortfolioNews } from './newsService.js';
+import { buildPortfolioDividendCalendar } from './dividendCalendarService.js';
 import {
   findOrCreatePortfolioAccount,
   getPositionsByPortfolioId,
@@ -60,6 +61,7 @@ import {
 import type { SupportedBrokerId } from '../constants.js';
 import type { NormalizedTrade, ImportConfirmResponse } from '../types/import.types.js';
 import type { PortfolioNewsItem } from '../types/news.types.js';
+import type { DividendCalendarResponse } from '../types/dividend.types.js';
 import { buildTradeFingerprint } from '../utils/tradeFingerprint.js';
 
 // ─── HMAC indirection ─────────────────────────────────────────────────────────
@@ -954,4 +956,16 @@ export async function getUserPortfolioNews(userId: string): Promise<PortfolioNew
   const tickers = rows.map((row) => row.ticker);
 
   return getPortfolioNews(tickers);
+}
+
+export async function getUserPortfolioDividendCalendar(
+  userId: string,
+  rawDisplayCurrency?: unknown
+): Promise<DividendCalendarResponse> {
+  const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+  const rows = await getPositionsByPortfolioId(portfolioId);
+
+  return buildPortfolioDividendCalendar(rows, displayCurrency);
 }

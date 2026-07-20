@@ -16,6 +16,10 @@ interface NewsFeedProps {
   error?: string | null;
   hasPortfolioHoldings?: boolean;
   onRetry?: () => void;
+  layout?: 'compact' | 'full';
+  showHeader?: boolean;
+  initialVisibleCount?: number;
+  loadMoreStep?: number;
 }
 
 export function NewsFeed({
@@ -24,14 +28,21 @@ export function NewsFeed({
   error = null,
   hasPortfolioHoldings = false,
   onRetry,
+  layout = 'compact',
+  showHeader = true,
+  initialVisibleCount = DASHBOARD_NEWS_INITIAL_VISIBLE,
+  loadMoreStep = DASHBOARD_NEWS_LOAD_MORE_STEP,
 }: NewsFeedProps) {
   const newsKey = useMemo(() => news.map((item) => item.id).join('|'), [news]);
-  const [visibleCount, setVisibleCount] = useState(DASHBOARD_NEWS_INITIAL_VISIBLE);
+  const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
   const [previousNewsKey, setPreviousNewsKey] = useState(newsKey);
+  const [previousInitialVisibleCount, setPreviousInitialVisibleCount] =
+    useState(initialVisibleCount);
 
-  if (newsKey !== previousNewsKey) {
+  if (newsKey !== previousNewsKey || initialVisibleCount !== previousInitialVisibleCount) {
     setPreviousNewsKey(newsKey);
-    setVisibleCount(DASHBOARD_NEWS_INITIAL_VISIBLE);
+    setPreviousInitialVisibleCount(initialVisibleCount);
+    setVisibleCount(initialVisibleCount);
   }
 
   const visibleNews = useMemo(() => news.slice(0, visibleCount), [news, visibleCount]);
@@ -39,21 +50,28 @@ export function NewsFeed({
   const remainingCount = news.length - visibleCount;
 
   function handleLoadMore() {
-    setVisibleCount((current) => Math.min(current + DASHBOARD_NEWS_LOAD_MORE_STEP, news.length));
+    setVisibleCount((current) => Math.min(current + loadMoreStep, news.length));
   }
 
+  const cardClassName =
+    layout === 'full'
+      ? `${styles.card} ${styles.cardFull}`
+      : `${styles.card} ${styles.cardCompact}`;
+
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHeader}>
-        <div className={styles.headerLeft}>
-          <span className={styles.cardLabel}>MARKET INTELLIGENCE</span>
-          <span className={styles.cardTitle}>Contextual News Feed</span>
+    <div className={cardClassName}>
+      {showHeader && (
+        <div className={styles.cardHeader}>
+          <div className={styles.headerLeft}>
+            <span className={styles.cardLabel}>MARKET INTELLIGENCE</span>
+            <span className={styles.cardTitle}>Contextual News Feed</span>
+          </div>
+          <span className={styles.filteredLabel}>
+            <Newspaper size={12} />
+            Filtered by portfolio
+          </span>
         </div>
-        <span className={styles.filteredLabel}>
-          <Newspaper size={12} />
-          Filtered by portfolio
-        </span>
-      </div>
+      )}
 
       {error && <ErrorBanner message={error} />}
 

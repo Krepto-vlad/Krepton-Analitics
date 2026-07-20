@@ -43,7 +43,7 @@
   line-height: 1;
 
   &:hover {
-    color: #f87171;
+    color: $color-danger-hover;
     background: rgba(239, 68, 68, 0.12);
   }
 }
@@ -252,7 +252,7 @@
   color: $color-danger;
 
   &:hover:not(:disabled) {
-    color: #f87171;
+    color: $color-danger-hover;
     background: rgba(239, 68, 68, 0.12);
   }
 }

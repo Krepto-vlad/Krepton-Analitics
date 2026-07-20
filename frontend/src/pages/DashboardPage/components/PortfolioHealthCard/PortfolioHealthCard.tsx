@@ -1,4 +1,5 @@
 import { AlertTriangle, ShieldAlert } from 'lucide-react';
+import { CHART_COLORS } from '../../../../constants';
 import type { SectorAllocation } from '../../../../types/portfolio.types';
 import styles from './PortfolioHealthCard.module.scss';
 
@@ -7,21 +8,23 @@ interface PortfolioHealthCardProps {
   sectors: SectorAllocation[];
 }
 
+type RiskLevel = 'Low' | 'Medium' | 'High';
+
 const GAUGE_CX = 100;
 const GAUGE_CY = 115;
 const GAUGE_RADIUS = 82;
 const GAUGE_STROKE_WIDTH = 10;
 
-function getRiskLabel(score: number): string {
-  if (score <= 40) return 'Low Risk';
-  if (score <= 65) return 'Medium Risk';
-  return 'High Risk';
+function getRiskLevel(score: number): RiskLevel {
+  if (score <= 40) return 'Low';
+  if (score <= 65) return 'Medium';
+  return 'High';
 }
 
-function getRiskColor(score: number): string {
-  if (score <= 40) return '#10b981';
-  if (score <= 65) return '#f59e0b';
-  return '#ef4444';
+function getRiskLabel(level: RiskLevel): string {
+  if (level === 'Low') return 'Low Risk';
+  if (level === 'Medium') return 'Medium Risk';
+  return 'High Risk';
 }
 
 function buildGaugeArcPath(score: number): string {
@@ -38,15 +41,18 @@ function buildGaugeArcPath(score: number): string {
 }
 
 export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps) {
-  const riskLabel = getRiskLabel(score);
-  const riskColor = getRiskColor(score);
+  const riskLevel = getRiskLevel(score);
+  const riskLabel = getRiskLabel(riskLevel);
   const bgArcPath = `M ${GAUGE_CX - GAUGE_RADIUS} ${GAUGE_CY} A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 ${GAUGE_CX + GAUGE_RADIUS} ${GAUGE_CY}`;
   const progressArcPath = buildGaugeArcPath(score);
 
   const isHighRisk = score > 65 && sectors.length > 0;
   const topSector =
     sectors.length > 0
-      ? sectors.reduce((max, s) => (s.percentage > max.percentage ? s : max), sectors[0])
+      ? sectors.reduce(
+          (max, sector) => (sector.percentage > max.percentage ? sector : max),
+          sectors[0]
+        )
       : null;
 
   return (
@@ -58,13 +64,10 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
         </div>
         <div className={styles.titleRow}>
           <span className={styles.cardTitle}>Risk Score</span>
-          <span className={styles.riskBadge} style={{ color: riskColor, borderColor: riskColor }}>
-            {riskLabel}
-          </span>
+          <span className={`${styles.riskBadge} ${styles[`risk${riskLevel}`]}`}>{riskLabel}</span>
         </div>
       </div>
 
-      {/* gauge + alert centered vertically */}
       <div className={styles.gaugeSection}>
         <svg
           viewBox="0 0 200 125"
@@ -81,30 +84,22 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
           {progressArcPath && (
             <path
               d={progressArcPath}
-              fill="none"
-              stroke={riskColor}
-              strokeWidth={GAUGE_STROKE_WIDTH}
-              strokeLinecap="round"
+              className={`${styles.gaugeProgress} ${styles[`gaugeProgress${riskLevel}`]}`}
             />
           )}
-          {/* score number colored by risk */}
           <text
             x={GAUGE_CX}
             y={GAUGE_CY - 22}
             textAnchor="middle"
-            fill={riskColor}
-            fontSize="34"
-            fontWeight="700"
-            fontFamily="Inter, sans-serif"
+            className={`${styles.gaugeScore} ${styles[`gaugeScore${riskLevel}`]}`}
           >
             {score}
           </text>
-          {/* /100 stays grey */}
           <text
             x={GAUGE_CX}
             y={GAUGE_CY - 4}
             textAnchor="middle"
-            fill="#8a8a96"
+            fill={CHART_COLORS.TEXT}
             fontSize="13"
             fontFamily="Inter, sans-serif"
           >

@@ -1,3 +1,5 @@
+@use '../../../styles/variables' as *;
+
 .errorState {
   display: flex;
   flex-direction: column;
@@ -15,8 +17,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(239, 68, 68, 0.12);
-  color: #f87171;
+  background: $color-danger-muted;
+  color: $color-danger;
 }
 
 .title {
