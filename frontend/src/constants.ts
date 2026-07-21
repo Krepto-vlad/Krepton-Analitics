@@ -70,7 +70,8 @@ export const EQUITY_PERIODS = [
   { label: 'ALL', value: 'ALL' },
 ] as const;
 
-export const PORTFOLIO_RISK_SCORE = 67;
+export const PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD = 85;
+export const PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD = 60;
 
 export const DASHBOARD_NEWS_INITIAL_VISIBLE = 6;
 export const DASHBOARD_NEWS_LOAD_MORE_STEP = 6;
@@ -127,4 +128,19 @@ export const ERROR_MESSAGES = {
   STOCK_COMPARE_FAILED: 'Unable to load comparison data. Please try again.',
   STOCK_BACKTEST_FAILED: 'Unable to run backtest. Please try again.',
   DIVIDEND_CALENDAR_FAILED: 'Unable to load dividend calendar. Please try again.',
+  PORTFOLIO_REBALANCING_FAILED: 'Unable to load rebalancing analysis. Please try again.',
+  PORTFOLIO_REBALANCING_SAVE_FAILED: 'Unable to save rebalancing strategy. Please try again.',
+} as const;
+
+export const REBALANCING_ALLOCATION_TOTAL_PERCENT = 100;
+export const REBALANCING_ALLOCATION_TOLERANCE = 0.01;
+export const REBALANCING_CURRENT_BAR_COLOR = '#3b82f6';
+export const REBALANCING_TARGET_BAR_COLOR = '#10b981';
+
+export const REBALANCING_ASSET_CLASS_COLORS = {
+  equities: '#10b981',
+  lt_bonds: '#6366f1',
+  it_bonds: '#3b82f6',
+  gold: '#f59e0b',
+  commodities: '#f97316',
 } as const;

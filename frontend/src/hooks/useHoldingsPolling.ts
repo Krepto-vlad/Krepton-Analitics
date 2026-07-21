@@ -10,6 +10,7 @@ import {
   fetchPositionsPageThunk,
   fetchTransactionsPageThunk,
   fetchPortfolioEquityHistoryThunk,
+  fetchPortfolioRebalancingThunk,
   refreshHoldingsQuotesThunk,
   syncHoldingsQuotes,
 } from '../features/portfolio/portfolioSlice';
@@ -82,6 +83,7 @@ export function useHoldingsPolling(): void {
     void dispatch(fetchPositionsPageThunk({ offset: 0, append: false }));
     void dispatch(fetchTransactionsPageThunk({ offset: 0, append: false }));
     void dispatch(fetchPortfolioEquityHistoryThunk());
+    void dispatch(fetchPortfolioRebalancingThunk());
   }, [dispatch, isLeader, isScopeActive]);
 
   useEffect(() => {

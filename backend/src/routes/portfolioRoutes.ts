@@ -8,6 +8,9 @@ import {
   getInvestmentSummaryHandler,
   getPortfolioNewsHandler,
   getPortfolioDividendsHandler,
+  getPortfolioRebalancingHandler,
+  getRebalancingStrategiesHandler,
+  updatePortfolioRebalancingHandler,
   getBuyTransactions,
   postPosition,
   patchPosition,
@@ -58,6 +61,13 @@ router.get('/equity-history', asyncHandler(getEquityHistory));
 router.get('/investment-summary', asyncHandler(getInvestmentSummaryHandler));
 router.get('/news', asyncHandler(getPortfolioNewsHandler));
 router.get('/dividends', asyncHandler(getPortfolioDividendsHandler));
+router.get('/rebalancing/strategies', asyncHandler(getRebalancingStrategiesHandler));
+router.get('/rebalancing', asyncHandler(getPortfolioRebalancingHandler));
+router.put(
+  '/rebalancing/strategy',
+  portfolioWriteLimiter,
+  asyncHandler(updatePortfolioRebalancingHandler)
+);
 router.post(
   '/import/preview',
   importLimiter,

@@ -1,30 +1,38 @@
+import { Link } from 'react-router-dom';
 import { AlertTriangle, ShieldAlert } from 'lucide-react';
-import { CHART_COLORS } from '../../../../constants';
-import type { SectorAllocation } from '../../../../types/portfolio.types';
+import {
+  CHART_COLORS,
+  PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
+  PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
+  ROUTES,
+} from '../../../../constants';
+import type { PortfolioHealthDeviation } from '../../../../types/portfolio.types';
 import styles from './PortfolioHealthCard.module.scss';
 
 interface PortfolioHealthCardProps {
-  score: number;
-  sectors: SectorAllocation[];
+  alignmentScore: number | null;
+  strategyName: string | null;
+  deviations: PortfolioHealthDeviation[];
+  isLoading: boolean;
 }
 
-type RiskLevel = 'Low' | 'Medium' | 'High';
+type HealthLevel = 'Low' | 'Medium' | 'High';
 
 const GAUGE_CX = 100;
 const GAUGE_CY = 115;
 const GAUGE_RADIUS = 82;
 const GAUGE_STROKE_WIDTH = 10;
 
-function getRiskLevel(score: number): RiskLevel {
-  if (score <= 40) return 'Low';
-  if (score <= 65) return 'Medium';
+function getHealthLevel(score: number): HealthLevel {
+  if (score >= PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD) return 'Low';
+  if (score >= PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD) return 'Medium';
   return 'High';
 }
 
-function getRiskLabel(level: RiskLevel): string {
-  if (level === 'Low') return 'Low Risk';
-  if (level === 'Medium') return 'Medium Risk';
-  return 'High Risk';
+function getHealthLabel(level: HealthLevel): string {
+  if (level === 'Low') return 'Well Aligned';
+  if (level === 'Medium') return 'Moderate Drift';
+  return 'High Drift';
 }
 
 function buildGaugeArcPath(score: number): string {
@@ -40,20 +48,35 @@ function buildGaugeArcPath(score: number): string {
   return `M ${GAUGE_CX - GAUGE_RADIUS} ${GAUGE_CY} A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 ${endX.toFixed(2)} ${endY.toFixed(2)}`;
 }
 
-export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps) {
-  const riskLevel = getRiskLevel(score);
-  const riskLabel = getRiskLabel(riskLevel);
+function formatAllocationPair(currentPercent: number, targetPercent: number): string {
+  return `${currentPercent.toFixed(1)}% / ${targetPercent.toFixed(1)}%`;
+}
+
+export function PortfolioHealthCard({
+  alignmentScore,
+  strategyName,
+  deviations,
+  isLoading,
+}: PortfolioHealthCardProps) {
+  const score = alignmentScore ?? 0;
+  const healthLevel = getHealthLevel(score);
+  const healthLabel = getHealthLabel(healthLevel);
   const bgArcPath = `M ${GAUGE_CX - GAUGE_RADIUS} ${GAUGE_CY} A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 ${GAUGE_CX + GAUGE_RADIUS} ${GAUGE_CY}`;
   const progressArcPath = buildGaugeArcPath(score);
 
-  const isHighRisk = score > 65 && sectors.length > 0;
-  const topSector =
-    sectors.length > 0
-      ? sectors.reduce(
-          (max, sector) => (sector.percentage > max.percentage ? sector : max),
-          sectors[0]
+  const notableDeviations = deviations.filter((item) => item.status !== 'optimal');
+  const topDeviation =
+    notableDeviations.length > 0
+      ? notableDeviations.reduce(
+          (max, item) =>
+            Math.abs(item.deviationPercent) > Math.abs(max.deviationPercent) ? item : max,
+          notableDeviations[0]
         )
       : null;
+
+  const showDriftAlert =
+    alignmentScore !== null &&
+    (alignmentScore < PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD || topDeviation !== null);
 
   return (
     <div className={styles.card}>
@@ -63,16 +86,30 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
           <span className={styles.cardLabel}>PORTFOLIO HEALTH</span>
         </div>
         <div className={styles.titleRow}>
-          <span className={styles.cardTitle}>Risk Score</span>
-          <span className={`${styles.riskBadge} ${styles[`risk${riskLevel}`]}`}>{riskLabel}</span>
+          <div className={styles.titleGroup}>
+            <span className={styles.cardTitle}>Strategy Alignment</span>
+            {strategyName && <span className={styles.strategyName}>{strategyName}</span>}
+          </div>
+          {!isLoading && alignmentScore !== null && (
+            <span className={`${styles.riskBadge} ${styles[`risk${healthLevel}`]}`}>
+              {healthLabel}
+            </span>
+          )}
         </div>
+        <Link to={ROUTES.REBALANCING} className={styles.rebalancingLink}>
+          Open rebalancing engine
+        </Link>
       </div>
 
       <div className={styles.gaugeSection}>
         <svg
           viewBox="0 0 200 125"
           className={styles.gaugeSvg}
-          aria-label={`Risk score gauge: ${score} out of 100`}
+          aria-label={
+            alignmentScore !== null
+              ? `Strategy alignment score: ${alignmentScore} out of 100`
+              : 'Strategy alignment score loading'
+          }
         >
           <path
             d={bgArcPath}
@@ -81,19 +118,19 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
             strokeWidth={GAUGE_STROKE_WIDTH}
             strokeLinecap="round"
           />
-          {progressArcPath && (
+          {!isLoading && progressArcPath && (
             <path
               d={progressArcPath}
-              className={`${styles.gaugeProgress} ${styles[`gaugeProgress${riskLevel}`]}`}
+              className={`${styles.gaugeProgress} ${styles[`gaugeProgress${healthLevel}`]}`}
             />
           )}
           <text
             x={GAUGE_CX}
             y={GAUGE_CY - 22}
             textAnchor="middle"
-            className={`${styles.gaugeScore} ${styles[`gaugeScore${riskLevel}`]}`}
+            className={`${styles.gaugeScore} ${styles[`gaugeScore${healthLevel}`]}`}
           >
-            {score}
+            {isLoading ? '—' : (alignmentScore ?? '—')}
           </text>
           <text
             x={GAUGE_CX}
@@ -107,14 +144,16 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
           </text>
         </svg>
 
-        {isHighRisk && topSector && (
+        {showDriftAlert && topDeviation && (
           <div className={styles.alertBanner}>
             <AlertTriangle size={13} className={styles.alertIcon} />
             <span>
-              <span className={styles.alertHighlight}>High concentration</span>
+              <span className={styles.alertHighlight}>Strategy drift detected</span>
               <span className={styles.alertBody}>
                 {' '}
-                in {topSector.sector} ({topSector.percentage}%). Diversification recommended.
+                {topDeviation.label} is{' '}
+                {topDeviation.status === 'overweight' ? 'over-weight' : 'under-weight'} by{' '}
+                {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
               </span>
             </span>
           </div>
@@ -122,27 +161,36 @@ export function PortfolioHealthCard({ score, sectors }: PortfolioHealthCardProps
       </div>
 
       <div className={styles.sectors}>
-        {sectors.map((sector) => (
-          <div key={sector.sector} className={styles.sectorRow}>
-            <div className={styles.sectorRowHeader}>
-              <div className={styles.sectorNameGroup}>
-                <span
-                  className={styles.sectorIcon}
-                  style={{ background: sector.color }}
-                  aria-hidden="true"
-                />
-                <span className={styles.sectorName}>{sector.sector}</span>
+        {deviations.length === 0 && !isLoading ? (
+          <p className={styles.emptyHint}>Add holdings to track strategy bucket alignment.</p>
+        ) : (
+          deviations.map((deviation) => (
+            <div key={deviation.bucketId} className={styles.sectorRow}>
+              <div className={styles.sectorRowHeader}>
+                <div className={styles.sectorNameGroup}>
+                  <span
+                    className={styles.sectorIcon}
+                    style={{ background: deviation.color }}
+                    aria-hidden="true"
+                  />
+                  <span className={styles.sectorName}>{deviation.label}</span>
+                </div>
+                <span className={styles.sectorPercent}>
+                  {formatAllocationPair(deviation.currentPercent, deviation.targetPercent)}
+                </span>
               </div>
-              <span className={styles.sectorPercent}>{sector.percentage}%</span>
+              <div className={styles.barTrack}>
+                <div
+                  className={styles.barFill}
+                  style={{
+                    width: `${Math.max(deviation.currentPercent, 0)}%`,
+                    background: deviation.color,
+                  }}
+                />
+              </div>
             </div>
-            <div className={styles.barTrack}>
-              <div
-                className={styles.barFill}
-                style={{ width: `${sector.percentage}%`, background: sector.color }}
-              />
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

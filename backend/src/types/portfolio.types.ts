@@ -3,6 +3,9 @@
 export interface PortfolioAccountRow {
   id: string;
   owner_token: string;
+  rebalancing_strategy_id?: string;
+  rebalancing_custom_allocations?: Record<string, number> | null;
+  rebalancing_custom_base_strategy_id?: string | null;
   created_at: Date;
 }
 

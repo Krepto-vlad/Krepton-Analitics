@@ -13,6 +13,9 @@ import {
   closePosition,
   getUserPortfolioNews,
   getUserPortfolioDividendCalendar,
+  getUserPortfolioRebalancingAnalysis,
+  updateUserPortfolioRebalancingStrategy,
+  getRebalancingStrategyCatalog,
 } from '../services/portfolioService.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -73,6 +76,30 @@ export async function getPortfolioDividendsHandler(req: Request, res: Response):
   const { displayCurrency } = req.query;
   const calendar = await getUserPortfolioDividendCalendar(requireUserId(req), displayCurrency);
   res.json({ success: true, data: calendar });
+}
+
+export async function getPortfolioRebalancingHandler(req: Request, res: Response): Promise<void> {
+  const { displayCurrency } = req.query;
+  const analysis = await getUserPortfolioRebalancingAnalysis(requireUserId(req), displayCurrency);
+  res.json({ success: true, data: analysis });
+}
+
+export async function getRebalancingStrategiesHandler(_req: Request, res: Response): Promise<void> {
+  const strategies = getRebalancingStrategyCatalog();
+  res.json({ success: true, data: strategies });
+}
+
+export async function updatePortfolioRebalancingHandler(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const { displayCurrency } = req.query;
+  const analysis = await updateUserPortfolioRebalancingStrategy(
+    requireUserId(req),
+    req.body,
+    displayCurrency
+  );
+  res.json({ success: true, data: analysis });
 }
 
 export async function getBuyTransactions(req: Request, res: Response): Promise<void> {

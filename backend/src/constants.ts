@@ -43,7 +43,7 @@ export const YAHOO_QUOTE_BATCH_MAX_SIZE = 50;
 export const YAHOO_EXTERNAL_CALLS_BUDGET_PER_MINUTE = 20;
 
 // Minimum gap between Yahoo batch fetches to avoid burst traffic.
-export const YAHOO_QUOTE_MIN_FETCH_GAP_MS = 10_000;
+export const YAHOO_QUOTE_MIN_FETCH_GAP_MS = 3_000;
 
 // Browser HTTP cache for batch quotes GET — deduplicates polls across tabs.
 export const QUOTE_BATCH_BROWSER_CACHE_TTL_S = 25;
@@ -67,6 +67,7 @@ export const PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS = 60;
 
 // Portfolio input validation limits
 export const TICKER_MAX_LENGTH = 10;
+export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
 export const COMPANY_NAME_MAX_LENGTH = 255;
 export const MAX_SHARES = 999_999_999;
 export const MAX_PRICE = 999_999_999;

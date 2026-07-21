@@ -12,6 +12,7 @@ import {
   fetchPortfolioEquityHistory as apiFetchEquityHistory,
   fetchInvestmentSummary as apiFetchInvestmentSummary,
   fetchPortfolioNews as apiFetchPortfolioNews,
+  fetchPortfolioRebalancing as apiFetchPortfolioRebalancing,
   createPortfolioPosition,
   deletePortfolioPosition as apiDeletePosition,
   deleteBuyTransaction as apiDeleteBuyTransaction,
@@ -30,8 +31,8 @@ import { getRejectedMessage } from '../../utils/apiError';
 import { fetchLiveFxRates } from '../../api/fxApi';
 import type { StockQuote } from '../../types/stock.types';
 import type { RootState } from '../../store';
-import type { Currency } from '../../constants';
-import { HOLDINGS_PAGE_SIZE, TRANSACTIONS_PAGE_SIZE } from '../../constants';
+import type { RebalancingAnalysisResponse } from '../../types/rebalancing.types';
+import { HOLDINGS_PAGE_SIZE, TRANSACTIONS_PAGE_SIZE, type Currency } from '../../constants';
 import {
   convertAmountWithRate,
   getTodayIsoDate,
@@ -169,6 +170,7 @@ async function refreshPortfolioData(dispatch: (action: unknown) => unknown): Pro
     dispatch(fetchTransactionsPageThunk({ offset: 0, append: false })),
     dispatch(fetchPortfolioEquityHistoryThunk()),
     dispatch(fetchPortfolioNewsThunk()),
+    dispatch(fetchPortfolioRebalancingThunk()),
   ]);
 }
 
@@ -376,6 +378,19 @@ export const addPositionThunk = createAsyncThunk<void, AddPositionPayload, { rej
   }
 );
 
+export const fetchPortfolioRebalancingThunk = createAsyncThunk<
+  RebalancingAnalysisResponse,
+  void,
+  { rejectValue: string; state: RootState }
+>('portfolio/fetchRebalancing', async (_, { getState, rejectWithValue }) => {
+  const displayCurrency = getState().ui.currency;
+  try {
+    return await apiFetchPortfolioRebalancing(displayCurrency);
+  } catch (error) {
+    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.PORTFOLIO_REBALANCING_FAILED));
+  }
+});
+
 export const fetchPortfolioNewsThunk = createAsyncThunk<
   NewsItem[],
   void,
@@ -422,6 +437,14 @@ const initialState: PortfolioState = {
   isLoadingNews: false,
   newsError: null,
   equityHistory: generateEquityHistory(),
+  portfolioHealth: {
+    alignmentScore: null,
+    strategyId: null,
+    strategyName: null,
+    deviations: [],
+    isLoading: false,
+    error: null,
+  },
   isLoading: false,
   error: null,
 };
@@ -533,6 +556,21 @@ const portfolioSlice = createSlice({
       .addCase(fetchPortfolioNewsThunk.rejected, (state, action) => {
         state.isLoadingNews = false;
         state.newsError = action.payload ?? ERROR_MESSAGES.PORTFOLIO_NEWS_FAILED;
+      })
+      .addCase(fetchPortfolioRebalancingThunk.pending, (state) => {
+        state.portfolioHealth.isLoading = true;
+        state.portfolioHealth.error = null;
+      })
+      .addCase(fetchPortfolioRebalancingThunk.fulfilled, (state, action) => {
+        state.portfolioHealth.isLoading = false;
+        state.portfolioHealth.alignmentScore = action.payload.alignmentScore;
+        state.portfolioHealth.strategyId = action.payload.strategyId;
+        state.portfolioHealth.strategyName = action.payload.strategyName;
+        state.portfolioHealth.deviations = action.payload.deviations;
+      })
+      .addCase(fetchPortfolioRebalancingThunk.rejected, (state, action) => {
+        state.portfolioHealth.isLoading = false;
+        state.portfolioHealth.error = action.payload ?? ERROR_MESSAGES.PORTFOLIO_REBALANCING_FAILED;
       });
   },
 });

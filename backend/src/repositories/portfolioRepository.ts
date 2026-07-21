@@ -503,3 +503,71 @@ export async function updatePositionSector(
     [sector, positionId, portfolioId]
   );
 }
+
+export async function getPortfolioRebalancingStrategy(portfolioId: string): Promise<{
+  strategyId: string;
+  customBaseStrategyId: string | null;
+  customAllocations: Record<string, number> | null;
+}> {
+  const result = await pool.query<PortfolioAccountRow>(
+    `SELECT rebalancing_strategy_id, rebalancing_custom_base_strategy_id, rebalancing_custom_allocations
+     FROM portfolio_accounts
+     WHERE id = $1`,
+    [portfolioId]
+  );
+
+  if (result.rows.length === 0) {
+    throw new Error('Portfolio account not found');
+  }
+
+  const row = result.rows[0];
+
+  return {
+    strategyId: row.rebalancing_strategy_id ?? 'ray-dalio-all-weather',
+    customBaseStrategyId: row.rebalancing_custom_base_strategy_id ?? null,
+    customAllocations: row.rebalancing_custom_allocations ?? null,
+  };
+}
+
+export async function updatePortfolioRebalancingStrategy(
+  portfolioId: string,
+  update: {
+    strategyId: string;
+    customBaseStrategyId?: string | null;
+    customAllocations?: Record<string, number> | null;
+  }
+): Promise<void> {
+  if (update.strategyId === 'custom' && update.customAllocations !== undefined) {
+    await pool.query(
+      `UPDATE portfolio_accounts
+       SET rebalancing_strategy_id = $1,
+           rebalancing_custom_base_strategy_id = $2,
+           rebalancing_custom_allocations = $3
+       WHERE id = $4`,
+      [
+        update.strategyId,
+        update.customBaseStrategyId ?? null,
+        update.customAllocations ?? null,
+        portfolioId,
+      ]
+    );
+    return;
+  }
+
+  if (update.strategyId === 'custom') {
+    await pool.query(
+      `UPDATE portfolio_accounts
+       SET rebalancing_strategy_id = $1
+       WHERE id = $2`,
+      [update.strategyId, portfolioId]
+    );
+    return;
+  }
+
+  await pool.query(
+    `UPDATE portfolio_accounts
+     SET rebalancing_strategy_id = $1
+     WHERE id = $2`,
+    [update.strategyId, portfolioId]
+  );
+}

@@ -34,8 +34,8 @@ const DashboardPage = lazy(() =>
 const PortfolioPage = lazy(() =>
   import('../pages/PortfolioPage/PortfolioPage').then((m) => ({ default: m.PortfolioPage }))
 );
-const RebalancingPage = () => (
-  <div style={{ color: '#fff', padding: 40 }}>Rebalancing — coming soon</div>
+const RebalancingPage = lazy(() =>
+  import('../pages/RebalancingPage/RebalancingPage').then((m) => ({ default: m.RebalancingPage }))
 );
 const ScreenerPage = lazy(() =>
   import('../pages/ScreenerPage/ScreenerPage').then((m) => ({ default: m.ScreenerPage }))

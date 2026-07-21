@@ -1,0 +1,67 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-foreground-subtle;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  max-width: 900px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  @include custom-scrollbar;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+
+  th,
+  td {
+    padding: $space-2 $space-3;
+    border-bottom: 1px solid $color-border;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $color-foreground-subtle;
+  }
+
+  td {
+    color: $color-foreground-muted;
+  }
+}
+
+.valueColumn {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

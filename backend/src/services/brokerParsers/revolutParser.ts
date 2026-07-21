@@ -7,6 +7,7 @@ import {
   TICKER_MAX_LENGTH,
   IMPORT_MAX_TRADES_PER_FILE,
 } from '../../constants.js';
+import { isValidTickerSymbol } from '../../utils/tickerValidation.js';
 import type { NormalizedTrade, SkippedImportRow } from '../../types/import.types.js';
 import type { SafeSheetData } from '../../utils/excelSafeReader.js';
 
@@ -96,7 +97,7 @@ function validateTradeInput(params: {
   pricePerShare: number;
   currency: string;
 }): string | null {
-  if (!/^[A-Z0-9.-]{1,10}$/.test(params.ticker)) {
+  if (!isValidTickerSymbol(params.ticker)) {
     return 'Invalid ticker format';
   }
 
