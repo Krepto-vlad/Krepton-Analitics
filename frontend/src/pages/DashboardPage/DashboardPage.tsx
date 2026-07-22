@@ -2,12 +2,10 @@ import { useEffect, useMemo } from 'react';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useDashboardLivePollingScopes } from '../../hooks/useLivePollingScope';
-import { fetchPortfolioNewsThunk } from '../../features/portfolio/portfolioSlice';
 import {
-  selectPortfolioStats,
-  selectSectorAllocations,
-} from '../../features/portfolio/portfolioSelectors';
-import { PORTFOLIO_RISK_SCORE } from '../../constants';
+  fetchPortfolioNewsThunk,
+  fetchPortfolioRebalancingThunk,
+} from '../../features/portfolio/portfolioSlice';
 import { ErrorBanner } from '../../components/ui';
 import { PortfolioHealthCard } from './components/PortfolioHealthCard/PortfolioHealthCard';
 import { PortfolioEquityCard } from './components/PortfolioEquityCard/PortfolioEquityCard';
@@ -22,8 +20,8 @@ export function DashboardPage() {
   const dispatch = useAppDispatch();
   const summaryPositions = useAppSelector((state) => state.portfolio.summaryPositions);
   const isPortfolioLoading = useAppSelector((state) => state.portfolio.isLoading);
-  const stats = useAppSelector(selectPortfolioStats);
-  const sectorAllocations = useAppSelector(selectSectorAllocations);
+  const stats = useAppSelector((state) => state.portfolio.stats);
+  const portfolioHealth = useAppSelector((state) => state.portfolio.portfolioHealth);
   const news = useAppSelector((state) => state.portfolio.news);
   const isLoadingNews = useAppSelector((state) => state.portfolio.isLoadingNews);
   const newsError = useAppSelector((state) => state.portfolio.newsError);
@@ -49,6 +47,10 @@ export function DashboardPage() {
   );
 
   useEffect(() => {
+    void dispatch(fetchPortfolioRebalancingThunk());
+  }, [dispatch, currency, holdingsTickerKey]);
+
+  useEffect(() => {
     if (holdingsTickerKey.length === 0) {
       return;
     }
@@ -67,7 +69,12 @@ export function DashboardPage() {
       )}
 
       <div className={styles.topRow}>
-        <PortfolioHealthCard score={PORTFOLIO_RISK_SCORE} sectors={sectorAllocations} />
+        <PortfolioHealthCard
+          alignmentScore={portfolioHealth.alignmentScore}
+          strategyName={portfolioHealth.strategyName}
+          deviations={portfolioHealth.deviations}
+          isLoading={portfolioHealth.isLoading}
+        />
         <PortfolioEquityCard stats={stats} equityHistory={equityHistory} currency={currency} />
       </div>
 

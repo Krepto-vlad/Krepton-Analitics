@@ -14,6 +14,7 @@ import type {
   WatchlistItemRow,
 } from '../types/watchlist.types.js';
 import { TICKER_MAX_LENGTH, COMPANY_NAME_MAX_LENGTH, MAX_WATCHLIST_ITEMS } from '../constants.js';
+import { isValidTickerSymbol, TICKER_FORMAT_ERROR_MESSAGE } from '../utils/tickerValidation.js';
 
 function mapRowToResponse(row: WatchlistItemRow): WatchlistItemResponse {
   return {
@@ -28,8 +29,8 @@ function validateAddWatchlistItemDto(dto: AddWatchlistItemDto): void {
   if (!dto.ticker || typeof dto.ticker !== 'string') {
     throw new AppError(400, 'ticker is required');
   }
-  if (!/^[A-Z0-9.]{1,10}$/.test(dto.ticker.toUpperCase())) {
-    throw new AppError(400, 'ticker must be 1-10 uppercase letters/numbers');
+  if (!isValidTickerSymbol(dto.ticker)) {
+    throw new AppError(400, TICKER_FORMAT_ERROR_MESSAGE);
   }
   if (dto.ticker.length > TICKER_MAX_LENGTH) {
     throw new AppError(400, `ticker must be at most ${TICKER_MAX_LENGTH} characters`);

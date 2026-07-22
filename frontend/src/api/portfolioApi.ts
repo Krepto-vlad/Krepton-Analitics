@@ -3,6 +3,16 @@ import { API_BASE_URL } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
 import type { NewsItem } from '../types/portfolio.types';
 import type { DividendCalendarResponse } from '../types/dividend.types';
+import type {
+  RebalancingAnalysisResponse,
+  RebalancingStrategyOption,
+  UpdateRebalancingStrategyPayload,
+} from '../types/rebalancing.types';
+import type {
+  AiQuotaStatus,
+  GenerateNewsSummaryPayload,
+  NewsSummaryResponse,
+} from '../types/ai.types';
 
 // ─── Types matching backend PositionResponse ──────────────────────────────────
 
@@ -198,12 +208,54 @@ export async function fetchPortfolioNews(): Promise<NewsItem[]> {
   return assertSuccess(data);
 }
 
+export async function fetchNewsSummaryQuota(): Promise<AiQuotaStatus> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<AiQuotaStatus> | ApiErrorResponse
+  >('/news/summary/quota');
+  return assertSuccess(data);
+}
+
+export async function generateNewsSummary(
+  payload: GenerateNewsSummaryPayload
+): Promise<NewsSummaryResponse> {
+  const { data } = await portfolioApiClient.post<
+    ApiSuccessResponse<NewsSummaryResponse> | ApiErrorResponse
+  >('/news/summary', payload);
+  return assertSuccess(data);
+}
+
 export async function fetchPortfolioDividends(
   displayCurrency?: Currency
 ): Promise<DividendCalendarResponse> {
   const { data } = await portfolioApiClient.get<
     ApiSuccessResponse<DividendCalendarResponse> | ApiErrorResponse
   >('/dividends', { params: withDisplayCurrency(displayCurrency) });
+  return assertSuccess(data);
+}
+
+export async function fetchRebalancingStrategies(): Promise<RebalancingStrategyOption[]> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<RebalancingStrategyOption[]> | ApiErrorResponse
+  >('/rebalancing/strategies');
+  return assertSuccess(data);
+}
+
+export async function fetchPortfolioRebalancing(
+  displayCurrency?: Currency
+): Promise<RebalancingAnalysisResponse> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<RebalancingAnalysisResponse> | ApiErrorResponse
+  >('/rebalancing', { params: withDisplayCurrency(displayCurrency) });
+  return assertSuccess(data);
+}
+
+export async function updatePortfolioRebalancingStrategy(
+  payload: UpdateRebalancingStrategyPayload,
+  displayCurrency?: Currency
+): Promise<RebalancingAnalysisResponse> {
+  const { data } = await portfolioApiClient.put<
+    ApiSuccessResponse<RebalancingAnalysisResponse> | ApiErrorResponse
+  >('/rebalancing/strategy', payload, { params: withDisplayCurrency(displayCurrency) });
   return assertSuccess(data);
 }
 

@@ -1,5 +1,10 @@
 import { AppError } from '../middleware/errorHandler.js';
 import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
+import {
+  isValidTickerSymbol,
+  normalizeTickerSymbol,
+  TICKER_FORMAT_ERROR_MESSAGE,
+} from '../utils/tickerValidation.js';
 import { getStockSector, getStockHistory } from './stockService.js';
 import { getPortfolioNews } from './newsService.js';
 import { buildPortfolioDividendCalendar } from './dividendCalendarService.js';
@@ -25,6 +30,8 @@ import {
   updatePositionSector,
   getAllTransactionsForDedup,
   insertPositionFromLedger,
+  getPortfolioRebalancingStrategy,
+  updatePortfolioRebalancingStrategy,
 } from '../repositories/portfolioRepository.js';
 import type {
   AddPositionDto,
@@ -62,6 +69,22 @@ import type { SupportedBrokerId } from '../constants.js';
 import type { NormalizedTrade, ImportConfirmResponse } from '../types/import.types.js';
 import type { PortfolioNewsItem } from '../types/news.types.js';
 import type { DividendCalendarResponse } from '../types/dividend.types.js';
+import type {
+  RebalancingAnalysisResponse,
+  RebalancingStrategyOption,
+  UpdateRebalancingStrategyDto,
+  SavedRebalancingStrategy,
+} from '../types/rebalancing.types.js';
+import {
+  REBALANCING_DEFAULT_STRATEGY_ID,
+  type RebalancingPrebuiltStrategyId,
+  type RebalancingStrategyId,
+} from '../constants/rebalancing.constants.js';
+import {
+  buildRebalancingAnalysis,
+  listRebalancingStrategies,
+  validateUpdateRebalancingStrategyDto,
+} from './rebalancingService.js';
 import { buildTradeFingerprint } from '../utils/tradeFingerprint.js';
 
 // ─── HMAC indirection ─────────────────────────────────────────────────────────
@@ -173,8 +196,8 @@ function validateAddPositionDto(dto: AddPositionDto): void {
   if (!dto.ticker || typeof dto.ticker !== 'string') {
     throw new AppError(400, 'ticker is required');
   }
-  if (!/^[A-Z0-9.]{1,10}$/.test(dto.ticker.toUpperCase())) {
-    throw new AppError(400, 'ticker must be 1-10 uppercase letters/numbers');
+  if (!isValidTickerSymbol(dto.ticker)) {
+    throw new AppError(400, TICKER_FORMAT_ERROR_MESSAGE);
   }
   if (!dto.companyName || typeof dto.companyName !== 'string') {
     throw new AppError(400, 'companyName is required');
@@ -593,8 +616,8 @@ export async function getBuyTransactionsForTicker(
   userId: string,
   ticker: string
 ): Promise<TransactionResponse[]> {
-  const normalizedTicker = ticker.toUpperCase();
-  if (!/^[A-Z0-9.]{1,10}$/.test(normalizedTicker)) {
+  const normalizedTicker = normalizeTickerSymbol(ticker);
+  if (!isValidTickerSymbol(normalizedTicker)) {
     throw new AppError(400, 'Invalid ticker');
   }
 
@@ -968,4 +991,68 @@ export async function getUserPortfolioDividendCalendar(
   const rows = await getPositionsByPortfolioId(portfolioId);
 
   return buildPortfolioDividendCalendar(rows, displayCurrency);
+}
+
+function mapSavedRebalancingStrategy(
+  strategyId: string,
+  customBaseStrategyId: string | null,
+  customAllocations: Record<string, number> | null
+): SavedRebalancingStrategy {
+  return {
+    strategyId: (strategyId as RebalancingStrategyId) ?? REBALANCING_DEFAULT_STRATEGY_ID,
+    customBaseStrategyId: (customBaseStrategyId as RebalancingPrebuiltStrategyId | null) ?? null,
+    customAllocations,
+  };
+}
+
+export async function getUserPortfolioRebalancingAnalysis(
+  userId: string,
+  rawDisplayCurrency?: unknown
+): Promise<RebalancingAnalysisResponse> {
+  const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+  const [rows, savedStrategy] = await Promise.all([
+    getPositionsByPortfolioId(portfolioId),
+    getPortfolioRebalancingStrategy(portfolioId),
+  ]);
+
+  return buildRebalancingAnalysis(
+    rows,
+    mapSavedRebalancingStrategy(
+      savedStrategy.strategyId,
+      savedStrategy.customBaseStrategyId,
+      savedStrategy.customAllocations
+    ),
+    displayCurrency
+  );
+}
+
+export async function updateUserPortfolioRebalancingStrategy(
+  userId: string,
+  dto: UpdateRebalancingStrategyDto,
+  rawDisplayCurrency?: unknown
+): Promise<RebalancingAnalysisResponse> {
+  validateUpdateRebalancingStrategyDto(dto);
+
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+
+  if (dto.strategyId === 'custom' && dto.customAllocations) {
+    await updatePortfolioRebalancingStrategy(portfolioId, {
+      strategyId: 'custom',
+      customBaseStrategyId: dto.customBaseStrategyId ?? null,
+      customAllocations: dto.customAllocations,
+    });
+  } else {
+    await updatePortfolioRebalancingStrategy(portfolioId, {
+      strategyId: dto.strategyId,
+    });
+  }
+
+  return getUserPortfolioRebalancingAnalysis(userId, rawDisplayCurrency);
+}
+
+export function getRebalancingStrategyCatalog(): RebalancingStrategyOption[] {
+  return listRebalancingStrategies();
 }

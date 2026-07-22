@@ -7,7 +7,12 @@ import {
   getEquityHistory,
   getInvestmentSummaryHandler,
   getPortfolioNewsHandler,
+  getNewsSummaryQuotaHandler,
+  postNewsSummaryHandler,
   getPortfolioDividendsHandler,
+  getPortfolioRebalancingHandler,
+  getRebalancingStrategiesHandler,
+  updatePortfolioRebalancingHandler,
   getBuyTransactions,
   postPosition,
   patchPosition,
@@ -28,6 +33,8 @@ import {
   PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS,
   IMPORT_RATE_LIMIT_WINDOW_MS,
   IMPORT_RATE_LIMIT_MAX_REQUESTS,
+  AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS,
+  AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS,
 } from '../constants.js';
 
 // Apply rate limiting only to write operations to prevent abuse
@@ -47,6 +54,14 @@ const importLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const aiNewsSummaryLimiter = rateLimit({
+  windowMs: AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS,
+  max: AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS,
+  message: { success: false, error: 'Too many AI requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const router = Router();
 
 // All portfolio routes require a valid JWT HttpOnly cookie
@@ -57,7 +72,21 @@ router.get('/transactions', asyncHandler(getTransactions));
 router.get('/equity-history', asyncHandler(getEquityHistory));
 router.get('/investment-summary', asyncHandler(getInvestmentSummaryHandler));
 router.get('/news', asyncHandler(getPortfolioNewsHandler));
+router.get('/news/summary/quota', asyncHandler(getNewsSummaryQuotaHandler));
+router.post(
+  '/news/summary',
+  aiNewsSummaryLimiter,
+  portfolioWriteLimiter,
+  asyncHandler(postNewsSummaryHandler)
+);
 router.get('/dividends', asyncHandler(getPortfolioDividendsHandler));
+router.get('/rebalancing/strategies', asyncHandler(getRebalancingStrategiesHandler));
+router.get('/rebalancing', asyncHandler(getPortfolioRebalancingHandler));
+router.put(
+  '/rebalancing/strategy',
+  portfolioWriteLimiter,
+  asyncHandler(updatePortfolioRebalancingHandler)
+);
 router.post(
   '/import/preview',
   importLimiter,

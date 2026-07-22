@@ -177,9 +177,19 @@ async function drainPendingRefreshQueue(): Promise<void> {
 
     const batch = [...pendingRefreshTickers];
     pendingRefreshTickers.clear();
-    lastYahooFetchAt = Date.now();
     await fetchTickersFromYahoo(batch);
+    lastYahooFetchAt = Date.now();
   }
+}
+
+function startBackgroundRefreshIfNeeded(): void {
+  if (pendingRefreshTickers.size === 0 || activeYahooFetch) {
+    return;
+  }
+
+  activeYahooFetch = drainPendingRefreshQueue().finally(() => {
+    activeYahooFetch = null;
+  });
 }
 
 async function ensurePendingTickersRefreshed(): Promise<void> {
@@ -188,27 +198,35 @@ async function ensurePendingTickersRefreshed(): Promise<void> {
   }
 
   if (!activeYahooFetch) {
-    activeYahooFetch = drainPendingRefreshQueue().finally(() => {
-      activeYahooFetch = null;
-    });
+    startBackgroundRefreshIfNeeded();
   }
 
   await activeYahooFetch;
 }
 
-async function refreshStaleTickers(staleTickers: string[]): Promise<void> {
-  if (staleTickers.length === 0) return;
+function queueStaleTickerRefresh(staleTickers: string[]): void {
+  if (staleTickers.length === 0) {
+    return;
+  }
 
   for (const ticker of staleTickers) {
     pendingRefreshTickers.add(ticker);
   }
 
-  await ensurePendingTickersRefreshed();
+  startBackgroundRefreshIfNeeded();
+}
+
+function mapTickersToQuotes(tickers: string[]): StockQuote[] {
+  return tickers.map((ticker) => {
+    const entry = quoteCache.get(ticker);
+    return entry?.quote ?? buildFallbackQuote(ticker);
+  });
 }
 
 /**
  * Returns quotes for the requested tickers using a shared server-side cache.
  * Concurrent callers coalesce into one refresh queue to respect Yahoo rate limits.
+ * When warm cache data exists, stale quotes are returned immediately while refresh runs in background.
  */
 export async function getCachedStockQuotes(tickers: string[]): Promise<StockQuote[]> {
   const normalized = [...new Set(tickers.map((ticker) => ticker.toUpperCase()))];
@@ -224,12 +242,16 @@ export async function getCachedStockQuotes(tickers: string[]): Promise<StockQuot
     }
   }
 
-  await refreshStaleTickers(staleTickers);
+  if (staleTickers.length > 0) {
+    const hasWarmCache = normalized.some((ticker) => quoteCache.has(ticker));
+    queueStaleTickerRefresh(staleTickers);
 
-  return normalized.map((ticker) => {
-    const entry = quoteCache.get(ticker);
-    return entry?.quote ?? buildFallbackQuote(ticker);
-  });
+    if (!hasWarmCache) {
+      await ensurePendingTickersRefreshed();
+    }
+  }
+
+  return mapTickersToQuotes(normalized);
 }
 
 export async function getCachedStockQuote(ticker: string): Promise<StockQuote> {

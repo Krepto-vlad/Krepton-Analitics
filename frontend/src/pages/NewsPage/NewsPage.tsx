@@ -5,6 +5,7 @@ import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchPortfolioNewsThunk } from '../../features/portfolio/portfolioSlice';
 import { NewsFeed } from '../DashboardPage/components/NewsFeed/NewsFeed';
+import { NewsSummaryPanel } from './components/NewsSummaryPanel/NewsSummaryPanel';
 import styles from './NewsPage.module.scss';
 
 export function NewsPage() {
@@ -43,9 +44,15 @@ export function NewsPage() {
           <h1 className={styles.title}>Portfolio News</h1>
         </div>
         <p className={styles.subtitle}>
-          Headlines and market context filtered by your current holdings
+          Headlines and AI-powered daily summaries for your holdings
         </p>
       </header>
+
+      <NewsSummaryPanel
+        key={holdingsTickerKey}
+        holdings={summaryPositions}
+        holdingsKey={holdingsTickerKey}
+      />
 
       <NewsFeed
         news={news}

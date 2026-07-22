@@ -7,6 +7,7 @@ import {
   fetchPositionsPageThunk,
   fetchTransactionsPageThunk,
   fetchPortfolioEquityHistoryThunk,
+  fetchPortfolioRebalancingThunk,
 } from '../features/portfolio/portfolioSlice';
 import { clearLiveFxRateCache } from '../api/fxApi';
 
@@ -33,6 +34,7 @@ export function usePortfolioCurrencyRefresh(): void {
       dispatch(fetchPositionsPageThunk({ offset: 0, append: false })),
       dispatch(fetchTransactionsPageThunk({ offset: 0, append: false })),
       dispatch(fetchPortfolioEquityHistoryThunk()),
+      dispatch(fetchPortfolioRebalancingThunk()),
     ]);
   }, [currency, dispatch]);
 }

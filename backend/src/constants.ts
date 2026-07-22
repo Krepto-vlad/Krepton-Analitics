@@ -43,7 +43,7 @@ export const YAHOO_QUOTE_BATCH_MAX_SIZE = 50;
 export const YAHOO_EXTERNAL_CALLS_BUDGET_PER_MINUTE = 20;
 
 // Minimum gap between Yahoo batch fetches to avoid burst traffic.
-export const YAHOO_QUOTE_MIN_FETCH_GAP_MS = 10_000;
+export const YAHOO_QUOTE_MIN_FETCH_GAP_MS = 3_000;
 
 // Browser HTTP cache for batch quotes GET — deduplicates polls across tabs.
 export const QUOTE_BATCH_BROWSER_CACHE_TTL_S = 25;
@@ -67,6 +67,7 @@ export const PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS = 60;
 
 // Portfolio input validation limits
 export const TICKER_MAX_LENGTH = 10;
+export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
 export const COMPANY_NAME_MAX_LENGTH = 255;
 export const MAX_SHARES = 999_999_999;
 export const MAX_PRICE = 999_999_999;
@@ -112,6 +113,33 @@ export const PORTFOLIO_NEWS_MAX_TICKERS = 10;
 export const PORTFOLIO_NEWS_PER_TICKER = 5;
 export const PORTFOLIO_NEWS_MAX_ITEMS = 20;
 export const PORTFOLIO_NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
+
+// ─── AI (Gemini) — news summary ────────────────────────────────────────────────
+export const AI_FEATURES = ['news_summary'] as const;
+export type AiFeatureId = (typeof AI_FEATURES)[number];
+
+export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
+export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
+export const AI_NEWS_SUMMARY_FREE_DAILY_LIMIT = 5;
+export const AI_NEWS_SUMMARY_DISCLAIMER =
+  'AI-generated summary for informational purposes only. Not financial advice. Verify prices and news with primary sources.';
+export const AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS = 10;
+export const AI_BRIEFING_CACHE_VERSION = 'v2';
+
+export const AI_BRIEFING_MACRO_TICKERS = [
+  { ticker: 'SPY', label: 'S&P 500' },
+  { ticker: 'QQQ', label: 'Nasdaq 100' },
+  { ticker: 'CL=F', label: 'WTI Crude Oil' },
+  { ticker: '^VIX', label: 'VIX Volatility' },
+] as const;
+
+export const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+export const GEMINI_MODEL = 'gemini-3.1-flash-lite';
+export const GEMINI_REQUEST_TIMEOUT_MS = 30_000;
+export const GEMINI_GROUNDING_REQUEST_TIMEOUT_MS = 90_000;
+export const GEMINI_MAX_OUTPUT_TOKENS = 2048;
+export const GEMINI_TEMPERATURE = 0.3;
 
 // ─── Stock comparison matrix ───────────────────────────────────────────────────
 export const STOCK_COMPARE_MAX_TICKERS = 4;

@@ -70,6 +70,25 @@ export interface InvestmentSummary {
   displayTotalWithdrawn?: number;
 }
 
+export interface PortfolioHealthState {
+  alignmentScore: number | null;
+  strategyId: string | null;
+  strategyName: string | null;
+  deviations: PortfolioHealthDeviation[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface PortfolioHealthDeviation {
+  bucketId: string;
+  label: string;
+  color: string;
+  currentPercent: number;
+  targetPercent: number;
+  deviationPercent: number;
+  status: 'overweight' | 'underweight' | 'optimal';
+}
+
 export interface PortfolioState {
   positions: PortfolioPosition[];
   positionsTotal: number;
@@ -88,6 +107,7 @@ export interface PortfolioState {
   isLoadingNews: boolean;
   newsError: string | null;
   equityHistory: EquityDataPoint[];
+  portfolioHealth: PortfolioHealthState;
   isLoading: boolean;
   error: string | null;
 }
