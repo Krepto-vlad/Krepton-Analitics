@@ -8,6 +8,11 @@ import type {
   RebalancingStrategyOption,
   UpdateRebalancingStrategyPayload,
 } from '../types/rebalancing.types';
+import type {
+  AiQuotaStatus,
+  GenerateNewsSummaryPayload,
+  NewsSummaryResponse,
+} from '../types/ai.types';
 
 // ─── Types matching backend PositionResponse ──────────────────────────────────
 
@@ -200,6 +205,22 @@ export async function fetchPortfolioNews(): Promise<NewsItem[]> {
   const { data } = await portfolioApiClient.get<ApiSuccessResponse<NewsItem[]> | ApiErrorResponse>(
     '/news'
   );
+  return assertSuccess(data);
+}
+
+export async function fetchNewsSummaryQuota(): Promise<AiQuotaStatus> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<AiQuotaStatus> | ApiErrorResponse
+  >('/news/summary/quota');
+  return assertSuccess(data);
+}
+
+export async function generateNewsSummary(
+  payload: GenerateNewsSummaryPayload
+): Promise<NewsSummaryResponse> {
+  const { data } = await portfolioApiClient.post<
+    ApiSuccessResponse<NewsSummaryResponse> | ApiErrorResponse
+  >('/news/summary', payload);
   return assertSuccess(data);
 }
 

@@ -17,6 +17,7 @@ import {
   updateUserPortfolioRebalancingStrategy,
   getRebalancingStrategyCatalog,
 } from '../services/portfolioService.js';
+import { generateUserNewsSummary, getNewsSummaryQuota } from '../services/newsSummaryService.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 function requireUserId(req: Request): string {
@@ -70,6 +71,16 @@ export async function getInvestmentSummaryHandler(req: Request, res: Response): 
 export async function getPortfolioNewsHandler(req: Request, res: Response): Promise<void> {
   const news = await getUserPortfolioNews(requireUserId(req));
   res.json({ success: true, data: news });
+}
+
+export async function getNewsSummaryQuotaHandler(req: Request, res: Response): Promise<void> {
+  const quota = await getNewsSummaryQuota(requireUserId(req));
+  res.json({ success: true, data: quota });
+}
+
+export async function postNewsSummaryHandler(req: Request, res: Response): Promise<void> {
+  const summary = await generateUserNewsSummary(requireUserId(req), req.body);
+  res.json({ success: true, data: summary });
 }
 
 export async function getPortfolioDividendsHandler(req: Request, res: Response): Promise<void> {

@@ -5,7 +5,13 @@ import type { ApiErrorResponse } from '../types/stock.types';
 export type ApiErrorKind = 'network' | 'timeout' | 'client' | 'server' | 'unknown';
 
 const AXIOS_STATUS_PATTERN = /^Request failed with status code \d+$/;
-const SAFE_SERVER_MESSAGES = new Set(['Internal server error']);
+const SAFE_SERVER_MESSAGES = new Set([
+  'Internal server error',
+  'AI summarization is not configured on the server.',
+  'AI service is temporarily busy. Please try again later.',
+  'AI service is unavailable. Please try again later.',
+  'Gemini quota or billing limit reached. Check AI Studio limits or try again later.',
+]);
 
 const UNSAFE_MESSAGE_PATTERNS = [
   /ECONNREFUSED/i,

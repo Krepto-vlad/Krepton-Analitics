@@ -78,6 +78,12 @@ export const DASHBOARD_NEWS_LOAD_MORE_STEP = 6;
 export const NEWS_PAGE_INITIAL_VISIBLE = 12;
 export const NEWS_PAGE_LOAD_MORE_STEP = 10;
 
+export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
+export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
+export const AI_NEWS_BRIEFING_SESSION_STORAGE_KEY = 'krepton_ai_news_briefing_v1';
+export const AI_NEWS_BRIEFING_COST_BASIS_TOOLTIP =
+  'Adds your position size, average buy price, and unrealized P/L to the AI prompt for more personalized insights. Only data for the selected tickers is sent — no email, account IDs, or other personal information.';
+
 export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
 export const STOCK_SEARCH_DEBOUNCE_MS = 350;
@@ -115,6 +121,8 @@ export const ERROR_MESSAGES = {
   AUTH_REGISTER_FAILED: 'Unable to create your account. Please try again.',
   PORTFOLIO_LOAD_FAILED: 'Unable to load portfolio data. Please try again.',
   PORTFOLIO_NEWS_FAILED: 'Unable to load portfolio news. Please try again.',
+  AI_NEWS_SUMMARY_FAILED: 'Unable to generate AI news summary. Please try again.',
+  AI_NEWS_SUMMARY_QUOTA_FAILED: 'Unable to load AI quota. Please try again.',
   PORTFOLIO_POSITION_ADD_FAILED: 'Unable to add the position. Please try again.',
   PORTFOLIO_POSITION_CLOSE_FAILED: 'Unable to close the position. Please try again.',
   PORTFOLIO_POSITION_DELETE_FAILED: 'Unable to delete the position. Please try again.',

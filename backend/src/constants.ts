@@ -114,6 +114,33 @@ export const PORTFOLIO_NEWS_PER_TICKER = 5;
 export const PORTFOLIO_NEWS_MAX_ITEMS = 20;
 export const PORTFOLIO_NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
 
+// ─── AI (Gemini) — news summary ────────────────────────────────────────────────
+export const AI_FEATURES = ['news_summary'] as const;
+export type AiFeatureId = (typeof AI_FEATURES)[number];
+
+export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
+export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
+export const AI_NEWS_SUMMARY_FREE_DAILY_LIMIT = 5;
+export const AI_NEWS_SUMMARY_DISCLAIMER =
+  'AI-generated summary for informational purposes only. Not financial advice. Verify prices and news with primary sources.';
+export const AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS = 10;
+export const AI_BRIEFING_CACHE_VERSION = 'v2';
+
+export const AI_BRIEFING_MACRO_TICKERS = [
+  { ticker: 'SPY', label: 'S&P 500' },
+  { ticker: 'QQQ', label: 'Nasdaq 100' },
+  { ticker: 'CL=F', label: 'WTI Crude Oil' },
+  { ticker: '^VIX', label: 'VIX Volatility' },
+] as const;
+
+export const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+export const GEMINI_MODEL = 'gemini-3.1-flash-lite';
+export const GEMINI_REQUEST_TIMEOUT_MS = 30_000;
+export const GEMINI_GROUNDING_REQUEST_TIMEOUT_MS = 90_000;
+export const GEMINI_MAX_OUTPUT_TOKENS = 2048;
+export const GEMINI_TEMPERATURE = 0.3;
+
 // ─── Stock comparison matrix ───────────────────────────────────────────────────
 export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
