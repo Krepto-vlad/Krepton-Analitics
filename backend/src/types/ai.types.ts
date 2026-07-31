@@ -1,4 +1,4 @@
-export type AiFeatureId = 'news_summary';
+export type AiFeatureId = 'news_summary' | 'explain_alignment';
 
 export type NewsSummarySentiment = 'bullish' | 'neutral' | 'bearish';
 
@@ -19,6 +19,13 @@ export interface NewsSummaryHoldingInsight {
 export interface NewsSummaryMarketDriver {
   title: string;
   explanation: string;
+}
+
+export interface NewsSummaryMarketBenchmark {
+  ticker: string;
+  label: string;
+  price: number;
+  changePercent: number;
 }
 
 export interface NewsSummarySource {
@@ -43,6 +50,7 @@ export interface NewsSummaryResponse {
   tickers: string[];
   holdingInsights: NewsSummaryHoldingInsight[];
   marketDrivers: NewsSummaryMarketDriver[];
+  marketBenchmark: NewsSummaryMarketBenchmark | null;
   sources: NewsSummarySource[];
   disclaimer: string;
   fromCache: boolean;
@@ -92,4 +100,50 @@ export interface AiNewsSummaryRow {
   tickers: string[];
   summary_payload: NewsSummaryPayload;
   created_at: Date;
+}
+
+export interface AlignmentExplanationDrift {
+  title: string;
+  explanation: string;
+}
+
+export interface AlignmentExplanationPayload {
+  overview: string;
+  keyDrifts: AlignmentExplanationDrift[];
+  whatItMeans: string;
+}
+
+export interface AlignmentExplanationResponse {
+  explanationDate: string;
+  strategyId: string;
+  strategyName: string;
+  alignmentScore: number;
+  overview: string;
+  keyDrifts: AlignmentExplanationDrift[];
+  whatItMeans: string;
+  disclaimer: string;
+  fromCache: boolean;
+  quota: AiQuotaStatus;
+}
+
+export interface AlignmentPromptContext {
+  explanationDate: string;
+  strategyName: string;
+  strategyPhilosophy: string;
+  investmentHorizon: string;
+  alignmentScore: number;
+  totalPortfolioValue: number;
+  displayCurrency: string;
+  deviations: Array<{
+    label: string;
+    currentPercent: number;
+    targetPercent: number;
+    deviationPercent: number;
+    status: 'overweight' | 'underweight' | 'optimal';
+  }>;
+  topHoldings: Array<{
+    ticker: string;
+    bucketLabel: string;
+    marketValue: number;
+  }>;
 }

@@ -10,6 +10,7 @@ import type {
 } from '../types/rebalancing.types';
 import type {
   AiQuotaStatus,
+  AlignmentExplanationResponse,
   GenerateNewsSummaryPayload,
   NewsSummaryResponse,
 } from '../types/ai.types';
@@ -246,6 +247,22 @@ export async function fetchPortfolioRebalancing(
   const { data } = await portfolioApiClient.get<
     ApiSuccessResponse<RebalancingAnalysisResponse> | ApiErrorResponse
   >('/rebalancing', { params: withDisplayCurrency(displayCurrency) });
+  return assertSuccess(data);
+}
+
+export async function fetchAlignmentExplanationQuota(): Promise<AiQuotaStatus> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<AiQuotaStatus> | ApiErrorResponse
+  >('/rebalancing/explain/quota');
+  return assertSuccess(data);
+}
+
+export async function generateAlignmentExplanation(
+  displayCurrency?: Currency
+): Promise<AlignmentExplanationResponse> {
+  const { data } = await portfolioApiClient.post<
+    ApiSuccessResponse<AlignmentExplanationResponse> | ApiErrorResponse
+  >('/rebalancing/explain', undefined, { params: withDisplayCurrency(displayCurrency) });
   return assertSuccess(data);
 }
 

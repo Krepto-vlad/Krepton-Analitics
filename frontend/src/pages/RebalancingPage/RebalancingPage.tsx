@@ -20,6 +20,7 @@ import { REBALANCING_CUSTOM_STRATEGY_NAME } from '../../types/rebalancing.types'
 import { StrategyPanel, type StrategyPanelOption } from './components/StrategyPanel/StrategyPanel';
 import { AllocationComparisonChart } from './components/AllocationComparisonChart/AllocationComparisonChart';
 import { TickerMappingPanel } from './components/TickerMappingPanel/TickerMappingPanel';
+import { AlignmentExplainPanel } from './components/AlignmentExplainPanel/AlignmentExplainPanel';
 import {
   adjustStrategyAllocationWeight,
   allocationsToTargetItems,
@@ -33,6 +34,8 @@ import {
   type StrategyBucketAllocation,
 } from './utils/rebalancingAllocations';
 import styles from './RebalancingPage.module.scss';
+
+type RebalancingTabId = 'technical' | 'ai';
 
 function resolveBaselineAllocations(
   strategyId: RebalancingStrategyId,
@@ -73,6 +76,7 @@ export function RebalancingPage() {
   const [loadedForCurrency, setLoadedForCurrency] = useState<Currency | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<RebalancingTabId>('technical');
 
   const savedCustomStrategy = analysis?.savedCustomStrategy ?? null;
 
@@ -258,13 +262,20 @@ export function RebalancingPage() {
       </header>
 
       <div className={styles.tabs}>
-        <button type="button" className={`${styles.tab} ${styles.tabActive}`}>
+        <button
+          type="button"
+          className={`${styles.tab} ${activeTab === 'technical' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('technical')}
+        >
           Technical Rebalancing
         </button>
-        <button type="button" className={styles.tab} disabled>
+        <button
+          type="button"
+          className={`${styles.tab} ${activeTab === 'ai' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('ai')}
+        >
           <Sparkles size={14} />
           AI Insights
-          <span className={styles.comingSoon}>Coming soon</span>
         </button>
       </div>
 
@@ -273,33 +284,44 @@ export function RebalancingPage() {
       {isLoading && !showContent ? (
         <div className={styles.loadingState}>Loading rebalancing analysis…</div>
       ) : showContent ? (
-        <>
-          <div className={styles.grid}>
-            <StrategyPanel
-              strategyOptions={strategyOptions}
-              selectedStrategyId={selectedStrategyId}
-              allocations={draftAllocations}
-              isSaving={isSaving}
-              isDirty={isDirty}
-              totalWeight={totalWeight}
-              isAllocationValid={isAllocationValid}
-              onStrategyChange={handleStrategyChange}
-              onAllocationChange={handleAllocationChange}
-              onStepAllocation={handleStepAllocation}
-              onSaveAsCustom={() => void persistSaveAsCustom()}
-            />
+        activeTab === 'technical' ? (
+          <>
+            <div className={styles.grid}>
+              <StrategyPanel
+                strategyOptions={strategyOptions}
+                selectedStrategyId={selectedStrategyId}
+                allocations={draftAllocations}
+                isSaving={isSaving}
+                isDirty={isDirty}
+                totalWeight={totalWeight}
+                isAllocationValid={isAllocationValid}
+                onStrategyChange={handleStrategyChange}
+                onAllocationChange={handleAllocationChange}
+                onStepAllocation={handleStepAllocation}
+                onSaveAsCustom={() => void persistSaveAsCustom()}
+              />
 
-            <AllocationComparisonChart
-              currentAllocations={analysis.currentAllocations}
-              targetAllocations={previewTargetAllocations}
-            />
-          </div>
+              <AllocationComparisonChart
+                currentAllocations={analysis.currentAllocations}
+                targetAllocations={previewTargetAllocations}
+              />
+            </div>
 
-          <TickerMappingPanel
-            mappings={analysis.tickerMappings}
+            <TickerMappingPanel
+              mappings={analysis.tickerMappings}
+              displayCurrency={displayCurrency}
+            />
+          </>
+        ) : (
+          <AlignmentExplainPanel
+            key={`${analysis.strategyId}-${Math.round(analysis.alignmentScore)}`}
+            strategyId={analysis.strategyId}
+            strategyName={analysis.strategyName}
+            alignmentScore={analysis.alignmentScore}
             displayCurrency={displayCurrency}
+            hasHoldings={analysis.tickerMappings.length > 0 && analysis.totalPortfolioValue > 0}
           />
-        </>
+        )
       ) : null}
     </div>
   );

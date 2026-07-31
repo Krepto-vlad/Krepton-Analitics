@@ -1,4 +1,8 @@
-import { AI_NEWS_SUMMARY_FREE_DAILY_LIMIT, type AiFeatureId } from '../constants.js';
+import {
+  AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT,
+  AI_NEWS_SUMMARY_FREE_DAILY_LIMIT,
+  type AiFeatureId,
+} from '../constants.js';
 import { countAiUsageSince, insertAiUsageEvent } from '../repositories/aiRepository.js';
 import { AppError } from '../middleware/errorHandler.js';
 import type { AiQuotaStatus } from '../types/ai.types.js';
@@ -15,6 +19,10 @@ function getNextUtcDayStart(date = new Date()): Date {
 function getDailyLimitForFeature(feature: AiFeatureId): number {
   if (feature === 'news_summary') {
     return AI_NEWS_SUMMARY_FREE_DAILY_LIMIT;
+  }
+
+  if (feature === 'explain_alignment') {
+    return AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT;
   }
 
   return 0;

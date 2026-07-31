@@ -8,6 +8,7 @@ import {
   getTickerTapeQuotes,
   getStockCompare,
 } from '../services/stockService.js';
+import { getMarketMovers } from '../services/marketMoversService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import {
   HISTORICAL_DATA_PERIODS,
@@ -17,6 +18,7 @@ import {
   YAHOO_QUOTE_BATCH_MAX_SIZE,
   STOCK_COMPARE_MAX_TICKERS,
   STOCK_COMPARE_MIN_TICKERS,
+  MARKET_MOVERS_BROWSER_CACHE_TTL_S,
   BACKTEST_MAX_TICKERS,
   BACKTEST_MIN_TICKERS,
   BACKTEST_MIN_AMOUNT,
@@ -33,6 +35,7 @@ import type {
   StockSector,
   StockCompareResponse,
   StockBacktestResponse,
+  MarketMoversResponse,
 } from '../types/stock.types.js';
 import { isBacktestPeriod, runStockBacktest } from '../services/backtestService.js';
 import { parseDisplayCurrency } from '../utils/displayCurrency.js';
@@ -115,6 +118,15 @@ export async function getSectorForTicker(
   const ticker = (req.params as { ticker: string }).ticker;
   const result = await getStockSector(ticker.toUpperCase());
   res.json({ success: true, data: result });
+}
+
+export async function getMovers(
+  _req: Request,
+  res: Response<ApiResponse<MarketMoversResponse>>
+): Promise<void> {
+  const movers = await getMarketMovers();
+  res.set('Cache-Control', `public, max-age=${MARKET_MOVERS_BROWSER_CACHE_TTL_S}`);
+  res.json({ success: true, data: movers });
 }
 
 export async function getCompare(

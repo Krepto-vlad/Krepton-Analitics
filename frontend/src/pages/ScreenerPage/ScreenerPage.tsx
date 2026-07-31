@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ERROR_MESSAGES, STOCK_COMPARE_MIN_TICKERS } from '../../constants';
+import {
+  ERROR_MESSAGES,
+  STOCK_COMPARE_MAX_TICKERS,
+  STOCK_COMPARE_MIN_TICKERS,
+} from '../../constants';
 import { fetchStockCompare } from '../../api/stockApi';
 import { getRejectedMessage } from '../../utils/apiError';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
@@ -9,6 +13,7 @@ import { ErrorBanner } from '../../components/ui';
 import type { StockCompareItem } from '../../types/stock.types';
 import { TickerPickerBar } from './components/TickerPickerBar/TickerPickerBar';
 import { ComparisonMatrix } from './components/ComparisonMatrix/ComparisonMatrix';
+import { MarketMoversPanel } from './components/MarketMoversPanel/MarketMoversPanel';
 import type { SelectedCompareTicker } from './utils/compareMatrix';
 import styles from './ScreenerPage.module.scss';
 
@@ -22,6 +27,7 @@ export function ScreenerPage() {
   const [compareItems, setCompareItems] = useState<StockCompareItem[]>([]);
   const [isCompareLoading, setIsCompareLoading] = useState(false);
   const [compareError, setCompareError] = useState<string | null>(null);
+  const canAddTickers = selectedTickers.length < STOCK_COMPARE_MAX_TICKERS;
 
   useEffect(() => {
     if (watchlistItems.length === 0 && !isWatchlistLoading) {
@@ -81,6 +87,12 @@ export function ScreenerPage() {
           <ErrorBanner message={compareError} />
         </div>
       )}
+
+      <MarketMoversPanel
+        selectedTickers={selectedTickers}
+        canAddTickers={canAddTickers}
+        onAddTicker={handleAddTicker}
+      />
 
       <TickerPickerBar
         selectedTickers={selectedTickers}

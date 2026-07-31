@@ -2,13 +2,20 @@ import { useEffect, useMemo, useState } from 'react';
 import { CircleHelp, ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import {
   AI_NEWS_BRIEFING_COST_BASIS_TOOLTIP,
+  AI_NEWS_BRIEFING_SP500_LABEL,
+  AI_NEWS_BRIEFING_SP500_TICKER,
   AI_NEWS_SUMMARY_MAX_TICKERS,
   AI_NEWS_SUMMARY_MIN_TICKERS,
   ERROR_MESSAGES,
 } from '../../../../constants';
 import { fetchNewsSummaryQuota, generateNewsSummary } from '../../../../api/portfolioApi';
+import { fetchStockQuote } from '../../../../api/stockApi';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
-import type { AiQuotaStatus, NewsSummaryResponse } from '../../../../types/ai.types';
+import type {
+  AiQuotaStatus,
+  NewsSummaryMarketBenchmark,
+  NewsSummaryResponse,
+} from '../../../../types/ai.types';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import {
   clearPersistedNewsBriefing,
@@ -110,6 +117,13 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
   const [isLoadingQuota, setIsLoadingQuota] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetchedMarketBenchmark, setFetchedMarketBenchmark] =
+    useState<NewsSummaryMarketBenchmark | null>(null);
+
+  const marketBenchmark =
+    summary?.marketBenchmark && summary.marketBenchmark.price > 0
+      ? summary.marketBenchmark
+      : fetchedMarketBenchmark;
 
   useEffect(() => {
     if (availableTickers.length === 0) {
@@ -143,8 +157,61 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
     };
   }, [availableTickers.length]);
 
+  useEffect(() => {
+    if (!summary) {
+      return;
+    }
+
+    if (summary.marketBenchmark && summary.marketBenchmark.price > 0) {
+      return;
+    }
+
+    if (fetchedMarketBenchmark && fetchedMarketBenchmark.price > 0) {
+      return;
+    }
+
+    const summarySnapshot = summary;
+    let isCancelled = false;
+
+    async function loadSp500Benchmark() {
+      try {
+        const quote = await fetchStockQuote(AI_NEWS_BRIEFING_SP500_TICKER);
+        if (isCancelled || !quote || quote.price <= 0) {
+          return;
+        }
+
+        const nextBenchmark: NewsSummaryMarketBenchmark = {
+          ticker: AI_NEWS_BRIEFING_SP500_TICKER,
+          label: AI_NEWS_BRIEFING_SP500_LABEL,
+          price: quote.price,
+          changePercent: quote.changePercent,
+        };
+
+        setFetchedMarketBenchmark(nextBenchmark);
+        savePersistedNewsBriefing({
+          holdingsKey,
+          selectedTickers,
+          includePortfolioContext,
+          summary: {
+            ...summarySnapshot,
+            marketBenchmark: nextBenchmark,
+          },
+        });
+      } catch {
+        // Benchmark is decorative — keep briefing visible without it.
+      }
+    }
+
+    void loadSp500Benchmark();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [summary, fetchedMarketBenchmark, holdingsKey, selectedTickers, includePortfolioContext]);
+
   function clearBriefingState(): void {
     setSummary(null);
+    setFetchedMarketBenchmark(null);
     clearPersistedNewsBriefing();
   }
 
@@ -182,6 +249,7 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
         includePortfolioContext,
       });
       setSummary(response);
+      setFetchedMarketBenchmark(null);
       setQuota(response.quota);
       savePersistedNewsBriefing({
         holdingsKey,
@@ -385,7 +453,23 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
 
           {summary.marketDrivers.length > 0 && (
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Why the market moved today</h3>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>Why the market moved today</h3>
+                {marketBenchmark && (
+                  <div
+                    className={styles.benchmarkBadge}
+                    title={`${marketBenchmark.label} via ${marketBenchmark.ticker}`}
+                  >
+                    <span className={styles.benchmarkLabel}>{marketBenchmark.label}</span>
+                    <span className={styles.benchmarkPrice}>
+                      {formatPrice(marketBenchmark.price, 'USD')}
+                    </span>
+                    <span className={getChangeClassName(marketBenchmark.changePercent)}>
+                      {formatSignedPercent(marketBenchmark.changePercent)}
+                    </span>
+                  </div>
+                )}
+              </div>
               <div className={styles.driversList}>
                 {summary.marketDrivers.map((driver) => (
                   <article key={driver.title} className={styles.driverCard}>

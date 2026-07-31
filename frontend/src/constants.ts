@@ -80,7 +80,9 @@ export const NEWS_PAGE_LOAD_MORE_STEP = 10;
 
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
 export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
-export const AI_NEWS_BRIEFING_SESSION_STORAGE_KEY = 'krepton_ai_news_briefing_v1';
+export const AI_NEWS_BRIEFING_SESSION_STORAGE_KEY = 'krepton_ai_news_briefing_v2';
+export const AI_NEWS_BRIEFING_SP500_TICKER = 'SPY';
+export const AI_NEWS_BRIEFING_SP500_LABEL = 'S&P 500';
 export const AI_NEWS_BRIEFING_COST_BASIS_TOOLTIP =
   'Adds your position size, average buy price, and unrealized P/L to the AI prompt for more personalized insights. Only data for the selected tickers is sent — no email, account IDs, or other personal information.';
 
@@ -88,6 +90,7 @@ export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
 export const STOCK_SEARCH_DEBOUNCE_MS = 350;
 export const STOCK_SEARCH_DROPDOWN_LIMIT = 8;
+export const MARKET_MOVERS_COUNT = 10;
 
 export const BACKTEST_MAX_TICKERS = 4;
 export const BACKTEST_MIN_TICKERS = 1;
@@ -134,11 +137,16 @@ export const ERROR_MESSAGES = {
   IMPORT_CONFIRM_FAILED: 'Unable to complete the import. Please try again.',
   STOCK_SEARCH_FAILED: 'Unable to search tickers right now. Please try again.',
   STOCK_COMPARE_FAILED: 'Unable to load comparison data. Please try again.',
+  STOCK_MOVERS_FAILED: 'Unable to load market movers. Please try again.',
   STOCK_BACKTEST_FAILED: 'Unable to run backtest. Please try again.',
   DIVIDEND_CALENDAR_FAILED: 'Unable to load dividend calendar. Please try again.',
   PORTFOLIO_REBALANCING_FAILED: 'Unable to load rebalancing analysis. Please try again.',
   PORTFOLIO_REBALANCING_SAVE_FAILED: 'Unable to save rebalancing strategy. Please try again.',
+  AI_ALIGNMENT_EXPLAIN_FAILED: 'Unable to generate alignment explanation. Please try again.',
+  AI_ALIGNMENT_EXPLAIN_QUOTA_FAILED: 'Unable to load AI quota. Please try again.',
 } as const;
+
+export const AI_ALIGNMENT_EXPLAIN_SESSION_STORAGE_KEY = 'krepton_ai_alignment_explain_v1';
 
 export const REBALANCING_ALLOCATION_TOTAL_PERCENT = 100;
 export const REBALANCING_ALLOCATION_TOLERANCE = 0.01;

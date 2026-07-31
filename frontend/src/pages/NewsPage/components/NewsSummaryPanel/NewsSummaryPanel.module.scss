@@ -252,9 +252,42 @@
   gap: $space-3;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
 .sectionTitle {
   margin: 0;
   font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.benchmarkBadge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: $space-2;
+  padding: $space-1 $space-3;
+  border-radius: $radius-full;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+}
+
+.benchmarkLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.benchmarkPrice {
+  font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
   color: $color-foreground;
 }

@@ -1,29 +1,43 @@
 import { pool } from '../config/db.js';
 import type { AiFeatureId } from '../constants.js';
-import type { AiNewsSummaryRow, NewsSummaryPayload } from '../types/ai.types.js';
+import type {
+  AiNewsSummaryRow,
+  AlignmentExplanationPayload,
+  NewsSummaryPayload,
+} from '../types/ai.types.js';
 
-export async function findNewsSummaryCache(
+interface AiFeatureCacheRow<TPayload> {
+  id: string;
+  user_id: string;
+  tickers_key: string;
+  summary_date: string;
+  tickers: string[];
+  summary_payload: TPayload;
+  created_at: Date;
+}
+
+async function findAiFeatureCache<TPayload>(
   userId: string,
-  tickersKey: string,
-  summaryDate: string
-): Promise<AiNewsSummaryRow | null> {
-  const result = await pool.query<AiNewsSummaryRow>(
+  cacheKey: string,
+  cacheDate: string
+): Promise<AiFeatureCacheRow<TPayload> | null> {
+  const result = await pool.query<AiFeatureCacheRow<TPayload>>(
     `SELECT id, user_id, tickers_key, summary_date::text AS summary_date,
             tickers, summary_payload, created_at
      FROM ai_news_summaries
      WHERE user_id = $1 AND tickers_key = $2 AND summary_date = $3`,
-    [userId, tickersKey, summaryDate]
+    [userId, cacheKey, cacheDate]
   );
 
   return result.rows[0] ?? null;
 }
 
-export async function saveNewsSummaryCache(params: {
+async function saveAiFeatureCache(params: {
   userId: string;
-  tickersKey: string;
-  summaryDate: string;
-  tickers: string[];
-  summaryPayload: NewsSummaryPayload;
+  cacheKey: string;
+  cacheDate: string;
+  tags: string[];
+  payload: unknown;
 }): Promise<void> {
   await pool.query(
     `INSERT INTO ai_news_summaries (user_id, tickers_key, summary_date, tickers, summary_payload)
@@ -35,12 +49,60 @@ export async function saveNewsSummaryCache(params: {
        created_at = NOW()`,
     [
       params.userId,
-      params.tickersKey,
-      params.summaryDate,
-      JSON.stringify(params.tickers),
-      JSON.stringify(params.summaryPayload),
+      params.cacheKey,
+      params.cacheDate,
+      JSON.stringify(params.tags),
+      JSON.stringify(params.payload),
     ]
   );
+}
+
+export async function findNewsSummaryCache(
+  userId: string,
+  tickersKey: string,
+  summaryDate: string
+): Promise<AiNewsSummaryRow | null> {
+  return findAiFeatureCache<NewsSummaryPayload>(userId, tickersKey, summaryDate);
+}
+
+export async function saveNewsSummaryCache(params: {
+  userId: string;
+  tickersKey: string;
+  summaryDate: string;
+  tickers: string[];
+  summaryPayload: NewsSummaryPayload;
+}): Promise<void> {
+  await saveAiFeatureCache({
+    userId: params.userId,
+    cacheKey: params.tickersKey,
+    cacheDate: params.summaryDate,
+    tags: params.tickers,
+    payload: params.summaryPayload,
+  });
+}
+
+export async function findAlignmentExplanationCache(
+  userId: string,
+  cacheKey: string,
+  explanationDate: string
+): Promise<AiFeatureCacheRow<AlignmentExplanationPayload> | null> {
+  return findAiFeatureCache<AlignmentExplanationPayload>(userId, cacheKey, explanationDate);
+}
+
+export async function saveAlignmentExplanationCache(params: {
+  userId: string;
+  cacheKey: string;
+  explanationDate: string;
+  strategyId: string;
+  payload: AlignmentExplanationPayload;
+}): Promise<void> {
+  await saveAiFeatureCache({
+    userId: params.userId,
+    cacheKey: params.cacheKey,
+    cacheDate: params.explanationDate,
+    tags: [params.strategyId],
+    payload: params.payload,
+  });
 }
 
 export async function countAiUsageSince(

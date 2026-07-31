@@ -114,8 +114,8 @@ export const PORTFOLIO_NEWS_PER_TICKER = 5;
 export const PORTFOLIO_NEWS_MAX_ITEMS = 20;
 export const PORTFOLIO_NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
 
-// ─── AI (Gemini) — news summary ────────────────────────────────────────────────
-export const AI_FEATURES = ['news_summary'] as const;
+// ─── AI (Gemini) — news summary + explain alignment ────────────────────────────
+export const AI_FEATURES = ['news_summary', 'explain_alignment'] as const;
 export type AiFeatureId = (typeof AI_FEATURES)[number];
 
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
@@ -127,12 +127,22 @@ export const AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS = 10;
 export const AI_BRIEFING_CACHE_VERSION = 'v2';
 
+export const AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT = 5;
+export const AI_EXPLAIN_ALIGNMENT_CACHE_VERSION = 'v1';
+export const AI_EXPLAIN_ALIGNMENT_DISCLAIMER =
+  'AI-generated explanation for informational purposes only. Not financial advice. No buy/sell recommendations.';
+export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS = 10;
+export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1024;
+
 export const AI_BRIEFING_MACRO_TICKERS = [
   { ticker: 'SPY', label: 'S&P 500' },
   { ticker: 'QQQ', label: 'Nasdaq 100' },
   { ticker: 'CL=F', label: 'WTI Crude Oil' },
   { ticker: '^VIX', label: 'VIX Volatility' },
 ] as const;
+
+export const AI_BRIEFING_SP500_TICKER = 'SPY';
 
 export const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 export const GEMINI_MODEL = 'gemini-3.1-flash-lite';
@@ -145,6 +155,13 @@ export const GEMINI_TEMPERATURE = 0.3;
 export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
 export const STOCK_COMPARE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+// ─── Market movers (Yahoo screener) ────────────────────────────────────────────
+export const MARKET_MOVERS_COUNT = 10;
+export const MARKET_MOVERS_CACHE_TTL_MS = 10 * 60 * 1000;
+export const MARKET_MOVERS_BROWSER_CACHE_TTL_S = 5 * 60;
+export const MARKET_MOVERS_GAINERS_SCREENER_ID = 'day_gainers' as const;
+export const MARKET_MOVERS_LOSERS_SCREENER_ID = 'day_losers' as const;
 
 // ─── Light backtesting ─────────────────────────────────────────────────────────
 export const BACKTEST_MAX_TICKERS = 4;
