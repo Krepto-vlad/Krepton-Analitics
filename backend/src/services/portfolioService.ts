@@ -32,7 +32,11 @@ import {
   insertPositionFromLedger,
   getPortfolioRebalancingStrategy,
   updatePortfolioRebalancingStrategy,
+  deleteAllPortfolioData,
+  getTransactionHistory,
 } from '../repositories/portfolioRepository.js';
+import { getWatchlistByPortfolioId } from '../repositories/watchlistRepository.js';
+import { getUserById, verifyUserPassword } from './authService.js';
 import type {
   AddPositionDto,
   UpdatePositionDto,
@@ -44,6 +48,7 @@ import type {
   PaginatedResponse,
   InvestmentSummaryResponse,
   EquityPoint,
+  PortfolioDataExport,
 } from '../types/portfolio.types.js';
 import type { DisplayCurrency } from '../types/fx.types.js';
 import {
@@ -64,6 +69,8 @@ import {
   HOLDINGS_PAGE_SIZE,
   TRANSACTIONS_PAGE_SIZE,
   MAX_PAGE_SIZE,
+  PORTFOLIO_DATA_DELETE_CONFIRMATION,
+  PORTFOLIO_EXPORT_SCHEMA_VERSION,
 } from '../constants.js';
 import type { SupportedBrokerId } from '../constants.js';
 import type { NormalizedTrade, ImportConfirmResponse } from '../types/import.types.js';
@@ -1055,4 +1062,72 @@ export async function updateUserPortfolioRebalancingStrategy(
 
 export function getRebalancingStrategyCatalog(): RebalancingStrategyOption[] {
   return listRebalancingStrategies();
+}
+
+export async function deleteUserPortfolioData(
+  userId: string,
+  confirm: unknown
+): Promise<{
+  deletedTransactions: number;
+  deletedPositions: number;
+  deletedWatchlistItems: number;
+}> {
+  if (confirm !== PORTFOLIO_DATA_DELETE_CONFIRMATION) {
+    throw new AppError(
+      400,
+      `Confirmation required. Send { "confirm": "${PORTFOLIO_DATA_DELETE_CONFIRMATION}" }.`
+    );
+  }
+
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+  return deleteAllPortfolioData(portfolioId);
+}
+
+/**
+ * Exports the authenticated user's portfolio snapshot after password re-auth.
+ * Scoped exclusively to the portfolio derived from the JWT userId HMAC owner token.
+ */
+export async function exportUserPortfolioData(
+  userId: string,
+  password: unknown
+): Promise<PortfolioDataExport> {
+  await verifyUserPassword(userId, password);
+
+  const account = await getUserById(userId);
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+
+  const [positionRows, transactionRows, watchlistRows, rebalancing] = await Promise.all([
+    getPositionsByPortfolioId(portfolioId),
+    getTransactionHistory(portfolioId),
+    getWatchlistByPortfolioId(portfolioId),
+    getPortfolioRebalancingStrategy(portfolioId),
+  ]);
+
+  console.info(
+    `[PortfolioExport] userId=${userId} positions=${positionRows.length} transactions=${transactionRows.length} watchlist=${watchlistRows.length}`
+  );
+
+  return {
+    schemaVersion: PORTFOLIO_EXPORT_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    account: {
+      email: account.email,
+      memberSince: account.createdAt,
+    },
+    positions: positionRows.map(mapRowToResponse),
+    transactions: transactionRows.map(mapTransactionRowToResponse),
+    watchlist: watchlistRows.map((row) => ({
+      id: row.id,
+      ticker: row.ticker,
+      companyName: row.company_name,
+      createdAt: row.created_at.toISOString(),
+    })),
+    rebalancing: {
+      strategyId: rebalancing.strategyId,
+      customBaseStrategyId: rebalancing.customBaseStrategyId,
+      customAllocations: rebalancing.customAllocations,
+    },
+  };
 }

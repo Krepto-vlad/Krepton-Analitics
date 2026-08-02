@@ -14,6 +14,7 @@ export interface TokenPayload {
 export interface AuthUser {
   id: string;
   email: string;
+  createdAt: string;
 }
 
 export interface RegisterBody {
@@ -24,6 +25,11 @@ export interface RegisterBody {
 export interface LoginBody {
   email: string;
   password: string;
+}
+
+export interface ChangePasswordBody {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export type AuthResponse = ApiResponse<AuthUser>;

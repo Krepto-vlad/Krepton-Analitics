@@ -8,6 +8,8 @@ export const ROUTES = {
   SECURITY: '/security',
   DASHBOARD: '/dashboard',
   PORTFOLIO: '/portfolio',
+  PROFILE: '/profile',
+  SUBSCRIPTION: '/subscription',
   REBALANCING: '/rebalancing',
   SCREENER: '/screener',
   BACKTESTING: '/backtesting',
@@ -16,6 +18,12 @@ export const ROUTES = {
   WATCHLIST: '/watchlist',
   HISTORY: '/history',
 } as const;
+
+export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
+
+export const PORTFOLIO_EXPORT_FORMATS = ['xlsx', 'json'] as const;
+export type PortfolioExportFormat = (typeof PORTFOLIO_EXPORT_FORMATS)[number];
+export const DEFAULT_PORTFOLIO_EXPORT_FORMAT: PortfolioExportFormat = 'xlsx';
 
 export const STOCK_PERIODS = [
   { label: '1W', value: '7d' },
@@ -122,7 +130,10 @@ export const ERROR_MESSAGES = {
   RATE_LIMIT: 'Too many requests. Please wait a moment and try again.',
   AUTH_LOGIN_FAILED: 'Unable to sign in. Please check your credentials and try again.',
   AUTH_REGISTER_FAILED: 'Unable to create your account. Please try again.',
+  AUTH_CHANGE_PASSWORD_FAILED: 'Unable to change password. Please try again.',
   PORTFOLIO_LOAD_FAILED: 'Unable to load portfolio data. Please try again.',
+  PORTFOLIO_DELETE_DATA_FAILED: 'Unable to delete portfolio data. Please try again.',
+  PORTFOLIO_EXPORT_FAILED: 'Unable to export portfolio data. Please try again.',
   PORTFOLIO_NEWS_FAILED: 'Unable to load portfolio news. Please try again.',
   AI_NEWS_SUMMARY_FAILED: 'Unable to generate AI news summary. Please try again.',
   AI_NEWS_SUMMARY_QUOTA_FAILED: 'Unable to load AI quota. Please try again.',

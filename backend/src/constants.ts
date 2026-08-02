@@ -56,10 +56,22 @@ export const BCRYPT_SALT_ROUNDS = 12;
 export const JWT_COOKIE_NAME = 'accessToken';
 // 15 minutes in ms — matches JWT_EXPIRES_IN=15m
 export const JWT_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
+export const PASSWORD_MIN_LENGTH = 10;
+export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
+export const PORTFOLIO_EXPORT_SCHEMA_VERSION = 1;
+export const PORTFOLIO_EXPORT_FORMATS = ['json', 'xlsx'] as const;
+export type PortfolioExportFormat = (typeof PORTFOLIO_EXPORT_FORMATS)[number];
+export const DEFAULT_PORTFOLIO_EXPORT_FORMAT: PortfolioExportFormat = 'xlsx';
+export const PORTFOLIO_EXPORT_XLSX_CONTENT_TYPE =
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 // Rate limiting on auth endpoints: max 10 attempts per 15 minutes
 export const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AUTH_RATE_LIMIT_MAX_REQUESTS = 10;
+
+// Sensitive export with password re-auth: max 5 attempts per 15 minutes per user
+export const PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const PORTFOLIO_EXPORT_RATE_LIMIT_MAX_REQUESTS = 5;
 
 // Rate limiting on portfolio write endpoints: max 60 writes per 15 minutes
 export const PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;

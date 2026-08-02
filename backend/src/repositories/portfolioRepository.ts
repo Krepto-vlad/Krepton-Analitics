@@ -529,6 +529,52 @@ export async function getPortfolioRebalancingStrategy(portfolioId: string): Prom
   };
 }
 
+export async function deleteAllPortfolioData(portfolioId: string): Promise<{
+  deletedTransactions: number;
+  deletedPositions: number;
+  deletedWatchlistItems: number;
+}> {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const transactionsResult = await client.query(
+      'DELETE FROM transactions WHERE portfolio_id = $1',
+      [portfolioId]
+    );
+    const positionsResult = await client.query('DELETE FROM positions WHERE portfolio_id = $1', [
+      portfolioId,
+    ]);
+    const watchlistResult = await client.query(
+      'DELETE FROM watchlist_items WHERE portfolio_id = $1',
+      [portfolioId]
+    );
+
+    await client.query(
+      `UPDATE portfolio_accounts
+       SET rebalancing_strategy_id = 'ray-dalio-all-weather',
+           rebalancing_custom_base_strategy_id = NULL,
+           rebalancing_custom_allocations = NULL
+       WHERE id = $1`,
+      [portfolioId]
+    );
+
+    await client.query('COMMIT');
+
+    return {
+      deletedTransactions: transactionsResult.rowCount ?? 0,
+      deletedPositions: positionsResult.rowCount ?? 0,
+      deletedWatchlistItems: watchlistResult.rowCount ?? 0,
+    };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function updatePortfolioRebalancingStrategy(
   portfolioId: string,
   update: {

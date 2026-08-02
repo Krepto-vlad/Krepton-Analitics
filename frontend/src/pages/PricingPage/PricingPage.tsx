@@ -1,70 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Star, Check, Shield, Lock, Globe, ChevronRight } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import {
+  MARKETING_PLAN_CALL_TO_ACTIONS,
+  PRICING_PLAN_DEFINITIONS,
+} from '../../constants/pricingPlans';
 import { Navbar, Footer } from '../../components/layout';
 import styles from './PricingPage.module.scss';
-
-interface PricingPlan {
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  cta: string;
-  highlighted: boolean;
-  badge?: string;
-}
-
-const PRICING_PLANS: PricingPlan[] = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/forever',
-    description: 'For individual investors getting started',
-    features: [
-      'Up to 15 positions',
-      '1 broker import/month',
-      'Basic P&L tracking',
-      'Dividend calendar',
-      'Community support',
-    ],
-    cta: 'Get Started Free',
-    highlighted: false,
-  },
-  {
-    name: 'Pro',
-    price: '$12',
-    period: '/month',
-    description: 'For active portfolio managers',
-    features: [
-      'Unlimited positions',
-      'Unlimited broker imports',
-      'Gemini AI Insights (50/mo)',
-      'Advanced backtesting',
-      'Stock screener',
-      'Priority support',
-    ],
-    cta: 'Start Pro Trial',
-    highlighted: true,
-    badge: 'Most Popular',
-  },
-  {
-    name: 'Institutional',
-    price: '$49',
-    period: '/month',
-    description: 'For advisors managing multiple portfolios',
-    features: [
-      'Everything in Pro',
-      'Unlimited AI requests',
-      'Multi-portfolio management',
-      'API access',
-      'White-label reports',
-      'Dedicated support',
-    ],
-    cta: 'Contact Sales',
-    highlighted: false,
-  },
-];
 
 const PRIVACY_FEATURES = [
   { icon: Lock, label: 'End-to-End Encrypted' },
@@ -82,7 +24,6 @@ export function PricingPage() {
       <div className={styles.glow} />
       <Navbar activeRoute="pricing" />
 
-      {/* ── Content ── */}
       <main className={styles.content}>
         <div className={styles.header}>
           <div className={styles.badge}>
@@ -92,11 +33,10 @@ export function PricingPage() {
           <h1 className={styles.title}>Transparent, no-surprise pricing</h1>
         </div>
 
-        {/* ── Plans ── */}
         <div className={styles.plansGrid}>
-          {PRICING_PLANS.map((plan) => (
+          {PRICING_PLAN_DEFINITIONS.map((plan) => (
             <div
-              key={plan.name}
+              key={plan.id}
               className={`${styles.planCard} ${plan.highlighted ? styles.highlighted : ''}`}
             >
               {plan.badge && <div className={styles.planBadge}>{plan.badge}</div>}
@@ -123,13 +63,12 @@ export function PricingPage() {
                 onClick={handleRegister}
                 className={plan.highlighted ? styles.btnPlanHighlighted : styles.btnPlanDefault}
               >
-                {plan.cta}
+                {MARKETING_PLAN_CALL_TO_ACTIONS[plan.id]}
               </button>
             </div>
           ))}
         </div>
 
-        {/* ── Privacy banner ── */}
         <div className={styles.privacyCard}>
           <div className={styles.privacyGlow} />
           <div className={styles.privacyIconWrap}>

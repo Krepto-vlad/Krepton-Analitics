@@ -189,6 +189,21 @@ $transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   gap: $space-2;
   flex: 1;
   min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  border-radius: $radius-md;
+
+  &:hover .avatar {
+    box-shadow: 0 0 0 2px rgba($color-primary, 0.35);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
 }
 
 .avatar {
@@ -230,9 +245,11 @@ $transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   color: $color-foreground;
   font-weight: $font-weight-medium;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.userRole {
+.userHint {
   font-size: $font-size-xs;
   color: $color-foreground-subtle;
   white-space: nowrap;

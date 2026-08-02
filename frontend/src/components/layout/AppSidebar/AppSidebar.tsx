@@ -15,6 +15,7 @@ import { ROUTES } from '../../../constants';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { logoutThunk } from '../../../features/auth/authSlice';
+import { getEmailInitials } from '../../../utils/emailDisplay';
 import styles from './AppSidebar.module.scss';
 
 interface NavItem {
@@ -33,10 +34,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Dividend Calendar', icon: <CalendarRange size={18} />, route: ROUTES.DIVIDENDS },
   { label: 'History', icon: <Clock size={18} />, route: ROUTES.HISTORY },
 ];
-
-function getInitials(email: string): string {
-  return email.slice(0, 2).toUpperCase();
-}
 
 interface AppSidebarProps {
   onExpandedChange: (expanded: boolean) => void;
@@ -94,13 +91,19 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
       </nav>
 
       <div className={styles.bottom}>
-        <div className={styles.userSection}>
-          <div className={styles.avatar}>{user ? getInitials(user.email) : '??'}</div>
+        <button
+          type="button"
+          className={styles.userSection}
+          onClick={() => navigate(ROUTES.PROFILE)}
+          title="My Profile"
+          aria-label="Open profile"
+        >
+          <div className={styles.avatar}>{user ? getEmailInitials(user.email) : '??'}</div>
           <div className={styles.userInfo}>
             <span className={styles.userEmail}>{user?.email ?? ''}</span>
-            <span className={styles.userRole}>Portfolio Manager</span>
+            <span className={styles.userHint}>My Profile</span>
           </div>
-        </div>
+        </button>
         <button
           className={styles.logoutButton}
           onClick={handleLogout}

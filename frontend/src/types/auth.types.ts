@@ -1,6 +1,12 @@
 export interface AuthUser {
   id: string;
   email: string;
+  createdAt: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface RegisterCredentials {

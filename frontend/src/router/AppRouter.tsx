@@ -49,6 +49,14 @@ const DividendsPage = lazy(() =>
 const NewsPage = lazy(() =>
   import('../pages/NewsPage/NewsPage').then((m) => ({ default: m.NewsPage }))
 );
+const ProfilePage = lazy(() =>
+  import('../pages/ProfilePage/ProfilePage').then((m) => ({ default: m.ProfilePage }))
+);
+const SubscriptionPage = lazy(() =>
+  import('../pages/SubscriptionPage/SubscriptionPage').then((m) => ({
+    default: m.SubscriptionPage,
+  }))
+);
 const WatchlistPage = () => (
   <div style={{ color: '#fff', padding: 40 }}>Watchlist — coming soon</div>
 );
@@ -116,6 +124,8 @@ function AppRoutes() {
           <Route path={ROUTES.BACKTESTING} element={<BacktestingPage />} />
           <Route path={ROUTES.DIVIDENDS} element={<DividendsPage />} />
           <Route path={ROUTES.NEWS} element={<NewsPage />} />
+          <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+          <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
           <Route path={ROUTES.WATCHLIST} element={<WatchlistPage />} />
           <Route path={ROUTES.HISTORY} element={<HistoryPage />} />
         </Route>

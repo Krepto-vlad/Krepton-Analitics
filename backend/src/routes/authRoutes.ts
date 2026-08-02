@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, logout, getMe } from '../controllers/authController.js';
+import { register, login, logout, getMe, changePassword } from '../controllers/authController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import rateLimit from 'express-rate-limit';
@@ -19,5 +19,6 @@ router.post('/register', authLimiter, asyncHandler(register));
 router.post('/login', authLimiter, asyncHandler(login));
 router.post('/logout', logout);
 router.get('/me', authMiddleware, asyncHandler(getMe));
+router.put('/password', authMiddleware, authLimiter, asyncHandler(changePassword));
 
 export default router;

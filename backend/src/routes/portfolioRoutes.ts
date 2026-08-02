@@ -16,6 +16,8 @@ import {
   getRebalancingStrategiesHandler,
   updatePortfolioRebalancingHandler,
   getBuyTransactions,
+  deletePortfolioDataHandler,
+  exportPortfolioDataHandler,
   postPosition,
   patchPosition,
   deletePosition,
@@ -30,9 +32,12 @@ import {
 import { previewImport, confirmImport } from '../controllers/importController.js';
 import { brokerImportUploadMiddleware } from '../middleware/brokerImportUpload.js';
 import rateLimit from 'express-rate-limit';
+import type { Request } from 'express';
 import {
   PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS,
   PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS,
+  PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW_MS,
+  PORTFOLIO_EXPORT_RATE_LIMIT_MAX_REQUESTS,
   IMPORT_RATE_LIMIT_WINDOW_MS,
   IMPORT_RATE_LIMIT_MAX_REQUESTS,
   AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS,
@@ -72,6 +77,16 @@ const aiExplainAlignmentLimiter = rateLimit({
   message: { success: false, error: 'Too many AI requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+const portfolioExportLimiter = rateLimit({
+  windowMs: PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW_MS,
+  max: PORTFOLIO_EXPORT_RATE_LIMIT_MAX_REQUESTS,
+  message: { success: false, error: 'Too many export attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => `portfolio-export:${req.userId ?? 'anonymous'}`,
+  validate: { keyGeneratorIpFallback: false },
 });
 
 const router = Router();
@@ -126,6 +141,8 @@ router.delete(
   portfolioWriteLimiter,
   asyncHandler(deleteTransaction)
 );
+router.delete('/data', portfolioWriteLimiter, asyncHandler(deletePortfolioDataHandler));
+router.post('/export', portfolioExportLimiter, asyncHandler(exportPortfolioDataHandler));
 router.post('/', portfolioWriteLimiter, asyncHandler(postPosition));
 router.patch('/:positionId', portfolioWriteLimiter, asyncHandler(patchPosition));
 router.delete('/:positionId', portfolioWriteLimiter, asyncHandler(deletePosition));
