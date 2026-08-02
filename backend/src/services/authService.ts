@@ -112,7 +112,8 @@ export async function registerUser(
 
   return {
     email: user.email,
-    message: 'Check your email to verify your account before signing in.',
+    message:
+      'We sent a verification link to your email. Confirm it before signing in. If it is missing, check Spam / Junk.',
   };
 }
 
@@ -123,7 +124,8 @@ export async function resendVerificationEmail(email: string): Promise<RegisterPe
   if (!user || user.email_verified || !user.password_hash) {
     return {
       email,
-      message: 'If an unverified account exists for this email, a new verification link was sent.',
+      message:
+        'If an unverified account exists for this email, a new verification link has been sent.',
     };
   }
 
@@ -133,7 +135,8 @@ export async function resendVerificationEmail(email: string): Promise<RegisterPe
 
   return {
     email: user.email,
-    message: 'If an unverified account exists for this email, a new verification link was sent.',
+    message:
+      'If an unverified account exists for this email, a new verification link has been sent.',
   };
 }
 

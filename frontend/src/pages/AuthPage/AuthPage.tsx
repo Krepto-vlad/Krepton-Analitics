@@ -404,8 +404,12 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
             {pendingVerificationEmail && (
               <div className={styles.verificationBox}>
                 <p>
-                  Verification email sent to <strong>{pendingVerificationEmail}</strong>. Check your
-                  inbox (or the backend console in local dev).
+                  We sent a verification link to <strong>{pendingVerificationEmail}</strong>. Open
+                  the email and confirm your address to activate the account.
+                </p>
+                <p className={styles.verificationTip}>
+                  Tip: the message sometimes lands in <strong>Spam</strong> / Junk. If you do not
+                  see it within a few minutes, check that folder and mark the email as Not spam.
                 </p>
                 <button
                   type="button"
