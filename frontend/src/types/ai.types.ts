@@ -19,6 +19,13 @@ export interface NewsSummaryMarketDriver {
   explanation: string;
 }
 
+export interface NewsSummaryMarketBenchmark {
+  ticker: string;
+  label: string;
+  price: number;
+  changePercent: number;
+}
+
 export interface NewsSummarySource {
   title: string;
   url: string;
@@ -36,6 +43,7 @@ export interface NewsSummaryResponse {
   tickers: string[];
   holdingInsights: NewsSummaryHoldingInsight[];
   marketDrivers: NewsSummaryMarketDriver[];
+  marketBenchmark?: NewsSummaryMarketBenchmark | null;
   sources: NewsSummarySource[];
   disclaimer: string;
   fromCache: boolean;
@@ -47,4 +55,22 @@ export interface NewsSummaryResponse {
 export interface GenerateNewsSummaryPayload {
   tickers: string[];
   includePortfolioContext?: boolean;
+}
+
+export interface AlignmentExplanationDrift {
+  title: string;
+  explanation: string;
+}
+
+export interface AlignmentExplanationResponse {
+  explanationDate: string;
+  strategyId: string;
+  strategyName: string;
+  alignmentScore: number;
+  overview: string;
+  keyDrifts: AlignmentExplanationDrift[];
+  whatItMeans: string;
+  disclaimer: string;
+  fromCache: boolean;
+  quota: AiQuotaStatus;
 }

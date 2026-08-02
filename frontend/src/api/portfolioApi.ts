@@ -1,6 +1,10 @@
 import { createApiClient, assertSuccess } from './apiClient';
-import { API_BASE_URL } from '../constants';
+import { API_BASE_URL, type PortfolioExportFormat } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
+import type { PortfolioDataExport, PortfolioExportXlsxFile } from '../types/portfolioExport.types';
+import { decodeBase64ToBlob, downloadBlobFile, downloadJsonFile } from '../utils/downloadFile';
+
+export type { PortfolioDataExport, PortfolioExportXlsxFile } from '../types/portfolioExport.types';
 import type { NewsItem } from '../types/portfolio.types';
 import type { DividendCalendarResponse } from '../types/dividend.types';
 import type {
@@ -10,6 +14,7 @@ import type {
 } from '../types/rebalancing.types';
 import type {
   AiQuotaStatus,
+  AlignmentExplanationResponse,
   GenerateNewsSummaryPayload,
   NewsSummaryResponse,
 } from '../types/ai.types';
@@ -249,6 +254,22 @@ export async function fetchPortfolioRebalancing(
   return assertSuccess(data);
 }
 
+export async function fetchAlignmentExplanationQuota(): Promise<AiQuotaStatus> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<AiQuotaStatus> | ApiErrorResponse
+  >('/rebalancing/explain/quota');
+  return assertSuccess(data);
+}
+
+export async function generateAlignmentExplanation(
+  displayCurrency?: Currency
+): Promise<AlignmentExplanationResponse> {
+  const { data } = await portfolioApiClient.post<
+    ApiSuccessResponse<AlignmentExplanationResponse> | ApiErrorResponse
+  >('/rebalancing/explain', undefined, { params: withDisplayCurrency(displayCurrency) });
+  return assertSuccess(data);
+}
+
 export async function updatePortfolioRebalancingStrategy(
   payload: UpdateRebalancingStrategyPayload,
   displayCurrency?: Currency
@@ -257,6 +278,45 @@ export async function updatePortfolioRebalancingStrategy(
     ApiSuccessResponse<RebalancingAnalysisResponse> | ApiErrorResponse
   >('/rebalancing/strategy', payload, { params: withDisplayCurrency(displayCurrency) });
   return assertSuccess(data);
+}
+
+export interface DeletePortfolioDataResult {
+  deletedTransactions: number;
+  deletedPositions: number;
+  deletedWatchlistItems: number;
+}
+
+export async function deletePortfolioData(confirm: string): Promise<DeletePortfolioDataResult> {
+  const { data } = await portfolioApiClient.delete<
+    ApiSuccessResponse<DeletePortfolioDataResult> | ApiErrorResponse
+  >('/data', { data: { confirm } });
+  return assertSuccess(data);
+}
+
+export async function exportPortfolioData(
+  password: string,
+  format: PortfolioExportFormat
+): Promise<{ fileName: string }> {
+  if (format === 'json') {
+    const { data } = await portfolioApiClient.post<
+      ApiSuccessResponse<PortfolioDataExport> | ApiErrorResponse
+    >('/export', { password, format });
+    const exportPayload = assertSuccess(data);
+    const dateStamp = exportPayload.exportedAt.slice(0, 10);
+    const fileName = `krepton-portfolio-export-${dateStamp}.json`;
+    downloadJsonFile(fileName, exportPayload);
+    return { fileName };
+  }
+
+  const { data } = await portfolioApiClient.post<
+    ApiSuccessResponse<PortfolioExportXlsxFile> | ApiErrorResponse
+  >('/export', { password, format });
+  const exportFile = assertSuccess(data);
+  downloadBlobFile(
+    exportFile.fileName,
+    decodeBase64ToBlob(exportFile.contentBase64, exportFile.contentType)
+  );
+  return { fileName: exportFile.fileName };
 }
 
 export async function closePortfolioPosition(

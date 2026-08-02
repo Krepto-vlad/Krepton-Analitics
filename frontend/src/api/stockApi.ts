@@ -8,6 +8,7 @@ import type {
   StockSector,
   StockCompareResponse,
   StockBacktestResponse,
+  MarketMoversResponse,
   ApiSuccessResponse,
 } from '../types/stock.types';
 
@@ -69,6 +70,13 @@ export async function fetchTickerTape(): Promise<StockQuote[]> {
 export async function fetchStockSector(ticker: string): Promise<StockSector> {
   const { data } = await apiClient.get<ApiSuccessResponse<StockSector> | ApiErrorResponse>(
     `/sector/${ticker}`
+  );
+  return assertSuccess(data);
+}
+
+export async function fetchMarketMovers(): Promise<MarketMoversResponse> {
+  const { data } = await apiClient.get<ApiSuccessResponse<MarketMoversResponse> | ApiErrorResponse>(
+    '/movers'
   );
   return assertSuccess(data);
 }

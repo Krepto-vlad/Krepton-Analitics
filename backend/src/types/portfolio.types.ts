@@ -124,3 +124,33 @@ export interface InvestmentSummaryResponse {
   displayTotalInvested?: number;
   displayTotalWithdrawn?: number;
 }
+
+/** Portable portfolio snapshot — never includes owner_token or password material. */
+export interface PortfolioDataExport {
+  schemaVersion: number;
+  exportedAt: string;
+  account: {
+    email: string;
+    memberSince: string;
+  };
+  positions: PositionResponse[];
+  transactions: TransactionResponse[];
+  watchlist: Array<{
+    id: string;
+    ticker: string;
+    companyName: string;
+    createdAt: string;
+  }>;
+  rebalancing: {
+    strategyId: string;
+    customBaseStrategyId: string | null;
+    customAllocations: Record<string, number> | null;
+  };
+}
+
+export interface PortfolioExportXlsxFile {
+  format: 'xlsx';
+  fileName: string;
+  contentType: string;
+  contentBase64: string;
+}

@@ -72,6 +72,23 @@ export interface StockCompareResponse {
   items: StockCompareItem[];
 }
 
+export interface MarketMoverItem {
+  ticker: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  marketCap: number | null;
+  currency: string;
+}
+
+export interface MarketMoversResponse {
+  gainers: MarketMoverItem[];
+  losers: MarketMoverItem[];
+  fetchedAt: string;
+}
+
 export interface StockBacktestHoldingResult {
   ticker: string;
   name: string;

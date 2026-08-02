@@ -18,3 +18,14 @@ export async function createUser(email: string, passwordHash: string): Promise<U
   );
   return result.rows[0];
 }
+
+export async function updateUserPasswordHash(
+  userId: string,
+  passwordHash: string
+): Promise<boolean> {
+  const result = await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
+    passwordHash,
+    userId,
+  ]);
+  return (result.rowCount ?? 0) > 0;
+}

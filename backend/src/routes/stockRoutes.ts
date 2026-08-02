@@ -7,6 +7,7 @@ import {
   searchTickers,
   getTickerTape,
   getCompare,
+  getMovers,
   getBacktest,
 } from '../controllers/stockController.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -17,6 +18,7 @@ const router = Router();
 router.get('/ticker-tape', getTickerTape);
 router.get('/search', asyncHandler(searchTickers));
 router.get('/quotes', asyncHandler(getQuotes));
+router.get('/movers', asyncHandler(getMovers));
 router.get('/compare', asyncHandler(getCompare));
 router.get('/backtest', asyncHandler(getBacktest));
 router.get('/quote/:ticker', asyncHandler(getQuote));

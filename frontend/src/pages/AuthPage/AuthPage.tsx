@@ -16,30 +16,15 @@ import { Input } from '../../components/ui';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { registerThunk, loginThunk, clearAuthError } from '../../features/auth/authSlice';
+import {
+  PASSWORD_RULES,
+  PASSWORD_STRENGTH_COLORS,
+  PASSWORD_STRENGTH_LABELS,
+  calculatePasswordStrength,
+} from '../../utils/passwordValidation';
 import styles from './AuthPage.module.scss';
 
 type AuthMode = 'login' | 'register';
-
-interface PasswordRule {
-  id: string;
-  label: string;
-  test: (value: string) => boolean;
-}
-
-const PASSWORD_RULES: PasswordRule[] = [
-  { id: 'length', label: 'At least 10 characters', test: (v) => v.length >= 10 },
-  { id: 'upper', label: 'One uppercase letter (A–Z)', test: (v) => /[A-Z]/.test(v) },
-  { id: 'number', label: 'One number (0–9)', test: (v) => /[0-9]/.test(v) },
-  { id: 'symbol', label: 'One special character (!@#$…)', test: (v) => /[^A-Za-z0-9]/.test(v) },
-];
-
-const STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-const STRENGTH_COLORS = ['', '#EF4444', '#F59E0B', '#3B82F6', '#10B981'];
-
-function calculatePasswordStrength(password: string): number {
-  if (!password) return 0;
-  return PASSWORD_RULES.filter((rule) => rule.test(password)).length;
-}
 
 const SECURITY_STRIP_ITEMS = [
   { icon: Lock, label: 'End-to-end encrypted' },
@@ -219,7 +204,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                         style={{
                           background:
                             i <= passwordStrength
-                              ? STRENGTH_COLORS[passwordStrength]
+                              ? PASSWORD_STRENGTH_COLORS[passwordStrength]
                               : 'rgba(255,255,255,0.1)',
                         }}
                       />
@@ -227,9 +212,9 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   </div>
                   <span
                     className={styles.strengthLabel}
-                    style={{ color: STRENGTH_COLORS[passwordStrength] }}
+                    style={{ color: PASSWORD_STRENGTH_COLORS[passwordStrength] }}
                   >
-                    {STRENGTH_LABELS[passwordStrength]}
+                    {PASSWORD_STRENGTH_LABELS[passwordStrength]}
                   </span>
                 </div>
               )}

@@ -1,5 +1,6 @@
 import {
   AI_BRIEFING_CACHE_VERSION,
+  AI_BRIEFING_SP500_TICKER,
   AI_NEWS_SUMMARY_DISCLAIMER,
   AI_NEWS_SUMMARY_MAX_TICKERS,
   AI_NEWS_SUMMARY_MIN_TICKERS,
@@ -20,8 +21,10 @@ import { getTodayIsoDate } from '../utils/displayCurrency.js';
 import type {
   AiQuotaStatus,
   BriefingHoldingContext,
+  BriefingMacroSnapshot,
   GenerateNewsSummaryDto,
   NewsSummaryHoldingInsight,
+  NewsSummaryMarketBenchmark,
   NewsSummaryPayload,
   NewsSummaryResponse,
 } from '../types/ai.types.js';
@@ -156,11 +159,31 @@ interface CachedBriefingPayload extends NewsSummaryPayload {
   includePortfolioContext?: boolean;
 }
 
+function extractSp500Benchmark(
+  macroSnapshots: BriefingMacroSnapshot[]
+): NewsSummaryMarketBenchmark | null {
+  const snapshot = macroSnapshots.find(
+    (entry) => entry.ticker.toUpperCase() === AI_BRIEFING_SP500_TICKER
+  );
+
+  if (!snapshot || snapshot.price <= 0) {
+    return null;
+  }
+
+  return {
+    ticker: snapshot.ticker,
+    label: snapshot.label,
+    price: snapshot.price,
+    changePercent: snapshot.changePercent,
+  };
+}
+
 function buildNewsSummaryResponse(params: {
   summaryDate: string;
   tickers: string[];
   payload: CachedBriefingPayload;
   contextHoldings: BriefingHoldingContext[];
+  macroSnapshots: BriefingMacroSnapshot[];
   includePortfolioContext: boolean;
   fromCache: boolean;
   quota: AiQuotaStatus;
@@ -175,6 +198,7 @@ function buildNewsSummaryResponse(params: {
       params.includePortfolioContext
     ),
     marketDrivers: params.payload.marketDrivers ?? [],
+    marketBenchmark: extractSp500Benchmark(params.macroSnapshots),
     sources: params.payload.sources ?? [],
     disclaimer: AI_NEWS_SUMMARY_DISCLAIMER,
     fromCache: params.fromCache,
@@ -219,6 +243,7 @@ export async function generateUserNewsSummary(
       tickers,
       payload: cached.summary_payload as CachedBriefingPayload,
       contextHoldings: briefingContext.holdings,
+      macroSnapshots: briefingContext.macroSnapshots,
       includePortfolioContext,
       fromCache: true,
       quota,
@@ -252,6 +277,7 @@ export async function generateUserNewsSummary(
     tickers,
     payload: cachePayload,
     contextHoldings: briefingContext.holdings,
+    macroSnapshots: briefingContext.macroSnapshots,
     includePortfolioContext,
     fromCache: false,
     quota,

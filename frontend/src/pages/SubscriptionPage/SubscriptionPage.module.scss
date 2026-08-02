@@ -1,0 +1,255 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  padding: $space-5;
+  min-height: min-content;
+  width: 100%;
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  width: fit-content;
+  margin-bottom: $space-1;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.titleIcon {
+  color: $color-primary;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+.currentPlanCard {
+  @include card($space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.currentPlanInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.currentPlanIcon {
+  color: $color-primary;
+  flex-shrink: 0;
+}
+
+.currentPlanLabel {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-primary;
+}
+
+.currentPlanName {
+  margin: 2px 0 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.activeBadge {
+  flex-shrink: 0;
+  padding: 4px $space-3;
+  border-radius: $radius-full;
+  background: rgba($color-primary, 0.15);
+  border: 1px solid rgba($color-primary, 0.35);
+  color: $color-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.demoNotice {
+  margin: 0;
+  padding: $space-3 $space-4;
+  border-radius: $radius-md;
+  border: 1px solid rgba($color-primary, 0.3);
+  background: rgba($color-primary, 0.08);
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  line-height: 1.45;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: $space-4;
+}
+
+.planCard {
+  @include card($space-5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+}
+
+.planCardHighlighted {
+  background: rgba($color-primary, 0.06);
+  border-color: rgba($color-primary, 0.3);
+  box-shadow: 0 0 40px rgba($color-primary, 0.08);
+}
+
+.planBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px $space-3;
+  border-radius: $radius-full;
+  background: $color-primary;
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  font-weight: $font-weight-bold;
+  color: #041410;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.planName {
+  margin: 0 0 $space-1;
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.planPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-1;
+}
+
+.planPrice {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: $color-foreground;
+
+  .planCardHighlighted & {
+    color: $color-primary;
+  }
+}
+
+.planPeriod {
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
+}
+
+.planDescription {
+  margin: $space-1 0 0;
+  font-size: 0.8125rem;
+  color: $color-foreground-muted;
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  font-size: 0.8125rem;
+  color: $color-foreground-muted;
+}
+
+.featureCheck {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: $color-primary;
+}
+
+.primaryPlanButton,
+.secondaryPlanButton {
+  width: 100%;
+  padding: 10px;
+  border-radius: $radius-md;
+  font-family: $font-family;
+  font-weight: $font-weight-semibold;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    opacity $transition-fast;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.primaryPlanButton {
+  border: none;
+  background: $color-primary;
+  color: #041410;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+  }
+}
+
+.secondaryPlanButton {
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.04);
+  color: $color-foreground-muted;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: $color-foreground;
+  }
+}
