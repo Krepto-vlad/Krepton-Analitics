@@ -36,7 +36,8 @@ import {
   getTransactionHistory,
 } from '../repositories/portfolioRepository.js';
 import { getWatchlistByPortfolioId } from '../repositories/watchlistRepository.js';
-import { getUserById, verifyUserPassword } from './authService.js';
+import { getUserById, verifySensitiveAction } from './authService.js';
+import type { StepUpCredentials } from '../types/auth.types.js';
 import type {
   AddPositionDto,
   UpdatePositionDto,
@@ -1090,9 +1091,9 @@ export async function deleteUserPortfolioData(
  */
 export async function exportUserPortfolioData(
   userId: string,
-  password: unknown
+  credentials: StepUpCredentials
 ): Promise<PortfolioDataExport> {
-  await verifyUserPassword(userId, password);
+  await verifySensitiveAction(userId, credentials);
 
   const account = await getUserById(userId);
   const ownerToken = computePortfolioOwnerToken(userId);

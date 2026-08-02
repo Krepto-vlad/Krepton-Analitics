@@ -2,16 +2,23 @@ import type { Request, Response } from 'express';
 import {
   registerUser,
   loginUser,
+  loginWithGoogleIdToken,
   getUserById,
   changeUserPassword,
   signAccessToken,
+  verifyEmailWithToken,
+  resendVerificationEmail,
 } from '../services/authService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { JWT_COOKIE_NAME, JWT_COOKIE_MAX_AGE_MS } from '../constants.js';
 import type {
   AuthResponse,
   RegisterBody,
+  RegisterPendingResponse,
   LoginBody,
+  GoogleLoginBody,
+  VerifyEmailBody,
+  ResendVerificationBody,
   ChangePasswordBody,
 } from '../types/auth.types.js';
 import type { ApiResponse } from '../types/stock.types.js';
@@ -26,8 +33,8 @@ function setAuthCookie(res: Response, token: string): void {
 }
 
 export async function register(
-  req: Request<object, AuthResponse, RegisterBody>,
-  res: Response<AuthResponse>
+  req: Request<object, RegisterPendingResponse, RegisterBody>,
+  res: Response<RegisterPendingResponse>
 ): Promise<void> {
   const { email, password } = req.body;
 
@@ -39,11 +46,8 @@ export async function register(
     throw new AppError(400, 'Invalid input types');
   }
 
-  const user = await registerUser(email.trim().toLowerCase(), password);
-  const token = signAccessToken(user.id);
-
-  setAuthCookie(res, token);
-  res.status(201).json({ success: true, data: user });
+  const result = await registerUser(email.trim().toLowerCase(), password);
+  res.status(201).json({ success: true, data: result });
 }
 
 export async function login(
@@ -65,6 +69,42 @@ export async function login(
 
   setAuthCookie(res, token);
   res.json({ success: true, data: user });
+}
+
+export async function googleLogin(
+  req: Request<object, AuthResponse, GoogleLoginBody>,
+  res: Response<AuthResponse>
+): Promise<void> {
+  const user = await loginWithGoogleIdToken(req.body?.idToken);
+  const token = signAccessToken(user.id);
+
+  setAuthCookie(res, token);
+  res.json({ success: true, data: user });
+}
+
+export async function verifyEmail(
+  req: Request<object, AuthResponse, VerifyEmailBody>,
+  res: Response<AuthResponse>
+): Promise<void> {
+  const user = await verifyEmailWithToken(req.body?.token);
+  const token = signAccessToken(user.id);
+
+  setAuthCookie(res, token);
+  res.json({ success: true, data: user });
+}
+
+export async function resendVerification(
+  req: Request<object, RegisterPendingResponse, ResendVerificationBody>,
+  res: Response<RegisterPendingResponse>
+): Promise<void> {
+  const { email } = req.body;
+
+  if (!email || typeof email !== 'string') {
+    throw new AppError(400, 'Email is required');
+  }
+
+  const result = await resendVerificationEmail(email.trim().toLowerCase());
+  res.json({ success: true, data: result });
 }
 
 export function logout(_req: Request, res: Response): void {
@@ -91,12 +131,22 @@ export async function changePassword(
     throw new AppError(401, 'Unauthorized');
   }
 
-  const { currentPassword, newPassword } = req.body;
+  const { newPassword, currentPassword, password, googleIdToken } = req.body;
 
-  if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+  if (typeof newPassword !== 'string') {
     throw new AppError(400, 'Invalid input types');
   }
 
-  await changeUserPassword(userId, currentPassword, newPassword);
+  const stepUpPassword =
+    typeof password === 'string'
+      ? password
+      : typeof currentPassword === 'string'
+        ? currentPassword
+        : undefined;
+
+  await changeUserPassword(userId, newPassword, {
+    password: stepUpPassword,
+    googleIdToken,
+  });
   res.json({ success: true, data: { message: 'Password updated successfully' } });
 }

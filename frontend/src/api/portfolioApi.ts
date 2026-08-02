@@ -1,6 +1,7 @@
 import { createApiClient, assertSuccess } from './apiClient';
 import { API_BASE_URL, type PortfolioExportFormat } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
+import type { StepUpCredentials } from '../types/auth.types';
 import type { PortfolioDataExport, PortfolioExportXlsxFile } from '../types/portfolioExport.types';
 import { decodeBase64ToBlob, downloadBlobFile, downloadJsonFile } from '../utils/downloadFile';
 
@@ -294,13 +295,15 @@ export async function deletePortfolioData(confirm: string): Promise<DeletePortfo
 }
 
 export async function exportPortfolioData(
-  password: string,
+  credentials: StepUpCredentials,
   format: PortfolioExportFormat
 ): Promise<{ fileName: string }> {
+  const requestBody = { ...credentials, format };
+
   if (format === 'json') {
     const { data } = await portfolioApiClient.post<
       ApiSuccessResponse<PortfolioDataExport> | ApiErrorResponse
-    >('/export', { password, format });
+    >('/export', requestBody);
     const exportPayload = assertSuccess(data);
     const dateStamp = exportPayload.exportedAt.slice(0, 10);
     const fileName = `krepton-portfolio-export-${dateStamp}.json`;
@@ -310,7 +313,7 @@ export async function exportPortfolioData(
 
   const { data } = await portfolioApiClient.post<
     ApiSuccessResponse<PortfolioExportXlsxFile> | ApiErrorResponse
-  >('/export', { password, format });
+  >('/export', requestBody);
   const exportFile = assertSuccess(data);
   downloadBlobFile(
     exportFile.fileName,

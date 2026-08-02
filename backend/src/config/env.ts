@@ -26,7 +26,17 @@ export const env = {
   portfolioSecret: optionalEnv('PORTFOLIO_SECRET', 'change-me-in-production-portfolio'),
   geminiApiKey: optionalEnv('GEMINI_API_KEY', ''),
   geminiGroundingEnabled: parseBooleanEnv('GEMINI_GROUNDING_ENABLED', false),
+  googleClientId: optionalEnv('GOOGLE_CLIENT_ID', ''),
+  smtpHost: optionalEnv('SMTP_HOST', ''),
+  smtpPort: parseInt(optionalEnv('SMTP_PORT', '587'), 10),
+  smtpUser: optionalEnv('SMTP_USER', ''),
+  smtpPassword: optionalEnv('SMTP_PASSWORD', ''),
+  smtpFrom: optionalEnv('SMTP_FROM', 'Krepton Analytics <noreply@krepton.local>'),
 } as const;
+
+export const isGoogleAuthConfigured = env.googleClientId.length > 0;
+export const isSmtpConfigured =
+  env.smtpHost.length > 0 && env.smtpUser.length > 0 && env.smtpPassword.length > 0;
 
 export const isGeminiConfigured = env.geminiApiKey.length > 0;
 export const isGeminiGroundingEnabled = env.geminiGroundingEnabled && isGeminiConfigured;

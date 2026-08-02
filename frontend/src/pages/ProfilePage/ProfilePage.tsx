@@ -23,10 +23,12 @@ import {
   type PortfolioExportFormat,
 } from '../../constants';
 import { PRICING_PLAN_DEFINITIONS } from '../../constants/pricingPlans';
+import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 import { apiChangePassword } from '../../api/authApi';
 import { deletePortfolioData, exportPortfolioData } from '../../api/portfolioApi';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { fetchCurrentUserThunk } from '../../features/auth/authSlice';
 import {
   fetchInvestmentSummaryThunk,
   fetchPortfolioEquityHistoryThunk,
@@ -62,6 +64,7 @@ export function ProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [passwordGoogleIdToken, setPasswordGoogleIdToken] = useState<string | null>(null);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
@@ -75,6 +78,7 @@ export function ProfilePage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportPassword, setExportPassword] = useState('');
   const [showExportPassword, setShowExportPassword] = useState(false);
+  const [exportGoogleIdToken, setExportGoogleIdToken] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<PortfolioExportFormat>(
     DEFAULT_PORTFOLIO_EXPORT_FORMAT
   );
@@ -85,14 +89,25 @@ export function ProfilePage() {
   const maskedEmail = user ? maskEmail(user.email) : '—';
   const initials = user ? getEmailInitials(user.email) : '??';
   const memberSince = user?.createdAt ? formatMemberSince(user.createdAt) : '—';
+  const hasPassword = Boolean(user?.hasPassword);
+  const hasGoogle = Boolean(user?.hasGoogle);
 
   const passwordStrength = calculatePasswordStrength(newPassword);
   const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
+  const hasPasswordStepUp = currentPassword.length > 0;
+  const hasGooglePasswordStepUp = Boolean(passwordGoogleIdToken);
   const canSubmitPassword =
-    currentPassword.length > 0 && isPasswordStrong(newPassword) && passwordsMatch;
+    isPasswordStrong(newPassword) &&
+    passwordsMatch &&
+    (hasPasswordStepUp || hasGooglePasswordStepUp) &&
+    !(hasPasswordStepUp && hasGooglePasswordStepUp);
 
   const canDelete = deleteConfirmText.trim().toUpperCase() === PORTFOLIO_DATA_DELETE_CONFIRMATION;
-  const canExport = exportPassword.length > 0;
+  const hasExportPasswordStepUp = exportPassword.length > 0;
+  const hasExportGoogleStepUp = Boolean(exportGoogleIdToken);
+  const canExport =
+    (hasExportPasswordStepUp || hasExportGoogleStepUp) &&
+    !(hasExportPasswordStepUp && hasExportGoogleStepUp);
 
   function closePasswordModal() {
     setIsPasswordModalOpen(false);
@@ -100,6 +115,7 @@ export function ProfilePage() {
     setNewPassword('');
     setConfirmPassword('');
     setShowCurrentPassword(false);
+    setPasswordGoogleIdToken(null);
     setPasswordError(null);
   }
 
@@ -107,6 +123,7 @@ export function ProfilePage() {
     setIsExportModalOpen(false);
     setExportPassword('');
     setShowExportPassword(false);
+    setExportGoogleIdToken(null);
     setExportFormat(DEFAULT_PORTFOLIO_EXPORT_FORMAT);
     setExportError(null);
   }
@@ -116,14 +133,19 @@ export function ProfilePage() {
     setPasswordMessage(null);
 
     if (!canSubmitPassword) {
-      setPasswordError('Fill in all fields with a strong matching password.');
+      setPasswordError('Confirm with password or Google, then enter a strong new password.');
       return;
     }
 
     setIsChangingPassword(true);
     try {
-      await apiChangePassword({ currentPassword, newPassword });
+      await apiChangePassword({
+        newPassword,
+        password: hasPasswordStepUp ? currentPassword : undefined,
+        googleIdToken: hasGooglePasswordStepUp ? (passwordGoogleIdToken ?? undefined) : undefined,
+      });
       setPasswordMessage('Password updated successfully.');
+      await dispatch(fetchCurrentUserThunk());
       closePasswordModal();
     } catch (error) {
       setPasswordError(getRejectedMessage(error, ERROR_MESSAGES.AUTH_CHANGE_PASSWORD_FAILED));
@@ -142,7 +164,13 @@ export function ProfilePage() {
     setExportMessage(null);
 
     try {
-      const { fileName } = await exportPortfolioData(exportPassword, exportFormat);
+      const { fileName } = await exportPortfolioData(
+        {
+          password: hasExportPasswordStepUp ? exportPassword : undefined,
+          googleIdToken: hasExportGoogleStepUp ? (exportGoogleIdToken ?? undefined) : undefined,
+        },
+        exportFormat
+      );
       setExportMessage(`Downloaded ${fileName}. Keep the file private.`);
       closeExportModal();
     } catch (error) {
@@ -150,6 +178,7 @@ export function ProfilePage() {
     } finally {
       setExportPassword('');
       setShowExportPassword(false);
+      setExportGoogleIdToken(null);
       setIsExportingData(false);
     }
   }
@@ -257,7 +286,7 @@ export function ProfilePage() {
                 setIsPasswordModalOpen(true);
               }}
             >
-              Change Password
+              {hasPassword ? 'Change Password' : 'Set Password'}
             </button>
           </div>
 
@@ -386,30 +415,65 @@ export function ProfilePage() {
             onClick={(event) => event.stopPropagation()}
           >
             <h3 id="change-password-title" className={styles.modalTitle}>
-              Change password
+              {hasPassword ? 'Change password' : 'Set password'}
             </h3>
+            <p className={styles.securityHint}>
+              Confirm with{' '}
+              {hasPassword && hasGoogle
+                ? 'password or Google'
+                : hasGoogle
+                  ? 'Google'
+                  : 'your current password'}{' '}
+              before saving a new password.
+            </p>
 
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Current password</span>
-              <div className={styles.passwordInputWrap}>
-                <input
-                  type={showCurrentPassword ? 'text' : 'password'}
-                  className={styles.passwordInput}
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  autoComplete="current-password"
-                  placeholder="Your current password"
-                />
-                <button
-                  type="button"
-                  className={styles.togglePasswordButton}
-                  onClick={() => setShowCurrentPassword((visible) => !visible)}
-                  aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showCurrentPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+            {hasPassword && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Current password</span>
+                <div className={styles.passwordInputWrap}>
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    className={styles.passwordInput}
+                    value={currentPassword}
+                    onChange={(event) => {
+                      setCurrentPassword(event.target.value);
+                      setPasswordGoogleIdToken(null);
+                    }}
+                    autoComplete="current-password"
+                    placeholder="Your current password"
+                    disabled={Boolean(passwordGoogleIdToken)}
+                  />
+                  <button
+                    type="button"
+                    className={styles.togglePasswordButton}
+                    onClick={() => setShowCurrentPassword((visible) => !visible)}
+                    aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showCurrentPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {hasGoogle && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Or confirm with Google</span>
+                {passwordGoogleIdToken ? (
+                  <p className={styles.statusMessage}>Google confirmation ready.</p>
+                ) : (
+                  <GoogleSignInButton
+                    text="continue_with"
+                    disabled={isChangingPassword || currentPassword.length > 0}
+                    onCredential={(idToken) => {
+                      setPasswordGoogleIdToken(idToken);
+                      setCurrentPassword('');
+                      setPasswordError(null);
+                    }}
+                    onError={() => setPasswordError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
+                  />
+                )}
+              </div>
+            )}
 
             <div className={styles.field}>
               <span className={styles.fieldLabel}>New password</span>
@@ -573,8 +637,14 @@ export function ProfilePage() {
               Export portfolio data
             </h3>
             <p className={styles.securityHint}>
-              For your security, confirm your password. Excel includes separate sheets for
-              positions, transactions and watchlist. JSON contains the same data in one file.
+              Confirm with{' '}
+              {hasPassword && hasGoogle
+                ? 'password or Google'
+                : hasGoogle
+                  ? 'Google'
+                  : 'your password'}{' '}
+              before download. Excel has Positions / Transactions / Watchlist sheets; JSON is one
+              file.
             </p>
 
             <div className={styles.field}>
@@ -607,29 +677,54 @@ export function ProfilePage() {
               </p>
             </div>
 
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Password</span>
-              <div className={styles.passwordInputWrap}>
-                <input
-                  type={showExportPassword ? 'text' : 'password'}
-                  className={styles.passwordInput}
-                  value={exportPassword}
-                  onChange={(event) => setExportPassword(event.target.value)}
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  disabled={isExportingData}
-                />
-                <button
-                  type="button"
-                  className={styles.togglePasswordButton}
-                  onClick={() => setShowExportPassword((visible) => !visible)}
-                  aria-label={showExportPassword ? 'Hide password' : 'Show password'}
-                  disabled={isExportingData}
-                >
-                  {showExportPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+            {hasPassword && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Password</span>
+                <div className={styles.passwordInputWrap}>
+                  <input
+                    type={showExportPassword ? 'text' : 'password'}
+                    className={styles.passwordInput}
+                    value={exportPassword}
+                    onChange={(event) => {
+                      setExportPassword(event.target.value);
+                      setExportGoogleIdToken(null);
+                    }}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    disabled={isExportingData || Boolean(exportGoogleIdToken)}
+                  />
+                  <button
+                    type="button"
+                    className={styles.togglePasswordButton}
+                    onClick={() => setShowExportPassword((visible) => !visible)}
+                    aria-label={showExportPassword ? 'Hide password' : 'Show password'}
+                    disabled={isExportingData}
+                  >
+                    {showExportPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {hasGoogle && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Or confirm with Google</span>
+                {exportGoogleIdToken ? (
+                  <p className={styles.statusMessage}>Google confirmation ready.</p>
+                ) : (
+                  <GoogleSignInButton
+                    text="continue_with"
+                    disabled={isExportingData || exportPassword.length > 0}
+                    onCredential={(idToken) => {
+                      setExportGoogleIdToken(idToken);
+                      setExportPassword('');
+                      setExportError(null);
+                    }}
+                    onError={() => setExportError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
+                  />
+                )}
+              </div>
+            )}
 
             {exportError && <p className={styles.errorMessage}>{exportError}</p>}
 

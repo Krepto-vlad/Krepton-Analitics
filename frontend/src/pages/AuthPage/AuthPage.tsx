@@ -10,12 +10,20 @@ import {
   Check,
   AlertTriangle,
 } from 'lucide-react';
-import { ROUTES } from '../../constants';
+import { ERROR_MESSAGES, ROUTES } from '../../constants';
 import { Button, ErrorBanner } from '../../components/ui';
 import { Input } from '../../components/ui';
+import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { registerThunk, loginThunk, clearAuthError } from '../../features/auth/authSlice';
+import {
+  registerThunk,
+  loginThunk,
+  googleLoginThunk,
+  resendVerificationThunk,
+  clearAuthError,
+  clearAuthInfoMessage,
+} from '../../features/auth/authSlice';
 import {
   PASSWORD_RULES,
   PASSWORD_STRENGTH_COLORS,
@@ -39,7 +47,9 @@ interface AuthPageProps {
 export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { isLoading, error, user } = useAppSelector((state) => state.auth);
+  const { isLoading, error, user, infoMessage, pendingVerificationEmail } = useAppSelector(
+    (state) => state.auth
+  );
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [nickname, setNickname] = useState('');
@@ -48,6 +58,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -57,6 +68,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
   useEffect(() => {
     dispatch(clearAuthError());
+    dispatch(clearAuthInfoMessage());
   }, [mode, dispatch]);
 
   const passwordStrength = calculatePasswordStrength(password);
@@ -82,6 +94,19 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     }
   };
 
+  async function handleGoogleCredential(idToken: string) {
+    setGoogleError(null);
+    await dispatch(googleLoginThunk(idToken));
+  }
+
+  async function handleResendVerification() {
+    const targetEmail = pendingVerificationEmail ?? email.trim().toLowerCase();
+    if (!targetEmail) {
+      return;
+    }
+    await dispatch(resendVerificationThunk(targetEmail));
+  }
+
   const switchMode = () => {
     setMode((current) => (current === 'login' ? 'register' : 'login'));
     setNickname('');
@@ -89,6 +114,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     setPassword('');
     setConfirmPassword('');
     setAgreed(false);
+    setGoogleError(null);
   };
 
   const isSubmitDisabled = isLoading || (mode === 'register' && !isRegisterReady);
@@ -117,13 +143,21 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         <div className={styles.modeTabs}>
           <button
             className={`${styles.modeTab} ${mode === 'register' ? styles.active : ''}`}
-            onClick={() => mode !== 'register' && switchMode()}
+            onClick={() => {
+              if (mode !== 'register') {
+                switchMode();
+              }
+            }}
           >
             Sign Up
           </button>
           <button
             className={`${styles.modeTab} ${mode === 'login' ? styles.active : ''}`}
-            onClick={() => mode !== 'login' && switchMode()}
+            onClick={() => {
+              if (mode !== 'login') {
+                switchMode();
+              }
+            }}
           >
             Sign In
           </button>
@@ -137,9 +171,21 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
             </h1>
             <p className={styles.cardSubtitle}>
               {mode === 'register'
-                ? 'No KYC, no names. Just a nickname and password.'
-                : 'Sign in to access your portfolio analytics.'}
+                ? 'No KYC, no names. Email + password, or continue with Google.'
+                : 'Sign in with email/password or Google to access your portfolio.'}
             </p>
+          </div>
+
+          <div className={styles.cardBody}>
+            <GoogleSignInButton
+              text={mode === 'register' ? 'signup_with' : 'continue_with'}
+              disabled={isLoading}
+              onCredential={(idToken) => void handleGoogleCredential(idToken)}
+              onError={() => setGoogleError(ERROR_MESSAGES.AUTH_GOOGLE_LOGIN_FAILED)}
+            />
+            <div className={styles.authDivider}>
+              <span>or</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className={styles.cardBody}>
@@ -352,8 +398,29 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               </div>
             )}
 
-            {/* Error message */}
-            {error && <ErrorBanner message={error} />}
+            {/* Error / info */}
+            {(error || googleError) && <ErrorBanner message={error ?? googleError ?? ''} />}
+            {infoMessage && <p className={styles.infoMessage}>{infoMessage}</p>}
+            {pendingVerificationEmail && (
+              <div className={styles.verificationBox}>
+                <p>
+                  We sent a verification link to <strong>{pendingVerificationEmail}</strong>. Open
+                  the email and confirm your address to activate the account.
+                </p>
+                <p className={styles.verificationTip}>
+                  Tip: the message sometimes lands in <strong>Spam</strong> / Junk. If you do not
+                  see it within a few minutes, check that folder and mark the email as Not spam.
+                </p>
+                <button
+                  type="button"
+                  className={styles.switchModeBtn}
+                  onClick={() => void handleResendVerification()}
+                  disabled={isLoading}
+                >
+                  Resend verification email
+                </button>
+              </div>
+            )}
 
             {/* Submit */}
             <Button
@@ -371,7 +438,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   ? 'Creating account…'
                   : 'Signing in…'
                 : mode === 'register'
-                  ? 'Launch Dashboard'
+                  ? 'Create account'
                   : 'Sign In'}
             </Button>
 

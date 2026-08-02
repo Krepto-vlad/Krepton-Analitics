@@ -168,7 +168,10 @@ export async function deletePortfolioDataHandler(req: Request, res: Response): P
 
 export async function exportPortfolioDataHandler(req: Request, res: Response): Promise<void> {
   const exportFormat = parsePortfolioExportFormat(req.body?.format);
-  const exportPayload = await exportUserPortfolioData(requireUserId(req), req.body?.password);
+  const exportPayload = await exportUserPortfolioData(requireUserId(req), {
+    password: req.body?.password,
+    googleIdToken: req.body?.googleIdToken,
+  });
   const dateStamp = exportPayload.exportedAt.slice(0, 10);
 
   res.setHeader('Cache-Control', 'no-store');
