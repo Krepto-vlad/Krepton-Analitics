@@ -57,6 +57,9 @@ const SubscriptionPage = lazy(() =>
     default: m.SubscriptionPage,
   }))
 );
+const VerifyEmailPage = lazy(() =>
+  import('../pages/VerifyEmailPage/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
+);
 const WatchlistPage = () => (
   <div style={{ color: '#fff', padding: 40 }}>Watchlist — coming soon</div>
 );
@@ -114,6 +117,7 @@ function AppRoutes() {
         <Route path={ROUTES.SECURITY} element={<SecurityPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+        <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
 
         {/* Protected app — single AppShell, only content changes on navigation */}
         <Route element={<ProtectedLayout />}>

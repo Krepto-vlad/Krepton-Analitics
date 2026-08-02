@@ -1,9 +1,11 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL as string;
+export const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) ?? '';
 
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  VERIFY_EMAIL: '/verify-email',
   PRICING: '/pricing',
   SECURITY: '/security',
   DASHBOARD: '/dashboard',
@@ -130,7 +132,11 @@ export const ERROR_MESSAGES = {
   RATE_LIMIT: 'Too many requests. Please wait a moment and try again.',
   AUTH_LOGIN_FAILED: 'Unable to sign in. Please check your credentials and try again.',
   AUTH_REGISTER_FAILED: 'Unable to create your account. Please try again.',
+  AUTH_GOOGLE_LOGIN_FAILED: 'Unable to sign in with Google. Please try again.',
+  AUTH_VERIFY_EMAIL_FAILED: 'Unable to verify your email. The link may be invalid or expired.',
+  AUTH_RESEND_VERIFICATION_FAILED: 'Unable to resend verification email. Please try again.',
   AUTH_CHANGE_PASSWORD_FAILED: 'Unable to change password. Please try again.',
+  AUTH_GOOGLE_STEP_UP_FAILED: 'Unable to confirm with Google. Please try again.',
   PORTFOLIO_LOAD_FAILED: 'Unable to load portfolio data. Please try again.',
   PORTFOLIO_DELETE_DATA_FAILED: 'Unable to delete portfolio data. Please try again.',
   PORTFOLIO_EXPORT_FAILED: 'Unable to export portfolio data. Please try again.',

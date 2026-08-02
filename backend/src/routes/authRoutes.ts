@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { register, login, logout, getMe, changePassword } from '../controllers/authController.js';
+import {
+  register,
+  login,
+  googleLogin,
+  logout,
+  getMe,
+  changePassword,
+  verifyEmail,
+  resendVerification,
+} from '../controllers/authController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import rateLimit from 'express-rate-limit';
@@ -17,6 +26,9 @@ const router = Router();
 
 router.post('/register', authLimiter, asyncHandler(register));
 router.post('/login', authLimiter, asyncHandler(login));
+router.post('/google', authLimiter, asyncHandler(googleLogin));
+router.post('/verify-email', authLimiter, asyncHandler(verifyEmail));
+router.post('/resend-verification', authLimiter, asyncHandler(resendVerification));
 router.post('/logout', logout);
 router.get('/me', authMiddleware, asyncHandler(getMe));
 router.put('/password', authMiddleware, authLimiter, asyncHandler(changePassword));

@@ -1,5 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiRegister, apiLogin, apiLogout, apiGetMe } from '../../api/authApi';
+import {
+  apiRegister,
+  apiLogin,
+  apiLogout,
+  apiGetMe,
+  apiGoogleLogin,
+  apiVerifyEmail,
+  apiResendVerification,
+} from '../../api/authApi';
 import { ERROR_MESSAGES } from '../../constants';
 import { getRejectedMessage } from '../../utils/apiError';
 import type { AuthState, LoginCredentials, RegisterCredentials } from '../../types/auth.types';
@@ -9,6 +17,8 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isInitialized: false,
+  pendingVerificationEmail: null,
+  infoMessage: null,
 };
 
 export const registerThunk = createAsyncThunk(
@@ -29,6 +39,41 @@ export const loginThunk = createAsyncThunk(
       return await apiLogin(credentials);
     } catch (error) {
       return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.AUTH_LOGIN_FAILED));
+    }
+  }
+);
+
+export const googleLoginThunk = createAsyncThunk(
+  'auth/googleLogin',
+  async (idToken: string, { rejectWithValue }) => {
+    try {
+      return await apiGoogleLogin(idToken);
+    } catch (error) {
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.AUTH_GOOGLE_LOGIN_FAILED));
+    }
+  }
+);
+
+export const verifyEmailThunk = createAsyncThunk(
+  'auth/verifyEmail',
+  async (token: string, { rejectWithValue }) => {
+    try {
+      return await apiVerifyEmail(token);
+    } catch (error) {
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.AUTH_VERIFY_EMAIL_FAILED));
+    }
+  }
+);
+
+export const resendVerificationThunk = createAsyncThunk(
+  'auth/resendVerification',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      return await apiResendVerification(email);
+    } catch (error) {
+      return rejectWithValue(
+        getRejectedMessage(error, ERROR_MESSAGES.AUTH_RESEND_VERIFICATION_FAILED)
+      );
     }
   }
 );
@@ -55,23 +100,27 @@ const authSlice = createSlice({
     clearAuthError(state) {
       state.error = null;
     },
+    clearAuthInfoMessage(state) {
+      state.infoMessage = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // register
       .addCase(registerThunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.infoMessage = null;
       })
       .addCase(registerThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload;
+        state.user = null;
+        state.pendingVerificationEmail = action.payload.email;
+        state.infoMessage = action.payload.message;
       })
       .addCase(registerThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // login
       .addCase(loginThunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -79,16 +128,58 @@ const authSlice = createSlice({
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
+        state.pendingVerificationEmail = null;
+        state.infoMessage = null;
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // logout
+      .addCase(googleLoginThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(googleLoginThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.pendingVerificationEmail = null;
+        state.infoMessage = null;
+      })
+      .addCase(googleLoginThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(verifyEmailThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyEmailThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.pendingVerificationEmail = null;
+        state.infoMessage = 'Email verified. Welcome to Krepton.';
+      })
+      .addCase(verifyEmailThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(resendVerificationThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resendVerificationThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.infoMessage = action.payload.message;
+      })
+      .addCase(resendVerificationThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       .addCase(logoutThunk.fulfilled, (state) => {
         state.user = null;
+        state.pendingVerificationEmail = null;
+        state.infoMessage = null;
       })
-      // fetch current user (on app init)
       .addCase(fetchCurrentUserThunk.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isInitialized = true;
@@ -100,5 +191,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError } = authSlice.actions;
+export const { clearAuthError, clearAuthInfoMessage } = authSlice.actions;
 export const authReducer = authSlice.reducer;
