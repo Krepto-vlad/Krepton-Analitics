@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CalendarRange } from 'lucide-react';
 import { ERROR_MESSAGES, type Currency } from '../../constants';
 import { fetchPortfolioDividends } from '../../api/portfolioApi';
@@ -6,6 +6,7 @@ import { getRejectedMessage } from '../../utils/apiError';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { ErrorBanner } from '../../components/ui';
 import type { DividendCalendarResponse } from '../../types/dividend.types';
+import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { DividendSummaryCards } from './components/DividendSummaryCards/DividendSummaryCards';
 import { DividendMonthlyChart } from './components/DividendMonthlyChart/DividendMonthlyChart';
 import { UpcomingPaymentsList } from './components/UpcomingPaymentsList/UpcomingPaymentsList';
@@ -13,6 +14,8 @@ import styles from './DividendsPage.module.scss';
 
 export function DividendsPage() {
   const displayCurrency = useAppSelector((state) => state.ui.currency);
+  const summaryPositions = useAppSelector((state) => state.portfolio.summaryPositions);
+  const logoByTicker = useMemo(() => buildLogoByTicker(summaryPositions), [summaryPositions]);
   const [calendarData, setCalendarData] = useState<DividendCalendarResponse | null>(null);
   const [loadedForCurrency, setLoadedForCurrency] = useState<Currency | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +81,7 @@ export function DividendsPage() {
           <UpcomingPaymentsList
             payments={calendarData.upcomingPayments}
             displayCurrency={displayCurrency}
+            logoByTicker={logoByTicker}
           />
         </>
       ) : null}

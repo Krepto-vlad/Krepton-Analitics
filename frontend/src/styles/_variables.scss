@@ -1,24 +1,57 @@
 // ─── Color Palette ───────────────────────────────────────────────────────────
 // Dark mode defaults as CSS custom properties on :root.
 // Light mode overrides live in styles/index.scss under [data-theme="light"].
+// Contrast targets: WCAG 2.1 AA — normal text ≥ 4.5:1, UI/graphics ≥ 3:1.
 
 :root {
   --color-background: #111113;
   --color-surface: #161618;
   --color-surface-elevated: #1c1c1f;
   --color-sidebar: #0d0d10;
+  --color-header: #0d0d10;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-strong: rgba(255, 255, 255, 0.14);
   --color-foreground: #fafafa;
   // Muted/subtle grays tuned for WCAG AA (4.5:1) on surface (#161618).
   --color-foreground-muted: #a8a8b3;
   --color-foreground-subtle: #9494a0;
-  // Danger reds tuned for WCAG AA on dark surfaces.
+
+  // Brand green — on dark surfaces ~5.5:1+ for text accents.
+  --color-primary: #10b981;
+  --color-primary-hover: #34d399;
+  --color-primary-muted: rgba(16, 185, 129, 0.14);
+  --color-primary-glow: rgba(16, 185, 129, 0.35);
+  --color-primary-border: rgba(16, 185, 129, 0.35);
+  --color-on-primary: #ffffff;
+
   --color-danger: #f87171;
   --color-danger-hover: #fca5a5;
   --color-danger-muted: rgba(248, 113, 113, 0.14);
   --color-danger-border: rgba(248, 113, 113, 0.35);
+  // Vivid red for high portfolio drift (not soft coral / terracotta).
+  --color-health-high: #ef4444;
+  --color-warning: #f59e0b;
+  --color-success: #10b981;
+  --color-chart-up: #2dd4bf;
   --color-chart-down: #f87171;
+  --color-chart-grid: rgba(255, 255, 255, 0.06);
+  --color-benchmark: #38bdf8;
+  --color-benchmark-muted: rgba(56, 189, 248, 0.12);
+  --color-benchmark-border: rgba(56, 189, 248, 0.4);
+
+  --color-overlay: rgba(255, 255, 255, 0.04);
+  --color-overlay-hover: rgba(255, 255, 255, 0.08);
+  --color-overlay-strong: rgba(128, 128, 128, 0.12);
+  --color-scrollbar: rgba(255, 255, 255, 0.18);
+  --color-scrollbar-hover: rgba(255, 255, 255, 0.28);
+  --color-divider: rgba(255, 255, 255, 0.06);
+  --color-row-hover: rgba(255, 255, 255, 0.03);
+  --color-gauge-track: rgba(255, 255, 255, 0.08);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-glow-primary: 0 0 16px rgba(16, 185, 129, 0.25);
 }
 
 // SCSS aliases that consume the CSS custom properties
@@ -26,27 +59,43 @@ $color-background: var(--color-background);
 $color-surface: var(--color-surface);
 $color-surface-elevated: var(--color-surface-elevated);
 $color-sidebar: var(--color-sidebar);
+$color-header: var(--color-header);
 $color-border: var(--color-border);
 $color-border-strong: var(--color-border-strong);
 $color-foreground: var(--color-foreground);
 $color-foreground-muted: var(--color-foreground-muted);
 $color-foreground-subtle: var(--color-foreground-subtle);
 
-$color-primary: #10b981; // green — brand accent
-$color-primary-hover: #0ea571;
-$color-primary-muted: rgba(16, 185, 129, 0.12);
-$color-primary-glow: rgba(16, 185, 129, 0.35);
+$color-primary: var(--color-primary);
+$color-primary-hover: var(--color-primary-hover);
+$color-primary-muted: var(--color-primary-muted);
+$color-primary-glow: var(--color-primary-glow);
+$color-primary-border: var(--color-primary-border);
+$color-on-primary: var(--color-on-primary);
 
 $color-danger: var(--color-danger);
 $color-danger-hover: var(--color-danger-hover);
 $color-danger-muted: var(--color-danger-muted);
 $color-danger-border: var(--color-danger-border);
-$color-warning: #f59e0b;
-$color-success: #10b981;
+$color-health-high: var(--color-health-high);
+$color-warning: var(--color-warning);
+$color-success: var(--color-success);
 
-$color-chart-up: #26a69a;
+$color-chart-up: var(--color-chart-up);
 $color-chart-down: var(--color-chart-down);
-$color-chart-grid: rgba(255, 255, 255, 0.04);
+$color-chart-grid: var(--color-chart-grid);
+$color-benchmark: var(--color-benchmark);
+$color-benchmark-muted: var(--color-benchmark-muted);
+$color-benchmark-border: var(--color-benchmark-border);
+
+$color-overlay: var(--color-overlay);
+$color-overlay-hover: var(--color-overlay-hover);
+$color-overlay-strong: var(--color-overlay-strong);
+$color-scrollbar: var(--color-scrollbar);
+$color-scrollbar-hover: var(--color-scrollbar-hover);
+$color-divider: var(--color-divider);
+$color-row-hover: var(--color-row-hover);
+$color-gauge-track: var(--color-gauge-track);
 
 // ─── Typography ──────────────────────────────────────────────────────────────
 
@@ -100,13 +149,16 @@ $sidebar-width-expanded: 220px;
 $header-height: 64px;
 $header-height-mobile: 56px;
 $bottom-nav-height: 64px;
+$cell-grid-size: 48px;
+$cell-grid-size-sm: 40px;
+$cell-grid-opacity: 0.55;
 
 // ─── Shadows ─────────────────────────────────────────────────────────────────
 
-$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
-$shadow-glow-primary: 0 0 16px rgba(16, 185, 129, 0.25);
+$shadow-sm: var(--shadow-sm);
+$shadow-md: var(--shadow-md);
+$shadow-lg: var(--shadow-lg);
+$shadow-glow-primary: var(--shadow-glow-primary);
 
 // ─── Transitions ─────────────────────────────────────────────────────────────
 

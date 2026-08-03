@@ -53,7 +53,7 @@ export function PricingPage() {
               <div className={styles.planFeatures}>
                 {plan.features.map((feature) => (
                   <div key={feature} className={styles.planFeatureItem}>
-                    <Check size={13} color="#10B981" style={{ flexShrink: 0, marginTop: 1 }} />
+                    <Check size={13} className={styles.planFeatureIcon} />
                     {feature}
                   </div>
                 ))}
@@ -72,7 +72,7 @@ export function PricingPage() {
         <div className={styles.privacyCard}>
           <div className={styles.privacyGlow} />
           <div className={styles.privacyIconWrap}>
-            <Shield size={26} color="#10B981" />
+            <Shield size={26} />
           </div>
           <div className={styles.privacyBody}>
             <div className={styles.privacyTitleRow}>
@@ -87,7 +87,7 @@ export function PricingPage() {
             <div className={styles.privacyFeatures}>
               {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
                 <div key={label} className={styles.privacyFeatureItem}>
-                  <Icon size={12} color="#10B981" />
+                  <Icon size={12} className={styles.accentIcon} />
                   {label}
                 </div>
               ))}

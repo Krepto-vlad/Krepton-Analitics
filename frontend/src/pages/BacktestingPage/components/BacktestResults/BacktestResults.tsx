@@ -17,6 +17,7 @@ import {
   formatBacktestPercent,
   getBacktestTickerColor,
 } from '../../utils/backtestFormat';
+import { TickerAvatar } from '../../../../components/ui';
 import { formatAllocationLabel } from '../../utils/backtestAllocations';
 import styles from './BacktestResults.module.scss';
 
@@ -151,12 +152,15 @@ export function BacktestResults({ data, displayCurrency }: BacktestResultsProps)
             return (
               <article key={holding.ticker} className={styles.resultCard}>
                 <div className={styles.holdingHeader}>
-                  <span
-                    className={styles.resultTicker}
-                    style={{ color: getBacktestTickerColor(index) }}
-                  >
-                    ${holding.ticker}
-                  </span>
+                  <div className={styles.resultTickerRow}>
+                    <TickerAvatar ticker={holding.ticker} size="sm" />
+                    <span
+                      className={styles.resultTicker}
+                      style={{ color: getBacktestTickerColor(index) }}
+                    >
+                      ${holding.ticker}
+                    </span>
+                  </div>
                   <span className={styles.holdingWeight}>{holding.weightPercent.toFixed(1)}%</span>
                 </div>
                 <span className={styles.resultName}>{holding.name}</span>

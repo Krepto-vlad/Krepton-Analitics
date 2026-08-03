@@ -1,5 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type CSSProperties,
+  type MouseEvent,
+} from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
   Shield,
@@ -161,7 +168,7 @@ const TICKER_PX_PER_SEC = 55;
 function DashboardPreview() {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
     const el = wrapperRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -188,9 +195,9 @@ function DashboardPreview() {
     >
       <div className={styles.previewHeader}>
         <div className={styles.previewDots}>
-          <div className={styles.previewDot} style={{ background: '#EF4444' }} />
-          <div className={styles.previewDot} style={{ background: '#F59E0B' }} />
-          <div className={styles.previewDot} style={{ background: '#10B981' }} />
+          <div className={`${styles.previewDot} ${styles.previewDotRed}`} />
+          <div className={`${styles.previewDot} ${styles.previewDotAmber}`} />
+          <div className={`${styles.previewDot} ${styles.previewDotGreen}`} />
         </div>
         <span className={styles.previewTitle}>Krepton Analytics</span>
         <div className={styles.previewLive}>
@@ -212,13 +219,13 @@ function DashboardPreview() {
           <div className={styles.previewStats}>
             <div>
               <div className={styles.previewStatLabel}>Risk Score</div>
-              <div className={styles.previewStatValue} style={{ color: '#EF4444' }}>
+              <div className={`${styles.previewStatValue} ${styles.previewStatValueDanger}`}>
                 67/100
               </div>
             </div>
             <div>
               <div className={styles.previewStatLabel}>Div. Yield</div>
-              <div className={styles.previewStatValue} style={{ color: '#10B981' }}>
+              <div className={`${styles.previewStatValue} ${styles.previewStatValueSuccess}`}>
                 4.8%
               </div>
             </div>
@@ -229,11 +236,13 @@ function DashboardPreview() {
           {MINI_CHART_HEIGHTS.map((h, i) => (
             <div
               key={i}
-              className={styles.previewBar}
-              style={{
-                height: `${h}%`,
-                background: i === 11 ? '#10B981' : `rgba(16,185,129,${0.2 + i * 0.04})`,
-              }}
+              className={`${styles.previewBar} ${i === 11 ? styles.previewBarPeak : ''}`}
+              style={
+                {
+                  height: `${h}%`,
+                  '--bar-opacity': String(0.2 + i * 0.04),
+                } as CSSProperties
+              }
             />
           ))}
         </div>
@@ -241,7 +250,7 @@ function DashboardPreview() {
         <div className={styles.previewAiCard}>
           <div className={styles.previewAiHeader}>
             <div className={styles.previewAiIcon}>
-              <Sparkles size={8} color="#fff" />
+              <Sparkles size={8} />
             </div>
             <span className={styles.previewAiLabel}>AI Insights</span>
           </div>
@@ -271,10 +280,34 @@ function DashboardPreview() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+interface LandingLocationState {
+  scrollToFeatures?: boolean;
+}
+
 export function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [tickerItems, setTickerItems] = useState<TickerItem[]>(TICKER_FALLBACK);
   const tickerTrackRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll on entry; Features nav passes location.state (avoids keeping prior page scroll).
+  useEffect(() => {
+    const shouldScrollToFeatures = Boolean(
+      (location.state as LandingLocationState | null)?.scrollToFeatures
+    );
+
+    if (shouldScrollToFeatures) {
+      const timeoutId = window.setTimeout(() => {
+        document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    return undefined;
+    // location.key identifies each navigation; state is read from that entry.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [location.key]);
 
   // Fetch real quotes once on mount (cached across navigation)
   useEffect(() => {
@@ -359,7 +392,7 @@ export function LandingPage() {
             {['No credit card required', 'No KYC verification', 'Zero personal data'].map(
               (text) => (
                 <div key={text} className={styles.heroTrustItem}>
-                  <Check size={12} color="#10B981" />
+                  <Check size={12} className={styles.accentIcon} />
                   {text}
                 </div>
               )
@@ -411,7 +444,7 @@ export function LandingPage() {
         <div className={styles.sectionInner}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionBadge}>
-              <Zap size={12} color="#10B981" />
+              <Zap size={12} className={styles.accentIcon} />
               Platform Features
             </div>
             <h2 className={styles.sectionTitle}>
@@ -430,16 +463,15 @@ export function LandingPage() {
                 <div
                   key={feat.title}
                   className={styles.featureCard}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = `${feat.color}40`;
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor =
-                      'rgba(255,255,255,0.07)';
-                  }}
+                  style={
+                    {
+                      '--feature-accent': feat.color,
+                      '--feature-bg': feat.bg,
+                    } as CSSProperties
+                  }
                 >
-                  <div className={styles.featureIconWrap} style={{ background: feat.bg }}>
-                    <Icon size={17} color={feat.color} />
+                  <div className={styles.featureIconWrap}>
+                    <Icon size={17} />
                   </div>
                   <div>
                     <h3 className={styles.featureTitle}>{feat.title}</h3>
@@ -447,15 +479,7 @@ export function LandingPage() {
                   </div>
                   <div className={styles.featureTags}>
                     {feat.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className={styles.featureTag}
-                        style={{
-                          background: `${feat.color}14`,
-                          color: feat.color,
-                          border: `1px solid ${feat.color}25`,
-                        }}
-                      >
+                      <span key={tag} className={styles.featureTag}>
                         {tag}
                       </span>
                     ))}
@@ -472,7 +496,7 @@ export function LandingPage() {
         <div className={styles.privacyCard}>
           <div className={styles.privacyGlow} />
           <div className={styles.privacyIconWrap}>
-            <Shield size={26} color="#10B981" />
+            <Shield size={26} />
           </div>
           <div className={styles.privacyBody}>
             <div className={styles.privacyTitleRow}>
@@ -487,7 +511,7 @@ export function LandingPage() {
             <div className={styles.privacyFeatures}>
               {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
                 <div key={label} className={styles.privacyFeatureItem}>
-                  <Icon size={12} color="#10B981" />
+                  <Icon size={12} className={styles.accentIcon} />
                   {label}
                 </div>
               ))}

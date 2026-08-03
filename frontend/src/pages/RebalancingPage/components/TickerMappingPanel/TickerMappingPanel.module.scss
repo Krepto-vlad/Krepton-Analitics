@@ -20,7 +20,7 @@
   font-weight: $font-weight-semibold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: $color-foreground-subtle;
+  color: $color-foreground;
 }
 
 .subtitle {
@@ -43,7 +43,7 @@
   th,
   td {
     padding: $space-2 $space-3;
-    border-bottom: 1px solid $color-border;
+    border-bottom: 1px solid $color-divider;
     text-align: left;
     white-space: nowrap;
   }

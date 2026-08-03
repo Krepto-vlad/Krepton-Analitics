@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, X, Check, Loader } from 'lucide-react';
-import { Button, ErrorBanner } from '../../../../components/ui';
+import { Button, ErrorBanner, TickerAvatar } from '../../../../components/ui';
 import { ERROR_MESSAGES } from '../../../../constants';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import { fetchStockSearch } from '../../../../api/stockApi';
@@ -137,7 +137,10 @@ function AddTickerModalForm({ onClose }: { onClose: () => void }) {
                         className={styles.dropdownItem}
                         onClick={() => handleSelectResult(result)}
                       >
-                        <span className={styles.dropdownTicker}>{result.ticker}</span>
+                        <span className={styles.dropdownTickerCell}>
+                          <TickerAvatar ticker={result.ticker} size="xs" />
+                          <span className={styles.dropdownTicker}>{result.ticker}</span>
+                        </span>
                         <span className={styles.dropdownName}>{result.name}</span>
                         <span className={styles.dropdownExchange}>{result.exchange}</span>
                       </button>

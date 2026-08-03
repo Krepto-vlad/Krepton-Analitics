@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Search, Loader, Star } from 'lucide-react';
-import { Button, AsyncStatePanel, ErrorBanner } from '../../../../components/ui';
-import type { Currency } from '../../../../constants';
+import { Button, AsyncStatePanel, ErrorBanner, TickerAvatar } from '../../../../components/ui';
+import {
+  WATCHLIST_TABLE_HEADER_HEIGHT_PX,
+  WATCHLIST_TABLE_ROW_HEIGHT_PX,
+  type Currency,
+} from '../../../../constants';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
@@ -77,6 +81,15 @@ export function WatchlistPanel() {
         item.ticker.toLowerCase().includes(query) || item.companyName.toLowerCase().includes(query)
     );
   }, [items, searchQuery]);
+
+  const watchlistTableMinHeightPx = useMemo(() => {
+    const reservedRowCount = Math.max(items.length, 1);
+    return WATCHLIST_TABLE_HEADER_HEIGHT_PX + reservedRowCount * WATCHLIST_TABLE_ROW_HEIGHT_PX;
+  }, [items.length]);
+
+  const hasActiveWatchlistSearch = searchQuery.trim().length > 0;
+  const hasNoWatchlistSearchMatches =
+    hasActiveWatchlistSearch && filteredItems.length === 0 && items.length > 0;
 
   async function handleDelete(itemId: string) {
     setDeletingId(itemId);
@@ -170,7 +183,7 @@ export function WatchlistPanel() {
             </span>
           </div>
 
-          <div className={styles.tableWrapper}>
+          <div className={styles.tableWrapper} style={{ minHeight: watchlistTableMinHeightPx }}>
             <table className={styles.table}>
               <colgroup>
                 <col className={styles.colTicker} />
@@ -193,61 +206,75 @@ export function WatchlistPanel() {
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.map((item) => {
-                  const isPositive = item.changePercent >= 0;
-                  const isDeleting = deletingId === item.id;
+                {hasNoWatchlistSearchMatches ? (
+                  <tr className={styles.filterEmptyRow}>
+                    <td colSpan={7}>
+                      <div className={styles.filterEmptyState}>
+                        <p className={styles.filterEmptyTitle}>No matching tickers</p>
+                        <p className={styles.filterEmptyText}>
+                          Nothing matches “{searchQuery.trim()}”. Try another ticker or company
+                          name.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredItems.map((item) => {
+                    const isPositive = item.changePercent >= 0;
+                    const isDeleting = deletingId === item.id;
 
-                  return (
-                    <tr key={item.id}>
-                      <td className={styles.tdTicker}>
-                        <div className={styles.tickerCell}>
-                          <span className={styles.tickerBadge}>{item.ticker.slice(0, 2)}</span>
-                          <span className={styles.tickerSymbol}>{item.ticker}</span>
-                        </div>
-                      </td>
-                      <td className={styles.tdName}>{item.companyName}</td>
-                      <td className={styles.tdNum}>
-                        {formatMoney(getDisplayPrice(item.price, item.currency), displayCurrency)}
-                      </td>
-                      <td className={styles.tdNum}>
-                        {formatOptionalPrice(
-                          item.fiftyTwoWeekHigh !== null
-                            ? getDisplayPrice(item.fiftyTwoWeekHigh, item.currency)
-                            : null,
-                          displayCurrency
-                        )}
-                      </td>
-                      <td className={styles.tdNum}>
-                        {formatOptionalPrice(
-                          item.fiftyTwoWeekLow !== null
-                            ? getDisplayPrice(item.fiftyTwoWeekLow, item.currency)
-                            : null,
-                          displayCurrency
-                        )}
-                      </td>
-                      <td className={styles.tdNum}>
-                        <span className={isPositive ? styles.positive : styles.negative}>
-                          {formatPercent(item.changePercent)}
-                        </span>
-                      </td>
-                      <td className={styles.tdAction}>
-                        <button
-                          type="button"
-                          className={styles.deleteButton}
-                          title="Remove from watchlist"
-                          disabled={isDeleting}
-                          onClick={() => void handleDelete(item.id)}
-                        >
-                          {isDeleting ? (
-                            <Loader size={14} className={styles.actionSpinner} />
-                          ) : (
-                            <Trash2 size={14} />
+                    return (
+                      <tr key={item.id}>
+                        <td className={styles.tdTicker}>
+                          <div className={styles.tickerCell}>
+                            <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} size="sm" />
+                            <span className={styles.tickerSymbol}>{item.ticker}</span>
+                          </div>
+                        </td>
+                        <td className={styles.tdName}>{item.companyName}</td>
+                        <td className={styles.tdNum}>
+                          {formatMoney(getDisplayPrice(item.price, item.currency), displayCurrency)}
+                        </td>
+                        <td className={styles.tdNum}>
+                          {formatOptionalPrice(
+                            item.fiftyTwoWeekHigh !== null
+                              ? getDisplayPrice(item.fiftyTwoWeekHigh, item.currency)
+                              : null,
+                            displayCurrency
                           )}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className={styles.tdNum}>
+                          {formatOptionalPrice(
+                            item.fiftyTwoWeekLow !== null
+                              ? getDisplayPrice(item.fiftyTwoWeekLow, item.currency)
+                              : null,
+                            displayCurrency
+                          )}
+                        </td>
+                        <td className={styles.tdNum}>
+                          <span className={isPositive ? styles.positive : styles.negative}>
+                            {formatPercent(item.changePercent)}
+                          </span>
+                        </td>
+                        <td className={styles.tdAction}>
+                          <button
+                            type="button"
+                            className={styles.deleteButton}
+                            title="Remove from watchlist"
+                            disabled={isDeleting}
+                            onClick={() => void handleDelete(item.id)}
+                          >
+                            {isDeleting ? (
+                              <Loader size={14} className={styles.actionSpinner} />
+                            ) : (
+                              <Trash2 size={14} />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

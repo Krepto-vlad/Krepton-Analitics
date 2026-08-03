@@ -4,134 +4,11 @@
 .page {
   min-height: 100vh;
   width: 100%;
-  background: #09090b;
+  background: $color-background;
   color: $color-foreground;
   font-family: $font-family;
   overflow-x: hidden;
 }
-
-// ─── Navbar ──────────────────────────────────────────────────────────────────
-
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: $z-sticky;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 $space-10;
-  height: $header-height;
-  background: rgba(9, 9, 11, 0.92);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-
-  @include mobile {
-    padding: 0 $space-4;
-  }
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  cursor: pointer;
-}
-
-.logoIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: $radius-md;
-  background: $color-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logoText {
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  letter-spacing: -0.02em;
-  color: $color-foreground;
-  span {
-    color: $color-primary;
-  }
-}
-
-.navLinks {
-  display: flex;
-  align-items: center;
-  gap: $space-6;
-
-  @include mobile {
-    display: none;
-  }
-}
-
-.navLink {
-  font-size: $font-size-sm;
-  color: rgba(255, 255, 255, 0.55);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: $font-family;
-  transition: color $transition-fast;
-  text-decoration: none;
-
-  &:hover {
-    color: $color-foreground;
-  }
-  &.active {
-    color: $color-foreground;
-  }
-}
-
-.navActions {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-
-  @include mobile {
-    display: none;
-  }
-}
-
-.btnOutline {
-  padding: $space-2 $space-4;
-  border-radius: $radius-md;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: $color-foreground;
-  background: transparent;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  font-family: $font-family;
-  cursor: pointer;
-  transition: border-color $transition-fast;
-
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-}
-
-.btnPrimary {
-  padding: $space-2 $space-4;
-  border-radius: $radius-md;
-  background: $color-primary;
-  color: #fff;
-  border: none;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  font-family: $font-family;
-  cursor: pointer;
-  transition: background $transition-fast;
-
-  &:hover {
-    background: $color-primary-hover;
-  }
-}
-
-// ─── Content ──────────────────────────────────────────────────────────────────
 
 .content {
   padding: calc(#{$header-height} + 64px) $space-6 64px;
@@ -149,12 +26,10 @@
   pointer-events: none;
   background: radial-gradient(
     ellipse 80% 50% at 50% -10%,
-    rgba(16, 185, 129, 0.08) 0%,
+    $color-primary-muted 0%,
     transparent 70%
   );
 }
-
-// ─── Header ───────────────────────────────────────────────────────────────────
 
 .header {
   text-align: center;
@@ -167,12 +42,12 @@
   gap: $space-2;
   padding: 6px $space-3;
   border-radius: $radius-full;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid $color-border;
+  background: $color-overlay;
   margin-bottom: $space-4;
   font-family: $font-mono;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: $color-foreground-muted;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -184,8 +59,6 @@
   letter-spacing: -0.04em;
   line-height: 1.2;
 }
-
-// ─── Plans grid ───────────────────────────────────────────────────────────────
 
 .plansGrid {
   display: grid;
@@ -201,14 +74,14 @@
   gap: $space-5;
   padding: $space-6;
   border-radius: $radius-lg;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: $color-surface;
+  border: 1px solid $color-border;
   transition: border-color $transition-base;
 
   &.highlighted {
-    background: rgba(16, 185, 129, 0.06);
-    border-color: rgba(16, 185, 129, 0.3);
-    box-shadow: 0 0 40px rgba(16, 185, 129, 0.08);
+    background: $color-primary-muted;
+    border-color: $color-primary-border;
+    box-shadow: $shadow-glow-primary;
   }
 }
 
@@ -223,7 +96,7 @@
   font-family: $font-mono;
   font-size: 0.8125rem;
   font-weight: $font-weight-bold;
-  color: #fff;
+  color: $color-on-primary;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
@@ -231,7 +104,7 @@
 .planNameLabel {
   font-family: $font-mono;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $color-foreground-subtle;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: $space-1;
@@ -257,12 +130,12 @@
 .planPeriod {
   font-family: $font-mono;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $color-foreground-subtle;
 }
 
 .planDescription {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $color-foreground-subtle;
   margin-top: $space-1;
 }
 
@@ -278,16 +151,22 @@
   align-items: flex-start;
   gap: $space-2;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: $color-foreground-muted;
+}
+
+.planFeatureIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: $color-primary;
 }
 
 .btnPlanDefault {
   width: 100%;
   padding: 10px;
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: $color-overlay;
+  color: $color-foreground-muted;
+  border: 1px solid $color-border;
   font-family: $font-family;
   font-weight: $font-weight-semibold;
   font-size: 0.82rem;
@@ -295,7 +174,7 @@
   transition: background $transition-fast;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: $color-overlay-hover;
   }
 }
 
@@ -304,7 +183,7 @@
   padding: 10px;
   border-radius: $radius-md;
   background: $color-primary;
-  color: #fff;
+  color: $color-on-primary;
   border: none;
   font-family: $font-family;
   font-weight: $font-weight-semibold;
@@ -317,8 +196,6 @@
   }
 }
 
-// ─── Privacy CTA ──────────────────────────────────────────────────────────────
-
 .privacyCard {
   position: relative;
   display: flex;
@@ -328,12 +205,22 @@
   padding: $space-8;
   border-radius: $radius-xl;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: linear-gradient(
+    135deg,
+    $color-primary-muted 0%,
+    color-mix(in srgb, var(--color-primary) 3%, transparent) 100%
+  );
+  border: 1px solid $color-primary-border;
 
   @include mobile {
     flex-direction: column;
     text-align: center;
+  }
+
+  :global(html[data-theme='light']) & {
+    background: $color-surface;
+    border-color: $color-border;
+    box-shadow: $shadow-sm;
   }
 }
 
@@ -344,16 +231,21 @@
   width: 192px;
   height: 192px;
   border-radius: $radius-full;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--color-primary-glow) 0%, transparent 70%);
   pointer-events: none;
+
+  :global(html[data-theme='light']) & {
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+  }
 }
 
 .privacyIconWrap {
   width: 56px;
   height: 56px;
   border-radius: $radius-lg;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: $color-primary-muted;
+  border: 1px solid $color-primary-border;
+  color: $color-primary;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -385,7 +277,7 @@
 .privacyCertBadge {
   padding: 2px $space-2;
   border-radius: $radius-full;
-  background: rgba(16, 185, 129, 0.15);
+  background: $color-primary-muted;
   color: $color-primary;
   font-family: $font-mono;
   font-size: 0.8125rem;
@@ -395,11 +287,12 @@
 
 .privacyText {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: $color-foreground-muted;
   line-height: 1.7;
   max-width: 600px;
+
   strong {
-    color: rgba(255, 255, 255, 0.75);
+    color: $color-foreground;
   }
 }
 
@@ -419,7 +312,11 @@
   align-items: center;
   gap: 6px;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: $color-foreground-muted;
+}
+
+.accentIcon {
+  color: $color-primary;
 }
 
 .btnCta {
@@ -429,7 +326,7 @@
   padding: $space-3 $space-5;
   border-radius: $radius-lg;
   background: $color-primary;
-  color: #fff;
+  color: $color-on-primary;
   border: none;
   font-family: $font-family;
   font-weight: $font-weight-semibold;
@@ -441,54 +338,4 @@
   &:hover {
     background: $color-primary-hover;
   }
-}
-
-// ─── Footer ───────────────────────────────────────────────────────────────────
-
-.footer {
-  padding: $space-8 $space-6;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  margin-top: 48px;
-}
-
-.footerInner {
-  max-width: 980px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $space-4;
-
-  @include mobile {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-.footerBrand {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: $font-weight-medium;
-}
-
-.footerBrandIcon {
-  width: 20px;
-  height: 20px;
-  border-radius: $radius-sm;
-  background: $color-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.footerDisclaimer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: $font-mono;
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.3);
 }

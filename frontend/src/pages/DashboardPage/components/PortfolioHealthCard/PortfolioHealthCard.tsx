@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ShieldAlert } from 'lucide-react';
 import {
-  CHART_COLORS,
   PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
   PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
   ROUTES,
 } from '../../../../constants';
 import type { PortfolioHealthDeviation } from '../../../../types/portfolio.types';
+import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import styles from './PortfolioHealthCard.module.scss';
 
 interface PortfolioHealthCardProps {
@@ -21,7 +21,6 @@ type HealthLevel = 'Low' | 'Medium' | 'High';
 const GAUGE_CX = 100;
 const GAUGE_CY = 115;
 const GAUGE_RADIUS = 82;
-const GAUGE_STROKE_WIDTH = 10;
 
 function getHealthLevel(score: number): HealthLevel {
   if (score >= PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD) return 'Low';
@@ -58,11 +57,12 @@ export function PortfolioHealthCard({
   deviations,
   isLoading,
 }: PortfolioHealthCardProps) {
-  const score = alignmentScore ?? 0;
-  const healthLevel = getHealthLevel(score);
-  const healthLabel = getHealthLabel(healthLevel);
+  const hasScore = alignmentScore !== null;
+  const showEmptyState = !isLoading && !hasScore;
+  const healthLevel = hasScore ? getHealthLevel(alignmentScore) : null;
+  const healthLabel = healthLevel ? getHealthLabel(healthLevel) : null;
   const bgArcPath = `M ${GAUGE_CX - GAUGE_RADIUS} ${GAUGE_CY} A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 ${GAUGE_CX + GAUGE_RADIUS} ${GAUGE_CY}`;
-  const progressArcPath = buildGaugeArcPath(score);
+  const progressArcPath = hasScore ? buildGaugeArcPath(alignmentScore) : '';
 
   const notableDeviations = deviations.filter((item) => item.status !== 'optimal');
   const topDeviation =
@@ -75,8 +75,7 @@ export function PortfolioHealthCard({
       : null;
 
   const showDriftAlert =
-    alignmentScore !== null &&
-    (alignmentScore < PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD || topDeviation !== null);
+    hasScore && (alignmentScore < PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD || topDeviation !== null);
 
   return (
     <div className={styles.card}>
@@ -88,110 +87,112 @@ export function PortfolioHealthCard({
         <div className={styles.titleRow}>
           <div className={styles.titleGroup}>
             <span className={styles.cardTitle}>Strategy Alignment</span>
-            {strategyName && <span className={styles.strategyName}>{strategyName}</span>}
+            {hasScore && strategyName && (
+              <span className={styles.strategyName}>{strategyName}</span>
+            )}
           </div>
-          {!isLoading && alignmentScore !== null && (
+          {!isLoading && healthLevel && healthLabel && (
             <span className={`${styles.riskBadge} ${styles[`risk${healthLevel}`]}`}>
               {healthLabel}
             </span>
           )}
         </div>
-        <Link to={ROUTES.REBALANCING} className={styles.rebalancingLink}>
-          Open rebalancing engine
-        </Link>
-      </div>
-
-      <div className={styles.gaugeSection}>
-        <svg
-          viewBox="0 0 200 125"
-          className={styles.gaugeSvg}
-          aria-label={
-            alignmentScore !== null
-              ? `Strategy alignment score: ${alignmentScore} out of 100`
-              : 'Strategy alignment score loading'
-          }
-        >
-          <path
-            d={bgArcPath}
-            fill="none"
-            stroke="rgba(255,255,255,0.06)"
-            strokeWidth={GAUGE_STROKE_WIDTH}
-            strokeLinecap="round"
-          />
-          {!isLoading && progressArcPath && (
-            <path
-              d={progressArcPath}
-              className={`${styles.gaugeProgress} ${styles[`gaugeProgress${healthLevel}`]}`}
-            />
-          )}
-          <text
-            x={GAUGE_CX}
-            y={GAUGE_CY - 22}
-            textAnchor="middle"
-            className={`${styles.gaugeScore} ${styles[`gaugeScore${healthLevel}`]}`}
-          >
-            {isLoading ? '—' : (alignmentScore ?? '—')}
-          </text>
-          <text
-            x={GAUGE_CX}
-            y={GAUGE_CY - 4}
-            textAnchor="middle"
-            fill={CHART_COLORS.TEXT}
-            fontSize="13"
-            fontFamily="Inter, sans-serif"
-          >
-            / 100
-          </text>
-        </svg>
-
-        {showDriftAlert && topDeviation && (
-          <div className={styles.alertBanner}>
-            <AlertTriangle size={13} className={styles.alertIcon} />
-            <span>
-              <span className={styles.alertHighlight}>Strategy drift detected</span>
-              <span className={styles.alertBody}>
-                {' '}
-                {topDeviation.label} is{' '}
-                {topDeviation.status === 'overweight' ? 'over-weight' : 'under-weight'} by{' '}
-                {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
-              </span>
-            </span>
-          </div>
+        {hasScore && (
+          <Link to={ROUTES.REBALANCING} className={styles.rebalancingLink}>
+            Open rebalancing engine
+          </Link>
         )}
       </div>
 
-      <div className={styles.sectors}>
-        {deviations.length === 0 && !isLoading ? (
-          <p className={styles.emptyHint}>Add holdings to track strategy bucket alignment.</p>
-        ) : (
-          deviations.map((deviation) => (
-            <div key={deviation.bucketId} className={styles.sectorRow}>
-              <div className={styles.sectorRowHeader}>
-                <div className={styles.sectorNameGroup}>
-                  <span
-                    className={styles.sectorIcon}
-                    style={{ background: deviation.color }}
-                    aria-hidden="true"
-                  />
-                  <span className={styles.sectorName}>{deviation.label}</span>
-                </div>
-                <span className={styles.sectorPercent}>
-                  {formatAllocationPair(deviation.currentPercent, deviation.targetPercent)}
+      {isLoading || showEmptyState ? (
+        <DashboardPanelEmptyState
+          isLoading={isLoading}
+          loadingMessage="Loading strategy alignment…"
+          icon={<ShieldAlert size={24} />}
+          title="No alignment data yet"
+          description="Add holdings or import a broker report to measure how your portfolio tracks the selected strategy."
+          actionLabel="Add Position"
+          actionTo={`${ROUTES.PORTFOLIO}?section=positions`}
+        />
+      ) : (
+        <>
+          <div className={styles.gaugeSection}>
+            <svg
+              viewBox="0 0 200 125"
+              className={styles.gaugeSvg}
+              aria-label={`Strategy alignment score: ${alignmentScore} out of 100`}
+            >
+              <path d={bgArcPath} className={styles.gaugeTrack} />
+              {healthLevel && progressArcPath && (
+                <path
+                  d={progressArcPath}
+                  className={`${styles.gaugeProgress} ${styles[`gaugeProgress${healthLevel}`]}`}
+                />
+              )}
+              <text
+                x={GAUGE_CX}
+                y={GAUGE_CY - 22}
+                textAnchor="middle"
+                className={`${styles.gaugeScore}${healthLevel ? ` ${styles[`gaugeScore${healthLevel}`]}` : ''}`}
+              >
+                {alignmentScore}
+              </text>
+              <text
+                x={GAUGE_CX}
+                y={GAUGE_CY - 4}
+                textAnchor="middle"
+                className={styles.gaugeScoreSuffix}
+              >
+                / 100
+              </text>
+            </svg>
+
+            {showDriftAlert && topDeviation && (
+              <div className={styles.alertBanner}>
+                <AlertTriangle size={13} className={styles.alertIcon} />
+                <span>
+                  <span className={styles.alertHighlight}>Strategy drift detected</span>
+                  <span className={styles.alertBody}>
+                    {' '}
+                    {topDeviation.label} is{' '}
+                    {topDeviation.status === 'overweight' ? 'over-weight' : 'under-weight'} by{' '}
+                    {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
+                  </span>
                 </span>
               </div>
-              <div className={styles.barTrack}>
-                <div
-                  className={styles.barFill}
-                  style={{
-                    width: `${Math.max(deviation.currentPercent, 0)}%`,
-                    background: deviation.color,
-                  }}
-                />
+            )}
+          </div>
+
+          <div className={styles.sectors}>
+            {deviations.map((deviation) => (
+              <div key={deviation.bucketId} className={styles.sectorRow}>
+                <div className={styles.sectorRowHeader}>
+                  <div className={styles.sectorNameGroup}>
+                    <span
+                      className={styles.sectorIcon}
+                      style={{ background: deviation.color }}
+                      aria-hidden="true"
+                    />
+                    <span className={styles.sectorName}>{deviation.label}</span>
+                  </div>
+                  <span className={styles.sectorPercent}>
+                    {formatAllocationPair(deviation.currentPercent, deviation.targetPercent)}
+                  </span>
+                </div>
+                <div className={styles.barTrack}>
+                  <div
+                    className={styles.barFill}
+                    style={{
+                      width: `${Math.max(deviation.currentPercent, 0)}%`,
+                      background: deviation.color,
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

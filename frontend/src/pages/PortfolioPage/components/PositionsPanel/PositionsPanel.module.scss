@@ -284,7 +284,7 @@
   padding: $space-1 $space-3 $space-1 $space-8;
   border-radius: $radius-md;
   border: 1px solid $color-border;
-  background: rgba(255, 255, 255, 0.03);
+  background: $color-surface;
   color: $color-foreground;
   font-size: $font-size-sm;
   font-family: $font-family;
@@ -306,12 +306,45 @@
   overflow-x: auto;
   border-radius: $radius-lg;
   border: 1px solid $color-border;
+  background: $color-surface;
   @include custom-scrollbar;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+}
+
+.filterEmptyRow td {
+  padding: 0;
+  border-bottom: none;
+  vertical-align: middle;
+}
+
+.filterEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  min-height: 220px;
+  padding: $space-8 $space-4;
+  text-align: center;
+}
+
+.filterEmptyTitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.filterEmptyText {
+  margin: 0;
+  max-width: 320px;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  line-height: 1.5;
 }
 
 // ─── Table head ───────────────────────────────────────────────────────────────
@@ -328,7 +361,7 @@
   text-align: left;
   border-bottom: 1px solid $color-border;
   white-space: nowrap;
-  background: $color-surface;
+  background: $color-overlay;
   user-select: none;
 }
 
@@ -364,7 +397,7 @@
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: $color-row-hover;
   }
 }
 
@@ -374,13 +407,6 @@
   align-items: center;
   gap: $space-2;
   white-space: nowrap;
-}
-
-.tickerDot {
-  width: 8px;
-  height: 8px;
-  border-radius: $radius-full;
-  flex-shrink: 0;
 }
 
 .tickerSymbol {
@@ -577,6 +603,12 @@
 .historyTdNum {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.historyTickerCell {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
 }
 
 .historyTicker {

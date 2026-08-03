@@ -34,7 +34,7 @@
   width: 56px;
   height: 56px;
   border-radius: $radius-xl;
-  background: rgba(255, 255, 255, 0.03);
+  background: $color-overlay;
   border: 1px solid $color-border;
   display: flex;
   align-items: center;

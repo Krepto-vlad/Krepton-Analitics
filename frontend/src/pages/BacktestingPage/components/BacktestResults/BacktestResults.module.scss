@@ -103,9 +103,16 @@
   flex-direction: column;
   gap: $space-2;
   padding: $space-4;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid $color-border-strong;
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.02);
+  background: $color-surface;
+}
+
+.resultTickerRow {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
 }
 
 .resultTicker {
@@ -159,13 +166,13 @@
   padding: $space-2 $space-3;
   font-size: $font-size-xs;
   color: $color-foreground-muted;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: $color-benchmark-muted;
+  border: 1px solid $color-benchmark-border;
   border-radius: $radius-md;
 }
 
 .benchmarkValue {
-  color: #38bdf8;
+  color: $color-benchmark;
   font-weight: $font-weight-semibold;
 }
 

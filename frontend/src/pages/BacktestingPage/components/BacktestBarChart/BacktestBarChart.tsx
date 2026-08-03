@@ -73,28 +73,37 @@ export function BacktestGroupedPeriodChart({ title, periods, legend }: BacktestG
     1
   );
 
+  const gridSteps = [0, 0.25, 0.5, 0.75, 1];
+
   return (
     <div className={styles.chart}>
       <h3 className={styles.title}>{title}</h3>
-      <div className={styles.groupedPlot}>
-        {periods.map((period) => (
-          <div key={period.label} className={styles.periodGroup}>
-            <div className={styles.periodBars}>
-              {period.bars.map((bar) => (
-                <div
-                  key={bar.id}
-                  className={styles.periodBar}
-                  style={{
-                    height: `${normalizeBarHeight(bar.value, maxValue)}%`,
-                    backgroundColor: bar.color,
-                  }}
-                  title={`${bar.label}: ${bar.value.toFixed(1)}%`}
-                />
-              ))}
+      <div className={styles.plotWrapper}>
+        <div className={styles.gridLines}>
+          {gridSteps.map((step) => (
+            <div key={step} className={styles.gridLine} />
+          ))}
+        </div>
+        <div className={styles.groupedPlot}>
+          {periods.map((period) => (
+            <div key={period.label} className={styles.periodGroup}>
+              <div className={styles.periodBars}>
+                {period.bars.map((bar) => (
+                  <div
+                    key={bar.id}
+                    className={styles.periodBar}
+                    style={{
+                      height: `${normalizeBarHeight(bar.value, maxValue)}%`,
+                      backgroundColor: bar.color,
+                    }}
+                    title={`${bar.label}: ${bar.value.toFixed(1)}%`}
+                  />
+                ))}
+              </div>
+              <span className={styles.periodLabel}>{period.label}</span>
             </div>
-            <span className={styles.periodLabel}>{period.label}</span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       {legend.length > 1 && (
         <div className={styles.legend}>

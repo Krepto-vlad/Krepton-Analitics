@@ -4,10 +4,10 @@
 .header {
   position: fixed;
   top: 0;
-  left: 64px;
+  left: $sidebar-width-collapsed;
   right: 0;
   height: 60px;
-  background: #0d0d10;
+  background: $color-header;
   border-bottom: 1px solid $color-border;
   @include flex-between;
   padding: 0 $space-6;
@@ -15,7 +15,7 @@
   transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.sidebarExpanded {
-    left: 220px;
+    left: $sidebar-width-expanded;
   }
 }
 
@@ -40,8 +40,8 @@
   align-items: center;
   padding: 2px $space-2;
   border-radius: $radius-full;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: $color-primary-muted;
+  border: 1px solid $color-primary-border;
   color: $color-primary;
   font-size: $font-size-xs;
   font-weight: $font-weight-bold;
@@ -80,8 +80,8 @@
 .currencySwitcher {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid $color-border;
+  background: $color-overlay;
+  border: 1px solid $color-border-strong;
   border-radius: $radius-md;
   padding: 2px;
   gap: 2px;
@@ -89,7 +89,7 @@
 
 .currencyButton {
   padding: $space-1 $space-3;
-  border: none;
+  border: 1px solid transparent;
   border-radius: $radius-sm;
   background: transparent;
   color: $color-foreground-muted;
@@ -99,15 +99,18 @@
   letter-spacing: 0.04em;
   transition:
     color 0.15s ease,
-    background 0.15s ease;
+    background 0.15s ease,
+    border-color 0.15s ease;
 
   &:hover {
     color: $color-foreground;
+    background: $color-overlay-hover;
   }
 
   &.activeCurrency {
-    background: $color-surface-elevated;
+    background: $color-surface;
     color: $color-foreground;
+    border-color: $color-border-strong;
     box-shadow: $shadow-sm;
   }
 }
@@ -132,7 +135,12 @@
   &:hover {
     color: $color-foreground;
     border-color: $color-border-strong;
-    background: rgba(128, 128, 128, 0.08);
+    background: $color-overlay-strong;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
   }
 }
 
@@ -144,11 +152,12 @@
   height: 6px;
   border-radius: $radius-full;
   background: $color-danger;
-  border: 1px solid #0d0d10;
+  border: 1px solid $color-header;
 }
 
 .dateLabel {
   font-size: $font-size-sm;
-  color: $color-foreground-muted;
+  color: $color-foreground;
+  font-weight: $font-weight-medium;
   white-space: nowrap;
 }

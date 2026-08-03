@@ -1,5 +1,6 @@
 import { CalendarDays } from 'lucide-react';
 import type { Currency } from '../../../../constants';
+import { TickerAvatar } from '../../../../components/ui';
 import type { DividendCalendarPayment } from '../../../../types/dividend.types';
 import { formatMoney } from '../../../../utils/moneyDisplay';
 import styles from './UpcomingPaymentsList.module.scss';
@@ -7,6 +8,7 @@ import styles from './UpcomingPaymentsList.module.scss';
 interface UpcomingPaymentsListProps {
   payments: DividendCalendarPayment[];
   displayCurrency: Currency;
+  logoByTicker?: Record<string, string | null>;
 }
 
 function formatPaymentDate(isoDate: string): string {
@@ -14,11 +16,11 @@ function formatPaymentDate(isoDate: string): string {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
 }
 
-function getTickerInitials(ticker: string): string {
-  return ticker.slice(0, 2).toUpperCase();
-}
-
-export function UpcomingPaymentsList({ payments, displayCurrency }: UpcomingPaymentsListProps) {
+export function UpcomingPaymentsList({
+  payments,
+  displayCurrency,
+  logoByTicker = {},
+}: UpcomingPaymentsListProps) {
   return (
     <section className={styles.card}>
       <div className={styles.header}>
@@ -34,15 +36,17 @@ export function UpcomingPaymentsList({ payments, displayCurrency }: UpcomingPaym
         <ul className={styles.list}>
           {payments.map((payment) => {
             const isCoupon = payment.paymentType === 'coupon';
-            const avatarToneClass = isCoupon ? styles.avatarCoupon : styles.avatarDividend;
             const textToneClass = isCoupon ? styles.textCoupon : styles.textDividend;
+            const normalizedTicker = payment.ticker.toUpperCase();
 
             return (
               <li key={`${payment.ticker}-${payment.paymentDate}`} className={styles.row}>
                 <div className={styles.asset}>
-                  <span className={`${styles.avatar} ${avatarToneClass}`}>
-                    {getTickerInitials(payment.ticker)}
-                  </span>
+                  <TickerAvatar
+                    ticker={normalizedTicker}
+                    logoUrl={logoByTicker[normalizedTicker] ?? null}
+                    size="md"
+                  />
                   <div className={styles.assetMeta}>
                     <span className={styles.ticker}>{payment.ticker}</span>
                     <span className={`${styles.paymentType} ${textToneClass}`}>

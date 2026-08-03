@@ -10,6 +10,7 @@ import {
   formatMoney,
   getTodayIsoDate,
 } from '../../../../utils/moneyDisplay';
+import { TickerAvatar } from '../../../../components/ui';
 import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import styles from './WatchlistPanel.module.scss';
 
@@ -84,8 +85,6 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
         </div>
       </div>
 
-      <div className={styles.divider} />
-
       {isLoading || isEmpty ? (
         <DashboardPanelEmptyState
           isLoading={isLoading}
@@ -111,7 +110,7 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
               return (
                 <div key={item.id} className={styles.item}>
                   <div className={styles.itemTicker}>
-                    <div className={styles.tickerAvatar}>{item.ticker.slice(0, 2)}</div>
+                    <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} />
                     <div className={styles.tickerInfo}>
                       <span className={styles.tickerSymbol}>{item.ticker}</span>
                       <span className={styles.companyName}>{item.companyName}</span>

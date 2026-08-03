@@ -40,6 +40,32 @@ $breakpoint-xl: 1280px;
   padding: $padding;
 }
 
+// ─── Fixed viewport cell grid ─────────────────────────────────────────────────
+// Section clips a viewport-fixed grid so content scrolls while cells stay put.
+
+@mixin section-clips-fixed-grid {
+  position: relative;
+  // Creates a containing clip so position:fixed children stay viewport-aligned
+  // but only paint inside this section (reveal/hide on scroll).
+  clip-path: inset(0);
+}
+
+@mixin fixed-viewport-cell-grid($cell-size: $cell-grid-size, $opacity: $cell-grid-opacity) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  // Prefer % over 100vw — vw includes scrollbar and causes horizontal overflow.
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: $opacity;
+  background-image:
+    linear-gradient($color-divider 1px, transparent 1px),
+    linear-gradient(90deg, $color-divider 1px, transparent 1px);
+  background-size: $cell-size $cell-size;
+}
+
 // ─── Truncate text ───────────────────────────────────────────────────────────
 
 @mixin truncate {
@@ -66,7 +92,7 @@ $breakpoint-xl: 1280px;
 
 @mixin custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: #{$color-scrollbar} transparent;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -76,10 +102,10 @@ $breakpoint-xl: 1280px;
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: $color-scrollbar;
     border-radius: $radius-full;
     &:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: $color-scrollbar-hover;
     }
   }
 }
@@ -116,9 +142,12 @@ $breakpoint-xl: 1280px;
   color: $color-chart-down;
 }
 
-// ─── Browser autofill (dark inputs) ──────────────────────────────────────────
+// ─── Browser autofill ─────────────────────────────────────────────────────────
 
-@mixin suppress-autofill-highlight($background: #27272a, $text-color: #fafafa) {
+@mixin suppress-autofill-highlight(
+  $background: var(--color-surface-elevated),
+  $text-color: var(--color-foreground)
+) {
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus,

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { ROUTES } from '../constants';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 import { useAppSelector } from '../hooks/useAppSelector';
@@ -63,7 +63,6 @@ const VerifyEmailPage = lazy(() =>
 const WatchlistPage = () => (
   <div style={{ color: '#fff', padding: 40 }}>Watchlist — coming soon</div>
 );
-const HistoryPage = () => <div style={{ color: '#fff', padding: 40 }}>History — coming soon</div>;
 const NotFoundPage = () => <div style={{ color: '#fff', padding: 40 }}>404 — Not Found</div>;
 
 function PageLoader() {
@@ -101,6 +100,20 @@ function ProtectedLayout() {
   return <AuthenticatedShell />;
 }
 
+/** Scroll to top on route change. Landing handles its own scroll (Features deep-link). */
+function ScrollToTopOnNavigate() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (pathname === ROUTES.HOME) {
+      return;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
+}
+
 function AppRoutes() {
   const dispatch = useAppDispatch();
 
@@ -110,6 +123,7 @@ function AppRoutes() {
 
   return (
     <Suspense fallback={<PageLoader />}>
+      <ScrollToTopOnNavigate />
       <Routes>
         {/* Public marketing pages */}
         <Route path={ROUTES.HOME} element={<LandingPage />} />
@@ -131,7 +145,6 @@ function AppRoutes() {
           <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
           <Route path={ROUTES.WATCHLIST} element={<WatchlistPage />} />
-          <Route path={ROUTES.HISTORY} element={<HistoryPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

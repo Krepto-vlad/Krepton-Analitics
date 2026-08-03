@@ -52,7 +52,7 @@
   text-decoration: none;
   border: 1px solid $color-border;
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.02);
+  background: $color-overlay;
   white-space: nowrap;
   transition:
     color $transition-fast,
@@ -61,7 +61,7 @@
 
   &:hover {
     color: $color-primary;
-    border-color: rgba(16, 185, 129, 0.35);
+    border-color: $color-primary-border;
     background: $color-primary-muted;
   }
 }
@@ -93,17 +93,13 @@
   font-family: $font-mono;
 }
 
-.divider {
-  height: 1px;
-  background: $color-border;
-}
-
 .headerRow {
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: $space-3;
   align-items: center;
-  padding: 0 $space-1;
+  padding: 0 $space-1 $space-2;
+  border-bottom: 1px solid $color-divider;
 }
 
 .colTicker,
@@ -134,7 +130,6 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: $space-1;
   @include custom-scrollbar;
 }
 
@@ -143,12 +138,16 @@
   grid-template-columns: 1fr auto auto;
   gap: $space-3;
   align-items: center;
-  padding: $space-2 $space-1;
-  border-radius: $radius-md;
+  padding: $space-3 $space-1;
+  border-bottom: 1px solid $color-divider;
   transition: background $transition-fast;
 
+  &:last-child {
+    border-bottom: none;
+  }
+
   &:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: $color-row-hover;
   }
 }
 

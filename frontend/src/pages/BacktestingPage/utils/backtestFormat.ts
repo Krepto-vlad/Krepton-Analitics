@@ -42,7 +42,7 @@ export function convertBacktestResponseForDisplay(
 }
 
 export const BACKTEST_TICKER_COLORS = ['#10b981', '#34d399', '#059669', '#6ee7b7'] as const;
-export const BACKTEST_BENCHMARK_COLOR = '#38bdf8';
+export const BACKTEST_BENCHMARK_COLOR = 'var(--color-benchmark)';
 export const BACKTEST_PORTFOLIO_COLOR = '#10b981';
 
 export function getBacktestTickerColor(index: number): string {

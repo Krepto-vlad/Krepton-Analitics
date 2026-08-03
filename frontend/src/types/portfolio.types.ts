@@ -10,6 +10,7 @@ export interface PortfolioPosition {
   currentPrice: number;
   currency: string;
   sector: string | null;
+  logoUrl: string | null;
 }
 
 export interface PortfolioStats {

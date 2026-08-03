@@ -16,12 +16,14 @@ import type {
   NewsSummaryMarketBenchmark,
   NewsSummaryResponse,
 } from '../../../../types/ai.types';
+import { TickerAvatar } from '../../../../components/ui';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import {
   clearPersistedNewsBriefing,
   loadPersistedNewsBriefing,
   savePersistedNewsBriefing,
 } from '../../../../utils/newsBriefingStorage';
+import { buildLogoByTicker } from '../../../../utils/tickerLogos';
 import styles from './NewsSummaryPanel.module.scss';
 
 interface NewsSummaryPanelProps {
@@ -86,6 +88,8 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
     ],
     [holdings]
   );
+
+  const logoByTicker = useMemo(() => buildLogoByTicker(holdings), [holdings]);
 
   const availableTickerSymbols = useMemo(
     () => availableTickers.map((position) => position.ticker.toUpperCase()),
@@ -406,9 +410,16 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
               {summary.holdingInsights.map((insight) => (
                 <article key={insight.ticker} className={styles.insightCard}>
                   <div className={styles.insightHeader}>
-                    <div>
-                      <span className={styles.insightTicker}>${insight.ticker}</span>
-                      <p className={styles.insightCompany}>{insight.companyName}</p>
+                    <div className={styles.insightIdentity}>
+                      <TickerAvatar
+                        ticker={insight.ticker}
+                        logoUrl={logoByTicker[insight.ticker.toUpperCase()] ?? null}
+                        size="sm"
+                      />
+                      <div>
+                        <span className={styles.insightTicker}>${insight.ticker}</span>
+                        <p className={styles.insightCompany}>{insight.companyName}</p>
+                      </div>
                     </div>
                     <span
                       className={`${styles.sentiment} ${styles[`sentiment_${insight.sentiment}`]}`}

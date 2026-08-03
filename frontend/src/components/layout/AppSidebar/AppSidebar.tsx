@@ -8,7 +8,6 @@ import {
   FlaskConical,
   CalendarRange,
   Newspaper,
-  Clock,
   LogOut,
 } from 'lucide-react';
 import { ROUTES } from '../../../constants';
@@ -32,7 +31,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Stock Matrix', icon: <BarChart3 size={18} />, route: ROUTES.SCREENER },
   { label: 'Backtesting', icon: <FlaskConical size={18} />, route: ROUTES.BACKTESTING },
   { label: 'Dividend Calendar', icon: <CalendarRange size={18} />, route: ROUTES.DIVIDENDS },
-  { label: 'History', icon: <Clock size={18} />, route: ROUTES.HISTORY },
 ];
 
 interface AppSidebarProps {
@@ -64,7 +62,7 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
           onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.DASHBOARD)}
         >
           <div className={styles.logoIcon}>
-            <TrendingUp size={14} color="#fff" />
+            <TrendingUp size={14} aria-hidden="true" />
           </div>
           <span className={styles.logoText}>
             Krepton <span>Analytics</span>

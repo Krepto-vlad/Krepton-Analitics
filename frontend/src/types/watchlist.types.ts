@@ -19,6 +19,7 @@ export interface WatchlistItem {
   currency: string;
   fiftyTwoWeekHigh: number | null;
   fiftyTwoWeekLow: number | null;
+  logoUrl: string | null;
 }
 
 export interface WatchlistState {

@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isAnyOf } from '@reduxjs/toolkit';
 import type {
   PortfolioState,
   PortfolioPosition,
@@ -38,38 +38,7 @@ import {
   getTodayIsoDate,
   resolveEquityHistoryForDisplay,
 } from '../../utils/moneyDisplay';
-
-// ─── Equity history (simulated — dashboard placeholder) ───────────────────────
-
-function lcgRandom(seed: number): number {
-  return ((seed * 1664525 + 1013904223) >>> 0) / 4294967295;
-}
-
-function generateEquityHistory(): EquityDataPoint[] {
-  const result: EquityDataPoint[] = [];
-  const startDate = new Date('2024-01-02');
-  const endDate = new Date('2026-06-30');
-  const totalMs = endDate.getTime() - startDate.getTime();
-
-  let value = 820000;
-  const cursor = new Date(startDate);
-
-  while (cursor <= endDate) {
-    const dayOfWeek = cursor.getDay();
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      const progress = (cursor.getTime() - startDate.getTime()) / totalMs;
-      const target = 820000 + 170000 * Math.pow(progress, 0.7);
-      const rand = lcgRandom(result.length);
-      const drift = (target - value) * 0.035;
-      const noise = (rand - 0.5) * 16000;
-      value = Math.max(value + drift + noise, 750000);
-      result.push({ time: cursor.toISOString().slice(0, 10), value: Math.round(value) });
-    }
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  return result;
-}
+import { googleLoginThunk, loginThunk, logoutThunk, verifyEmailThunk } from '../auth/authSlice';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -108,6 +77,7 @@ async function enrichStoredPositions(
       sector: storedPosition.sector,
       entryDate: storedPosition.entryDate,
       currentPrice: displayCurrentPrice,
+      logoUrl: quote?.logoUrl ?? null,
     };
   });
 }
@@ -153,6 +123,7 @@ function mergeQuotePricesIntoPositions(
       ...position,
       currentPrice: convertAmountWithRate(quote.price, fxRate),
       currency: displayCurrency,
+      logoUrl: quote.logoUrl ?? position.logoUrl ?? null,
     };
   });
 }
@@ -405,6 +376,16 @@ export const fetchPortfolioNewsThunk = createAsyncThunk<
 
 // ─── Initial state ────────────────────────────────────────────────────────────
 
+const EMPTY_PORTFOLIO_STATS = {
+  totalValue: 0,
+  totalPnl: 0,
+  unrealizedPnl: 0,
+  realizedPnl: 0,
+  dayPnl: 0,
+  totalPnlPercent: 0,
+  dayPnlPercent: 0,
+};
+
 const initialState: PortfolioState = {
   positions: [],
   positionsTotal: 0,
@@ -417,26 +398,12 @@ const initialState: PortfolioState = {
   transactionsHasMore: false,
   isLoadingTransactions: false,
   isLoadingMoreTransactions: false,
-  stats: {
-    totalValue: 990100,
-    totalPnl: 127430,
-    unrealizedPnl: 89218,
-    realizedPnl: 38212,
-    dayPnl: -2440,
-    totalPnlPercent: 19.1,
-    dayPnlPercent: -0.25,
-  },
-  sectorAllocations: [
-    { sector: 'Information Technology', percentage: 70, color: '#ef4444' },
-    { sector: 'Financials', percentage: 14, color: '#f59e0b' },
-    { sector: 'Healthcare', percentage: 8, color: '#10b981' },
-    { sector: 'Industrials', percentage: 4, color: '#3b82f6' },
-    { sector: 'Energy', percentage: 4, color: '#8b5cf6' },
-  ],
+  stats: EMPTY_PORTFOLIO_STATS,
+  sectorAllocations: [],
   news: [],
   isLoadingNews: false,
   newsError: null,
-  equityHistory: generateEquityHistory(),
+  equityHistory: [],
   portfolioHealth: {
     alignmentScore: null,
     strategyId: null,
@@ -534,9 +501,7 @@ const portfolioSlice = createSlice({
         state.isLoadingMoreTransactions = false;
       })
       .addCase(fetchPortfolioEquityHistoryThunk.fulfilled, (state, action) => {
-        if (action.payload.length > 0) {
-          state.equityHistory = action.payload;
-        }
+        state.equityHistory = action.payload;
       })
       .addCase(refreshHoldingsQuotesThunk.fulfilled, (state, action) => {
         state.summaryPositions = action.payload.summaryPositions;
@@ -563,15 +528,29 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolioRebalancingThunk.fulfilled, (state, action) => {
         state.portfolioHealth.isLoading = false;
-        state.portfolioHealth.alignmentScore = action.payload.alignmentScore;
         state.portfolioHealth.strategyId = action.payload.strategyId;
         state.portfolioHealth.strategyName = action.payload.strategyName;
-        state.portfolioHealth.deviations = action.payload.deviations;
+
+        const hasHoldings =
+          action.payload.totalPortfolioValue > 0 && action.payload.tickerMappings.length > 0;
+
+        // Keep the gauge/alert empty until the user has real portfolio data.
+        state.portfolioHealth.alignmentScore = hasHoldings ? action.payload.alignmentScore : null;
+        state.portfolioHealth.deviations = hasHoldings ? action.payload.deviations : [];
       })
       .addCase(fetchPortfolioRebalancingThunk.rejected, (state, action) => {
         state.portfolioHealth.isLoading = false;
         state.portfolioHealth.error = action.payload ?? ERROR_MESSAGES.PORTFOLIO_REBALANCING_FAILED;
-      });
+      })
+      .addMatcher(
+        isAnyOf(
+          logoutThunk.fulfilled,
+          loginThunk.fulfilled,
+          googleLoginThunk.fulfilled,
+          verifyEmailThunk.fulfilled
+        ),
+        () => initialState
+      );
   },
 });
 

@@ -6,7 +6,7 @@ import {
   DASHBOARD_NEWS_INITIAL_VISIBLE,
   DASHBOARD_NEWS_LOAD_MORE_STEP,
 } from '../../../../constants';
-import { ErrorBanner } from '../../../../components/ui';
+import { ErrorBanner, TickerAvatar } from '../../../../components/ui';
 import type { NewsItem } from '../../../../types/portfolio.types';
 import styles from './NewsFeed.module.scss';
 
@@ -20,6 +20,8 @@ interface NewsFeedProps {
   showHeader?: boolean;
   initialVisibleCount?: number;
   loadMoreStep?: number;
+  /** Upper-case ticker → logo URL from holdings/watchlist quotes. */
+  logoByTicker?: Record<string, string | null>;
 }
 
 export function NewsFeed({
@@ -32,6 +34,7 @@ export function NewsFeed({
   showHeader = true,
   initialVisibleCount = DASHBOARD_NEWS_INITIAL_VISIBLE,
   loadMoreStep = DASHBOARD_NEWS_LOAD_MORE_STEP,
+  logoByTicker = {},
 }: NewsFeedProps) {
   const newsKey = useMemo(() => news.map((item) => item.id).join('|'), [news]);
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
@@ -107,11 +110,19 @@ export function NewsFeed({
           visibleNews.map((item) => (
             <article key={item.id} className={styles.newsItem}>
               <div className={styles.tickerTags}>
-                {item.tickers.map((ticker) => (
-                  <span key={ticker} className={styles.tickerTag} title={ticker}>
-                    ${ticker}
-                  </span>
-                ))}
+                {item.tickers.map((ticker) => {
+                  const normalizedTicker = ticker.toUpperCase();
+                  return (
+                    <span key={ticker} className={styles.tickerTag} title={normalizedTicker}>
+                      <TickerAvatar
+                        ticker={normalizedTicker}
+                        logoUrl={logoByTicker[normalizedTicker] ?? null}
+                        size="xs"
+                      />
+                      <span className={styles.tickerSymbol}>${normalizedTicker}</span>
+                    </span>
+                  );
+                })}
               </div>
               <div className={styles.newsContent}>
                 <div className={styles.newsMeta}>

@@ -7,12 +7,12 @@ export function Footer() {
       <div className={styles.footerInner}>
         <div className={styles.footerBrand}>
           <div className={styles.footerBrandIcon}>
-            <TrendingUp size={10} color="#fff" />
+            <TrendingUp size={10} />
           </div>
           Krepton Analytics — Privacy-first portfolio intelligence
         </div>
         <div className={styles.footerDisclaimer}>
-          <Lock size={11} color="#10B981" />
+          <Lock size={11} className={styles.footerDisclaimerIcon} />
           Not financial advice. For educational purposes only.
         </div>
       </div>

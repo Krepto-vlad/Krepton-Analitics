@@ -3,8 +3,27 @@ import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi, AreaData, Time } from 'lightweight-charts';
 import type { EquityDataPoint } from '../types/portfolio.types';
 import { EQUITY_PERIODS, CHART_COLORS } from '../constants';
+import { useAppSelector } from './useAppSelector';
 
 export type EquityPeriod = (typeof EQUITY_PERIODS)[number]['value'];
+
+function readCssColor(variableName: string, fallback: string): string {
+  if (typeof document === 'undefined') {
+    return fallback;
+  }
+
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  return value.length > 0 ? value : fallback;
+}
+
+function getThemeChartColors(): { text: string; grid: string; line: string; areaTop: string } {
+  return {
+    text: readCssColor('--color-foreground-muted', CHART_COLORS.TEXT),
+    grid: readCssColor('--color-chart-grid', CHART_COLORS.GRID),
+    line: readCssColor('--color-primary', '#10b981'),
+    areaTop: readCssColor('--color-primary-muted', 'rgba(16, 185, 129, 0.22)'),
+  };
+}
 
 export function filterHistoryByPeriod(
   history: EquityDataPoint[],
@@ -55,6 +74,8 @@ export function useEquityChart(
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<EquityPeriod>(defaultPeriod);
+  const [isChartReady, setIsChartReady] = useState(false);
+  const theme = useAppSelector((state) => state.ui.theme);
 
   const filteredHistory = useMemo(
     () => filterHistoryByPeriod(history, selectedPeriod),
@@ -63,22 +84,24 @@ export function useEquityChart(
 
   const currentValue = filteredHistory.at(-1)?.value ?? 0;
 
-  // Create chart instance once on mount
+  // Create chart once — do not recreate on currency/theme change.
   useEffect(() => {
     if (!containerRef.current) return;
+
+    const colors = getThemeChartColors();
 
     const chart = createChart(containerRef.current, {
       width: containerRef.current.clientWidth,
       height: containerRef.current.clientHeight || 180,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: CHART_COLORS.TEXT,
+        textColor: colors.text,
         attributionLogo: false,
       },
       localization: { priceFormatter: (value: number) => formatChartPrice(value, currency) },
       grid: {
         vertLines: { visible: false },
-        horzLines: { color: 'rgba(255,255,255,0.04)' },
+        horzLines: { color: colors.grid },
       },
       timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
       rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.05 } },
@@ -88,8 +111,8 @@ export function useEquityChart(
     });
 
     const areaSeries = chart.addSeries(AreaSeries, {
-      lineColor: '#10b981',
-      topColor: 'rgba(16, 185, 129, 0.22)',
+      lineColor: colors.line,
+      topColor: colors.areaTop,
       bottomColor: 'rgba(16, 185, 129, 0)',
       lineWidth: 2,
       priceLineVisible: false,
@@ -98,12 +121,13 @@ export function useEquityChart(
 
     chartRef.current = chart;
     seriesRef.current = areaSeries;
+    setIsChartReady(true);
 
     const resizeObserver = new ResizeObserver(() => {
       if (containerRef.current && chartRef.current) {
         chartRef.current.applyOptions({
           width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight,
+          height: containerRef.current.clientHeight || 180,
         });
       }
     });
@@ -114,12 +138,41 @@ export function useEquityChart(
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      setIsChartReady(false);
     };
-  }, [currency]);
+    // Intentionally mount-only: currency/theme updates go through applyOptions below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chart must not remount on currency
+  }, []);
 
-  // Push new data whenever the filtered slice changes
+  // Update axis labels + theme-dependent chart chrome.
   useEffect(() => {
-    if (!seriesRef.current || !chartRef.current || filteredHistory.length === 0) return;
+    if (!chartRef.current || !seriesRef.current) return;
+
+    const colors = getThemeChartColors();
+
+    chartRef.current.applyOptions({
+      localization: { priceFormatter: (value: number) => formatChartPrice(value, currency) },
+      layout: {
+        textColor: colors.text,
+      },
+      grid: {
+        horzLines: { color: colors.grid },
+      },
+    });
+
+    seriesRef.current.applyOptions({
+      lineColor: colors.line,
+      topColor: colors.areaTop,
+    });
+  }, [currency, theme]);
+
+  // Push series data whenever the filtered slice changes (or chart becomes ready).
+  useEffect(() => {
+    if (!isChartReady || !seriesRef.current || !chartRef.current) return;
+    if (filteredHistory.length === 0) {
+      seriesRef.current.setData([]);
+      return;
+    }
 
     const chartData: AreaData<Time>[] = filteredHistory.map((point) => ({
       time: point.time as Time,
@@ -128,7 +181,7 @@ export function useEquityChart(
 
     seriesRef.current.setData(chartData);
     chartRef.current.timeScale().fitContent();
-  }, [filteredHistory]);
+  }, [filteredHistory, isChartReady]);
 
   return { containerRef, selectedPeriod, setSelectedPeriod, filteredHistory, currentValue };
 }

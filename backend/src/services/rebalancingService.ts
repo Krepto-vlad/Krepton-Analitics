@@ -421,6 +421,31 @@ export async function buildRebalancingAnalysis(
   const totalPortfolioValue = roundMoney(
     profiles.reduce((sum, profile) => sum + profile.marketValue, 0)
   );
+  const customBaseStrategyId = savedStrategy.customBaseStrategyId;
+  const savedCustomStrategy = buildSavedCustomStrategySummary(savedStrategy);
+  const hasHoldings = profiles.length > 0 && totalPortfolioValue > 0;
+
+  // Empty portfolio: keep strategy metadata/targets, but do not invent an alignment score or drift.
+  if (!hasHoldings) {
+    const { targetAllocations } = buildVisibleAllocationItems(strategy, {}, targetWeights);
+
+    return {
+      strategyId: savedStrategy.strategyId,
+      strategyName: strategy.name,
+      strategyDescription: strategy.description,
+      strategyPhilosophy: strategy.philosophy,
+      investmentHorizon: strategy.investmentHorizon,
+      customBaseStrategyId,
+      savedCustomStrategy,
+      displayCurrency,
+      totalPortfolioValue: 0,
+      alignmentScore: 0,
+      targetAllocations,
+      currentAllocations: [],
+      deviations: [],
+      tickerMappings: [],
+    };
+  }
 
   const { currentAllocations, targetAllocations } = buildVisibleAllocationItems(
     strategy,
@@ -442,8 +467,6 @@ export async function buildRebalancingAnalysis(
     };
   });
 
-  const customBaseStrategyId = savedStrategy.customBaseStrategyId;
-
   return {
     strategyId: savedStrategy.strategyId,
     strategyName: strategy.name,
@@ -451,7 +474,7 @@ export async function buildRebalancingAnalysis(
     strategyPhilosophy: strategy.philosophy,
     investmentHorizon: strategy.investmentHorizon,
     customBaseStrategyId,
-    savedCustomStrategy: buildSavedCustomStrategySummary(savedStrategy),
+    savedCustomStrategy,
     displayCurrency,
     totalPortfolioValue,
     alignmentScore: computeAlignmentScore(strategy, currentWeights, targetWeights),

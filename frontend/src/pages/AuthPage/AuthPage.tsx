@@ -9,6 +9,8 @@ import {
   Lock,
   Check,
   AlertTriangle,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { ERROR_MESSAGES, ROUTES } from '../../constants';
 import { Button, ErrorBanner } from '../../components/ui';
@@ -16,6 +18,7 @@ import { Input } from '../../components/ui';
 import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { useTheme } from '../../hooks/useTheme';
 import {
   registerThunk,
   loginThunk,
@@ -47,6 +50,7 @@ interface AuthPageProps {
 export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { theme, toggleTheme } = useTheme();
   const { isLoading, error, user, infoMessage, pendingVerificationEmail } = useAppSelector(
     (state) => state.auth
   );
@@ -129,10 +133,20 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         Back to home
       </button>
 
+      <button
+        type="button"
+        className={styles.themeToggle}
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+      >
+        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
+
       <div className={styles.content}>
         <div className={styles.logoMark}>
           <div className={styles.logoIcon}>
-            <TrendingUp size={16} color="#fff" />
+            <TrendingUp size={16} />
           </div>
           <span className={styles.logoText}>
             Krepton <span>Analytics</span>
@@ -247,12 +261,11 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                       <div
                         key={i}
                         className={styles.strengthBar}
-                        style={{
-                          background:
-                            i <= passwordStrength
-                              ? PASSWORD_STRENGTH_COLORS[passwordStrength]
-                              : 'rgba(255,255,255,0.1)',
-                        }}
+                        style={
+                          i <= passwordStrength
+                            ? { background: PASSWORD_STRENGTH_COLORS[passwordStrength] }
+                            : undefined
+                        }
                       />
                     ))}
                   </div>
@@ -272,42 +285,22 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   {PASSWORD_RULES.map((rule) => {
                     const passed = password.length > 0 && rule.test(password);
                     const touched = password.length > 0;
+                    const ruleStateClass = passed
+                      ? styles.passed
+                      : touched
+                        ? styles.failed
+                        : undefined;
                     return (
                       <div
                         key={rule.id}
-                        className={styles.passwordRule}
-                        style={{
-                          color: passed
-                            ? 'rgba(255,255,255,0.65)'
-                            : touched
-                              ? 'rgba(239,68,68,0.7)'
-                              : 'rgba(255,255,255,0.3)',
-                        }}
+                        className={`${styles.passwordRule} ${ruleStateClass ?? ''}`.trim()}
                       >
                         <div
-                          className={styles.passwordRuleIcon}
-                          style={{
-                            background: passed
-                              ? 'rgba(16,185,129,0.2)'
-                              : touched
-                                ? 'rgba(239,68,68,0.15)'
-                                : 'rgba(255,255,255,0.06)',
-                            border: `1px solid ${
-                              passed
-                                ? 'rgba(16,185,129,0.5)'
-                                : touched
-                                  ? 'rgba(239,68,68,0.4)'
-                                  : 'rgba(255,255,255,0.1)'
-                            }`,
-                          }}
+                          className={`${styles.passwordRuleIcon} ${ruleStateClass ?? ''}`.trim()}
                         >
-                          {passed && <Check size={8} color="#10B981" />}
+                          {passed && <Check size={8} />}
                           {!passed && touched && (
-                            <span
-                              style={{ fontSize: '0.45rem', color: '#EF4444', fontWeight: 700 }}
-                            >
-                              ✕
-                            </span>
+                            <span className={styles.passwordRuleFailMark}>✕</span>
                           )}
                         </div>
                         {rule.label}
@@ -337,11 +330,9 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 rightElement={
                   confirmPassword.length > 0 ? (
                     passwordsMatch ? (
-                      <Check size={14} color="#10B981" />
+                      <Check size={14} className={styles.confirmSuccessIcon} />
                     ) : (
-                      <span style={{ fontSize: '0.7rem', color: '#EF4444', fontWeight: 700 }}>
-                        ✕
-                      </span>
+                      <span className={styles.confirmFailMark}>✕</span>
                     )
                   ) : undefined
                 }
@@ -355,7 +346,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 role="note"
                 aria-label="Privacy protection notice"
               >
-                <Shield size={15} color="#10B981" style={{ flexShrink: 0, marginTop: 1 }} />
+                <Shield size={15} className={styles.privacyNoticeIcon} />
                 <p>
                   <strong>Privacy Protection Active:</strong> Real names or phone numbers are
                   strictly prohibited. Your identity is never linked to your financial data.
@@ -373,14 +364,8 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && setAgreed((v) => !v)}
               >
-                <div
-                  className={styles.checkbox}
-                  style={{
-                    background: agreed ? '#10B981' : 'transparent',
-                    border: agreed ? '1px solid #10B981' : '1px solid rgba(255,255,255,0.2)',
-                  }}
-                >
-                  {agreed && <Check size={10} color="#fff" />}
+                <div className={`${styles.checkbox} ${agreed ? styles.checked : ''}`.trim()}>
+                  {agreed && <Check size={10} />}
                 </div>
                 <span className={styles.agreementText}>
                   I understand that Krepton does not collect personal data and insights are for

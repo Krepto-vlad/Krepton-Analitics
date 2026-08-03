@@ -8,6 +8,7 @@ import {
 import { fetchStockSearch } from '../../../../api/stockApi';
 import type { StockSearchResult } from '../../../../types/stock.types';
 import type { WatchlistItem } from '../../../../types/watchlist.types';
+import { TickerAvatar } from '../../../../components/ui';
 import type { SelectedCompareTicker } from '../../utils/compareMatrix';
 import styles from './TickerPickerBar.module.scss';
 
@@ -156,7 +157,7 @@ export function TickerPickerBar({
           <div className={styles.chipsRow}>
             {selectedTickers.map((item) => (
               <span key={item.ticker} className={styles.tickerChip}>
-                ${item.ticker}
+                <TickerAvatar ticker={item.ticker} size="xs" />${item.ticker}
                 <button
                   type="button"
                   className={styles.chipRemove}
@@ -197,7 +198,10 @@ export function TickerPickerBar({
                         onClick={() => handleSelectResult(result)}
                         disabled={selectedTickerSet.has(result.ticker.toUpperCase())}
                       >
-                        <span className={styles.dropdownTicker}>{result.ticker}</span>
+                        <span className={styles.dropdownTickerCell}>
+                          <TickerAvatar ticker={result.ticker} size="xs" />
+                          <span className={styles.dropdownTicker}>{result.ticker}</span>
+                        </span>
                         <span className={styles.dropdownName}>{result.name}</span>
                         <span className={styles.dropdownExchange}>{result.exchange}</span>
                       </button>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Currency } from '../../../../constants';
 import type { StockCompareItem } from '../../../../types/stock.types';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
-import { AsyncStatePanel } from '../../../../components/ui';
+import { AsyncStatePanel, TickerAvatar } from '../../../../components/ui';
 import { getTodayIsoDate } from '../../../../utils/moneyDisplay';
 import {
   type CompareDisplayContext,
@@ -116,6 +116,7 @@ export function ComparisonMatrix({
               {items.map((item) => (
                 <th key={item.ticker} className={styles.tickerHeader}>
                   <div className={styles.tickerHeaderContent}>
+                    <TickerAvatar ticker={item.ticker} size="sm" />
                     <span className={styles.tickerSymbol}>${item.ticker}</span>
                     <span className={styles.tickerName}>{item.name}</span>
                   </div>

@@ -10,7 +10,7 @@
 .label {
   font-family: $font-mono;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: $color-foreground-muted;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -21,20 +21,20 @@
   gap: $space-2;
   padding: 10px $space-3;
   border-radius: $radius-md;
-  background: #27272a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: $color-surface-elevated;
+  border: 1px solid $color-border-strong;
   transition: border-color $transition-fast;
 
   &:focus-within {
-    border-color: rgba(16, 185, 129, 0.5);
+    border-color: $color-primary-border;
   }
 
   &.error {
-    border-color: rgba(239, 68, 68, 0.5);
+    border-color: $color-danger-border;
   }
 
   &.success {
-    border-color: rgba(16, 185, 129, 0.5);
+    border-color: $color-primary-border;
   }
 }
 
@@ -48,23 +48,23 @@
   font-size: $font-size-base;
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.2);
+    color: $color-foreground-subtle;
   }
 
-  @include suppress-autofill-highlight(#27272a, #fafafa);
+  @include suppress-autofill-highlight(var(--color-surface-elevated), var(--color-foreground));
 }
 
 .hint {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: $color-foreground-subtle;
 }
 
 .errorText {
   font-size: 0.8125rem;
-  color: rgba(239, 68, 68, 0.8);
+  color: $color-danger;
 }
 
 .successText {
   font-size: 0.8125rem;
-  color: rgba(16, 185, 129, 0.8);
+  color: $color-primary;
 }
