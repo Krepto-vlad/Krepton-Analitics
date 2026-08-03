@@ -1,26 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useAppSelector } from './useAppSelector';
+import { useAppDispatch } from './useAppDispatch';
+import { setTheme, toggleTheme as toggleThemeAction } from '../features/ui/uiSlice';
+import { persistThemePreference } from '../utils/theme';
+import type { Theme } from '../constants';
 
-export type Theme = 'dark' | 'light';
+export function useTheme(): {
+  theme: Theme;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+} {
+  const dispatch = useAppDispatch();
+  const theme = useAppSelector((state) => state.ui.theme);
 
-const THEME_STORAGE_KEY = 'krepton_theme';
-const DEFAULT_THEME: Theme = 'dark';
-
-function applyThemeToDocument(theme: Theme): void {
-  document.documentElement.setAttribute('data-theme', theme);
-}
-
-export function useTheme(): { theme: Theme; toggleTheme: () => void } {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    return stored === 'light' || stored === 'dark' ? stored : DEFAULT_THEME;
-  });
-
-  useEffect(() => {
-    applyThemeToDocument(theme);
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-  }, [theme]);
-
-  const toggleTheme = () => setTheme((previous) => (previous === 'dark' ? 'light' : 'dark'));
-
-  return { theme, toggleTheme };
+  return {
+    theme,
+    toggleTheme: () => {
+      const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
+      dispatch(toggleThemeAction());
+      persistThemePreference(nextTheme);
+    },
+    setTheme: (nextTheme: Theme) => {
+      dispatch(setTheme(nextTheme));
+      persistThemePreference(nextTheme);
+    },
+  };
 }

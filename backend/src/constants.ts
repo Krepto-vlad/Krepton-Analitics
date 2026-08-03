@@ -48,6 +48,11 @@ export const YAHOO_QUOTE_MIN_FETCH_GAP_MS = 3_000;
 // Browser HTTP cache for batch quotes GET — deduplicates polls across tabs.
 export const QUOTE_BATCH_BROWSER_CACHE_TTL_S = 25;
 
+// Fallback logo CDN when Yahoo omits companyLogoUrl (e.g. TTWO).
+// `{ticker}` is replaced with an upper-case symbol.
+export const FMP_STOCK_LOGO_URL_TEMPLATE =
+  'https://financialmodelingprep.com/image-stock/{ticker}.png';
+
 // Client poll intervals are configured on the frontend (watchlist + holdings).
 // Both features share this server cache and Yahoo budget.
 

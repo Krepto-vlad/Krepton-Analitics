@@ -5,4 +5,5 @@ export { DatePicker } from './DatePicker/DatePicker';
 export { ErrorBanner } from './ErrorBanner/ErrorBanner';
 export { ErrorState } from './ErrorState/ErrorState';
 export { AsyncStatePanel } from './AsyncStatePanel/AsyncStatePanel';
+export { TickerAvatar } from './TickerAvatar/TickerAvatar';
 export type { SelectOption } from './Select/Select';

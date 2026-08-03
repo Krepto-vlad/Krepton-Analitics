@@ -1,9 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
-import { ERROR_MESSAGES, MARKET_MOVERS_COUNT } from '../../../../constants';
+import { ERROR_MESSAGES, MARKET_MOVERS_COUNT, type Currency } from '../../../../constants';
+import { fetchLiveFxRates } from '../../../../api/fxApi';
 import { fetchMarketMovers } from '../../../../api/stockApi';
+import { TickerAvatar } from '../../../../components/ui';
+import { useAppSelector } from '../../../../hooks/useAppSelector';
 import type { MarketMoverItem, MarketMoversResponse } from '../../../../types/stock.types';
 import { getRejectedMessage } from '../../../../utils/apiError';
+import {
+  convertAmountWithRate,
+  formatMoney,
+  getTodayIsoDate,
+} from '../../../../utils/moneyDisplay';
 import type { SelectedCompareTicker } from '../../utils/compareMatrix';
 import styles from './MarketMoversPanel.module.scss';
 
@@ -16,14 +24,6 @@ interface MarketMoversPanelProps {
 function formatSignedPercent(value: number): string {
   const sign = value > 0 ? '+' : '';
   return `${sign}${value.toFixed(1)}%`;
-}
-
-function formatPrice(value: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value);
 }
 
 function formatFetchedAt(fetchedAt: string): string {
@@ -43,12 +43,16 @@ function MoverRow({
   rank,
   isSelected,
   canAdd,
+  displayPrice,
+  displayCurrency,
   onAdd,
 }: {
   item: MarketMoverItem;
   rank: number;
   isSelected: boolean;
   canAdd: boolean;
+  displayPrice: number;
+  displayCurrency: Currency;
   onAdd: () => void;
 }) {
   const isPositive = item.changePercent >= 0;
@@ -57,13 +61,16 @@ function MoverRow({
     <li className={styles.row}>
       <span className={styles.rank}>{rank}</span>
       <div className={styles.tickerBlock}>
-        <span className={styles.ticker}>${item.ticker}</span>
-        <span className={styles.name} title={item.name}>
-          {item.name}
-        </span>
+        <TickerAvatar ticker={item.ticker} size="sm" />
+        <div className={styles.tickerText}>
+          <span className={styles.ticker}>${item.ticker}</span>
+          <span className={styles.name} title={item.name}>
+            {item.name}
+          </span>
+        </div>
       </div>
       <div className={styles.priceBlock}>
-        <span className={styles.price}>{formatPrice(item.price, item.currency)}</span>
+        <span className={styles.price}>{formatMoney(displayPrice, displayCurrency)}</span>
         <span className={isPositive ? styles.changePositive : styles.changeNegative}>
           {formatSignedPercent(item.changePercent)}
         </span>
@@ -89,11 +96,24 @@ export function MarketMoversPanel({
   canAddTickers,
   onAddTicker,
 }: MarketMoversPanelProps) {
+  const displayCurrency = useAppSelector((state) => state.ui.currency);
   const [movers, setMovers] = useState<MarketMoversResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fxRates, setFxRates] = useState<Record<Currency, number>>({ USD: 1, EUR: 1 });
 
   const selectedTickerSet = new Set(selectedTickers.map((item) => item.ticker.toUpperCase()));
+
+  const sourceCurrencies = useMemo(() => {
+    if (!movers) {
+      return [] as Currency[];
+    }
+
+    const currencies = [...movers.gainers, ...movers.losers].map(
+      (item) => item.currency as Currency
+    );
+    return [...new Set(currencies)];
+  }, [movers]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -127,6 +147,36 @@ export function MarketMoversPanel({
       isCancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (sourceCurrencies.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void fetchLiveFxRates(sourceCurrencies, displayCurrency, getTodayIsoDate())
+      .then((rates) => {
+        if (!cancelled) {
+          setFxRates(rates);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFxRates({ USD: 1, EUR: 1 });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [displayCurrency, sourceCurrencies]);
+
+  function getDisplayPrice(price: number, sourceCurrency: string): number {
+    const fromCurrency = sourceCurrency as Currency;
+    const fxRate = fromCurrency === displayCurrency ? 1 : (fxRates[fromCurrency] ?? 1);
+    return convertAmountWithRate(price, fxRate);
+  }
 
   async function handleRefresh() {
     setIsLoading(true);
@@ -191,6 +241,8 @@ export function MarketMoversPanel({
                       rank={index + 1}
                       isSelected={selectedTickerSet.has(item.ticker)}
                       canAdd={canAddTickers}
+                      displayPrice={getDisplayPrice(item.price, item.currency)}
+                      displayCurrency={displayCurrency}
                       onAdd={() => onAddTicker({ ticker: item.ticker, name: item.name })}
                     />
                   ))}
@@ -214,6 +266,8 @@ export function MarketMoversPanel({
                       rank={index + 1}
                       isSelected={selectedTickerSet.has(item.ticker)}
                       canAdd={canAddTickers}
+                      displayPrice={getDisplayPrice(item.price, item.currency)}
+                      displayCurrency={displayCurrency}
                       onAdd={() => onAddTicker({ ticker: item.ticker, name: item.name })}
                     />
                   ))}

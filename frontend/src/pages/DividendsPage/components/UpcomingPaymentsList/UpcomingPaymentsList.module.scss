@@ -50,9 +50,9 @@
   justify-content: space-between;
   gap: $space-4;
   padding: $space-3 $space-4;
-  border: 1px solid $color-border;
+  border: 1px solid $color-border-strong;
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.02);
+  background: $color-surface;
 }
 
 .asset {
@@ -62,34 +62,12 @@
   min-width: 0;
 }
 
-.avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: $radius-sm;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  flex-shrink: 0;
-}
-
-.avatarDividend {
-  color: $color-primary;
-  background: $color-primary-muted;
-}
-
-.avatarCoupon {
-  color: #60a5fa;
-  background: rgba(59, 130, 246, 0.12);
-}
-
 .textDividend {
   color: $color-primary;
 }
 
 .textCoupon {
-  color: #60a5fa;
+  color: $color-benchmark;
 }
 
 .assetMeta {

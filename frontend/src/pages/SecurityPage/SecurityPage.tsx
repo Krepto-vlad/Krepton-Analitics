@@ -210,7 +210,7 @@ export function SecurityPage() {
           <div className={styles.sectionInner}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionBadge}>
-                <Lock size={12} color="#10B981" />
+                <Lock size={12} className={styles.accentIcon} />
                 Core Principles
               </div>
               <h2 className={styles.sectionTitle}>
@@ -233,11 +233,7 @@ export function SecurityPage() {
                     <div className={styles.pillarPoints}>
                       {pillar.points.map((point) => (
                         <div key={point} className={styles.pillarPoint}>
-                          <Check
-                            size={13}
-                            color="#10B981"
-                            style={{ flexShrink: 0, marginTop: 1 }}
-                          />
+                          <Check size={13} className={styles.pillarPointIcon} />
                           {point}
                         </div>
                       ))}
@@ -251,10 +247,11 @@ export function SecurityPage() {
 
         {/* ── Technical details ── */}
         <section className={styles.techSection}>
+          <div className={styles.techSectionGrid} aria-hidden="true" />
           <div className={styles.sectionInner}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionBadge}>
-                <Key size={12} color="#10B981" />
+                <Key size={12} className={styles.accentIcon} />
                 Technical Implementation
               </div>
               <h2 className={styles.sectionTitle}>
@@ -293,7 +290,7 @@ export function SecurityPage() {
           <div className={styles.sectionInner}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionBadge}>
-                <Shield size={12} color="#10B981" />
+                <Shield size={12} className={styles.accentIcon} />
                 Frequently Asked
               </div>
               <h2 className={styles.sectionTitle}>

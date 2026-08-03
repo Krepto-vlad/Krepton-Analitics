@@ -301,8 +301,8 @@
 .insightCard {
   padding: $space-3;
   border-radius: $radius-md;
-  border: 1px solid $color-border;
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid $color-border-strong;
+  background: $color-surface;
 }
 
 .insightHeader {
@@ -311,6 +311,13 @@
   justify-content: space-between;
   gap: $space-2;
   margin-bottom: $space-2;
+}
+
+.insightIdentity {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
 }
 
 .insightTicker {

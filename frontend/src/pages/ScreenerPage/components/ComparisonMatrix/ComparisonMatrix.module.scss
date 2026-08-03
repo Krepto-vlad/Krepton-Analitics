@@ -24,7 +24,7 @@
 .tickerHeader {
   padding: $space-3 $space-4;
   text-align: center;
-  border-bottom: 1px solid $color-border;
+  border-bottom: 1px solid $color-border-strong;
 }
 
 .metricHeader {
@@ -40,6 +40,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: $space-2;
   max-width: 160px;
   margin: 0 auto;
 }
@@ -55,7 +56,6 @@
 .tickerName {
   display: block;
   width: 100%;
-  margin-top: 2px;
   font-size: $font-size-xs;
   color: $color-foreground-subtle;
   text-align: center;
@@ -65,7 +65,7 @@
 .metricCell {
   padding: $space-4;
   vertical-align: middle;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid $color-divider;
 }
 
 .metricLabel {
@@ -86,7 +86,7 @@
   padding: $space-4;
   text-align: center;
   vertical-align: middle;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid $color-divider;
   transition: background $transition-fast;
 }
 
@@ -112,7 +112,7 @@
 }
 
 .bestCell {
-  background: rgba(16, 185, 129, 0.08);
+  background: $color-primary-muted;
 
   .valuePrimary {
     color: $color-primary;

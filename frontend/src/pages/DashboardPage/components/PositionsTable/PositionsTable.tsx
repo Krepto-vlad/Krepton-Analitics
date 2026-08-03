@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 import type { Currency } from '../../../../constants';
 import { ROUTES } from '../../../../constants';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
 import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
+import { TickerAvatar } from '../../../../components/ui';
 import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import styles from './PositionsTable.module.scss';
 
@@ -68,7 +69,7 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
         <DashboardPanelEmptyState
           isLoading={isLoading}
           loadingMessage="Loading positions…"
-          icon={<TrendingUp size={24} />}
+          icon={<Briefcase size={24} />}
           title="No positions yet"
           description="You haven't added any holdings yet. Add a position or import a broker report to track your P&L here."
           actionLabel="Add Position"
@@ -95,9 +96,13 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
                   <tr key={position.id} className={styles.row}>
                     <td className={styles.td}>
                       <div className={styles.tickerCell}>
-                        <div className={styles.tickerAvatar}>{position.ticker.slice(0, 2)}</div>
+                        <TickerAvatar
+                          ticker={position.ticker}
+                          logoUrl={position.logoUrl}
+                          size="sm"
+                        />
                         <div className={styles.tickerInfo}>
-                          <span className={styles.tickerSymbol}>${position.ticker}</span>
+                          <span className={styles.tickerSymbol}>{position.ticker}</span>
                           <span className={styles.companyName}>{position.companyName}</span>
                         </div>
                       </div>

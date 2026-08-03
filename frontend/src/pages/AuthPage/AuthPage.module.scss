@@ -2,20 +2,22 @@
 @use '../../styles/mixins' as *;
 
 .page {
+  @include section-clips-fixed-grid;
   min-height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: $space-8 $space-4;
-  background: #09090b;
+  background: $color-background;
   font-family: $font-family;
-  position: relative;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 .content {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -26,23 +28,13 @@
 .glow {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
-  background: radial-gradient(
-    ellipse 60% 40% at 50% 0%,
-    rgba(16, 185, 129, 0.08) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, $color-primary-muted 0%, transparent 70%);
 }
 
 .grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.1;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
+  @include fixed-viewport-cell-grid($cell-grid-size-sm);
 }
 
 .backButton {
@@ -52,7 +44,7 @@
   display: flex;
   align-items: center;
   gap: $space-2;
-  color: rgba(255, 255, 255, 0.4);
+  color: $color-foreground-subtle;
   background: none;
   border: none;
   cursor: pointer;
@@ -63,6 +55,33 @@
 
   &:hover {
     color: $color-foreground;
+  }
+}
+
+.themeToggle {
+  position: absolute;
+  top: $space-6;
+  right: $space-6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  color: $color-foreground-muted;
+  cursor: pointer;
+  z-index: 1;
+  transition:
+    color $transition-fast,
+    border-color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    color: $color-foreground;
+    border-color: $color-border-strong;
+    background: $color-surface-elevated;
   }
 }
 
@@ -83,6 +102,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: $color-on-primary;
 }
 
 .logoText {
@@ -101,8 +121,8 @@
   display: flex;
   border-radius: $radius-lg;
   padding: 4px;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: $color-surface;
+  border: 1px solid $color-border;
   margin-bottom: $space-6;
   position: relative;
   z-index: 1;
@@ -114,7 +134,7 @@
   font-family: $font-family;
   font-size: 0.82rem;
   background: transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: $color-foreground-subtle;
   border: none;
   cursor: pointer;
   transition:
@@ -124,10 +144,10 @@
   font-weight: $font-weight-regular;
 
   &.active {
-    background: #27272a;
+    background: $color-surface-elevated;
     color: $color-foreground;
     font-weight: $font-weight-semibold;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: $shadow-sm;
   }
 }
 
@@ -136,18 +156,18 @@
 .card {
   width: 100%;
   max-width: 500px;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: $color-surface;
+  border: 1px solid $color-border;
   border-radius: $radius-xl;
   overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  box-shadow: $shadow-lg;
   position: relative;
   z-index: 1;
 }
 
 .cardHeader {
   padding: $space-6 $space-6 $space-5;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid $color-divider;
 }
 
 .cardTitle {
@@ -160,7 +180,7 @@
 
 .cardSubtitle {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $color-foreground-muted;
   line-height: 1.5;
 }
 
@@ -179,72 +199,12 @@
   gap: 6px;
 }
 
-.fieldLabel {
-  font-family: $font-mono;
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.fieldInputWrap {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: 10px $space-3;
-  border-radius: $radius-md;
-  background: #27272a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: border-color $transition-fast;
-
-  &:focus-within {
-    border-color: rgba(16, 185, 129, 0.5);
-  }
-
-  &.error {
-    border-color: rgba(239, 68, 68, 0.5);
-  }
-
-  &.success {
-    border-color: rgba(16, 185, 129, 0.5);
-  }
-}
-
-.fieldInput {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: $font-family;
-  font-size: 0.85rem;
-  color: $color-foreground;
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.25);
-  }
-}
-
-.fieldHint {
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.fieldError {
-  font-size: 0.8125rem;
-  color: $color-danger;
-}
-
-.fieldSuccess {
-  font-size: 0.8125rem;
-  color: $color-primary;
-}
-
 .authDivider {
   display: flex;
   align-items: center;
   gap: $space-3;
   width: 100%;
-  color: rgba(255, 255, 255, 0.35);
+  color: $color-foreground-subtle;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -254,7 +214,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: rgba(255, 255, 255, 0.1);
+    background: $color-divider;
   }
 }
 
@@ -262,8 +222,8 @@
   margin: 0;
   padding: $space-3;
   border-radius: $radius-md;
-  border: 1px solid rgba($color-primary, 0.3);
-  background: rgba($color-primary, 0.08);
+  border: 1px solid $color-primary-border;
+  background: $color-primary-muted;
   color: $color-foreground-muted;
   font-size: $font-size-sm;
   line-height: 1.45;
@@ -275,8 +235,8 @@
   gap: $space-2;
   padding: $space-3;
   border-radius: $radius-md;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid $color-border;
+  background: $color-overlay;
   font-size: $font-size-sm;
   color: $color-foreground-muted;
   line-height: 1.45;
@@ -293,14 +253,14 @@
 .verificationTip {
   padding: $space-2 $space-3;
   border-radius: $radius-sm;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  background: rgba(245, 158, 11, 0.08);
-  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  color: $color-foreground-muted;
   font-size: 0.8125rem;
 }
 
 .togglePasswordBtn {
-  color: rgba(255, 255, 255, 0.3);
+  color: $color-foreground-subtle;
   background: none;
   border: none;
   cursor: pointer;
@@ -309,7 +269,7 @@
   transition: color $transition-fast;
 
   &:hover {
-    color: rgba(255, 255, 255, 0.7);
+    color: $color-foreground;
   }
 }
 
@@ -332,7 +292,7 @@
   height: 2px;
   flex: 1;
   border-radius: $radius-full;
-  background: rgba(255, 255, 255, 0.1);
+  background: $color-gauge-track;
   transition: background $transition-base;
 }
 
@@ -350,14 +310,14 @@
   gap: 6px;
   padding: 10px $space-3;
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: $color-overlay;
+  border: 1px solid $color-border;
 }
 
 .passwordRulesTitle {
   font-family: $font-mono;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: $color-foreground-subtle;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 2px;
@@ -368,7 +328,16 @@
   align-items: center;
   gap: $space-2;
   font-size: 0.8125rem;
+  color: $color-foreground-subtle;
   transition: color $transition-fast;
+
+  &.passed {
+    color: $color-foreground-muted;
+  }
+
+  &.failed {
+    color: $color-danger;
+  }
 }
 
 .passwordRuleIcon {
@@ -379,9 +348,39 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: $color-overlay;
+  border: 1px solid $color-border;
+  color: $color-danger;
   transition:
     background $transition-base,
     border-color $transition-base;
+
+  &.passed {
+    background: $color-primary-muted;
+    border-color: $color-primary-border;
+    color: $color-success;
+  }
+
+  &.failed {
+    background: $color-danger-muted;
+    border-color: $color-danger-border;
+  }
+}
+
+.passwordRuleFailMark {
+  font-size: 0.45rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.confirmFailMark {
+  font-size: 0.7rem;
+  color: $color-danger;
+  font-weight: 700;
+}
+
+.confirmSuccessIcon {
+  color: $color-success;
 }
 
 // ─── Privacy notice ───────────────────────────────────────────────────────────
@@ -392,16 +391,22 @@
   gap: $space-3;
   padding: $space-3 $space-4;
   border-radius: $radius-lg;
-  background: rgba(16, 185, 129, 0.06);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: $color-primary-muted;
+  border: 1px solid $color-primary-border;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: $color-foreground-muted;
   line-height: 1.55;
 
   strong {
     color: $color-primary;
     font-weight: $font-weight-semibold;
   }
+}
+
+.privacyNoticeIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: $color-success;
 }
 
 // ─── Agreement ───────────────────────────────────────────────────────────────
@@ -424,14 +429,22 @@
   flex-shrink: 0;
   margin-top: 2px;
   cursor: pointer;
+  background: transparent;
+  border: 1px solid $color-border-strong;
+  color: $color-on-primary;
   transition:
     background $transition-fast,
     border-color $transition-fast;
+
+  &.checked {
+    background: $color-primary;
+    border-color: $color-primary;
+  }
 }
 
 .agreementText {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $color-foreground-muted;
   line-height: 1.5;
 }
 
@@ -446,7 +459,7 @@
 .forgotPasswordBtn {
   font-family: $font-family;
   font-size: 0.8125rem;
-  color: rgba(16, 185, 129, 0.7);
+  color: $color-primary;
   background: none;
   border: none;
   cursor: pointer;
@@ -454,65 +467,22 @@
   transition: color $transition-fast;
 
   &:hover {
-    color: $color-primary;
+    color: $color-primary-hover;
   }
 }
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 
 .submitBtn {
-  width: 100%;
-  padding: $space-3;
-  border-radius: $radius-lg;
-  background: $color-primary;
-  color: #fff;
-  border: none;
-  font-family: $font-family;
-  font-weight: $font-weight-bold;
-  font-size: 0.9rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-2;
-  transition:
-    background $transition-fast,
-    box-shadow $transition-fast,
-    opacity $transition-fast;
   margin-top: $space-1;
-  box-shadow: 0 0 24px rgba(16, 185, 129, 0.3);
-
-  &:hover:not(:disabled) {
-    background: $color-primary-hover;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-    box-shadow: none;
-  }
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border-radius: $radius-full;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  box-shadow: $shadow-glow-primary;
 }
 
 // ─── Footer link ─────────────────────────────────────────────────────────────
 
 .switchModeText {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: $color-foreground-subtle;
   text-align: center;
   margin-top: $space-1;
 }
@@ -526,6 +496,11 @@
   font-family: $font-family;
   font-size: inherit;
   padding: 0;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 }
 
 // ─── Security strip ───────────────────────────────────────────────────────────
@@ -537,8 +512,8 @@
   flex-wrap: wrap;
   gap: $space-2 $space-3;
   padding: $space-3 $space-4;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.01);
+  border-top: 1px solid $color-divider;
+  background: $color-overlay;
 }
 
 .securityStripItem {
@@ -547,30 +522,15 @@
   gap: 4px;
   font-family: $font-mono;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.2);
+  color: $color-foreground-subtle;
   white-space: nowrap;
-}
-
-// ─── Error banner ─────────────────────────────────────────────────────────────
-
-.errorBanner {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-3 $space-4;
-  border-radius: $radius-md;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
-  font-size: $font-size-sm;
-  font-family: $font-family;
 }
 
 // ─── Disclaimer ───────────────────────────────────────────────────────────────
 
 .disclaimer {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.2);
+  color: $color-foreground-subtle;
   text-align: center;
   max-width: 360px;
   margin-top: $space-5;

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Bell, Sun, Moon } from 'lucide-react';
 import { ROUTES, CURRENCY_OPTIONS } from '../../../constants';
 import type { Currency } from '../../../constants';
-import type { Theme } from '../../../hooks/useTheme';
+import type { Theme } from '../../../constants';
 import styles from './AppHeader.module.scss';
 
 interface AppHeaderProps {
@@ -21,7 +21,6 @@ const PAGE_TITLES: Record<string, string> = {
   [ROUTES.SCREENER]: 'Stock Matrix',
   [ROUTES.BACKTESTING]: 'Backtesting',
   [ROUTES.WATCHLIST]: 'Watchlist',
-  [ROUTES.HISTORY]: 'History',
 };
 
 export function AppHeader({
@@ -48,6 +47,7 @@ export function AppHeader({
           {CURRENCY_OPTIONS.map((option) => (
             <button
               key={option}
+              type="button"
               className={`${styles.currencyButton} ${currency === option ? styles.activeCurrency : ''}`}
               onClick={() => onCurrencyChange(option)}
             >
@@ -57,6 +57,7 @@ export function AppHeader({
         </div>
 
         <button
+          type="button"
           className={styles.iconButton}
           onClick={onThemeToggle}
           aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
@@ -65,7 +66,7 @@ export function AppHeader({
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
 
-        <button className={styles.iconButton} aria-label="Notifications">
+        <button type="button" className={styles.iconButton} aria-label="Notifications">
           <Bell size={16} />
           {hasUnreadNotifications && <span className={styles.notificationDot} />}
         </button>

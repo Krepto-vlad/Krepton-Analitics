@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, X, Check, Loader } from 'lucide-react';
-import { Button, Select, DatePicker, ErrorBanner } from '../../../../components/ui';
+import { Button, Select, DatePicker, ErrorBanner, TickerAvatar } from '../../../../components/ui';
 import { ERROR_MESSAGES } from '../../../../constants';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import { toIsoDate } from '../../../../components/ui/DatePicker/datePickerUtils';
@@ -191,7 +191,10 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
                         className={styles.dropdownItem}
                         onClick={() => handleSelectResult(result)}
                       >
-                        <span className={styles.dropdownTicker}>{result.ticker}</span>
+                        <span className={styles.dropdownTickerCell}>
+                          <TickerAvatar ticker={result.ticker} size="xs" />
+                          <span className={styles.dropdownTicker}>{result.ticker}</span>
+                        </span>
                         <span className={styles.dropdownName}>{result.name}</span>
                         <span className={styles.dropdownExchange}>{result.exchange}</span>
                       </button>

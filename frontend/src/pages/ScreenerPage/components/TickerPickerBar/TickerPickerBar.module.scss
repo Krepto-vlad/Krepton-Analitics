@@ -76,7 +76,7 @@
   font-weight: $font-weight-bold;
   color: $color-primary;
   background: $color-primary-muted;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid $color-primary-border;
   border-radius: $radius-md;
 }
 
@@ -187,8 +187,15 @@
   transition: background $transition-fast;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: $color-row-hover;
   }
+}
+
+.dropdownTickerCell {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
 }
 
 .dropdownTicker {

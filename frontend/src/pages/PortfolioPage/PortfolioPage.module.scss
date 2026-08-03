@@ -221,33 +221,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.015);
+  background: $color-surface;
   transition:
     border-color $transition-base,
     background $transition-base;
   cursor: pointer;
 
   &:hover {
-    border-color: rgba(16, 185, 129, 0.35);
-    background: rgba(16, 185, 129, 0.03);
+    border-color: $color-primary-border;
+    background: $color-primary-muted;
   }
 }
 
 .dropZoneActive {
   border-color: $color-primary;
-  background: rgba(16, 185, 129, 0.06);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  background: $color-primary-muted;
+  box-shadow: 0 0 0 3px $color-primary-glow;
 }
 
 .dropZoneFilled {
   border-style: solid;
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.04);
+  border-color: $color-primary-border;
+  background: $color-surface;
   cursor: default;
 
   &:hover {
-    border-color: rgba(16, 185, 129, 0.3);
-    background: rgba(16, 185, 129, 0.04);
+    border-color: $color-primary-border;
+    background: $color-surface;
   }
 }
 
@@ -267,7 +267,7 @@
   width: 56px;
   height: 56px;
   border-radius: $radius-lg;
-  background: rgba(255, 255, 255, 0.04);
+  background: $color-overlay;
   border: 1px solid $color-border;
   display: flex;
   align-items: center;

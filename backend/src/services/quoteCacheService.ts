@@ -5,6 +5,7 @@ import {
   YAHOO_QUOTE_BATCH_MAX_SIZE,
   YAHOO_EXTERNAL_CALLS_BUDGET_PER_MINUTE,
   YAHOO_QUOTE_MIN_FETCH_GAP_MS,
+  FMP_STOCK_LOGO_URL_TEMPLATE,
 } from '../constants.js';
 
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
@@ -27,6 +28,50 @@ interface YahooFinanceQuoteRow {
   fiftyTwoWeekHigh?: number;
   fiftyTwoWeekLow?: number;
   regularMarketPreviousClose?: number;
+  companyLogoUrl?: string;
+  logoUrl?: string;
+}
+
+const YAHOO_QUOTE_FIELDS = [
+  'symbol',
+  'longName',
+  'shortName',
+  'regularMarketPrice',
+  'regularMarketChange',
+  'regularMarketChangePercent',
+  'regularMarketVolume',
+  'marketCap',
+  'currency',
+  'fiftyTwoWeekHigh',
+  'fiftyTwoWeekLow',
+  'regularMarketPreviousClose',
+  'companyLogoUrl',
+  'logoUrl',
+] as const;
+
+function buildFmpStockLogoUrl(ticker: string): string {
+  return FMP_STOCK_LOGO_URL_TEMPLATE.replace('{ticker}', encodeURIComponent(ticker));
+}
+
+function canUseFmpStockLogoFallback(ticker: string): boolean {
+  // Futures like GC=F are not covered by the FMP equity logo CDN.
+  return !ticker.includes('=');
+}
+
+function resolveLogoUrl(row: YahooFinanceQuoteRow, ticker: string): string | null {
+  const rawLogoUrl = row.companyLogoUrl ?? row.logoUrl;
+  if (typeof rawLogoUrl === 'string') {
+    const trimmedLogoUrl = rawLogoUrl.trim();
+    if (trimmedLogoUrl.length > 0) {
+      return trimmedLogoUrl;
+    }
+  }
+
+  if (canUseFmpStockLogoFallback(ticker)) {
+    return buildFmpStockLogoUrl(ticker);
+  }
+
+  return null;
 }
 
 const quoteCache = new Map<string, CacheEntry>();
@@ -51,6 +96,7 @@ function buildFallbackQuote(ticker: string): StockQuote {
     currency: 'USD',
     fiftyTwoWeekHigh: null,
     fiftyTwoWeekLow: null,
+    logoUrl: null,
   };
 }
 
@@ -76,6 +122,7 @@ function mapYahooRowToStockQuote(row: YahooFinanceQuoteRow, fallbackTicker: stri
     currency: row.currency ?? 'USD',
     fiftyTwoWeekHigh: row.fiftyTwoWeekHigh ?? null,
     fiftyTwoWeekLow: row.fiftyTwoWeekLow ?? null,
+    logoUrl: resolveLogoUrl(row, ticker),
   };
 }
 
@@ -119,9 +166,13 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
 
   for (const chunk of chunks) {
     try {
-      const rows = (await yahooFinance.quote(chunk)) as
-        | YahooFinanceQuoteRow
-        | YahooFinanceQuoteRow[];
+      // Futures (e.g. GC=F) fail yahoo-finance2 schema validation; without
+      // validateResult:false the entire batch is thrown away and logos are lost.
+      const rows = (await yahooFinance.quote(
+        chunk,
+        { fields: [...YAHOO_QUOTE_FIELDS] },
+        { validateResult: false }
+      )) as YahooFinanceQuoteRow | YahooFinanceQuoteRow[];
       const normalizedRows = Array.isArray(rows) ? rows : [rows];
       const rowByTicker = new Map<string, YahooFinanceQuoteRow>();
 
@@ -145,7 +196,9 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
 
       recordYahooCall();
     } catch (error) {
-      console.warn('[QuoteCache] Yahoo batch fetch failed:', (error as Error).message);
+      console.warn('[QuoteCache] Yahoo batch fetch failed:', (error as Error).message, {
+        tickers: chunk,
+      });
 
       for (const ticker of chunk) {
         const staleQuote = getCachedQuoteEvenIfExpired(ticker);

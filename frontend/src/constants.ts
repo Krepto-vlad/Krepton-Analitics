@@ -18,8 +18,10 @@ export const ROUTES = {
   DIVIDENDS: '/dividends',
   NEWS: '/news',
   WATCHLIST: '/watchlist',
-  HISTORY: '/history',
 } as const;
+
+/** React Router location.state flag: scroll landing page to #features after navigation. */
+export const LANDING_SCROLL_TO_FEATURES_STATE = { scrollToFeatures: true } as const;
 
 export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
 
@@ -71,6 +73,12 @@ export type Currency = (typeof CURRENCY_OPTIONS)[number];
 export const HOLDINGS_PAGE_SIZE = 10;
 export const TRANSACTIONS_PAGE_SIZE = 5;
 
+// Reserved table heights while filtering (matches panel row metrics).
+export const HOLDINGS_TABLE_HEADER_HEIGHT_PX = 44;
+export const HOLDINGS_TABLE_ROW_HEIGHT_PX = 58;
+export const WATCHLIST_TABLE_HEADER_HEIGHT_PX = 44;
+export const WATCHLIST_TABLE_ROW_HEIGHT_PX = 52;
+
 export const EQUITY_PERIODS = [
   { label: '1W', value: '1W' },
   { label: '1M', value: '1M' },
@@ -90,6 +98,17 @@ export const NEWS_PAGE_LOAD_MORE_STEP = 10;
 
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
 export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
+export const THEME_STORAGE_KEY = 'krepton_theme';
+export const THEME_OPTIONS = ['dark', 'light'] as const;
+export const PREFERS_COLOR_SCHEME_LIGHT_QUERY = '(prefers-color-scheme: light)';
+
+// Fallback when Yahoo logo is missing or blocked (e.g. adblock on "visa" CDN paths).
+export const FMP_STOCK_LOGO_URL_TEMPLATE =
+  'https://financialmodelingprep.com/image-stock/{ticker}.png';
+export type Theme = (typeof THEME_OPTIONS)[number];
+/** Used only when OS preference cannot be read. */
+export const DEFAULT_THEME: Theme = 'dark';
+
 export const AI_NEWS_BRIEFING_SESSION_STORAGE_KEY = 'krepton_ai_news_briefing_v2';
 export const AI_NEWS_BRIEFING_SP500_TICKER = 'SPY';
 export const AI_NEWS_BRIEFING_SP500_LABEL = 'S&P 500';

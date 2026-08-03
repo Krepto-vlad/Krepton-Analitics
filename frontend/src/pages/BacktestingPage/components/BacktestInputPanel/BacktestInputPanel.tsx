@@ -20,6 +20,7 @@ import {
   getAllocationValidationStatus,
   getTotalAllocationWeight,
 } from '../../utils/backtestAllocations';
+import { TickerAvatar } from '../../../../components/ui';
 import { AllocationSlider } from '../AllocationSlider/AllocationSlider';
 import styles from './BacktestInputPanel.module.scss';
 
@@ -230,7 +231,10 @@ export function BacktestInputPanel({
                           className={styles.dropdownItem}
                           onClick={() => handleSelectResult(result)}
                         >
-                          <span className={styles.dropdownTicker}>{result.ticker}</span>
+                          <span className={styles.dropdownTickerCell}>
+                            <TickerAvatar ticker={result.ticker} size="xs" />
+                            <span className={styles.dropdownTicker}>{result.ticker}</span>
+                          </span>
                           <span className={styles.dropdownName}>{result.name}</span>
                         </button>
                       </li>
@@ -304,6 +308,7 @@ export function BacktestInputPanel({
               }
               disabled={isAtMaxTickers}
             >
+              <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} size="xs" />
               <Plus size={10} />${item.ticker}
             </button>
           ))}

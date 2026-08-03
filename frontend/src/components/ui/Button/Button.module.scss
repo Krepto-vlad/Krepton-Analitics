@@ -34,22 +34,25 @@
 }
 
 .outline {
-  background: transparent;
+  background: $color-surface;
   color: $color-foreground;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid $color-border-strong;
 
   &:hover:not(:disabled) {
-    border-color: rgba(255, 255, 255, 0.3);
+    color: $color-primary;
+    border-color: $color-primary-border;
+    background: $color-primary-muted;
   }
 }
 
 .ghost {
   background: transparent;
-  color: rgba(255, 255, 255, 0.55);
+  color: $color-foreground-muted;
   border: 1px solid transparent;
 
   &:hover:not(:disabled) {
     color: $color-foreground;
+    background: $color-overlay;
   }
 }
 
@@ -83,9 +86,10 @@
 .spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
   border-radius: 50%;
+  opacity: 0.7;
   animation: spin 0.6s linear infinite;
   flex-shrink: 0;
 }

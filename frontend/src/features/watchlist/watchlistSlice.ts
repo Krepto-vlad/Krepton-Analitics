@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isAnyOf } from '@reduxjs/toolkit';
 import type {
   WatchlistState,
   AddWatchlistPayload,
@@ -15,6 +15,7 @@ import {
 import { fetchStockQuotesBatch } from '../../api/stockApi';
 import { ERROR_MESSAGES } from '../../constants';
 import { getRejectedMessage } from '../../utils/apiError';
+import { googleLoginThunk, loginThunk, logoutThunk, verifyEmailThunk } from '../auth/authSlice';
 
 function mapQuoteToWatchlistItem(
   item: StoredWatchlistItem,
@@ -29,6 +30,7 @@ function mapQuoteToWatchlistItem(
     currency: quote?.currency ?? 'USD',
     fiftyTwoWeekHigh: quote?.fiftyTwoWeekHigh ?? null,
     fiftyTwoWeekLow: quote?.fiftyTwoWeekLow ?? null,
+    logoUrl: quote?.logoUrl ?? null,
   };
 }
 
@@ -46,6 +48,7 @@ function mergeWatchlistQuotes(items: WatchlistItem[], quotes: StockQuote[]): Wat
       currency: quote.currency,
       fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
       fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
+      logoUrl: quote.logoUrl ?? item.logoUrl ?? null,
     };
   });
 }
@@ -169,7 +172,16 @@ const watchlistSlice = createSlice({
       })
       .addCase(deleteWatchlistItemThunk.rejected, (state, action) => {
         state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
-      });
+      })
+      .addMatcher(
+        isAnyOf(
+          logoutThunk.fulfilled,
+          loginThunk.fulfilled,
+          googleLoginThunk.fulfilled,
+          verifyEmailThunk.fulfilled
+        ),
+        () => initialState
+      );
   },
 });
 

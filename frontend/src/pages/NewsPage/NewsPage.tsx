@@ -4,6 +4,7 @@ import { NEWS_PAGE_INITIAL_VISIBLE, NEWS_PAGE_LOAD_MORE_STEP } from '../../const
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchPortfolioNewsThunk } from '../../features/portfolio/portfolioSlice';
+import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { NewsFeed } from '../DashboardPage/components/NewsFeed/NewsFeed';
 import { NewsSummaryPanel } from './components/NewsSummaryPanel/NewsSummaryPanel';
 import styles from './NewsPage.module.scss';
@@ -23,6 +24,8 @@ export function NewsPage() {
         .join(','),
     [summaryPositions]
   );
+
+  const newsLogoByTicker = useMemo(() => buildLogoByTicker(summaryPositions), [summaryPositions]);
 
   useEffect(() => {
     if (holdingsTickerKey.length === 0) {
@@ -64,6 +67,7 @@ export function NewsPage() {
         showHeader={false}
         initialVisibleCount={NEWS_PAGE_INITIAL_VISIBLE}
         loadMoreStep={NEWS_PAGE_LOAD_MORE_STEP}
+        logoByTicker={newsLogoByTicker}
       />
     </div>
   );

@@ -116,6 +116,7 @@ function buildFallbackQuote(symbol: string): StockQuote {
     currency: 'USD',
     fiftyTwoWeekHigh: null,
     fiftyTwoWeekLow: null,
+    logoUrl: null,
   };
 }
 

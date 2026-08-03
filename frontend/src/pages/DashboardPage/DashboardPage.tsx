@@ -6,6 +6,8 @@ import {
   fetchPortfolioNewsThunk,
   fetchPortfolioRebalancingThunk,
 } from '../../features/portfolio/portfolioSlice';
+import { selectPortfolioStats } from '../../features/portfolio/portfolioSelectors';
+import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { ErrorBanner } from '../../components/ui';
 import { PortfolioHealthCard } from './components/PortfolioHealthCard/PortfolioHealthCard';
 import { PortfolioEquityCard } from './components/PortfolioEquityCard/PortfolioEquityCard';
@@ -20,7 +22,7 @@ export function DashboardPage() {
   const dispatch = useAppDispatch();
   const summaryPositions = useAppSelector((state) => state.portfolio.summaryPositions);
   const isPortfolioLoading = useAppSelector((state) => state.portfolio.isLoading);
-  const stats = useAppSelector((state) => state.portfolio.stats);
+  const stats = useAppSelector(selectPortfolioStats);
   const portfolioHealth = useAppSelector((state) => state.portfolio.portfolioHealth);
   const news = useAppSelector((state) => state.portfolio.news);
   const isLoadingNews = useAppSelector((state) => state.portfolio.isLoadingNews);
@@ -44,6 +46,11 @@ export function DashboardPage() {
         .sort()
         .join(','),
     [summaryPositions]
+  );
+
+  const newsLogoByTicker = useMemo(
+    () => buildLogoByTicker(summaryPositions, watchlist),
+    [summaryPositions, watchlist]
   );
 
   useEffect(() => {
@@ -75,7 +82,12 @@ export function DashboardPage() {
           deviations={portfolioHealth.deviations}
           isLoading={portfolioHealth.isLoading}
         />
-        <PortfolioEquityCard stats={stats} equityHistory={equityHistory} currency={currency} />
+        <PortfolioEquityCard
+          stats={stats}
+          equityHistory={equityHistory}
+          currency={currency}
+          isLoading={isPortfolioLoading}
+        />
       </div>
 
       <div className={styles.middleRow}>
@@ -94,6 +106,7 @@ export function DashboardPage() {
           error={newsError}
           hasPortfolioHoldings={summaryPositions.length > 0}
           onRetry={handleRetryNews}
+          logoByTicker={newsLogoByTicker}
         />
       </div>
     </div>

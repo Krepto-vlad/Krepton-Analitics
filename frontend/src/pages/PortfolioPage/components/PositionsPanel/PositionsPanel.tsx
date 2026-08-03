@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, HandCoins, Search, TrendingUp, ArrowUpDown, Loader } from 'lucide-react';
-import { Button, AsyncStatePanel } from '../../../../components/ui';
+import { Plus, Trash2, HandCoins, Search, TrendingUp, Loader } from 'lucide-react';
+import { Button, AsyncStatePanel, TickerAvatar } from '../../../../components/ui';
+import { buildLogoByTicker } from '../../../../utils/tickerLogos';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
-import { EQUITY_PERIODS } from '../../../../constants';
+import {
+  EQUITY_PERIODS,
+  HOLDINGS_TABLE_HEADER_HEIGHT_PX,
+  HOLDINGS_TABLE_ROW_HEIGHT_PX,
+} from '../../../../constants';
 import type { Currency } from '../../../../constants';
 import { useEquityChart, formatChartPrice } from '../../../../hooks/useEquityChart';
 import type { EquityPeriod } from '../../../../hooks/useEquityChart';
@@ -333,6 +338,11 @@ export function PositionsPanel() {
   const [buysRefreshKey, setBuysRefreshKey] = useState(0);
   const [closeTarget, setCloseTarget] = useState<PortfolioPosition | null>(null);
 
+  const logoByTicker = useMemo(
+    () => buildLogoByTicker(summaryPositions, positions),
+    [summaryPositions, positions]
+  );
+
   const computedSummaryPositions = useMemo(() => {
     return summaryPositions.map((position) => {
       const invested = position.shares * position.avgBuyPrice;
@@ -423,6 +433,16 @@ export function PositionsPanel() {
       return (positionA[sortField] - positionB[sortField]) * direction;
     });
   }, [computedTablePositions, searchQuery, sortField, sortDir]);
+
+  // Keep the table shell height while search filters rows, so History below doesn't jump.
+  const holdingsTableMinHeightPx = useMemo(() => {
+    const reservedRowCount = Math.max(computedTablePositions.length, 1);
+    return HOLDINGS_TABLE_HEADER_HEIGHT_PX + reservedRowCount * HOLDINGS_TABLE_ROW_HEIGHT_PX;
+  }, [computedTablePositions.length]);
+
+  const hasActiveHoldingsSearch = searchQuery.trim().length > 0;
+  const hasNoHoldingsSearchMatches =
+    hasActiveHoldingsSearch && filteredAndSorted.length === 0 && computedTablePositions.length > 0;
 
   const isEmpty = summaryPositions.length === 0;
 
@@ -554,9 +574,6 @@ export function PositionsPanel() {
                 className={styles.searchInput}
               />
             </div>
-            <Button variant="outline" size="sm" leftIcon={<ArrowUpDown size={12} />}>
-              Sort
-            </Button>
             <Button
               variant="primary"
               size="sm"
@@ -568,7 +585,7 @@ export function PositionsPanel() {
           </div>
         </div>
 
-        <div className={styles.tableWrapper}>
+        <div className={styles.tableWrapper} style={{ minHeight: holdingsTableMinHeightPx }}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -599,66 +616,81 @@ export function PositionsPanel() {
               </tr>
             </thead>
             <tbody>
-              {filteredAndSorted.map((position) => {
-                const sectorLabel = position.sector ?? 'Other';
-                const sectorIndex = sectorAllocations.findIndex((s) => s.sector === sectorLabel);
-                const dotColor =
-                  sectorIndex >= 0 ? SECTOR_COLORS[sectorIndex % SECTOR_COLORS.length] : '#8a8a96';
-                const isPnlPositive = position.pnlAbs >= 0;
+              {hasNoHoldingsSearchMatches ? (
+                <tr className={styles.filterEmptyRow}>
+                  <td colSpan={9}>
+                    <div className={styles.filterEmptyState}>
+                      <p className={styles.filterEmptyTitle}>No matching holdings</p>
+                      <p className={styles.filterEmptyText}>
+                        Nothing matches “{searchQuery.trim()}”. Try another ticker or company name.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredAndSorted.map((position) => {
+                  const sectorLabel = position.sector ?? 'Other';
+                  const isPnlPositive = position.pnlAbs >= 0;
+                  const normalizedTicker = position.ticker.toUpperCase();
 
-                return (
-                  <tr key={position.id} className={styles.tableRow}>
-                    <td className={styles.tdTicker}>
-                      <span className={styles.tickerDot} style={{ background: dotColor }} />
-                      <span className={styles.tickerSymbol}>{position.ticker}</span>
-                    </td>
-                    <td className={styles.tdName}>
-                      <p className={styles.companyName}>{position.companyName}</p>
-                      <p className={styles.sectorLabel}>{sectorLabel}</p>
-                    </td>
-                    <td className={styles.tdNum}>{position.shares}</td>
-                    <td className={styles.tdNum}>
-                      {formatUsdDecimal(position.avgBuyPrice, displayCurrency)}
-                    </td>
-                    <td className={styles.tdNum}>
-                      {formatUsdDecimal(position.currentPrice, displayCurrency)}
-                    </td>
-                    <td className={styles.tdNum}>
-                      {formatMoneyWhole(position.marketValue, displayCurrency)}
-                    </td>
-                    <td
-                      className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
-                    >
-                      {formatPnl(position.pnlAbs, displayCurrency)}
-                    </td>
-                    <td
-                      className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
-                    >
-                      {formatPercent(position.pnlPct)}
-                    </td>
-                    <td className={styles.tdActions}>
-                      <button
-                        className={`${styles.actionBtn} ${styles.actionBtnClose}`}
-                        title="Close Position (Sell)"
-                        onClick={() =>
-                          setCloseTarget(positions.find((p) => p.id === position.id) ?? null)
-                        }
+                  return (
+                    <tr key={position.id} className={styles.tableRow}>
+                      <td className={styles.tdTicker}>
+                        <TickerAvatar
+                          ticker={normalizedTicker}
+                          logoUrl={position.logoUrl ?? logoByTicker[normalizedTicker] ?? null}
+                          size="sm"
+                        />
+                        <span className={styles.tickerSymbol}>{position.ticker}</span>
+                      </td>
+                      <td className={styles.tdName}>
+                        <p className={styles.companyName}>{position.companyName}</p>
+                        <p className={styles.sectorLabel}>{sectorLabel}</p>
+                      </td>
+                      <td className={styles.tdNum}>{position.shares}</td>
+                      <td className={styles.tdNum}>
+                        {formatUsdDecimal(position.avgBuyPrice, displayCurrency)}
+                      </td>
+                      <td className={styles.tdNum}>
+                        {formatUsdDecimal(position.currentPrice, displayCurrency)}
+                      </td>
+                      <td className={styles.tdNum}>
+                        {formatMoneyWhole(position.marketValue, displayCurrency)}
+                      </td>
+                      <td
+                        className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
                       >
-                        <HandCoins size={14} />
-                      </button>
-                      <button
-                        className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                        title="Delete position"
-                        onClick={() =>
-                          setDeleteTarget(positions.find((p) => p.id === position.id) ?? null)
-                        }
+                        {formatPnl(position.pnlAbs, displayCurrency)}
+                      </td>
+                      <td
+                        className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
                       >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                        {formatPercent(position.pnlPct)}
+                      </td>
+                      <td className={styles.tdActions}>
+                        <button
+                          className={`${styles.actionBtn} ${styles.actionBtnClose}`}
+                          title="Close Position (Sell)"
+                          onClick={() =>
+                            setCloseTarget(positions.find((p) => p.id === position.id) ?? null)
+                          }
+                        >
+                          <HandCoins size={14} />
+                        </button>
+                        <button
+                          className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+                          title="Delete position"
+                          onClick={() =>
+                            setDeleteTarget(positions.find((p) => p.id === position.id) ?? null)
+                          }
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -724,7 +756,14 @@ export function PositionsPanel() {
                           </span>
                         </td>
                         <td className={styles.historyTd}>
-                          <span className={styles.historyTicker}>{transaction.ticker}</span>
+                          <div className={styles.historyTickerCell}>
+                            <TickerAvatar
+                              ticker={transaction.ticker}
+                              logoUrl={logoByTicker[transaction.ticker.toUpperCase()] ?? null}
+                              size="sm"
+                            />
+                            <span className={styles.historyTicker}>{transaction.ticker}</span>
+                          </div>
                         </td>
                         <td className={styles.historyTd}>{transaction.companyName}</td>
                         <td className={`${styles.historyTd} ${styles.historyTdNum}`}>

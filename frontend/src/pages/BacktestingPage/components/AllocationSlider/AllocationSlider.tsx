@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { TickerAvatar } from '../../../../components/ui';
 import styles from './AllocationSlider.module.scss';
 
 interface AllocationSliderProps {
@@ -47,7 +48,9 @@ export function AllocationSlider({
   return (
     <div className={styles.row}>
       <div className={styles.header}>
-        <span className={styles.tickerChip}>${ticker}</span>
+        <span className={styles.tickerChip}>
+          <TickerAvatar ticker={ticker} size="xs" />${ticker}
+        </span>
         <div className={styles.valueBlock}>
           <div className={styles.valueInputWrap}>
             <input

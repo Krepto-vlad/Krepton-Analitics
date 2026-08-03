@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TrendingUp, Menu, X } from 'lucide-react';
-import { ROUTES } from '../../../constants';
+import { TrendingUp, Menu, X, Sun, Moon } from 'lucide-react';
+import { LANDING_SCROLL_TO_FEATURES_STATE, ROUTES } from '../../../constants';
+import { useTheme } from '../../../hooks/useTheme';
 import styles from './Navbar.module.scss';
 
 type ActiveRoute = 'home' | 'pricing' | 'security';
@@ -13,9 +14,10 @@ interface NavbarProps {
 export function Navbar({ activeRoute }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleHome = () => navigate(ROUTES.HOME);
+  const handleHome = () => navigate(ROUTES.HOME, { state: null });
   const handleLogin = () => navigate(ROUTES.LOGIN);
   const handleRegister = () => navigate(ROUTES.REGISTER);
   const handlePricing = () => navigate(ROUTES.PRICING);
@@ -24,12 +26,9 @@ export function Navbar({ activeRoute }: NavbarProps) {
   const handleFeatures = () => {
     if (location.pathname === ROUTES.HOME) {
       document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate(ROUTES.HOME);
-      setTimeout(() => {
-        document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      return;
     }
+    navigate(ROUTES.HOME, { state: LANDING_SCROLL_TO_FEATURES_STATE });
   };
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -45,7 +44,7 @@ export function Navbar({ activeRoute }: NavbarProps) {
           onKeyDown={(e) => e.key === 'Enter' && handleHome()}
         >
           <div className={styles.logoIcon}>
-            <TrendingUp size={14} color="#fff" />
+            <TrendingUp size={14} />
           </div>
           <span className={styles.logoText}>
             Krepton <span>Analytics</span>
@@ -71,6 +70,15 @@ export function Navbar({ activeRoute }: NavbarProps) {
         </div>
 
         <div className={styles.navActions}>
+          <button
+            type="button"
+            className={styles.themeToggle}
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           <button className={styles.btnSignIn} onClick={handleLogin}>
             Sign In
           </button>
@@ -118,6 +126,17 @@ export function Navbar({ activeRoute }: NavbarProps) {
             Security
           </button>
           <div className={styles.mobileDivider} />
+          <div className={styles.mobileThemeRow}>
+            <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+            <button
+              type="button"
+              className={styles.themeToggle}
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
           <button
             className={styles.mobileBtnSignIn}
             onClick={() => {

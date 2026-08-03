@@ -9,6 +9,8 @@ export interface StockQuote {
   currency: string;
   fiftyTwoWeekHigh: number | null;
   fiftyTwoWeekLow: number | null;
+  /** Yahoo CDN logo URL when available; null for ETFs/futures/etc. */
+  logoUrl: string | null;
 }
 
 export interface OhlcvCandle {
