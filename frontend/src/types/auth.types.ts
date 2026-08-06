@@ -18,6 +18,10 @@ export interface ChangePasswordPayload extends StepUpCredentials {
   currentPassword?: string;
 }
 
+export interface DeleteAccountPayload extends StepUpCredentials {
+  confirm: string;
+}
+
 export interface RegisterCredentials {
   email: string;
   password: string;

@@ -63,9 +63,15 @@ export const JWT_COOKIE_NAME = 'accessToken';
 export const JWT_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
 export const PASSWORD_MIN_LENGTH = 10;
 export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
+/** Typed confirmation phrase required for hard account deletion (GDPR erasure). */
+export const ACCOUNT_DELETE_CONFIRMATION = 'DELETE ACCOUNT';
 export const PORTFOLIO_EXPORT_SCHEMA_VERSION = 1;
 export const EMAIL_VERIFICATION_TOKEN_BYTES = 32;
 export const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
+export const PASSWORD_RESET_TOKEN_BYTES = 32;
+export const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1 hour
+export const PASSWORD_RESET_REQUEST_GENERIC_MESSAGE =
+  'If an account exists for this email, we sent instructions. Check your inbox and Spam / Junk.';
 export const PORTFOLIO_EXPORT_FORMATS = ['json', 'xlsx'] as const;
 export type PortfolioExportFormat = (typeof PORTFOLIO_EXPORT_FORMATS)[number];
 export const DEFAULT_PORTFOLIO_EXPORT_FORMAT: PortfolioExportFormat = 'xlsx';
@@ -115,17 +121,37 @@ export const TICKER_TAPE_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 export const TICKER_TAPE_BROWSER_CACHE_TTL_S = 60 * 60; // 1 hour
 
 // ─── Broker import ────────────────────────────────────────────────────────────
-export const SUPPORTED_BROKER_IDS = ['REVOLUT'] as const;
+/** Universal import labels all accounts as GENERIC (no per-broker selection). */
+export const SUPPORTED_BROKER_IDS = ['GENERIC'] as const;
 export type SupportedBrokerId = (typeof SUPPORTED_BROKER_IDS)[number];
+export const IMPORT_DEFAULT_BROKER_ID: SupportedBrokerId = 'GENERIC';
+/** Used when a statement has no currency column (common in stripped exports). */
+export const IMPORT_DEFAULT_CURRENCY = 'USD';
 
 export const IMPORT_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const IMPORT_MAX_ROWS = 5_000;
-export const IMPORT_MAX_COLUMNS = 20;
+export const IMPORT_MAX_COLUMNS = 40;
 export const IMPORT_MAX_SHEETS = 3;
 export const IMPORT_PREVIEW_TTL_MS = 15 * 60 * 1000; // 15 minutes
 export const IMPORT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const IMPORT_RATE_LIMIT_MAX_REQUESTS = 10;
 export const IMPORT_MAX_TRADES_PER_FILE = 2_000;
+export const IMPORT_ALLOWED_EXTENSIONS = ['.xlsx', '.csv'] as const;
+
+/** Heuristic confidence in [0, 1]; below this → try Gemini schema assist. */
+export const IMPORT_HEURISTIC_CONFIDENCE_THRESHOLD = 0.72;
+/** Max sheet rows scanned when looking for a header row. */
+export const IMPORT_HEADER_SCAN_MAX_ROWS = 40;
+/**
+ * GDPR: only a small anonymized sample is sent to Gemini for column mapping.
+ * Never send the full statement / all trades.
+ */
+export const IMPORT_AI_SCHEMA_SAMPLE_ROWS = 20;
+export const IMPORT_AI_SCHEMA_MAX_CELL_CHARS = 48;
+export const IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS = 512;
+export const IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT = 10;
+export const IMPORT_AI_SCHEMA_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const IMPORT_AI_SCHEMA_RATE_LIMIT_MAX_REQUESTS = 10;
 
 // ─── Portfolio news (Yahoo Finance search) ─────────────────────────────────────
 export const PORTFOLIO_NEWS_MAX_TICKERS = 10;
@@ -134,7 +160,7 @@ export const PORTFOLIO_NEWS_MAX_ITEMS = 20;
 export const PORTFOLIO_NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
 
 // ─── AI (Gemini) — news summary + explain alignment ────────────────────────────
-export const AI_FEATURES = ['news_summary', 'explain_alignment'] as const;
+export const AI_FEATURES = ['news_summary', 'explain_alignment', 'import_schema'] as const;
 export type AiFeatureId = (typeof AI_FEATURES)[number];
 
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
@@ -147,12 +173,12 @@ export const AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS = 10;
 export const AI_BRIEFING_CACHE_VERSION = 'v2';
 
 export const AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT = 5;
-export const AI_EXPLAIN_ALIGNMENT_CACHE_VERSION = 'v1';
+export const AI_EXPLAIN_ALIGNMENT_CACHE_VERSION = 'v2';
 export const AI_EXPLAIN_ALIGNMENT_DISCLAIMER =
-  'AI-generated explanation for informational purposes only. Not financial advice. No buy/sell recommendations.';
+  'AI-generated explanation for informational purposes only. Not financial advice. No buy/sell recommendations. False-diversification notes are qualitative (no ETF look-through holdings data).';
 export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS = 10;
-export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1024;
+export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1400;
 
 export const AI_BRIEFING_MACRO_TICKERS = [
   { ticker: 'SPY', label: 'S&P 500' },

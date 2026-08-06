@@ -8,6 +8,8 @@ export interface UserRow {
   email_verified: boolean;
   email_verification_token_hash: string | null;
   email_verification_expires_at: Date | null;
+  password_reset_token_hash: string | null;
+  password_reset_expires_at: Date | null;
   created_at: Date;
 }
 
@@ -58,6 +60,19 @@ export interface StepUpCredentials {
 
 export interface ChangePasswordBody extends StepUpCredentials {
   currentPassword?: string;
+  newPassword: string;
+}
+
+export interface DeleteAccountBody extends StepUpCredentials {
+  confirm: string;
+}
+
+export interface ForgotPasswordBody {
+  email: string;
+}
+
+export interface ResetPasswordBody {
+  token: string;
   newPassword: string;
 }
 

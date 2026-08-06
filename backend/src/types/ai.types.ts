@@ -1,4 +1,4 @@
-export type AiFeatureId = 'news_summary' | 'explain_alignment';
+export type AiFeatureId = 'news_summary' | 'explain_alignment' | 'import_schema';
 
 export type NewsSummarySentiment = 'bullish' | 'neutral' | 'bearish';
 
@@ -107,9 +107,18 @@ export interface AlignmentExplanationDrift {
   explanation: string;
 }
 
+export type FalseDiversificationRiskLevel = 'none' | 'low' | 'moderate' | 'high';
+
+export interface AlignmentFalseDiversificationInsight {
+  riskLevel: FalseDiversificationRiskLevel;
+  title: string;
+  explanation: string;
+}
+
 export interface AlignmentExplanationPayload {
   overview: string;
   keyDrifts: AlignmentExplanationDrift[];
+  falseDiversification?: AlignmentFalseDiversificationInsight;
   whatItMeans: string;
 }
 
@@ -120,10 +129,31 @@ export interface AlignmentExplanationResponse {
   alignmentScore: number;
   overview: string;
   keyDrifts: AlignmentExplanationDrift[];
+  falseDiversification: AlignmentFalseDiversificationInsight;
   whatItMeans: string;
   disclaimer: string;
   fromCache: boolean;
   quota: AiQuotaStatus;
+}
+
+export interface AlignmentPromptHolding {
+  ticker: string;
+  bucketLabel: string;
+  marketValue: number;
+  weightPercent: number;
+  sector: string | null;
+}
+
+export interface AlignmentFalseDiversificationHints {
+  overlappingClusters: Array<{
+    label: string;
+    tickersPresent: string[];
+    note: string;
+  }>;
+  topSectors: Array<{
+    sector: string;
+    weightPercent: number;
+  }>;
 }
 
 export interface AlignmentPromptContext {
@@ -141,9 +171,6 @@ export interface AlignmentPromptContext {
     deviationPercent: number;
     status: 'overweight' | 'underweight' | 'optimal';
   }>;
-  topHoldings: Array<{
-    ticker: string;
-    bucketLabel: string;
-    marketValue: number;
-  }>;
+  topHoldings: AlignmentPromptHolding[];
+  falseDiversificationHints: AlignmentFalseDiversificationHints;
 }

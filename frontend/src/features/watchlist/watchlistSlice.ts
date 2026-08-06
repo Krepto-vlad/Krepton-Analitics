@@ -122,6 +122,7 @@ export const deleteWatchlistItemThunk = createAsyncThunk<string, string, { rejec
 const initialState: WatchlistState = {
   items: [],
   isLoading: false,
+  hasHydrated: false,
   isSubmitting: false,
   error: null,
 };
@@ -133,6 +134,7 @@ const watchlistSlice = createSlice({
     syncWatchlistItems: (state, action: { payload: WatchlistItem[] }) => {
       state.items = action.payload;
       state.isLoading = false;
+      state.hasHydrated = true;
       state.error = null;
     },
   },
@@ -144,10 +146,12 @@ const watchlistSlice = createSlice({
       })
       .addCase(fetchWatchlistThunk.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.hasHydrated = true;
         state.items = action.payload;
       })
       .addCase(fetchWatchlistThunk.rejected, (state, action) => {
         state.isLoading = false;
+        state.hasHydrated = true;
         state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(refreshWatchlistQuotesThunk.fulfilled, (state, action) => {

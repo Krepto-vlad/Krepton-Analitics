@@ -5,12 +5,8 @@ import type { ImportConfirmResponse, ImportPreviewResponse } from '../types/impo
 
 const importApiClient = createApiClient(`${API_BASE_URL}/api/portfolio`);
 
-export async function previewBrokerImport(
-  broker: string,
-  file: File
-): Promise<ImportPreviewResponse> {
+export async function previewBrokerImport(file: File): Promise<ImportPreviewResponse> {
   const formData = new FormData();
-  formData.append('broker', broker);
   formData.append('file', file);
 
   const { data } = await importApiClient.post<

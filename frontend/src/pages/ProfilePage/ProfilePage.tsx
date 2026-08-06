@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   Check,
@@ -14,8 +14,10 @@ import {
   Smartphone,
   Trash2,
   User,
+  UserX,
 } from 'lucide-react';
 import {
+  ACCOUNT_DELETE_CONFIRMATION,
   DEFAULT_PORTFOLIO_EXPORT_FORMAT,
   ERROR_MESSAGES,
   PORTFOLIO_DATA_DELETE_CONFIRMATION,
@@ -24,11 +26,11 @@ import {
 } from '../../constants';
 import { PRICING_PLAN_DEFINITIONS } from '../../constants/pricingPlans';
 import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
-import { apiChangePassword } from '../../api/authApi';
+import { apiChangePassword, apiDeleteAccount } from '../../api/authApi';
 import { deletePortfolioData, exportPortfolioData } from '../../api/portfolioApi';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { fetchCurrentUserThunk } from '../../features/auth/authSlice';
+import { fetchCurrentUserThunk, logoutThunk } from '../../features/auth/authSlice';
 import {
   fetchInvestmentSummaryThunk,
   fetchPortfolioEquityHistoryThunk,
@@ -57,6 +59,7 @@ const FREE_PLAN_FEATURES =
 
 export function ProfilePage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -74,6 +77,14 @@ export function ProfilePage() {
   const [isDeletingData, setIsDeletingData] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
+
+  const [isAccountDeleteModalOpen, setIsAccountDeleteModalOpen] = useState(false);
+  const [accountDeleteConfirmText, setAccountDeleteConfirmText] = useState('');
+  const [accountDeletePassword, setAccountDeletePassword] = useState('');
+  const [showAccountDeletePassword, setShowAccountDeletePassword] = useState(false);
+  const [accountDeleteGoogleIdToken, setAccountDeleteGoogleIdToken] = useState<string | null>(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [accountDeleteError, setAccountDeleteError] = useState<string | null>(null);
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportPassword, setExportPassword] = useState('');
@@ -108,6 +119,15 @@ export function ProfilePage() {
   const canExport =
     (hasExportPasswordStepUp || hasExportGoogleStepUp) &&
     !(hasExportPasswordStepUp && hasExportGoogleStepUp);
+
+  const hasAccountDeletePasswordStepUp = accountDeletePassword.length > 0;
+  const hasAccountDeleteGoogleStepUp = Boolean(accountDeleteGoogleIdToken);
+  const canAccountDeleteStepUp =
+    (hasAccountDeletePasswordStepUp || hasAccountDeleteGoogleStepUp) &&
+    !(hasAccountDeletePasswordStepUp && hasAccountDeleteGoogleStepUp);
+  const canDeleteAccount =
+    accountDeleteConfirmText.trim().toUpperCase() === ACCOUNT_DELETE_CONFIRMATION &&
+    canAccountDeleteStepUp;
 
   function closePasswordModal() {
     setIsPasswordModalOpen(false);
@@ -180,6 +200,48 @@ export function ProfilePage() {
       setShowExportPassword(false);
       setExportGoogleIdToken(null);
       setIsExportingData(false);
+    }
+  }
+
+  function closeAccountDeleteModal(): void {
+    if (isDeletingAccount) {
+      return;
+    }
+    setIsAccountDeleteModalOpen(false);
+    setAccountDeleteConfirmText('');
+    setAccountDeletePassword('');
+    setShowAccountDeletePassword(false);
+    setAccountDeleteGoogleIdToken(null);
+    setAccountDeleteError(null);
+  }
+
+  async function handleDeleteAccount(): Promise<void> {
+    if (!canDeleteAccount) {
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    setAccountDeleteError(null);
+
+    try {
+      await apiDeleteAccount({
+        confirm: ACCOUNT_DELETE_CONFIRMATION,
+        password: hasAccountDeletePasswordStepUp ? accountDeletePassword : undefined,
+        googleIdToken: hasAccountDeleteGoogleStepUp
+          ? (accountDeleteGoogleIdToken ?? undefined)
+          : undefined,
+      });
+
+      clearPersistedNewsBriefing();
+      clearPersistedAlignmentExplanation();
+      // Cookie already cleared by delete endpoint; logout clears client auth state.
+      await dispatch(logoutThunk());
+      navigate(ROUTES.LOGIN, { replace: true });
+    } catch (error) {
+      setAccountDeleteError(getRejectedMessage(error, ERROR_MESSAGES.AUTH_DELETE_ACCOUNT_FAILED));
+      setAccountDeletePassword('');
+      setAccountDeleteGoogleIdToken(null);
+      setIsDeletingAccount(false);
     }
   }
 
@@ -318,62 +380,6 @@ export function ProfilePage() {
 
       <section className={styles.card}>
         <div className={styles.cardHeader}>
-          <p className={styles.cardLabel}>Privacy</p>
-          <h2 className={styles.cardTitle}>Privacy &amp; Data</h2>
-        </div>
-
-        <div className={styles.privacyBox}>
-          <div className={styles.privacyBoxLeft}>
-            <Shield size={20} className={styles.securityIcon} />
-            <div className={styles.securityText}>
-              <p className={styles.securityTitle}>Zero-identity architecture</p>
-              <p className={styles.securityHint}>
-                Portfolio data is linked via opaque tokens — no names or account numbers stored.
-              </p>
-            </div>
-          </div>
-          <span className={styles.activeBadge}>Active</span>
-        </div>
-
-        <div className={styles.privacyActions}>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => {
-              setExportError(null);
-              setExportMessage(null);
-              setIsExportModalOpen(true);
-            }}
-          >
-            <Download size={14} />
-            Export my data
-          </button>
-
-          <button
-            type="button"
-            className={styles.dangerButton}
-            onClick={() => {
-              setDeleteError(null);
-              setIsDeleteModalOpen(true);
-            }}
-          >
-            <Trash2 size={14} />
-            Delete all portfolio data
-          </button>
-
-          <p className={styles.warningText}>
-            <AlertTriangle size={14} />
-            This action is irreversible. All holdings, transactions and watchlists will be
-            permanently removed. Your login account stays active.
-          </p>
-        </div>
-
-        {exportMessage && <p className={styles.statusMessage}>{exportMessage}</p>}
-        {deleteMessage && <p className={styles.statusMessage}>{deleteMessage}</p>}
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.cardHeader}>
           <p className={styles.cardLabel}>Billing</p>
           <h2 className={styles.cardTitle}>Subscription</h2>
         </div>
@@ -403,6 +409,107 @@ export function ProfilePage() {
         <Link to={ROUTES.SUBSCRIPTION} className={styles.secondaryButton}>
           Manage subscription
         </Link>
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <p className={styles.cardLabel}>Privacy</p>
+          <h2 className={styles.cardTitle}>Privacy &amp; Data</h2>
+        </div>
+
+        <div className={styles.privacyBox}>
+          <div className={styles.privacyBoxLeft}>
+            <Shield size={20} className={styles.securityIcon} />
+            <div className={styles.securityText}>
+              <p className={styles.securityTitle}>Zero-identity architecture</p>
+              <p className={styles.securityHint}>
+                Portfolio data is linked via opaque tokens — no names or account numbers stored.
+              </p>
+            </div>
+          </div>
+          <span className={styles.activeBadge}>Active</span>
+        </div>
+
+        <div className={styles.dataActionRow}>
+          <div className={styles.dataActionCopy}>
+            <p className={styles.securityTitle}>Export your data</p>
+            <p className={styles.securityHint}>
+              Download a copy of your portfolio snapshot (positions, transactions, watchlist).
+            </p>
+          </div>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => {
+              setExportError(null);
+              setExportMessage(null);
+              setIsExportModalOpen(true);
+            }}
+          >
+            <Download size={14} />
+            Export my data
+          </button>
+        </div>
+
+        {exportMessage && <p className={styles.statusMessage}>{exportMessage}</p>}
+
+        <div className={styles.dangerZone}>
+          <div className={styles.dangerZoneHeader}>
+            <AlertTriangle size={16} />
+            <div>
+              <p className={styles.dangerZoneTitle}>Danger zone</p>
+              <p className={styles.dangerZoneSubtitle}>
+                Irreversible actions. Choose carefully — these cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.dangerPanel}>
+            <div className={styles.dangerPanelBody}>
+              <p className={styles.dangerPanelEyebrow}>Portfolio only</p>
+              <p className={styles.dangerPanelTitle}>Delete portfolio data</p>
+              <p className={styles.dangerPanelText}>
+                Removes holdings, transactions and watchlist. Your login stays active so you can
+                start a new portfolio later.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.dangerButton}
+              onClick={() => {
+                setDeleteError(null);
+                setIsDeleteModalOpen(true);
+              }}
+            >
+              <Trash2 size={14} />
+              Wipe portfolio
+            </button>
+          </div>
+
+          {deleteMessage && <p className={styles.statusMessage}>{deleteMessage}</p>}
+
+          <div className={`${styles.dangerPanel} ${styles.dangerPanelCritical}`}>
+            <div className={styles.dangerPanelBody}>
+              <p className={styles.dangerPanelEyebrowCritical}>GDPR account erasure</p>
+              <p className={styles.dangerPanelTitle}>Delete entire account</p>
+              <p className={styles.dangerPanelText}>
+                Permanently deletes your login, portfolio, AI history and all related data. Requires
+                password or Google confirmation.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.dangerButtonFilled}
+              onClick={() => {
+                setAccountDeleteError(null);
+                setIsAccountDeleteModalOpen(true);
+              }}
+            >
+              <UserX size={14} />
+              Delete my account
+            </button>
+          </div>
+        </div>
       </section>
 
       {isPasswordModalOpen && (
@@ -818,6 +925,121 @@ export function ProfilePage() {
                   <>
                     <Trash2 size={14} />
                     Delete forever
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isAccountDeleteModalOpen && (
+        <div className={styles.overlay} role="presentation" onClick={closeAccountDeleteModal}>
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-account-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="delete-account-title" className={styles.modalTitle}>
+              Delete account
+            </h3>
+            <p className={styles.securityHint}>
+              This permanently removes your account, portfolio, and AI history. Confirm with{' '}
+              {hasPassword && hasGoogle
+                ? 'password or Google'
+                : hasGoogle
+                  ? 'Google'
+                  : 'your password'}
+              , then type <strong>{ACCOUNT_DELETE_CONFIRMATION}</strong>.
+            </p>
+
+            {hasPassword && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Password</span>
+                <div className={styles.passwordInputWrap}>
+                  <input
+                    type={showAccountDeletePassword ? 'text' : 'password'}
+                    className={styles.passwordInput}
+                    value={accountDeletePassword}
+                    onChange={(event) => {
+                      setAccountDeletePassword(event.target.value);
+                      setAccountDeleteGoogleIdToken(null);
+                    }}
+                    autoComplete="current-password"
+                    placeholder="Your password"
+                    disabled={isDeletingAccount || Boolean(accountDeleteGoogleIdToken)}
+                  />
+                  <button
+                    type="button"
+                    className={styles.togglePasswordButton}
+                    onClick={() => setShowAccountDeletePassword((visible) => !visible)}
+                    aria-label={showAccountDeletePassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showAccountDeletePassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {hasGoogle && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Or confirm with Google</span>
+                {accountDeleteGoogleIdToken ? (
+                  <p className={styles.statusMessage}>Google confirmation ready.</p>
+                ) : (
+                  <GoogleSignInButton
+                    text="continue_with"
+                    disabled={isDeletingAccount || accountDeletePassword.length > 0}
+                    onCredential={(idToken) => {
+                      setAccountDeleteGoogleIdToken(idToken);
+                      setAccountDeletePassword('');
+                      setAccountDeleteError(null);
+                    }}
+                    onError={() => setAccountDeleteError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
+                  />
+                )}
+              </div>
+            )}
+
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Confirmation</span>
+              <input
+                className={styles.fieldInput}
+                value={accountDeleteConfirmText}
+                onChange={(event) => setAccountDeleteConfirmText(event.target.value)}
+                placeholder={ACCOUNT_DELETE_CONFIRMATION}
+                disabled={isDeletingAccount}
+              />
+            </label>
+
+            {accountDeleteError && <p className={styles.errorMessage}>{accountDeleteError}</p>}
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={closeAccountDeleteModal}
+                disabled={isDeletingAccount}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.dangerButton}
+                onClick={() => void handleDeleteAccount()}
+                disabled={!canDeleteAccount || isDeletingAccount}
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <Loader2 size={14} className={styles.spinner} />
+                    Deleting account…
+                  </>
+                ) : (
+                  <>
+                    <UserX size={14} />
+                    Delete my account
                   </>
                 )}
               </button>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Eye,
   EyeOff,
@@ -254,6 +254,14 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               />
 
               {/* Strength bar — register only */}
+              {mode === 'login' && (
+                <div className={styles.forgotPasswordRow}>
+                  <Link to={ROUTES.FORGOT_PASSWORD} className={styles.forgotPasswordLink}>
+                    Forgot password?
+                  </Link>
+                </div>
+              )}
+
               {mode === 'register' && password.length > 0 && (
                 <div className={styles.strengthRow}>
                   <div className={styles.strengthBars}>
@@ -371,15 +379,6 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   I understand that Krepton does not collect personal data and insights are for
                   educational purposes only.
                 </span>
-              </div>
-            )}
-
-            {/* Forgot password (login only) */}
-            {mode === 'login' && (
-              <div className={styles.forgotPassword}>
-                <button type="button" className={styles.forgotPasswordBtn}>
-                  Forgot password?
-                </button>
               </div>
             )}
 

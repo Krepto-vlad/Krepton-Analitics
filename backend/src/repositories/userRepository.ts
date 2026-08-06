@@ -64,10 +64,52 @@ export async function updateUserPasswordHash(
   userId: string,
   passwordHash: string
 ): Promise<boolean> {
-  const result = await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
-    passwordHash,
-    userId,
-  ]);
+  const result = await pool.query(
+    `UPDATE users
+     SET password_hash = $1,
+         password_reset_token_hash = NULL,
+         password_reset_expires_at = NULL
+     WHERE id = $2`,
+    [passwordHash, userId]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function setPasswordResetToken(
+  userId: string,
+  tokenHash: string,
+  expiresAt: Date
+): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE users
+     SET password_reset_token_hash = $1,
+         password_reset_expires_at = $2
+     WHERE id = $3`,
+    [tokenHash, expiresAt, userId]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function findUserByPasswordResetTokenHash(tokenHash: string): Promise<UserRow | null> {
+  const result = await pool.query<UserRow>(
+    `SELECT * FROM users
+     WHERE password_reset_token_hash = $1
+       AND password_reset_expires_at IS NOT NULL
+       AND password_reset_expires_at > NOW()
+     LIMIT 1`,
+    [tokenHash]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function clearPasswordResetToken(userId: string): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE users
+     SET password_reset_token_hash = NULL,
+         password_reset_expires_at = NULL
+     WHERE id = $1`,
+    [userId]
+  );
   return (result.rowCount ?? 0) > 0;
 }
 
@@ -108,5 +150,10 @@ export async function setEmailVerificationToken(
      WHERE id = $3`,
     [verificationTokenHash, verificationExpiresAt, userId]
   );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function deleteUserById(userId: string): Promise<boolean> {
+  const result = await pool.query('DELETE FROM users WHERE id = $1', [userId]);
   return (result.rowCount ?? 0) > 0;
 }

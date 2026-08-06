@@ -1,4 +1,13 @@
-export type SupportedBrokerId = 'REVOLUT';
+export type SupportedBrokerId = 'GENERIC';
+
+export type TradeColumnKey = 'date' | 'ticker' | 'side' | 'quantity' | 'price' | 'currency';
+
+export type BrokerParserMode = 'heuristic' | 'ai_schema';
+
+export interface ColumnMapping {
+  headerRowIndex: number;
+  columns: Record<Exclude<TradeColumnKey, 'currency'>, number> & { currency: number | null };
+}
 
 export interface NormalizedTrade {
   rowNumber: number;
@@ -31,6 +40,10 @@ export interface ImportPreviewSummary {
 export interface ImportPreviewResponse {
   importId: string;
   broker: SupportedBrokerId;
+  parserMode: BrokerParserMode;
+  confidence: number;
+  warning: string | null;
+  columnMapping: ColumnMapping | null;
   trades: NormalizedTrade[];
   skipped: SkippedImportRow[];
   summary: ImportPreviewSummary;

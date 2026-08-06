@@ -25,7 +25,7 @@ export interface SafeSheetData {
   rows: unknown[][];
 }
 
-function assertValidXlsxBuffer(buffer: Buffer): void {
+function assertFileSize(buffer: Buffer): void {
   if (!Buffer.isBuffer(buffer)) {
     throw new AppError(400, 'Invalid file payload');
   }
@@ -40,6 +40,10 @@ function assertValidXlsxBuffer(buffer: Buffer): void {
       `File exceeds maximum size of ${IMPORT_MAX_FILE_SIZE_BYTES / (1024 * 1024)} MB`
     );
   }
+}
+
+function assertValidXlsxBuffer(buffer: Buffer): void {
+  assertFileSize(buffer);
 
   if (buffer[0] !== XLSX_ZIP_MAGIC_BYTE_0 || buffer[1] !== XLSX_ZIP_MAGIC_BYTE_1) {
     throw new AppError(400, 'Only valid .xlsx workbooks are supported');
@@ -55,6 +59,15 @@ function normalizeRows(rawRows: unknown[][]): unknown[][] {
     .filter((row) => row.some((cell) => String(cell ?? '').trim().length > 0))
     .slice(0, IMPORT_MAX_ROWS)
     .map((row) => row.slice(0, IMPORT_MAX_COLUMNS));
+}
+
+function resolveExtension(filename: string): string {
+  const normalized = filename.trim().toLowerCase();
+  const dotIndex = normalized.lastIndexOf('.');
+  if (dotIndex < 0) {
+    return '';
+  }
+  return normalized.slice(dotIndex);
 }
 
 /**
@@ -99,4 +112,66 @@ export function readSafeXlsxBuffer(buffer: Buffer): SafeSheetData {
   }
 
   return { sheetName, rows };
+}
+
+/**
+ * Reads a CSV statement from memory. No disk writes. PDF and other formats rejected upstream.
+ */
+export function readSafeCsvBuffer(buffer: Buffer): SafeSheetData {
+  assertFileSize(buffer);
+
+  let workbook: XLSX.WorkBook;
+  try {
+    const csvText = buffer.toString('utf8');
+    workbook = XLSX.read(csvText, {
+      type: 'string',
+      raw: false,
+      cellFormula: false,
+      cellHTML: false,
+      dense: true,
+    });
+  } catch {
+    throw new AppError(400, 'Unable to parse CSV file. Upload a valid .csv trade export.');
+  }
+
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  if (!worksheet) {
+    throw new AppError(400, 'CSV file is empty');
+  }
+
+  const rawRows = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
+    header: 1,
+    defval: '',
+    raw: false,
+  }) as unknown[][];
+
+  const rows = normalizeRows(rawRows);
+
+  if (rows.length === 0) {
+    throw new AppError(400, 'CSV file does not contain any rows');
+  }
+
+  return { sheetName: sheetName || 'CSV', rows };
+}
+
+/**
+ * Unified tabular reader for broker statements (.xlsx / .csv only).
+ */
+export function readSafeTabularBuffer(buffer: Buffer, filename: string): SafeSheetData {
+  const extension = resolveExtension(filename);
+
+  if (extension === '.xlsx') {
+    return readSafeXlsxBuffer(buffer);
+  }
+
+  if (extension === '.csv') {
+    return readSafeCsvBuffer(buffer);
+  }
+
+  if (extension === '.pdf') {
+    throw new AppError(400, 'PDF statements are not supported. Upload .xlsx or .csv.');
+  }
+
+  throw new AppError(400, 'Only .xlsx and .csv broker statements are supported');
 }

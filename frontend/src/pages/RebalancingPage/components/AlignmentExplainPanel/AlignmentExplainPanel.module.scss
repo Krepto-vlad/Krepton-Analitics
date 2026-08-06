@@ -184,6 +184,45 @@
   color: $color-foreground-muted;
 }
 
+.falseDiversificationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.riskBadge {
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.riskNone,
+.riskLow {
+  background: color-mix(in srgb, var(--color-success) 16%, transparent);
+  color: $color-success;
+}
+
+.riskModerate {
+  background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  color: $color-warning;
+}
+
+.riskHigh {
+  background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+  color: $color-danger;
+}
+
+.falseDiversificationText {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: 1.55;
+  color: $color-foreground-muted;
+}
+
 .whatItMeans {
   margin: 0;
   font-size: $font-size-sm;

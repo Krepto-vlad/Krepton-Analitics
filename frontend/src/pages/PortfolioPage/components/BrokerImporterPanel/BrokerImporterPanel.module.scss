@@ -1,37 +1,57 @@
 @use '../../../../styles/variables' as *;
 
-.brokerPicker {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-  margin-bottom: $space-4;
-}
-
-.brokerPickerLabel {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-  color: $color-foreground-subtle;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.brokerBadgeActive {
-  border-color: rgba(16, 185, 129, 0.45);
-  background: rgba(16, 185, 129, 0.08);
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.12);
-}
-
-.brokerBadgeDisabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .previewSection {
   display: flex;
   flex-direction: column;
   gap: $space-4;
   margin-top: $space-5;
   padding-bottom: $space-12;
+}
+
+.parserMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+}
+
+.modeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  letter-spacing: 0.02em;
+  border: 1px solid $color-border-strong;
+}
+
+.modeBadgeHeuristic {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.modeBadgeAi {
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.metaText {
+  font-size: $font-size-sm;
+  color: $color-foreground-subtle;
+}
+
+.previewWarning {
+  margin: 0;
+  padding: $space-3 $space-4;
+  border-radius: $radius-md;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.08);
+  color: $color-foreground;
+  font-size: $font-size-sm;
+  line-height: 1.45;
 }
 
 .summaryGrid {
@@ -174,11 +194,4 @@
       color: #fca5a5;
     }
   }
-}
-
-.comingSoonTag {
-  font-size: 10px;
-  color: $color-foreground-subtle;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }

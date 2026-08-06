@@ -193,6 +193,22 @@
 
 // ─── Form fields ──────────────────────────────────────────────────────────────
 
+.forgotPasswordRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -$space-1;
+}
+
+.forgotPasswordLink {
+  color: $color-primary;
+  font-size: $font-size-xs;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .fieldGroup {
   display: flex;
   flex-direction: column;
@@ -446,29 +462,6 @@
   font-size: 0.8125rem;
   color: $color-foreground-muted;
   line-height: 1.5;
-}
-
-// ─── Forgot password ─────────────────────────────────────────────────────────
-
-.forgotPassword {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: -#{$space-2};
-}
-
-.forgotPasswordBtn {
-  font-family: $font-family;
-  font-size: 0.8125rem;
-  color: $color-primary;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: color $transition-fast;
-
-  &:hover {
-    color: $color-primary-hover;
-  }
 }
 
 // ─── Submit ───────────────────────────────────────────────────────────────────

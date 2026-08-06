@@ -30,9 +30,9 @@ export function PortfolioEquityCard({
   const isPnlPositive = stats.totalPnl >= 0;
   const isDayPnlPositive = stats.dayPnl >= 0;
   const hasPortfolioData = stats.totalValue > 0 || equityHistory.length > 0;
-  // Keep existing chart/stats visible while currency refresh reloads in background.
+  // Hide partial/stale numbers while dashboard bootstrap (or currency reload) is in flight.
   const showEmptyState = !isLoading && !hasPortfolioData;
-  const showInitialLoading = isLoading && !hasPortfolioData;
+  const showLoadingState = isLoading;
 
   return (
     <div className={styles.card}>
@@ -41,7 +41,7 @@ export function PortfolioEquityCard({
           <TrendingUp size={13} className={styles.cardLabelIcon} />
           <span className={styles.cardLabel}>PORTFOLIO EQUITY</span>
         </div>
-        {hasPortfolioData && (
+        {!isLoading && hasPortfolioData && (
           <div className={styles.periodSelector}>
             {EQUITY_PERIODS.map((period) => (
               <button
@@ -56,9 +56,9 @@ export function PortfolioEquityCard({
         )}
       </div>
 
-      {showInitialLoading || showEmptyState ? (
+      {showLoadingState || showEmptyState ? (
         <DashboardPanelEmptyState
-          isLoading={showInitialLoading}
+          isLoading={showLoadingState}
           loadingMessage="Loading portfolio equity…"
           icon={<TrendingUp size={24} />}
           title="No equity history yet"

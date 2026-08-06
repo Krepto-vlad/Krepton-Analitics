@@ -5,7 +5,11 @@ import {
   fetchAlignmentExplanationQuota,
   generateAlignmentExplanation,
 } from '../../../../api/portfolioApi';
-import type { AiQuotaStatus, AlignmentExplanationResponse } from '../../../../types/ai.types';
+import type {
+  AiQuotaStatus,
+  AlignmentExplanationResponse,
+  FalseDiversificationRiskLevel,
+} from '../../../../types/ai.types';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import {
   clearPersistedAlignmentExplanation,
@@ -34,6 +38,20 @@ function formatQuotaReset(resetsAt: string): string {
     timeZoneName: 'short',
   });
 }
+
+const FALSE_DIVERSIFICATION_RISK_LABELS: Record<FalseDiversificationRiskLevel, string> = {
+  none: 'No signal',
+  low: 'Low',
+  moderate: 'Moderate',
+  high: 'High',
+};
+
+const FALSE_DIVERSIFICATION_RISK_BADGE_CLASS: Record<FalseDiversificationRiskLevel, string> = {
+  none: styles.riskNone,
+  low: styles.riskLow,
+  moderate: styles.riskModerate,
+  high: styles.riskHigh,
+};
 
 export function AlignmentExplainPanel({
   strategyId,
@@ -137,8 +155,8 @@ export function AlignmentExplainPanel({
         <div className={styles.headerText}>
           <h2 className={styles.title}>Explain my alignment</h2>
           <p className={styles.subtitle}>
-            Gemini explains your current fit vs {strategyName} — drifts, strengths, and what it
-            means. No buy/sell trade sizes.
+            Gemini explains your current fit vs {strategyName} — drifts, strengths, false
+            diversification risk, and what it means. No buy/sell trade sizes.
           </p>
         </div>
         <div className={styles.metaRow}>
@@ -203,6 +221,24 @@ export function AlignmentExplainPanel({
                   </article>
                 ))}
               </div>
+            </section>
+          )}
+
+          {explanation.falseDiversification && (
+            <section className={styles.section}>
+              <div className={styles.falseDiversificationHeader}>
+                <h3 className={styles.sectionTitle}>
+                  {explanation.falseDiversification.title || 'False diversification'}
+                </h3>
+                <span
+                  className={`${styles.riskBadge} ${FALSE_DIVERSIFICATION_RISK_BADGE_CLASS[explanation.falseDiversification.riskLevel]}`}
+                >
+                  {FALSE_DIVERSIFICATION_RISK_LABELS[explanation.falseDiversification.riskLevel]}
+                </span>
+              </div>
+              <p className={styles.falseDiversificationText}>
+                {explanation.falseDiversification.explanation}
+              </p>
             </section>
           )}
 

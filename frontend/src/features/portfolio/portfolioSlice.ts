@@ -42,6 +42,10 @@ import { googleLoginThunk, loginThunk, logoutThunk, verifyEmailThunk } from '../
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function isPositiveQuotePrice(price: number | null | undefined): price is number {
+  return typeof price === 'number' && price > 0;
+}
+
 async function enrichStoredPositions(
   stored: StoredPosition[],
   displayCurrency: Currency
@@ -62,7 +66,9 @@ async function enrichStoredPositions(
   return stored.map((storedPosition): PortfolioPosition => {
     const quote = quoteMap.get(storedPosition.ticker);
     const quoteCurrency = (quote?.currency ?? storedPosition.currency) as Currency;
-    const nativeCurrentPrice = quote?.price ?? storedPosition.avgBuyPrice;
+    const nativeCurrentPrice = isPositiveQuotePrice(quote?.price)
+      ? quote.price
+      : storedPosition.avgBuyPrice;
     const displayAvgBuyPrice = storedPosition.displayAvgBuyPrice ?? storedPosition.avgBuyPrice;
     const fxRate = quoteCurrency === displayCurrency ? 1 : (liveFxRates[quoteCurrency] ?? 1);
     const displayCurrentPrice = convertAmountWithRate(nativeCurrentPrice, fxRate);
@@ -114,6 +120,13 @@ function mergeQuotePricesIntoPositions(
     const quote = quoteMap.get(position.ticker);
     if (!quote) {
       return position;
+    }
+
+    if (!isPositiveQuotePrice(quote.price)) {
+      return {
+        ...position,
+        logoUrl: quote.logoUrl ?? position.logoUrl ?? null,
+      };
     }
 
     const quoteCurrency = quote.currency as Currency;
@@ -403,13 +416,18 @@ const initialState: PortfolioState = {
   news: [],
   isLoadingNews: false,
   newsError: null,
+  hasHydratedNews: false,
   equityHistory: [],
+  isLoadingEquityHistory: false,
+  hasHydratedSummary: false,
+  hasHydratedEquityHistory: false,
   portfolioHealth: {
     alignmentScore: null,
     strategyId: null,
     strategyName: null,
     deviations: [],
     isLoading: false,
+    hasHydrated: false,
     error: null,
   },
   isLoading: false,
@@ -426,6 +444,7 @@ const portfolioSlice = createSlice({
       state.summaryPositions = action.payload.summaryPositions;
       state.positions = action.payload.positions;
       state.isLoading = false;
+      state.hasHydratedSummary = true;
       state.error = null;
     },
   },
@@ -449,10 +468,17 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolioSummaryThunk.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.hasHydratedSummary = true;
         state.summaryPositions = action.payload;
+        if (action.payload.length === 0) {
+          state.hasHydratedNews = true;
+          state.news = [];
+          state.newsError = null;
+        }
       })
       .addCase(fetchPortfolioSummaryThunk.rejected, (state, action) => {
         state.isLoading = false;
+        state.hasHydratedSummary = true;
         state.error = action.payload ?? ERROR_MESSAGES.UNKNOWN;
       })
       .addCase(fetchInvestmentSummaryThunk.fulfilled, (state, action) => {
@@ -500,8 +526,17 @@ const portfolioSlice = createSlice({
         state.isLoadingTransactions = false;
         state.isLoadingMoreTransactions = false;
       })
+      .addCase(fetchPortfolioEquityHistoryThunk.pending, (state) => {
+        state.isLoadingEquityHistory = true;
+      })
       .addCase(fetchPortfolioEquityHistoryThunk.fulfilled, (state, action) => {
+        state.isLoadingEquityHistory = false;
+        state.hasHydratedEquityHistory = true;
         state.equityHistory = action.payload;
+      })
+      .addCase(fetchPortfolioEquityHistoryThunk.rejected, (state) => {
+        state.isLoadingEquityHistory = false;
+        state.hasHydratedEquityHistory = true;
       })
       .addCase(refreshHoldingsQuotesThunk.fulfilled, (state, action) => {
         state.summaryPositions = action.payload.summaryPositions;
@@ -516,10 +551,12 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolioNewsThunk.fulfilled, (state, action) => {
         state.isLoadingNews = false;
+        state.hasHydratedNews = true;
         state.news = action.payload;
       })
       .addCase(fetchPortfolioNewsThunk.rejected, (state, action) => {
         state.isLoadingNews = false;
+        state.hasHydratedNews = true;
         state.newsError = action.payload ?? ERROR_MESSAGES.PORTFOLIO_NEWS_FAILED;
       })
       .addCase(fetchPortfolioRebalancingThunk.pending, (state) => {
@@ -528,6 +565,7 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolioRebalancingThunk.fulfilled, (state, action) => {
         state.portfolioHealth.isLoading = false;
+        state.portfolioHealth.hasHydrated = true;
         state.portfolioHealth.strategyId = action.payload.strategyId;
         state.portfolioHealth.strategyName = action.payload.strategyName;
 
@@ -540,6 +578,7 @@ const portfolioSlice = createSlice({
       })
       .addCase(fetchPortfolioRebalancingThunk.rejected, (state, action) => {
         state.portfolioHealth.isLoading = false;
+        state.portfolioHealth.hasHydrated = true;
         state.portfolioHealth.error = action.payload ?? ERROR_MESSAGES.PORTFOLIO_REBALANCING_FAILED;
       })
       .addMatcher(

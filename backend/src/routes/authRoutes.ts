@@ -6,6 +6,9 @@ import {
   logout,
   getMe,
   changePassword,
+  deleteAccount,
+  forgotPassword,
+  resetPassword,
   verifyEmail,
   resendVerification,
 } from '../controllers/authController.js';
@@ -29,8 +32,11 @@ router.post('/login', authLimiter, asyncHandler(login));
 router.post('/google', authLimiter, asyncHandler(googleLogin));
 router.post('/verify-email', authLimiter, asyncHandler(verifyEmail));
 router.post('/resend-verification', authLimiter, asyncHandler(resendVerification));
+router.post('/forgot-password', authLimiter, asyncHandler(forgotPassword));
+router.post('/reset-password', authLimiter, asyncHandler(resetPassword));
 router.post('/logout', logout);
 router.get('/me', authMiddleware, asyncHandler(getMe));
 router.put('/password', authMiddleware, authLimiter, asyncHandler(changePassword));
+router.delete('/account', authMiddleware, authLimiter, asyncHandler(deleteAccount));
 
 export default router;

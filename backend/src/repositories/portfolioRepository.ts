@@ -44,6 +44,22 @@ export async function findOrCreatePortfolioAccount(ownerToken: string): Promise<
   return created.rows[0].id;
 }
 
+export async function findPortfolioAccountIdByOwnerToken(
+  ownerToken: string
+): Promise<string | null> {
+  const existing = await pool.query<PortfolioAccountRow>(
+    'SELECT id FROM portfolio_accounts WHERE owner_token = $1',
+    [ownerToken]
+  );
+  return existing.rows[0]?.id ?? null;
+}
+
+/** Deletes portfolio account; child rows cascade (positions, transactions, watchlist). */
+export async function deletePortfolioAccountById(portfolioId: string): Promise<boolean> {
+  const result = await pool.query('DELETE FROM portfolio_accounts WHERE id = $1', [portfolioId]);
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function getPositionsByPortfolioId(portfolioId: string): Promise<PositionRow[]> {
   const result = await pool.query<PositionRow>(
     `SELECT id, portfolio_id, ticker, company_name, shares, avg_buy_price,

@@ -75,8 +75,10 @@ export function useHoldingsPolling(): void {
     };
   }, [dispatch]);
 
+  // Initial hydrate on every tab so dashboard loading gates can resolve.
+  // Quote polling stays leader-only to avoid Yahoo stampede across tabs.
   useEffect(() => {
-    if (!isLeader || !isScopeActive) return;
+    if (!isScopeActive) return;
 
     void dispatch(fetchPortfolioSummaryThunk());
     void dispatch(fetchInvestmentSummaryThunk());
@@ -84,7 +86,7 @@ export function useHoldingsPolling(): void {
     void dispatch(fetchTransactionsPageThunk({ offset: 0, append: false }));
     void dispatch(fetchPortfolioEquityHistoryThunk());
     void dispatch(fetchPortfolioRebalancingThunk());
-  }, [dispatch, isLeader, isScopeActive]);
+  }, [dispatch, isScopeActive]);
 
   useEffect(() => {
     if (!isLeader || !isScopeActive) return;

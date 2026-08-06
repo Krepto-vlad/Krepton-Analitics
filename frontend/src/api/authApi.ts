@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../constants';
 import type {
   AuthUser,
   ChangePasswordPayload,
+  DeleteAccountPayload,
   LoginCredentials,
   RegisterCredentials,
   RegisterPendingResult,
@@ -70,4 +71,34 @@ export async function apiChangePassword(payload: ChangePasswordPayload): Promise
     }
   );
   assertSuccess(data);
+}
+
+export async function apiDeleteAccount(payload: DeleteAccountPayload): Promise<void> {
+  const { data } = await authClient.delete<
+    ApiSuccessResponse<{ message: string }> | ApiErrorResponse
+  >('/account', {
+    data: {
+      confirm: payload.confirm,
+      password: payload.password,
+      googleIdToken: payload.googleIdToken,
+    },
+  });
+  assertSuccess(data);
+}
+
+export async function apiForgotPassword(email: string): Promise<{ message: string }> {
+  const { data } = await authClient.post<
+    ApiSuccessResponse<{ message: string }> | ApiErrorResponse
+  >('/forgot-password', { email });
+  return assertSuccess(data);
+}
+
+export async function apiResetPassword(payload: {
+  token: string;
+  newPassword: string;
+}): Promise<{ message: string }> {
+  const { data } = await authClient.post<
+    ApiSuccessResponse<{ message: string }> | ApiErrorResponse
+  >('/reset-password', payload);
+  return assertSuccess(data);
 }

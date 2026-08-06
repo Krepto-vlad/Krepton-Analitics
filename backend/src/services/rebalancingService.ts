@@ -351,7 +351,9 @@ async function buildPositionProfiles(
     const shares = parseFloat(row.shares);
     const quote = quoteByTicker.get(ticker);
     const sourceCurrency = quote?.currency ?? row.currency;
-    const nativePrice = quote?.price ?? parseFloat(row.avg_buy_price);
+    const quotePrice = quote?.price;
+    const hasPositiveQuotePrice = typeof quotePrice === 'number' && quotePrice > 0;
+    const nativePrice = hasPositiveQuotePrice ? quotePrice : parseFloat(row.avg_buy_price);
     const nativeMarketValue = shares * nativePrice;
 
     let marketValue = nativeMarketValue;

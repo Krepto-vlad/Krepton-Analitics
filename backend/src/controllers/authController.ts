@@ -5,6 +5,9 @@ import {
   loginWithGoogleIdToken,
   getUserById,
   changeUserPassword,
+  deleteUserAccount,
+  requestPasswordReset,
+  resetPasswordWithToken,
   signAccessToken,
   verifyEmailWithToken,
   resendVerificationEmail,
@@ -20,15 +23,35 @@ import type {
   VerifyEmailBody,
   ResendVerificationBody,
   ChangePasswordBody,
+  DeleteAccountBody,
+  ForgotPasswordBody,
+  ResetPasswordBody,
 } from '../types/auth.types.js';
 import type { ApiResponse } from '../types/stock.types.js';
 
-function setAuthCookie(res: Response, token: string): void {
-  res.cookie(JWT_COOKIE_NAME, token, {
+function getAuthCookieOptions(): {
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'strict';
+  maxAge: number;
+} {
+  return {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: JWT_COOKIE_MAX_AGE_MS,
+  };
+}
+
+function setAuthCookie(res: Response, token: string): void {
+  res.cookie(JWT_COOKIE_NAME, token, getAuthCookieOptions());
+}
+
+function clearAuthCookie(res: Response): void {
+  res.clearCookie(JWT_COOKIE_NAME, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
   });
 }
 
@@ -108,7 +131,7 @@ export async function resendVerification(
 }
 
 export function logout(_req: Request, res: Response): void {
-  res.clearCookie(JWT_COOKIE_NAME);
+  clearAuthCookie(res);
   res.json({ success: true, data: null });
 }
 
@@ -149,4 +172,39 @@ export async function changePassword(
     googleIdToken,
   });
   res.json({ success: true, data: { message: 'Password updated successfully' } });
+}
+
+export async function deleteAccount(
+  req: Request<object, ApiResponse<{ message: string }>, DeleteAccountBody>,
+  res: Response<ApiResponse<{ message: string }>>
+): Promise<void> {
+  const userId = req.userId;
+  if (!userId) {
+    throw new AppError(401, 'Unauthorized');
+  }
+
+  const { confirm, password, googleIdToken } = req.body ?? {};
+
+  await deleteUserAccount(userId, confirm, { password, googleIdToken });
+  clearAuthCookie(res);
+  res.json({
+    success: true,
+    data: { message: 'Account deleted successfully' },
+  });
+}
+
+export async function forgotPassword(
+  req: Request<object, ApiResponse<{ message: string }>, ForgotPasswordBody>,
+  res: Response<ApiResponse<{ message: string }>>
+): Promise<void> {
+  const result = await requestPasswordReset(req.body?.email);
+  res.json({ success: true, data: result });
+}
+
+export async function resetPassword(
+  req: Request<object, ApiResponse<{ message: string }>, ResetPasswordBody>,
+  res: Response<ApiResponse<{ message: string }>>
+): Promise<void> {
+  const result = await resetPasswordWithToken(req.body?.token, req.body?.newPassword);
+  res.json({ success: true, data: result });
 }

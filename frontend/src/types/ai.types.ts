@@ -62,6 +62,14 @@ export interface AlignmentExplanationDrift {
   explanation: string;
 }
 
+export type FalseDiversificationRiskLevel = 'none' | 'low' | 'moderate' | 'high';
+
+export interface AlignmentFalseDiversificationInsight {
+  riskLevel: FalseDiversificationRiskLevel;
+  title: string;
+  explanation: string;
+}
+
 export interface AlignmentExplanationResponse {
   explanationDate: string;
   strategyId: string;
@@ -69,6 +77,7 @@ export interface AlignmentExplanationResponse {
   alignmentScore: number;
   overview: string;
   keyDrifts: AlignmentExplanationDrift[];
+  falseDiversification?: AlignmentFalseDiversificationInsight;
   whatItMeans: string;
   disclaimer: string;
   fromCache: boolean;

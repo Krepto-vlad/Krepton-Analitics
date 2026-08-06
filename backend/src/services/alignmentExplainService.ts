@@ -12,16 +12,27 @@ import { getTodayIsoDate } from '../utils/displayCurrency.js';
 import type {
   AlignmentExplanationPayload,
   AlignmentExplanationResponse,
+  AlignmentFalseDiversificationInsight,
   AlignmentPromptContext,
   AiQuotaStatus,
 } from '../types/ai.types.js';
 import type { RebalancingAnalysisResponse } from '../types/rebalancing.types.js';
 import { assertAiQuotaAvailable, getAiQuotaStatus, recordAiUsage } from './aiQuotaService.js';
+import {
+  buildAlignmentHoldingsForPrompt,
+  buildFalseDiversificationHints,
+} from './falseDiversificationHints.js';
 import { generateAlignmentExplanationWithGemini } from './geminiClient.js';
 import { getUserPortfolioRebalancingAnalysis } from './portfolioService.js';
 
-const TOP_HOLDINGS_LIMIT = 5;
 const MATERIAL_DRIFT_THRESHOLD_PP = 1;
+
+const FALLBACK_FALSE_DIVERSIFICATION: AlignmentFalseDiversificationInsight = {
+  riskLevel: 'none',
+  title: 'False diversification',
+  explanation:
+    'No clear false-diversification signal from the available holdings and overlap hints.',
+};
 
 function buildAlignmentCacheKey(analysis: RebalancingAnalysisResponse): string {
   const deviationFingerprint = analysis.deviations
@@ -57,14 +68,8 @@ function buildAlignmentPromptContext(
   const deviationsForPrompt =
     materialDeviations.length > 0 ? materialDeviations : analysis.deviations;
 
-  const topHoldings = [...analysis.tickerMappings]
-    .sort((left, right) => right.marketValue - left.marketValue)
-    .slice(0, TOP_HOLDINGS_LIMIT)
-    .map((item) => ({
-      ticker: item.ticker,
-      bucketLabel: item.bucketLabel,
-      marketValue: item.marketValue,
-    }));
+  const topHoldings = buildAlignmentHoldingsForPrompt(analysis);
+  const falseDiversificationHints = buildFalseDiversificationHints(topHoldings);
 
   return {
     explanationDate,
@@ -82,6 +87,7 @@ function buildAlignmentPromptContext(
       status: item.status,
     })),
     topHoldings,
+    falseDiversificationHints,
   };
 }
 
@@ -99,6 +105,7 @@ function buildAlignmentExplanationResponse(params: {
     alignmentScore: Math.round(params.analysis.alignmentScore),
     overview: params.payload.overview,
     keyDrifts: params.payload.keyDrifts,
+    falseDiversification: params.payload.falseDiversification ?? FALLBACK_FALSE_DIVERSIFICATION,
     whatItMeans: params.payload.whatItMeans,
     disclaimer: AI_EXPLAIN_ALIGNMENT_DISCLAIMER,
     fromCache: params.fromCache,

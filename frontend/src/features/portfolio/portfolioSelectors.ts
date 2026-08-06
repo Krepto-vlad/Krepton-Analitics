@@ -69,3 +69,37 @@ export function selectPortfolioStats(state: RootState): PortfolioStats {
 export function selectSectorAllocations(state: RootState): SectorAllocation[] {
   return buildSectorAllocations(state.portfolio.summaryPositions);
 }
+
+/**
+ * True until dashboard core datasets (and news when holdings exist) finish first load.
+ * Keeps panels on spinners instead of flashing partial/stale account numbers.
+ */
+export function selectIsDashboardBootstrapping(state: RootState): boolean {
+  const {
+    isLoading,
+    isLoadingEquityHistory,
+    hasHydratedSummary,
+    hasHydratedEquityHistory,
+    hasHydratedNews,
+    isLoadingNews,
+    summaryPositions,
+    portfolioHealth,
+  } = state.portfolio;
+  const { isLoading: isWatchlistLoading, hasHydrated: hasHydratedWatchlist } = state.watchlist;
+
+  const hasPortfolioHoldings = summaryPositions.length > 0;
+  const needsNewsHydration = hasHydratedSummary && hasPortfolioHoldings;
+
+  const waitingForCore =
+    !hasHydratedSummary ||
+    !hasHydratedEquityHistory ||
+    !portfolioHealth.hasHydrated ||
+    !hasHydratedWatchlist;
+
+  const waitingForInFlight =
+    isLoading || isLoadingEquityHistory || portfolioHealth.isLoading || isWatchlistLoading;
+
+  const waitingForNews = needsNewsHydration && (!hasHydratedNews || isLoadingNews);
+
+  return waitingForCore || waitingForInFlight || waitingForNews;
+}

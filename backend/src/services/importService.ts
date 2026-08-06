@@ -1,8 +1,9 @@
 import { AppError } from '../middleware/errorHandler.js';
+import { IMPORT_DEFAULT_BROKER_ID } from '../constants.js';
 import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
-import { readSafeXlsxBuffer } from '../utils/excelSafeReader.js';
+import { readSafeTabularBuffer } from '../utils/excelSafeReader.js';
 import { buildTradeFingerprint } from '../utils/tradeFingerprint.js';
-import { assertSupportedBrokerId, parseBrokerStatement } from './brokerParsers/index.js';
+import { parseBrokerStatement } from './brokerParsers/index.js';
 import { saveImportPreview, consumeImportPreview } from './importPreviewStore.js';
 import {
   findOrCreatePortfolioAccount,
@@ -50,12 +51,11 @@ function buildPreviewSummary(
 
 export async function previewBrokerImport(
   userId: string,
-  brokerRaw: string,
-  fileBuffer: Buffer
+  fileBuffer: Buffer,
+  originalFilename: string
 ): Promise<ImportPreviewResponse> {
-  const broker = assertSupportedBrokerId(brokerRaw);
-  const sheetData = readSafeXlsxBuffer(fileBuffer);
-  const parsed = parseBrokerStatement(broker, sheetData);
+  const sheetData = readSafeTabularBuffer(fileBuffer, originalFilename);
+  const parsed = await parseBrokerStatement(sheetData, userId);
 
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
@@ -75,11 +75,15 @@ export async function previewBrokerImport(
   );
 
   const duplicateCount = countDuplicates(parsed.trades, existingFingerprints);
-  const importId = saveImportPreview(userId, broker, parsed.trades);
+  const importId = saveImportPreview(userId, IMPORT_DEFAULT_BROKER_ID, parsed.trades);
 
   return {
     importId,
-    broker,
+    broker: IMPORT_DEFAULT_BROKER_ID,
+    parserMode: parsed.meta.mode,
+    confidence: parsed.meta.confidence,
+    warning: parsed.meta.warning,
+    columnMapping: parsed.meta.columnMapping,
     trades: parsed.trades,
     skipped: parsed.skipped,
     summary: buildPreviewSummary(

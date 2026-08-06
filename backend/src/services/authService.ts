@@ -5,21 +5,32 @@ import { env } from '../config/env.js';
 import {
   createGoogleUser,
   createPasswordUser,
+  deleteUserById,
   findUserByEmail,
   findUserByGoogleSub,
   findUserById,
+  findUserByPasswordResetTokenHash,
   findUserByVerificationTokenHash,
   linkGoogleSubToUser,
   markEmailVerified,
   setEmailVerificationToken,
+  setPasswordResetToken,
   updateUserPasswordHash,
 } from '../repositories/userRepository.js';
+import {
+  deletePortfolioAccountById,
+  findPortfolioAccountIdByOwnerToken,
+} from '../repositories/portfolioRepository.js';
 import { AppError } from '../middleware/errorHandler.js';
 import {
+  ACCOUNT_DELETE_CONFIRMATION,
   BCRYPT_SALT_ROUNDS,
   EMAIL_VERIFICATION_TOKEN_BYTES,
   EMAIL_VERIFICATION_TTL_MS,
   PASSWORD_MIN_LENGTH,
+  PASSWORD_RESET_REQUEST_GENERIC_MESSAGE,
+  PASSWORD_RESET_TOKEN_BYTES,
+  PASSWORD_RESET_TTL_MS,
 } from '../constants.js';
 import type {
   AuthUser,
@@ -28,7 +39,12 @@ import type {
   TokenPayload,
   UserRow,
 } from '../types/auth.types.js';
-import { sendEmailVerificationLink } from './emailService.js';
+import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
+import {
+  sendEmailVerificationLink,
+  sendGoogleOnlySignInHint,
+  sendPasswordResetLink,
+} from './emailService.js';
 import { verifyGoogleIdToken } from './googleAuthService.js';
 
 function mapUserRowToAuthUser(user: UserRow): AuthUser {
@@ -70,6 +86,15 @@ function createVerificationToken(): { token: string; tokenHash: string; expiresA
     token,
     tokenHash: hashVerificationToken(token),
     expiresAt: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
+  };
+}
+
+function createPasswordResetToken(): { token: string; tokenHash: string; expiresAt: Date } {
+  const token = crypto.randomBytes(PASSWORD_RESET_TOKEN_BYTES).toString('hex');
+  return {
+    token,
+    tokenHash: hashVerificationToken(token),
+    expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
   };
 }
 
@@ -302,6 +327,103 @@ export async function changeUserPassword(
   if (!updated) {
     throw new AppError(500, 'Unable to update password');
   }
+}
+
+/**
+ * Always returns a generic message (anti-enumeration).
+ * Sends reset link for verified password users; Google-only get a sign-in hint email.
+ */
+export async function requestPasswordReset(email: unknown): Promise<{ message: string }> {
+  if (typeof email !== 'string' || email.trim().length === 0) {
+    throw new AppError(400, 'Email is required');
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await findUserByEmail(normalizedEmail);
+
+  try {
+    if (user?.email_verified && user.password_hash) {
+      const resetToken = createPasswordResetToken();
+      await setPasswordResetToken(user.id, resetToken.tokenHash, resetToken.expiresAt);
+      await sendPasswordResetLink(user.email, resetToken.token);
+      console.info('[Auth] password reset email issued', { userId: user.id });
+    } else if (user?.google_sub && !user.password_hash) {
+      await sendGoogleOnlySignInHint(user.email);
+      console.info('[Auth] Google-only sign-in hint issued', { userId: user.id });
+    }
+  } catch (error) {
+    // Do not leak whether the account exists via SMTP/config failures.
+    console.error('[Auth] Password reset request side-effect failed', error);
+  }
+
+  return { message: PASSWORD_RESET_REQUEST_GENERIC_MESSAGE };
+}
+
+export async function resetPasswordWithToken(
+  token: unknown,
+  newPassword: unknown
+): Promise<{ message: string }> {
+  if (typeof token !== 'string' || token.trim().length === 0) {
+    throw new AppError(400, 'Reset token is required');
+  }
+
+  if (typeof newPassword !== 'string' || newPassword.length === 0) {
+    throw new AppError(400, 'New password is required');
+  }
+
+  assertPasswordStrength(newPassword);
+
+  const tokenHash = hashVerificationToken(token.trim());
+  const user = await findUserByPasswordResetTokenHash(tokenHash);
+  if (!user || !user.password_hash) {
+    throw new AppError(400, 'Reset link is invalid or expired. Request a new password reset.');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
+  const updated = await updateUserPasswordHash(user.id, passwordHash);
+  if (!updated) {
+    throw new AppError(500, 'Unable to update password');
+  }
+
+  console.info('[Auth] password reset completed', { userId: user.id });
+  return { message: 'Password updated successfully. You can sign in with your new password.' };
+}
+
+/**
+ * Hard-deletes the user account and linked anonymous portfolio (GDPR erasure).
+ * Requires step-up (password or Google) plus typed confirmation phrase.
+ * AI rows cascade via FK; portfolio is deleted via HMAC owner_token lookup.
+ */
+export async function deleteUserAccount(
+  userId: string,
+  confirm: unknown,
+  credentials: StepUpCredentials
+): Promise<void> {
+  if (confirm !== ACCOUNT_DELETE_CONFIRMATION) {
+    throw new AppError(
+      400,
+      `Confirmation required. Send { "confirm": "${ACCOUNT_DELETE_CONFIRMATION}" }.`
+    );
+  }
+
+  await verifySensitiveAction(userId, credentials);
+
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findPortfolioAccountIdByOwnerToken(ownerToken);
+  if (portfolioId) {
+    await deletePortfolioAccountById(portfolioId);
+  }
+
+  const deleted = await deleteUserById(userId);
+  if (!deleted) {
+    throw new AppError(404, 'Account not found');
+  }
+
+  // GDPR: never log email or statement content — metadata only.
+  console.info('[Auth] account deleted', {
+    userId,
+    hadPortfolio: Boolean(portfolioId),
+  });
 }
 
 export function signAccessToken(userId: string): string {

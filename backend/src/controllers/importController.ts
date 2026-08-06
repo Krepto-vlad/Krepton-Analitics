@@ -16,17 +16,12 @@ export async function previewImport(
   req: Request,
   res: Response<ApiResponse<ImportPreviewResponse>>
 ): Promise<void> {
-  const broker = req.body?.broker as string | undefined;
-
-  if (!broker || broker.trim().length === 0) {
-    throw new AppError(400, 'broker is required');
-  }
-
   if (!req.file?.buffer) {
-    throw new AppError(400, 'Excel file is required');
+    throw new AppError(400, 'Statement file is required (.xlsx or .csv)');
   }
 
-  const preview = await previewBrokerImport(requireUserId(req), broker, req.file.buffer);
+  const originalFilename = req.file.originalname?.trim() || 'statement.xlsx';
+  const preview = await previewBrokerImport(requireUserId(req), req.file.buffer, originalFilename);
   res.json({ success: true, data: preview });
 }
 

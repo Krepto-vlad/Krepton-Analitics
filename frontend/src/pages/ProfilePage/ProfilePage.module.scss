@@ -397,6 +397,8 @@
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
 
   &:hover:not(:disabled) {
     background: $color-danger-muted;
@@ -408,11 +410,150 @@
   }
 }
 
-.securityList,
-.privacyActions {
+.dangerButtonFilled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  border: 1px solid #b91c1c;
+  border-radius: $radius-md;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.35);
+
+  &:hover:not(:disabled) {
+    background: #ef4444;
+    border-color: #dc2626;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.securityList {
   display: flex;
   flex-direction: column;
   gap: $space-3;
+}
+
+.dataActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  flex-wrap: wrap;
+  padding: $space-4;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dataActionCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dangerZone {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  margin-top: $space-2;
+  padding: $space-4;
+  border-radius: $radius-md;
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  background: rgba(127, 29, 29, 0.12);
+}
+
+.dangerZoneHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  color: #fca5a5;
+}
+
+.dangerZoneTitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: #fecaca;
+}
+
+.dangerZoneSubtitle {
+  margin: 2px 0 0;
+  font-size: $font-size-xs;
+  color: rgba(254, 202, 202, 0.75);
+  line-height: 1.4;
+}
+
+.dangerPanel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-4;
+  flex-wrap: wrap;
+  padding: $space-4;
+  border-radius: $radius-md;
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.dangerPanelCritical {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(185, 28, 28, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.08);
+}
+
+.dangerPanelBody {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: min(100%, 240px);
+  flex: 1;
+}
+
+.dangerPanelEyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(252, 165, 165, 0.8);
+}
+
+.dangerPanelEyebrowCritical {
+  margin: 0;
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f87171;
+}
+
+.dangerPanelTitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.dangerPanelText {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  line-height: 1.45;
+  max-width: 42ch;
 }
 
 .securityRow {
@@ -493,16 +634,6 @@
   color: $color-primary;
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
-}
-
-.warningText {
-  margin: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: $space-2;
-  font-size: $font-size-xs;
-  color: $color-danger;
-  line-height: 1.45;
 }
 
 .subscriptionCard {

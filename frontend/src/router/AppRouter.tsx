@@ -60,6 +60,16 @@ const SubscriptionPage = lazy(() =>
 const VerifyEmailPage = lazy(() =>
   import('../pages/VerifyEmailPage/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
 );
+const ForgotPasswordPage = lazy(() =>
+  import('../pages/ForgotPasswordPage/ForgotPasswordPage').then((m) => ({
+    default: m.ForgotPasswordPage,
+  }))
+);
+const ResetPasswordPage = lazy(() =>
+  import('../pages/ResetPasswordPage/ResetPasswordPage').then((m) => ({
+    default: m.ResetPasswordPage,
+  }))
+);
 const WatchlistPage = () => (
   <div style={{ color: '#fff', padding: 40 }}>Watchlist — coming soon</div>
 );
@@ -132,6 +142,8 @@ function AppRoutes() {
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
         <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
 
         {/* Protected app — single AppShell, only content changes on navigation */}
         <Route element={<ProtectedLayout />}>

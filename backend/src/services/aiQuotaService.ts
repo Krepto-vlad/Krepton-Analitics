@@ -1,6 +1,7 @@
 import {
   AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT,
   AI_NEWS_SUMMARY_FREE_DAILY_LIMIT,
+  IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT,
   type AiFeatureId,
 } from '../constants.js';
 import { countAiUsageSince, insertAiUsageEvent } from '../repositories/aiRepository.js';
@@ -23,6 +24,10 @@ function getDailyLimitForFeature(feature: AiFeatureId): number {
 
   if (feature === 'explain_alignment') {
     return AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT;
+  }
+
+  if (feature === 'import_schema') {
+    return IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT;
   }
 
   return 0;

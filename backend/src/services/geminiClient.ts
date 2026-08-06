@@ -7,18 +7,26 @@ import {
   GEMINI_MODEL,
   GEMINI_REQUEST_TIMEOUT_MS,
   GEMINI_TEMPERATURE,
+  IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS,
 } from '../constants.js';
+import {
+  FALSE_DIVERSIFICATION_RISK_LEVELS,
+  FALSE_DIVERSIFICATION_UNKNOWN_SECTOR_LABEL,
+} from '../constants/falseDiversification.constants.js';
 import { env, isGeminiConfigured, isGeminiGroundingEnabled } from '../config/env.js';
 import { AppError } from '../middleware/errorHandler.js';
 import type {
   AlignmentExplanationPayload,
   AlignmentPromptContext,
   BriefingPromptContext,
+  FalseDiversificationRiskLevel,
   NewsSummaryHoldingInsight,
   NewsSummaryPayload,
   NewsSummarySentiment,
   NewsSummarySource,
 } from '../types/ai.types.js';
+import type { ColumnMapping, TradeColumnKey } from '../types/import.types.js';
+import { REQUIRED_TRADE_COLUMN_KEYS, TRADE_COLUMN_KEYS } from '../types/import.types.js';
 
 const geminiClient = axios.create({
   baseURL: GEMINI_API_BASE_URL,
@@ -315,6 +323,12 @@ export interface BriefingGenerationResult {
   groundingEnabled: boolean;
 }
 
+const FALSE_DIVERSIFICATION_RISK_LEVEL_SET = new Set<string>(FALSE_DIVERSIFICATION_RISK_LEVELS);
+
+function isFalseDiversificationRiskLevel(value: string): value is FalseDiversificationRiskLevel {
+  return FALSE_DIVERSIFICATION_RISK_LEVEL_SET.has(value);
+}
+
 function buildAlignmentPrompt(context: AlignmentPromptContext): string {
   const deviationsBlock =
     context.deviations.length > 0
@@ -331,18 +345,46 @@ function buildAlignmentPrompt(context: AlignmentPromptContext): string {
       ? context.topHoldings
           .map(
             (holding) =>
-              `- ${holding.ticker} in ${holding.bucketLabel}: ~${context.displayCurrency} ${holding.marketValue.toFixed(0)}`
+              `- ${holding.ticker} (${holding.weightPercent.toFixed(1)}%) in ${holding.bucketLabel}; sector: ${holding.sector ?? FALSE_DIVERSIFICATION_UNKNOWN_SECTOR_LABEL}; ~${context.displayCurrency} ${holding.marketValue.toFixed(0)}`
           )
           .join('\n')
       : 'No holdings mapped.';
 
+  const overlapHints = context.falseDiversificationHints;
+  const overlapClustersBlock =
+    overlapHints.overlappingClusters.length > 0
+      ? overlapHints.overlappingClusters
+          .map(
+            (cluster) =>
+              `- ${cluster.label}: tickers present [${cluster.tickersPresent.join(', ')}]. ${cluster.note}`
+          )
+          .join('\n')
+      : '- No known overlapping ETF clusters detected among material holdings.';
+
+  const topSectorsBlock =
+    overlapHints.topSectors.length > 0
+      ? overlapHints.topSectors
+          .map(
+            (item) =>
+              `- ${item.sector}: ${item.weightPercent.toFixed(1)}% of listed holdings weight`
+          )
+          .join('\n')
+      : '- No sector breakdown available.';
+
   return [
     'You are a portfolio strategist explaining strategy alignment to a retail investor.',
-    'Write in clear English. Use ONLY the numbers provided below.',
-    'Do NOT invent holdings, prices, or market events.',
+    'Write in clear English. Use ONLY the numbers and hints provided below.',
+    'Do NOT invent holdings, prices, market events, or exact underlying company weights inside ETFs.',
     'Do NOT give buy/sell recommendations or specific trade sizes.',
     'Explain what the alignment score and drifts mean in plain language.',
     'If alignment is high, say the portfolio is broadly on track. If low, explain concentration/drift risks.',
+    '',
+    'Also assess FALSE DIVERSIFICATION risk:',
+    '- False diversification means owning several funds/tickers that look different but share the same underlying factor risk (e.g. VOO + QQQ + VUG).',
+    '- Use the overlap cluster hints and sector weights below. Speak qualitatively.',
+    '- Never claim exact look-through percentages (e.g. "22% Microsoft") — we do not have ETF constituent data.',
+    '- If no overlap clusters and sectors look spread out, set riskLevel to "none" or "low".',
+    '- If multiple overlapping equity ETFs coexist, or one sector dominates, raise riskLevel accordingly.',
     '',
     `Date: ${context.explanationDate}`,
     `Strategy: ${context.strategyName}`,
@@ -357,9 +399,16 @@ function buildAlignmentPrompt(context: AlignmentPromptContext): string {
     'Largest holdings by market value (context only):',
     holdingsBlock,
     '',
+    'Known overlapping ETF cluster hints (qualitative only):',
+    overlapClustersBlock,
+    '',
+    'Sector concentration among listed holdings:',
+    topSectorsBlock,
+    '',
     'Return JSON with:',
     '- overview: 2-3 sentences summarizing alignment today',
     '- keyDrifts: 2-4 items with title + explanation of the most important drifts or strengths',
+    '- falseDiversification: object with riskLevel (none|low|moderate|high), title, explanation (2-4 sentences)',
     '- whatItMeans: 2-3 sentences on practical implications WITHOUT naming specific trades or amounts',
   ].join('\n');
 }
@@ -380,9 +429,18 @@ function getAlignmentResponseSchema(): Record<string, unknown> {
           required: ['title', 'explanation'],
         },
       },
+      falseDiversification: {
+        type: 'object',
+        properties: {
+          riskLevel: { type: 'string', enum: [...FALSE_DIVERSIFICATION_RISK_LEVELS] },
+          title: { type: 'string' },
+          explanation: { type: 'string' },
+        },
+        required: ['riskLevel', 'title', 'explanation'],
+      },
       whatItMeans: { type: 'string' },
     },
-    required: ['overview', 'keyDrifts', 'whatItMeans'],
+    required: ['overview', 'keyDrifts', 'falseDiversification', 'whatItMeans'],
   };
 }
 
@@ -413,13 +471,41 @@ function parseAlignmentJsonResponse(rawText: string): AlignmentExplanationPayloa
     .filter((item) => item.title.length > 0 && item.explanation.length > 0)
     .slice(0, 4);
 
-  if (!overview || !whatItMeans || keyDrifts.length === 0) {
+  const rawFalseDiversification =
+    record.falseDiversification && typeof record.falseDiversification === 'object'
+      ? (record.falseDiversification as Record<string, unknown>)
+      : null;
+
+  const riskLevelRaw =
+    typeof rawFalseDiversification?.riskLevel === 'string'
+      ? rawFalseDiversification.riskLevel.trim().toLowerCase()
+      : '';
+  const falseDiversificationTitle =
+    typeof rawFalseDiversification?.title === 'string' ? rawFalseDiversification.title.trim() : '';
+  const falseDiversificationExplanation =
+    typeof rawFalseDiversification?.explanation === 'string'
+      ? rawFalseDiversification.explanation.trim()
+      : '';
+
+  if (
+    !overview ||
+    !whatItMeans ||
+    keyDrifts.length === 0 ||
+    !isFalseDiversificationRiskLevel(riskLevelRaw) ||
+    !falseDiversificationTitle ||
+    !falseDiversificationExplanation
+  ) {
     throw new AppError(502, 'AI returned an empty explanation. Please try again.');
   }
 
   return {
     overview,
     keyDrifts,
+    falseDiversification: {
+      riskLevel: riskLevelRaw,
+      title: falseDiversificationTitle,
+      explanation: falseDiversificationExplanation,
+    },
     whatItMeans,
   };
 }
@@ -524,6 +610,203 @@ export async function generateBriefingWithGemini(
       sources: useGrounding ? extractGroundingSources(data) : [],
       groundingEnabled: useGrounding,
     };
+  } catch (error) {
+    handleGeminiAxiosError(error);
+  }
+}
+
+export interface ImportSchemaInferenceInput {
+  sampleRows: string[][];
+  columnCount: number;
+}
+
+const MISSING_COLUMN_INDEX = -1;
+
+function getImportSchemaResponseSchema(): Record<string, unknown> {
+  const columnProperties = Object.fromEntries(
+    TRADE_COLUMN_KEYS.map((key) => [key, { type: 'INTEGER' }])
+  );
+
+  return {
+    type: 'OBJECT',
+    properties: {
+      headerRowIndex: { type: 'INTEGER' },
+      columns: {
+        type: 'OBJECT',
+        properties: columnProperties,
+        required: [...TRADE_COLUMN_KEYS],
+      },
+      confidence: { type: 'NUMBER' },
+    },
+    required: ['headerRowIndex', 'columns', 'confidence'],
+  };
+}
+
+function buildImportSchemaPrompt(input: ImportSchemaInferenceInput): string {
+  const tableBlock = input.sampleRows
+    .map((row, rowIndex) => {
+      const cells = row.map((cell, columnIndex) => `[${columnIndex}]${cell || '∅'}`).join(' | ');
+      return `R${rowIndex}: ${cells}`;
+    })
+    .join('\n');
+
+  return [
+    'You map broker trade-statement spreadsheet columns.',
+    'GDPR: you receive ONLY a truncated sample (not a full statement). Do not invent account numbers or PII.',
+    'Identify which zero-based column index holds: date, ticker, side (buy/sell/type), quantity, price, currency.',
+    'headerRowIndex is the zero-based row index WITHIN this sample where column headers appear (same as sheet row index).',
+    'Return confidence in [0,1].',
+    'Required fields (must be distinct valid indexes): date, ticker, side, quantity, price.',
+    `If there is a dedicated currency column, set currency to its index.`,
+    `If currency is embedded in price values (e.g. "USD 340.61" or "340.61 EUR"), set currency to the SAME index as price.`,
+    `If currency cannot be determined from headers/values, set currency to ${MISSING_COLUMN_INDEX}.`,
+    'Do not invent a fake currency column index that collides with date/ticker/side/quantity.',
+    `Column count: ${input.columnCount}`,
+    '',
+    'Sample (cell values truncated):',
+    tableBlock,
+  ].join('\n');
+}
+
+function parseImportSchemaResponse(
+  rawText: string,
+  columnCount: number,
+  sampleRowCount: number
+): { mapping: ColumnMapping; confidence: number } {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    throw new AppError(400, 'AI returned an invalid schema mapping. Please try again.');
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    throw new AppError(400, 'AI returned an invalid schema mapping. Please try again.');
+  }
+
+  const record = parsed as Record<string, unknown>;
+  const headerRowIndex =
+    typeof record.headerRowIndex === 'number' && Number.isInteger(record.headerRowIndex)
+      ? record.headerRowIndex
+      : -1;
+  const confidence =
+    typeof record.confidence === 'number' && Number.isFinite(record.confidence)
+      ? Math.min(Math.max(record.confidence, 0), 1)
+      : 0;
+  const columnsRaw =
+    record.columns && typeof record.columns === 'object'
+      ? (record.columns as Record<string, unknown>)
+      : null;
+
+  if (headerRowIndex < 0 || headerRowIndex >= sampleRowCount || !columnsRaw) {
+    throw new AppError(400, 'AI returned an incomplete schema mapping. Please try again.');
+  }
+
+  const requiredColumns = {} as Record<Exclude<TradeColumnKey, 'currency'>, number>;
+
+  for (const key of REQUIRED_TRADE_COLUMN_KEYS) {
+    const value = columnsRaw[key];
+    if (
+      typeof value !== 'number' ||
+      !Number.isInteger(value) ||
+      value < 0 ||
+      value >= columnCount
+    ) {
+      throw new AppError(
+        400,
+        'Could not map required statement columns (Date, Ticker, Buy/Sell, Quantity, Price).'
+      );
+    }
+    requiredColumns[key] = value;
+  }
+
+  const requiredIndexes = Object.values(requiredColumns);
+  if (new Set(requiredIndexes).size !== REQUIRED_TRADE_COLUMN_KEYS.length) {
+    throw new AppError(
+      400,
+      'Could not uniquely map required statement columns. Check that headers are distinct.'
+    );
+  }
+
+  let currencyIndex: number | null = null;
+  const currencyRaw = columnsRaw.currency;
+  if (
+    typeof currencyRaw === 'number' &&
+    Number.isInteger(currencyRaw) &&
+    currencyRaw >= 0 &&
+    currencyRaw < columnCount
+  ) {
+    // Dedicated currency column, or same as price (embedded "USD 340.61" pattern).
+    if (!requiredIndexes.includes(currencyRaw) || currencyRaw === requiredColumns.price) {
+      currencyIndex = currencyRaw === requiredColumns.price ? null : currencyRaw;
+    }
+  }
+
+  return {
+    mapping: {
+      headerRowIndex,
+      columns: {
+        ...requiredColumns,
+        currency: currencyIndex,
+      },
+    },
+    confidence,
+  };
+}
+
+/**
+ * Infers ColumnMapping from a GDPR-safe truncated sample only.
+ * Callers must never send the full workbook here.
+ */
+export async function inferImportSchemaWithGemini(
+  input: ImportSchemaInferenceInput
+): Promise<{ mapping: ColumnMapping; confidence: number }> {
+  if (!isGeminiConfigured) {
+    throw new AppError(503, 'AI schema assist is not configured on the server.');
+  }
+
+  if (input.sampleRows.length === 0 || input.columnCount <= 0) {
+    throw new AppError(400, 'Not enough spreadsheet data to infer column mapping.');
+  }
+
+  const prompt = buildImportSchemaPrompt(input);
+
+  try {
+    const { data } = await geminiClient.post<GeminiGenerateContentResponse>(
+      `/models/${GEMINI_MODEL}:generateContent`,
+      {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS,
+          responseMimeType: 'application/json',
+          responseSchema: getImportSchemaResponseSchema(),
+        },
+      },
+      {
+        params: {
+          key: env.geminiApiKey,
+        },
+        timeout: GEMINI_REQUEST_TIMEOUT_MS,
+      }
+    );
+
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawText) {
+      throw new AppError(502, 'AI returned an empty schema mapping. Please try again.');
+    }
+
+    console.info('[GeminiClient] Import schema inferred from truncated sample', {
+      sampleRowCount: input.sampleRows.length,
+      columnCount: input.columnCount,
+    });
+
+    return parseImportSchemaResponse(rawText, input.columnCount, input.sampleRows.length);
   } catch (error) {
     handleGeminiAxiosError(error);
   }

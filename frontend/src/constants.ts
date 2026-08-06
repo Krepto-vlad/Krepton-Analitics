@@ -6,6 +6,8 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   VERIFY_EMAIL: '/verify-email',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   PRICING: '/pricing',
   SECURITY: '/security',
   DASHBOARD: '/dashboard',
@@ -24,6 +26,7 @@ export const ROUTES = {
 export const LANDING_SCROLL_TO_FEATURES_STATE = { scrollToFeatures: true } as const;
 
 export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
+export const ACCOUNT_DELETE_CONFIRMATION = 'DELETE ACCOUNT';
 
 export const PORTFOLIO_EXPORT_FORMATS = ['xlsx', 'json'] as const;
 export type PortfolioExportFormat = (typeof PORTFOLIO_EXPORT_FORMATS)[number];
@@ -156,6 +159,9 @@ export const ERROR_MESSAGES = {
   AUTH_RESEND_VERIFICATION_FAILED: 'Unable to resend verification email. Please try again.',
   AUTH_CHANGE_PASSWORD_FAILED: 'Unable to change password. Please try again.',
   AUTH_GOOGLE_STEP_UP_FAILED: 'Unable to confirm with Google. Please try again.',
+  AUTH_DELETE_ACCOUNT_FAILED: 'Unable to delete your account. Please try again.',
+  AUTH_FORGOT_PASSWORD_FAILED: 'Unable to send password reset instructions. Please try again.',
+  AUTH_RESET_PASSWORD_FAILED: 'Unable to reset password. The link may be invalid or expired.',
   PORTFOLIO_LOAD_FAILED: 'Unable to load portfolio data. Please try again.',
   PORTFOLIO_DELETE_DATA_FAILED: 'Unable to delete portfolio data. Please try again.',
   PORTFOLIO_EXPORT_FAILED: 'Unable to export portfolio data. Please try again.',

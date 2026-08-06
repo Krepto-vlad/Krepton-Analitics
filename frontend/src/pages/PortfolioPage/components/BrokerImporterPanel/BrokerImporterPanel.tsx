@@ -11,7 +11,7 @@ import {
   fetchTransactionsPageThunk,
 } from '../../../../features/portfolio/portfolioSlice';
 import { previewBrokerImport, confirmBrokerImport } from '../../../../api/importApi';
-import type { ImportPreviewResponse } from '../../../../types/import.types';
+import type { BrokerParserMode, ImportPreviewResponse } from '../../../../types/import.types';
 import {
   ImportResultModal,
   type ImportResultModalType,
@@ -19,14 +19,10 @@ import {
 import pageStyles from '../../PortfolioPage.module.scss';
 import styles from './BrokerImporterPanel.module.scss';
 
-const BROKER_OPTIONS = [
-  { id: 'REVOLUT', label: 'Revolut', supported: true },
-  { id: 'IB', label: 'Interactive Brokers', supported: false },
-  { id: 'CS', label: 'Charles Schwab', supported: false },
-  { id: 'FI', label: 'Fidelity', supported: false },
-  { id: 'ET', label: 'eToro', supported: false },
-  { id: 'T2', label: 'Trading 212', supported: false },
-] as const;
+const PARSER_MODE_LABELS: Record<BrokerParserMode, string> = {
+  heuristic: 'Auto-detected',
+  ai_schema: 'AI-assisted',
+};
 
 const MAX_PREVIEW_ROWS = 25;
 
@@ -45,11 +41,15 @@ function formatPrice(value: number, currency: string): string {
   }).format(value);
 }
 
+function isSupportedStatementFile(fileName: string): boolean {
+  const normalized = fileName.toLowerCase();
+  return normalized.endsWith('.xlsx') || normalized.endsWith('.csv');
+}
+
 export function BrokerImporterPanel() {
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [selectedBroker, setSelectedBroker] = useState('REVOLUT');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
@@ -68,8 +68,8 @@ export function BrokerImporterPanel() {
   }
 
   function handleFileSelected(file: File): void {
-    if (!file.name.toLowerCase().endsWith('.xlsx')) {
-      setError('Only .xlsx broker statements are supported');
+    if (!isSupportedStatementFile(file.name)) {
+      setError('Only .xlsx and .csv statements are supported (PDF is not supported)');
       return;
     }
 
@@ -122,7 +122,7 @@ export function BrokerImporterPanel() {
     setError(null);
 
     try {
-      const result = await previewBrokerImport(selectedBroker, uploadedFile);
+      const result = await previewBrokerImport(uploadedFile);
       setPreview(result);
     } catch (previewError) {
       setError(getRejectedMessage(previewError, ERROR_MESSAGES.IMPORT_PREVIEW_FAILED));
@@ -185,33 +185,12 @@ export function BrokerImporterPanel() {
           <Upload size={16} />
         </div>
         <div>
-          <h2 className={pageStyles.panelTitle}>Broker Importer</h2>
+          <h2 className={pageStyles.panelTitle}>Statement Importer</h2>
           <p className={pageStyles.panelSubtitle}>
-            Upload a Revolut account statement (.xlsx). We parse trades in memory and never store
-            your file.
+            Upload a broker trade export (.xlsx or .csv). Parsing stays in memory; files are never
+            stored. Columns are mapped locally when possible; otherwise a truncated sample may be
+            sent to AI (never the full file). PDF is not supported.
           </p>
-        </div>
-      </div>
-
-      <div className={styles.brokerPicker}>
-        <p className={styles.brokerPickerLabel}>Broker</p>
-        <div className={pageStyles.brokersList}>
-          {BROKER_OPTIONS.map((broker) => (
-            <button
-              key={broker.id}
-              type="button"
-              disabled={!broker.supported}
-              className={`${pageStyles.brokerBadge} ${selectedBroker === broker.id ? styles.brokerBadgeActive : ''} ${!broker.supported ? styles.brokerBadgeDisabled : ''}`}
-              onClick={() => {
-                if (!broker.supported) return;
-                setSelectedBroker(broker.id);
-                resetState();
-              }}
-            >
-              <span className={pageStyles.brokerName}>{broker.label}</span>
-              {!broker.supported && <span className={styles.comingSoonTag}>Soon</span>}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -239,7 +218,7 @@ export function BrokerImporterPanel() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
           className={pageStyles.fileInput}
           onChange={handleFileChange}
         />
@@ -280,7 +259,7 @@ export function BrokerImporterPanel() {
               Drop your statement here, or{' '}
               <span className={pageStyles.browseLink}>browse files</span>
             </p>
-            <p className={pageStyles.dropZoneHint}>Accepts: .xlsx only · Max 5 MB</p>
+            <p className={pageStyles.dropZoneHint}>Accepts: .xlsx, .csv · Max 5 MB · No PDF</p>
           </div>
         )}
       </div>
@@ -297,6 +276,21 @@ export function BrokerImporterPanel() {
 
       {preview && (
         <div className={styles.previewSection}>
+          <div className={styles.parserMeta}>
+            <span
+              className={`${styles.modeBadge} ${
+                preview.parserMode === 'heuristic' ? styles.modeBadgeHeuristic : styles.modeBadgeAi
+              }`}
+            >
+              {PARSER_MODE_LABELS[preview.parserMode]}
+            </span>
+            <span className={styles.metaText}>
+              Confidence {(preview.confidence * 100).toFixed(0)}%
+            </span>
+          </div>
+
+          {preview.warning && <p className={styles.previewWarning}>{preview.warning}</p>}
+
           <div className={styles.summaryGrid}>
             <div className={styles.summaryCard}>
               <div className={styles.summaryValue}>{preview.summary.tradeCount}</div>

@@ -77,6 +77,7 @@ export interface PortfolioHealthState {
   strategyName: string | null;
   deviations: PortfolioHealthDeviation[];
   isLoading: boolean;
+  hasHydrated: boolean;
   error: string | null;
 }
 
@@ -107,7 +108,11 @@ export interface PortfolioState {
   news: NewsItem[];
   isLoadingNews: boolean;
   newsError: string | null;
+  hasHydratedNews: boolean;
   equityHistory: EquityDataPoint[];
+  isLoadingEquityHistory: boolean;
+  hasHydratedSummary: boolean;
+  hasHydratedEquityHistory: boolean;
   portfolioHealth: PortfolioHealthState;
   isLoading: boolean;
   error: string | null;

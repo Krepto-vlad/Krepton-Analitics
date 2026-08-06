@@ -25,6 +25,7 @@ export interface WatchlistItem {
 export interface WatchlistState {
   items: WatchlistItem[];
   isLoading: boolean;
+  hasHydrated: boolean;
   isSubmitting: boolean;
   error: string | null;
 }

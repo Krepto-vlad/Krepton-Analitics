@@ -6,7 +6,10 @@ import {
   fetchPortfolioNewsThunk,
   fetchPortfolioRebalancingThunk,
 } from '../../features/portfolio/portfolioSlice';
-import { selectPortfolioStats } from '../../features/portfolio/portfolioSelectors';
+import {
+  selectIsDashboardBootstrapping,
+  selectPortfolioStats,
+} from '../../features/portfolio/portfolioSelectors';
 import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { ErrorBanner } from '../../components/ui';
 import { PortfolioHealthCard } from './components/PortfolioHealthCard/PortfolioHealthCard';
@@ -21,15 +24,13 @@ export function DashboardPage() {
 
   const dispatch = useAppDispatch();
   const summaryPositions = useAppSelector((state) => state.portfolio.summaryPositions);
-  const isPortfolioLoading = useAppSelector((state) => state.portfolio.isLoading);
+  const isDashboardBootstrapping = useAppSelector(selectIsDashboardBootstrapping);
   const stats = useAppSelector(selectPortfolioStats);
   const portfolioHealth = useAppSelector((state) => state.portfolio.portfolioHealth);
   const news = useAppSelector((state) => state.portfolio.news);
-  const isLoadingNews = useAppSelector((state) => state.portfolio.isLoadingNews);
   const newsError = useAppSelector((state) => state.portfolio.newsError);
   const equityHistory = useAppSelector((state) => state.portfolio.equityHistory);
   const watchlist = useAppSelector((state) => state.watchlist.items);
-  const isWatchlistLoading = useAppSelector((state) => state.watchlist.isLoading);
   const portfolioError = useAppSelector((state) => state.portfolio.error);
   const watchlistError = useAppSelector((state) => state.watchlist.error);
   const currency = useAppSelector((state) => state.ui.currency);
@@ -52,6 +53,8 @@ export function DashboardPage() {
     () => buildLogoByTicker(summaryPositions, watchlist),
     [summaryPositions, watchlist]
   );
+
+  const hasPortfolioHoldings = summaryPositions.length > 0;
 
   useEffect(() => {
     void dispatch(fetchPortfolioRebalancingThunk());
@@ -80,13 +83,13 @@ export function DashboardPage() {
           alignmentScore={portfolioHealth.alignmentScore}
           strategyName={portfolioHealth.strategyName}
           deviations={portfolioHealth.deviations}
-          isLoading={portfolioHealth.isLoading}
+          isLoading={isDashboardBootstrapping}
         />
         <PortfolioEquityCard
           stats={stats}
           equityHistory={equityHistory}
           currency={currency}
-          isLoading={isPortfolioLoading}
+          isLoading={isDashboardBootstrapping}
         />
       </div>
 
@@ -94,17 +97,21 @@ export function DashboardPage() {
         <PositionsTable
           positions={summaryPositions}
           currency={currency}
-          isLoading={isPortfolioLoading}
+          isLoading={isDashboardBootstrapping}
         />
-        <WatchlistPanel watchlist={watchlist} currency={currency} isLoading={isWatchlistLoading} />
+        <WatchlistPanel
+          watchlist={watchlist}
+          currency={currency}
+          isLoading={isDashboardBootstrapping}
+        />
       </div>
 
       <div className={styles.bottomRow}>
         <NewsFeed
           news={news}
-          isLoading={isLoadingNews}
+          isLoading={isDashboardBootstrapping}
           error={newsError}
-          hasPortfolioHoldings={summaryPositions.length > 0}
+          hasPortfolioHoldings={hasPortfolioHoldings}
           onRetry={handleRetryNews}
           logoByTicker={newsLogoByTicker}
         />

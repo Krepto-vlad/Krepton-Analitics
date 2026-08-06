@@ -539,6 +539,6 @@ curl -b cookies.txt -X POST http://localhost:3001/api/portfolio/news/summary \
 | P0 | News Daily Briefing (v2) | ✅ Реализовано (grounding off by default) |
 | P0b | Enable Google Search grounding | 🔲 После billing card → `GEMINI_GROUNDING_ENABLED=true` |
 | P1 | Sentiment tags inline в ленте | 🔲 Planned |
-| P2 | «Explain my alignment» на rebalancing | ✅ Реализовано (AI Insights tab) |
+| P2 | «Explain my alignment» на rebalancing | ✅ Реализовано (AI Insights tab; includes false-diversification check) |
 | P3 | Weekly portfolio digest | 🔲 Planned |
 | — | Pro tier limits (50/month) | 🔲 Требует subscription model в БД |

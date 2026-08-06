@@ -66,10 +66,10 @@ export function useWatchlistPolling(): void {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!isLeader || !isScopeActive) return;
+    if (!isScopeActive) return;
 
     void dispatch(fetchWatchlistThunk());
-  }, [dispatch, isLeader, isScopeActive]);
+  }, [dispatch, isScopeActive]);
 
   useEffect(() => {
     if (!isLeader || !isScopeActive) return;
