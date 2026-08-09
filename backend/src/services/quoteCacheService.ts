@@ -7,6 +7,7 @@ import {
   YAHOO_QUOTE_MIN_FETCH_GAP_MS,
   FMP_STOCK_LOGO_URL_TEMPLATE,
 } from '../constants.js';
+import { buildEmptyStockQuote } from '../utils/stockQuoteDefaults.js';
 
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 
@@ -30,6 +31,15 @@ interface YahooFinanceQuoteRow {
   regularMarketPreviousClose?: number;
   companyLogoUrl?: string;
   logoUrl?: string;
+  marketState?: string;
+  fullExchangeName?: string;
+  exchange?: string;
+  preMarketPrice?: number;
+  preMarketChange?: number;
+  preMarketChangePercent?: number;
+  postMarketPrice?: number;
+  postMarketChange?: number;
+  postMarketChangePercent?: number;
 }
 
 const YAHOO_QUOTE_FIELDS = [
@@ -47,7 +57,20 @@ const YAHOO_QUOTE_FIELDS = [
   'regularMarketPreviousClose',
   'companyLogoUrl',
   'logoUrl',
+  'marketState',
+  'fullExchangeName',
+  'exchange',
+  'preMarketPrice',
+  'preMarketChange',
+  'preMarketChangePercent',
+  'postMarketPrice',
+  'postMarketChange',
+  'postMarketChangePercent',
 ] as const;
+
+function toNullableFiniteNumber(value: number | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
 
 function buildFmpStockLogoUrl(ticker: string): string {
   return FMP_STOCK_LOGO_URL_TEMPLATE.replace('{ticker}', encodeURIComponent(ticker));
@@ -84,22 +107,6 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function buildFallbackQuote(ticker: string): StockQuote {
-  return {
-    ticker,
-    name: ticker,
-    price: 0,
-    change: 0,
-    changePercent: 0,
-    volume: 0,
-    marketCap: null,
-    currency: 'USD',
-    fiftyTwoWeekHigh: null,
-    fiftyTwoWeekLow: null,
-    logoUrl: null,
-  };
-}
-
 function mapYahooRowToStockQuote(row: YahooFinanceQuoteRow, fallbackTicker: string): StockQuote {
   const ticker = row.symbol ?? fallbackTicker;
   const currentPrice = row.regularMarketPrice ?? 0;
@@ -123,6 +130,14 @@ function mapYahooRowToStockQuote(row: YahooFinanceQuoteRow, fallbackTicker: stri
     fiftyTwoWeekHigh: row.fiftyTwoWeekHigh ?? null,
     fiftyTwoWeekLow: row.fiftyTwoWeekLow ?? null,
     logoUrl: resolveLogoUrl(row, ticker),
+    marketState: row.marketState?.trim() || null,
+    exchange: row.fullExchangeName?.trim() || row.exchange?.trim() || null,
+    preMarketPrice: toNullableFiniteNumber(row.preMarketPrice),
+    preMarketChange: toNullableFiniteNumber(row.preMarketChange),
+    preMarketChangePercent: toNullableFiniteNumber(row.preMarketChangePercent),
+    postMarketPrice: toNullableFiniteNumber(row.postMarketPrice),
+    postMarketChange: toNullableFiniteNumber(row.postMarketChange),
+    postMarketChangePercent: toNullableFiniteNumber(row.postMarketChangePercent),
   };
 }
 
@@ -186,7 +201,7 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
         const row = rowByTicker.get(ticker);
         const quote = row
           ? mapYahooRowToStockQuote(row, ticker)
-          : (getCachedQuoteEvenIfExpired(ticker) ?? buildFallbackQuote(ticker));
+          : (getCachedQuoteEvenIfExpired(ticker) ?? buildEmptyStockQuote(ticker));
 
         quoteCache.set(ticker, {
           quote,
@@ -272,7 +287,7 @@ function queueStaleTickerRefresh(staleTickers: string[]): void {
 function mapTickersToQuotes(tickers: string[]): StockQuote[] {
   return tickers.map((ticker) => {
     const entry = quoteCache.get(ticker);
-    return entry?.quote ?? buildFallbackQuote(ticker);
+    return entry?.quote ?? buildEmptyStockQuote(ticker);
   });
 }
 

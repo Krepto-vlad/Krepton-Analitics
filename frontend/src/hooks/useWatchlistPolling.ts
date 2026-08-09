@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch } from './useAppDispatch';
 import { useAppSelector } from './useAppSelector';
+import { useLeaderIntervalWhileVisible } from './useLeaderIntervalWhileVisible';
 import { useTabLeader } from '../utils/tabLeader';
 import { WATCHLIST_CLIENT_POLL_INTERVAL_MS } from '../constants';
 import { selectIsLivePollingScopeActive } from '../features/livePolling/livePollingSlice';
@@ -31,6 +32,7 @@ function buildItemsSignature(items: WatchlistItem[]): string {
 /**
  * Keeps watchlist quotes fresh while the watchlist scope is active.
  * Only the leader tab polls the API; all tabs stay in sync via BroadcastChannel.
+ * Polling pauses while the document is hidden (Page Visibility API).
  */
 export function useWatchlistPolling(): void {
   const dispatch = useAppDispatch();
@@ -71,17 +73,16 @@ export function useWatchlistPolling(): void {
     void dispatch(fetchWatchlistThunk());
   }, [dispatch, isScopeActive]);
 
-  useEffect(() => {
-    if (!isLeader || !isScopeActive) return;
+  const refreshWatchlistQuotes = useCallback(() => {
+    void dispatch(refreshWatchlistQuotesThunk());
+  }, [dispatch]);
 
-    const intervalId = setInterval(() => {
-      void dispatch(refreshWatchlistQuotesThunk());
-    }, WATCHLIST_CLIENT_POLL_INTERVAL_MS);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [dispatch, isLeader, isScopeActive]);
+  useLeaderIntervalWhileVisible({
+    isLeader,
+    isActive: isScopeActive,
+    intervalMs: WATCHLIST_CLIENT_POLL_INTERVAL_MS,
+    onTick: refreshWatchlistQuotes,
+  });
 
   useEffect(() => {
     if (!isScopeActive) return;

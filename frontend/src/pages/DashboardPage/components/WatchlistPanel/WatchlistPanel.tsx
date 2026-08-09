@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { Radio, ChevronRight, Star } from 'lucide-react';
 import type { Currency } from '../../../../constants';
-import { ROUTES } from '../../../../constants';
+import { buildTickerDetailPath, ROUTES } from '../../../../constants';
 import type { WatchlistItem } from '../../../../types/watchlist.types';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
 import {
@@ -109,13 +109,15 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
 
               return (
                 <div key={item.id} className={styles.item}>
-                  <div className={styles.itemTicker}>
-                    <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} />
-                    <div className={styles.tickerInfo}>
-                      <span className={styles.tickerSymbol}>{item.ticker}</span>
-                      <span className={styles.companyName}>{item.companyName}</span>
+                  <Link to={buildTickerDetailPath(item.ticker)} className={styles.itemTickerLink}>
+                    <div className={styles.itemTicker}>
+                      <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} />
+                      <div className={styles.tickerInfo}>
+                        <span className={styles.tickerSymbol}>{item.ticker}</span>
+                        <span className={styles.companyName}>{item.companyName}</span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                   <span className={styles.itemPrice}>
                     {formatMoney(getDisplayPrice(item), currency)}
                   </span>

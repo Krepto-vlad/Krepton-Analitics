@@ -16,6 +16,7 @@ import {
   getRebalancingStrategiesHandler,
   updatePortfolioRebalancingHandler,
   getBuyTransactions,
+  getTickerTransactions,
   deletePortfolioDataHandler,
   exportPortfolioDataHandler,
   postPosition,
@@ -136,6 +137,7 @@ router.delete(
   asyncHandler(deleteWatchlistItemHandler)
 );
 router.get('/buys/:ticker', asyncHandler(getBuyTransactions));
+router.get('/trades/:ticker', asyncHandler(getTickerTransactions));
 router.delete(
   '/transactions/:transactionId',
   portfolioWriteLimiter,

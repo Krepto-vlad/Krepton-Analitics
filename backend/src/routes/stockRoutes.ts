@@ -3,6 +3,8 @@ import {
   getQuote,
   getQuotes,
   getHistory,
+  getFundamentals,
+  getTickerNews,
   getSectorForTicker,
   searchTickers,
   getTickerTape,
@@ -23,6 +25,8 @@ router.get('/compare', asyncHandler(getCompare));
 router.get('/backtest', asyncHandler(getBacktest));
 router.get('/quote/:ticker', asyncHandler(getQuote));
 router.get('/sector/:ticker', asyncHandler(getSectorForTicker));
+router.get('/fundamentals/:ticker', asyncHandler(getFundamentals));
+router.get('/news/:ticker', asyncHandler(getTickerNews));
 router.get('/history/:ticker', asyncHandler(getHistory));
 
 export default router;

@@ -10,10 +10,21 @@ import {
   StockCompareItem,
   StockCompareResponse,
 } from '../types/stock.types.js';
-import { SEARCH_RESULTS_LIMIT, STOCK_COMPARE_CACHE_TTL_MS } from '../constants.js';
+import {
+  SEARCH_RESULTS_LIMIT,
+  STOCK_COMPARE_CACHE_TTL_MS,
+  STOCK_HISTORY_CACHE_TTL_MS,
+} from '../constants.js';
 import { getCachedStockQuote, getCachedStockQuotes } from './quoteCacheService.js';
+import { buildEmptyStockQuote } from '../utils/stockQuoteDefaults.js';
 
 const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com';
+
+const stockHistoryCache = new Map<string, { response: StockHistoryResponse; expiresAt: number }>();
+
+function buildStockHistoryCacheKey(ticker: string, period: string, interval: string): string {
+  return `${ticker.toUpperCase()}|${period}|${interval}`;
+}
 
 const yahooClient = axios.create({
   baseURL: YAHOO_BASE_URL,
@@ -51,6 +62,7 @@ export async function getStockQuotes(tickers: string[]): Promise<StockQuote[]> {
  */
 function periodToStartDate(period: string): Date {
   const periodDays: Record<string, number> = {
+    '7d': 7,
     '1mo': 30,
     '3mo': 90,
     '6mo': 180,
@@ -69,17 +81,25 @@ export async function getStockHistory(
   period: string,
   interval: string
 ): Promise<StockHistoryResponse> {
+  const upperTicker = ticker.toUpperCase();
+  const cacheKey = buildStockHistoryCacheKey(upperTicker, period, interval);
+  const cached = stockHistoryCache.get(cacheKey);
+
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.response;
+  }
+
   const period1 = periodToStartDate(period);
   const period2 = new Date();
 
-  const rows = await yahooFinance.historical(ticker, {
+  const rows = await yahooFinance.historical(upperTicker, {
     period1: period1.toISOString().slice(0, 10),
     period2: period2.toISOString().slice(0, 10),
     interval: interval as '1d' | '1wk' | '1mo',
   });
 
   if (!rows || rows.length === 0) {
-    throw new Error(`No history found for ticker: ${ticker}`);
+    throw new Error(`No history found for ticker: ${upperTicker}`);
   }
 
   const candles: OhlcvCandle[] = rows
@@ -93,7 +113,13 @@ export async function getStockHistory(
       volume: row.volume ?? 0,
     }));
 
-  return { ticker, interval, candles };
+  const response: StockHistoryResponse = { ticker: upperTicker, interval, candles };
+  stockHistoryCache.set(cacheKey, {
+    response,
+    expiresAt: Date.now() + STOCK_HISTORY_CACHE_TTL_MS,
+  });
+
+  return response;
 }
 
 // ─── Ticker tape ─────────────────────────────────────────────────────────────
@@ -104,24 +130,8 @@ import { TICKER_TAPE_REFRESH_INTERVAL_MS } from '../constants.js';
 
 const TICKER_TAPE_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'TLT', 'GLD', 'VOO'];
 
-function buildFallbackQuote(symbol: string): StockQuote {
-  return {
-    ticker: symbol,
-    name: symbol,
-    price: 0,
-    change: 0,
-    changePercent: 0,
-    volume: 0,
-    marketCap: null,
-    currency: 'USD',
-    fiftyTwoWeekHigh: null,
-    fiftyTwoWeekLow: null,
-    logoUrl: null,
-  };
-}
-
 // Starts as fallback data so the endpoint never returns empty
-let tickerTapeData: StockQuote[] = TICKER_TAPE_SYMBOLS.map(buildFallbackQuote);
+let tickerTapeData: StockQuote[] = TICKER_TAPE_SYMBOLS.map(buildEmptyStockQuote);
 
 async function refreshTickerTape(): Promise<void> {
   try {
@@ -341,6 +351,10 @@ async function fetchStockCompareItem(ticker: string): Promise<StockCompareItem> 
   });
 
   return item;
+}
+
+export async function getStockFundamentals(ticker: string): Promise<StockCompareItem> {
+  return fetchStockCompareItem(ticker);
 }
 
 export async function getStockCompare(tickers: string[]): Promise<StockCompareResponse> {

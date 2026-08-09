@@ -6,17 +6,20 @@ import type {
   StockHistoryResponse,
   StockSearchResult,
   StockSector,
+  StockCompareItem,
   StockCompareResponse,
   StockBacktestResponse,
   MarketMoversResponse,
   ApiSuccessResponse,
 } from '../types/stock.types';
+import type { NewsItem } from '../types/portfolio.types';
 
 const apiClient = createApiClient(`${API_BASE_URL}/api/stocks`);
 
 export async function fetchStockQuote(ticker: string): Promise<StockQuote> {
+  const normalizedTicker = encodeURIComponent(ticker.trim().toUpperCase());
   const { data } = await apiClient.get<ApiSuccessResponse<StockQuote> | ApiErrorResponse>(
-    `/quote/${ticker}`
+    `/quote/${normalizedTicker}`
   );
   return assertSuccess(data);
 }
@@ -43,8 +46,9 @@ export async function fetchStockHistory(
   period: string,
   interval: string
 ): Promise<StockHistoryResponse> {
+  const normalizedTicker = encodeURIComponent(ticker.trim().toUpperCase());
   const { data } = await apiClient.get<ApiSuccessResponse<StockHistoryResponse> | ApiErrorResponse>(
-    `/history/${ticker}`,
+    `/history/${normalizedTicker}`,
     {
       params: { period, interval },
     }
@@ -70,6 +74,20 @@ export async function fetchTickerTape(): Promise<StockQuote[]> {
 export async function fetchStockSector(ticker: string): Promise<StockSector> {
   const { data } = await apiClient.get<ApiSuccessResponse<StockSector> | ApiErrorResponse>(
     `/sector/${ticker}`
+  );
+  return assertSuccess(data);
+}
+
+export async function fetchStockFundamentals(ticker: string): Promise<StockCompareItem> {
+  const { data } = await apiClient.get<ApiSuccessResponse<StockCompareItem> | ApiErrorResponse>(
+    `/fundamentals/${encodeURIComponent(ticker.trim().toUpperCase())}`
+  );
+  return assertSuccess(data);
+}
+
+export async function fetchStockNews(ticker: string): Promise<NewsItem[]> {
+  const { data } = await apiClient.get<ApiSuccessResponse<NewsItem[]> | ApiErrorResponse>(
+    `/news/${encodeURIComponent(ticker.trim().toUpperCase())}`
   );
   return assertSuccess(data);
 }

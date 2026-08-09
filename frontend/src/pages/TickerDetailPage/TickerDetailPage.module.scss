@@ -1,0 +1,581 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  padding: $space-5;
+  min-height: min-content;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  width: fit-content;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-foreground;
+  }
+}
+
+.watchlistButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-foreground-muted;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: $color-foreground;
+    border-color: $color-foreground-muted;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.watchlistButtonActive {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.headerCard {
+  @include card($space-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  min-width: 240px;
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tickerSymbol {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+}
+
+.companyName {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-top: $space-2;
+}
+
+.metaChip {
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.priceBlock {
+  text-align: right;
+  min-width: 180px;
+}
+
+.priceHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-2;
+}
+
+.price {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+}
+
+.sessionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.sessionBadgeExtended {
+  background: rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
+}
+
+.change {
+  margin: $space-1 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: $space-2;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.changeLabel {
+  color: $color-foreground-muted;
+  font-weight: $font-weight-medium;
+}
+
+.positive {
+  color: $color-success;
+}
+
+.negative {
+  color: $color-danger;
+}
+
+.holdingsCard {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.holdingsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.holdingsLink {
+  color: $color-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.holdingsRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: $space-3;
+  align-items: start;
+
+  @media (max-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.holdingsItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.holdingsLabel {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.holdingsValue {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $space-2;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  font-variant-numeric: tabular-nums;
+
+  &.positive,
+  &.positive .changeLabel {
+    color: $color-success;
+  }
+
+  &.negative,
+  &.negative .changeLabel {
+    color: $color-danger;
+  }
+}
+
+.chartCard {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.chartHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.chartTitleBlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.tradeLegend {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-3;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+}
+
+.tradeLegendBuy,
+.tradeLegendSell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+}
+
+.tradeLegendBuy::before {
+  background: $color-success;
+}
+
+.tradeLegendSell::before {
+  background: $color-danger;
+}
+
+.periodSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+}
+
+.periodButton {
+  padding: $space-1 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-foreground;
+    border-color: $color-foreground-muted;
+  }
+}
+
+.activePeriod {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-color: transparent;
+  color: $color-primary;
+}
+
+.chartArea {
+  position: relative;
+  width: 100%;
+  min-height: 360px;
+}
+
+.chartOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-surface;
+}
+
+.chartContainer {
+  width: 100%;
+  height: 360px;
+}
+
+.chartContainerHoverTrade {
+  cursor: pointer;
+}
+
+.tradeTooltip {
+  position: absolute;
+  z-index: 3;
+  min-width: 160px;
+  padding: $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+.tradeTooltipType {
+  margin: 0 0 $space-2;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+}
+
+.tradeTooltipStats {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tradeTooltipRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-4;
+
+  dt {
+    margin: 0;
+    font-size: $font-size-xs;
+    color: $color-foreground-muted;
+  }
+
+  dd {
+    margin: 0;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    color: $color-foreground;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.bottomRow {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  gap: $space-4;
+  align-items: start;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sideCard {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.sideCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.sideCardBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.statsList {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: $space-3;
+  align-items: baseline;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-border;
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.statLabel {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+.statValue {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.statSecondary {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.newsList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.newsItem {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding-bottom: $space-3;
+  border-bottom: 1px solid $color-border;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.newsMeta {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}
+
+.newsSource {
+  font-weight: $font-weight-semibold;
+}
+
+.newsDot {
+  opacity: 0.5;
+}
+
+.newsTime {
+  color: $color-foreground-subtle;
+}
+
+.newsHeadline {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: $space-2;
+  color: $color-foreground;
+  text-decoration: none;
+  font-size: $font-size-sm;
+  line-height: 1.45;
+  font-weight: $font-weight-medium;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.newsEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.retryButton,
+.loadMoreButton {
+  align-self: flex-start;
+  margin-top: $space-1;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-foreground;
+    border-color: $color-foreground-muted;
+  }
+}
+
+.loadingPanel {
+  min-height: 180px;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}

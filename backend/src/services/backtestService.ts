@@ -1,7 +1,6 @@
 import {
   BACKTEST_BENCHMARK_LABEL,
   BACKTEST_BENCHMARK_TICKER,
-  BACKTEST_HISTORY_CACHE_TTL_MS,
   BACKTEST_PERIODS,
   HISTORICAL_DATA_INTERVALS,
   type BacktestPeriod,
@@ -30,28 +29,8 @@ const BACKTEST_PERIOD_LABELS: Record<BacktestPeriod, string> = {
   '10y': '10Y',
 };
 
-const historyCache = new Map<string, { candles: OhlcvCandle[]; expiresAt: number }>();
-
-function buildHistoryCacheKey(ticker: string, period: string): string {
-  return `${ticker.toUpperCase()}:${period}`;
-}
-
 async function getCachedHistoryCandles(ticker: string, period: string): Promise<OhlcvCandle[]> {
-  const upperTicker = ticker.toUpperCase();
-  const cacheKey = buildHistoryCacheKey(upperTicker, period);
-  const cached = historyCache.get(cacheKey);
-
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.candles;
-  }
-
-  const history = await getStockHistory(upperTicker, period, HISTORICAL_DATA_INTERVALS.ONE_DAY);
-
-  historyCache.set(cacheKey, {
-    candles: history.candles,
-    expiresAt: Date.now() + BACKTEST_HISTORY_CACHE_TTL_MS,
-  });
-
+  const history = await getStockHistory(ticker, period, HISTORICAL_DATA_INTERVALS.ONE_DAY);
   return history.candles;
 }
 

@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Trash2, HandCoins, Search, TrendingUp, Loader } from 'lucide-react';
 import { Button, AsyncStatePanel, TickerAvatar } from '../../../../components/ui';
 import { buildLogoByTicker } from '../../../../utils/tickerLogos';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import {
+  buildTickerDetailPath,
   EQUITY_PERIODS,
   HOLDINGS_TABLE_HEADER_HEIGHT_PX,
   HOLDINGS_TABLE_ROW_HEIGHT_PX,
@@ -636,12 +638,17 @@ export function PositionsPanel() {
                   return (
                     <tr key={position.id} className={styles.tableRow}>
                       <td className={styles.tdTicker}>
-                        <TickerAvatar
-                          ticker={normalizedTicker}
-                          logoUrl={position.logoUrl ?? logoByTicker[normalizedTicker] ?? null}
-                          size="sm"
-                        />
-                        <span className={styles.tickerSymbol}>{position.ticker}</span>
+                        <Link
+                          to={buildTickerDetailPath(normalizedTicker)}
+                          className={styles.tickerLink}
+                        >
+                          <TickerAvatar
+                            ticker={normalizedTicker}
+                            logoUrl={position.logoUrl ?? logoByTicker[normalizedTicker] ?? null}
+                            size="sm"
+                          />
+                          <span className={styles.tickerSymbol}>{position.ticker}</span>
+                        </Link>
                       </td>
                       <td className={styles.tdName}>
                         <p className={styles.companyName}>{position.companyName}</p>

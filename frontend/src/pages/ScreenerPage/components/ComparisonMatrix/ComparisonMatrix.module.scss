@@ -36,6 +36,16 @@
   min-width: 140px;
 }
 
+.tickerHeaderLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .tickerSymbol {
+    text-decoration: underline;
+  }
+}
+
 .tickerHeaderContent {
   display: flex;
   flex-direction: column;

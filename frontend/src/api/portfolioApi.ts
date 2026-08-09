@@ -161,6 +161,13 @@ export async function fetchBuyTransactionsForTicker(
   return assertSuccess(data);
 }
 
+export async function fetchTickerTransactions(ticker: string): Promise<PortfolioTransaction[]> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<PortfolioTransaction[]> | ApiErrorResponse
+  >(`/trades/${encodeURIComponent(ticker)}`);
+  return assertSuccess(data);
+}
+
 export async function deleteBuyTransaction(transactionId: string): Promise<void> {
   await portfolioApiClient.delete(`/transactions/${transactionId}`);
 }

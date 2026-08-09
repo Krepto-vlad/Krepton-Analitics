@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Trash2, Search, Loader, Star } from 'lucide-react';
 import { Button, AsyncStatePanel, ErrorBanner, TickerAvatar } from '../../../../components/ui';
 import {
+  buildTickerDetailPath,
   WATCHLIST_TABLE_HEADER_HEIGHT_PX,
   WATCHLIST_TABLE_ROW_HEIGHT_PX,
   type Currency,
@@ -226,10 +228,15 @@ export function WatchlistPanel() {
                     return (
                       <tr key={item.id}>
                         <td className={styles.tdTicker}>
-                          <div className={styles.tickerCell}>
-                            <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} size="sm" />
-                            <span className={styles.tickerSymbol}>{item.ticker}</span>
-                          </div>
+                          <Link
+                            to={buildTickerDetailPath(item.ticker)}
+                            className={styles.tickerLink}
+                          >
+                            <div className={styles.tickerCell}>
+                              <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} size="sm" />
+                              <span className={styles.tickerSymbol}>{item.ticker}</span>
+                            </div>
+                          </Link>
                         </td>
                         <td className={styles.tdName}>{item.companyName}</td>
                         <td className={styles.tdNum}>

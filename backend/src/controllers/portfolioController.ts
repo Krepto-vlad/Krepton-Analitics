@@ -6,6 +6,7 @@ import {
   getPortfolioEquityHistory,
   getInvestmentSummary,
   getBuyTransactionsForTicker,
+  getTransactionsForTicker,
   createPosition,
   editPosition,
   removePosition,
@@ -159,6 +160,12 @@ export async function getBuyTransactions(req: Request, res: Response): Promise<v
   const { ticker } = req.params as { ticker: string };
   const buys = await getBuyTransactionsForTicker(requireUserId(req), ticker);
   res.json({ success: true, data: buys });
+}
+
+export async function getTickerTransactions(req: Request, res: Response): Promise<void> {
+  const { ticker } = req.params as { ticker: string };
+  const transactions = await getTransactionsForTicker(requireUserId(req), ticker);
+  res.json({ success: true, data: transactions });
 }
 
 export async function deletePortfolioDataHandler(req: Request, res: Response): Promise<void> {

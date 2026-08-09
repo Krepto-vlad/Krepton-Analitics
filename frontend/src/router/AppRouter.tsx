@@ -49,6 +49,11 @@ const DividendsPage = lazy(() =>
 const NewsPage = lazy(() =>
   import('../pages/NewsPage/NewsPage').then((m) => ({ default: m.NewsPage }))
 );
+const TickerDetailPage = lazy(() =>
+  import('../pages/TickerDetailPage/TickerDetailPage').then((m) => ({
+    default: m.TickerDetailPage,
+  }))
+);
 const ProfilePage = lazy(() =>
   import('../pages/ProfilePage/ProfilePage').then((m) => ({ default: m.ProfilePage }))
 );
@@ -154,6 +159,7 @@ function AppRoutes() {
           <Route path={ROUTES.BACKTESTING} element={<BacktestingPage />} />
           <Route path={ROUTES.DIVIDENDS} element={<DividendsPage />} />
           <Route path={ROUTES.NEWS} element={<NewsPage />} />
+          <Route path={ROUTES.TICKER} element={<TickerDetailPage />} />
           <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
           <Route path={ROUTES.WATCHLIST} element={<WatchlistPage />} />

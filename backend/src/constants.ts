@@ -158,6 +158,7 @@ export const PORTFOLIO_NEWS_MAX_TICKERS = 10;
 export const PORTFOLIO_NEWS_PER_TICKER = 5;
 export const PORTFOLIO_NEWS_MAX_ITEMS = 20;
 export const PORTFOLIO_NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
+export const STOCK_NEWS_BROWSER_CACHE_TTL_S = Math.floor(PORTFOLIO_NEWS_CACHE_TTL_MS / 1000);
 
 // ─── AI (Gemini) — news summary + explain alignment ────────────────────────────
 export const AI_FEATURES = ['news_summary', 'explain_alignment', 'import_schema'] as const;
@@ -196,6 +197,11 @@ export const GEMINI_GROUNDING_REQUEST_TIMEOUT_MS = 90_000;
 export const GEMINI_MAX_OUTPUT_TOKENS = 2048;
 export const GEMINI_TEMPERATURE = 0.3;
 
+// ─── Stock history / fundamentals (ticker detail) ──────────────────────────────
+export const STOCK_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
+export const STOCK_HISTORY_BROWSER_CACHE_TTL_S = 60;
+export const STOCK_FUNDAMENTALS_BROWSER_CACHE_TTL_S = 60;
+
 // ─── Stock comparison matrix ───────────────────────────────────────────────────
 export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
@@ -218,7 +224,8 @@ export type BacktestPeriod = (typeof BACKTEST_PERIODS)[number];
 export const BACKTEST_DEFAULT_AMOUNT = 1000;
 export const BACKTEST_MIN_AMOUNT = 1;
 export const BACKTEST_MAX_AMOUNT = 10_000_000;
-export const BACKTEST_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
+/** @deprecated Use STOCK_HISTORY_CACHE_TTL_MS — shared with ticker detail /history. */
+export const BACKTEST_HISTORY_CACHE_TTL_MS = STOCK_HISTORY_CACHE_TTL_MS;
 export const BACKTEST_ALLOCATION_TOTAL_PERCENT = 100;
 export const BACKTEST_ALLOCATION_TOLERANCE = 0.01;
 

@@ -308,6 +308,16 @@ tbody tr:hover {
   white-space: nowrap;
 }
 
+.tickerLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .tickerSymbol {
+    color: $color-primary;
+  }
+}
+
 .tickerCell {
   display: flex;
   align-items: center;

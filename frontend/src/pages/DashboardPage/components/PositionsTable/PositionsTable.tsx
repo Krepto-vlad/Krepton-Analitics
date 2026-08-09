@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Briefcase, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 import type { Currency } from '../../../../constants';
-import { ROUTES } from '../../../../constants';
+import { buildTickerDetailPath, ROUTES } from '../../../../constants';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
 import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
 import { TickerAvatar } from '../../../../components/ui';
@@ -95,17 +95,22 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
                 return (
                   <tr key={position.id} className={styles.row}>
                     <td className={styles.td}>
-                      <div className={styles.tickerCell}>
-                        <TickerAvatar
-                          ticker={position.ticker}
-                          logoUrl={position.logoUrl}
-                          size="sm"
-                        />
-                        <div className={styles.tickerInfo}>
-                          <span className={styles.tickerSymbol}>{position.ticker}</span>
-                          <span className={styles.companyName}>{position.companyName}</span>
+                      <Link
+                        to={buildTickerDetailPath(position.ticker)}
+                        className={styles.tickerCellLink}
+                      >
+                        <div className={styles.tickerCell}>
+                          <TickerAvatar
+                            ticker={position.ticker}
+                            logoUrl={position.logoUrl}
+                            size="sm"
+                          />
+                          <div className={styles.tickerInfo}>
+                            <span className={styles.tickerSymbol}>{position.ticker}</span>
+                            <span className={styles.companyName}>{position.companyName}</span>
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td className={styles.td}>
                       <span className={styles.dateText}>{formatDate(position.entryDate)}</span>

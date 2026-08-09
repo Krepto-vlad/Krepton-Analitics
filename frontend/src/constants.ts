@@ -20,7 +20,15 @@ export const ROUTES = {
   DIVIDENDS: '/dividends',
   NEWS: '/news',
   WATCHLIST: '/watchlist',
+  TICKER: '/ticker/:ticker',
 } as const;
+
+export function buildTickerDetailPath(ticker: string): string {
+  return `/ticker/${encodeURIComponent(ticker.trim().toUpperCase())}`;
+}
+
+/** Keep in sync with backend TICKER_FORMAT_PATTERN. */
+export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
 
 /** React Router location.state flag: scroll landing page to #features after navigation. */
 export const LANDING_SCROLL_TO_FEATURES_STATE = { scrollToFeatures: true } as const;
@@ -49,15 +57,42 @@ export const CHART_COLORS = {
   GRID: 'rgba(255,255,255,0.04)',
   TEXT: '#a8a8b3',
   BORDER: 'rgba(255,255,255,0.08)',
+  TRADE_BUY: '#26a69a',
+  TRADE_SELL: '#f87171',
 } as const;
+
+export const CHART_TRADE_MARKER_SIZE = 1.25;
+export const CHART_TRADE_TOOLTIP_OFFSET_PX = 12;
 
 export const DEFAULT_TICKER = 'AAPL';
 export const DEFAULT_PERIOD = '1y';
 export const DEFAULT_INTERVAL = '1d';
 
+/** Keep in sync with backend STOCK_HISTORY_CACHE_TTL_MS / STOCK_COMPARE_CACHE_TTL_MS. */
+export const TICKER_HISTORY_CLIENT_CACHE_TTL_MS = 10 * 60 * 1000;
+export const TICKER_FUNDAMENTALS_CLIENT_CACHE_TTL_MS = 5 * 60 * 1000;
+export const TICKER_QUOTE_CLIENT_CACHE_TTL_MS = 30_000;
+/** Keep in sync with backend PORTFOLIO_NEWS_CACHE_TTL_MS. */
+export const TICKER_NEWS_CLIENT_CACHE_TTL_MS = 10 * 60 * 1000;
+export const TICKER_NEWS_INITIAL_VISIBLE = 6;
+export const TICKER_NEWS_LOAD_MORE_STEP = 6;
+
+/** Yahoo marketState → UI labels (exchange hours already baked into Yahoo's state). */
+export const STOCK_MARKET_SESSION_LABELS = {
+  PRE: 'Premarket',
+  PREPRE: 'Premarket',
+  REGULAR: 'Open',
+  POST: 'After hours',
+  POSTPOST: 'After hours',
+  CLOSED: 'Closed',
+  AT_CLOSE: 'At close',
+  UNKNOWN: 'Market',
+} as const;
+
 export const WS_RECONNECT_DELAY_MS = 3000;
 
 // Scope-gated on the frontend: polling runs only while the matching view is mounted.
+// Also pauses while document.hidden (see usePageVisibility in polling hooks).
 // See livePollingSlice + useLivePollingScope.
 
 // Keep in sync with backend YAHOO_QUOTE_CACHE_TTL_MS (30s).
@@ -181,6 +216,9 @@ export const ERROR_MESSAGES = {
   STOCK_COMPARE_FAILED: 'Unable to load comparison data. Please try again.',
   STOCK_MOVERS_FAILED: 'Unable to load market movers. Please try again.',
   STOCK_BACKTEST_FAILED: 'Unable to run backtest. Please try again.',
+  STOCK_TICKER_LOAD_FAILED: 'Unable to load ticker details. Please try again.',
+  STOCK_TICKER_NEWS_FAILED: 'Unable to load news for this ticker. Please try again.',
+  STOCK_INVALID_TICKER: 'That ticker symbol looks invalid.',
   DIVIDEND_CALENDAR_FAILED: 'Unable to load dividend calendar. Please try again.',
   PORTFOLIO_REBALANCING_FAILED: 'Unable to load rebalancing analysis. Please try again.',
   PORTFOLIO_REBALANCING_SAVE_FAILED: 'Unable to save rebalancing strategy. Please try again.',

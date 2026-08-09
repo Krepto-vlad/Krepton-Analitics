@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Currency } from '../../../../constants';
+import { Link } from 'react-router-dom';
+import { buildTickerDetailPath, type Currency } from '../../../../constants';
 import type { StockCompareItem } from '../../../../types/stock.types';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
 import { AsyncStatePanel, TickerAvatar } from '../../../../components/ui';
@@ -115,11 +116,13 @@ export function ComparisonMatrix({
               <th className={styles.metricHeader}>Metric</th>
               {items.map((item) => (
                 <th key={item.ticker} className={styles.tickerHeader}>
-                  <div className={styles.tickerHeaderContent}>
-                    <TickerAvatar ticker={item.ticker} size="sm" />
-                    <span className={styles.tickerSymbol}>${item.ticker}</span>
-                    <span className={styles.tickerName}>{item.name}</span>
-                  </div>
+                  <Link to={buildTickerDetailPath(item.ticker)} className={styles.tickerHeaderLink}>
+                    <div className={styles.tickerHeaderContent}>
+                      <TickerAvatar ticker={item.ticker} size="sm" />
+                      <span className={styles.tickerSymbol}>${item.ticker}</span>
+                      <span className={styles.tickerName}>{item.name}</span>
+                    </div>
+                  </Link>
                 </th>
               ))}
             </tr>

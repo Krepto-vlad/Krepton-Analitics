@@ -119,6 +119,17 @@
   text-align: right;
 }
 
+.tickerCellLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: $radius-sm;
+
+  &:hover .tickerSymbol {
+    color: $color-primary;
+  }
+}
+
 .tickerCell {
   display: flex;
   align-items: center;

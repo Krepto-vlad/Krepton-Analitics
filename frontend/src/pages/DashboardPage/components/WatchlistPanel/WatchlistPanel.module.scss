@@ -151,6 +151,17 @@
   }
 }
 
+.itemTickerLink {
+  display: block;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .tickerSymbol {
+    color: $color-primary;
+  }
+}
+
 .itemTicker {
   display: flex;
   align-items: center;

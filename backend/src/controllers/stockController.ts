@@ -7,8 +7,10 @@ import {
   searchStocks,
   getTickerTapeQuotes,
   getStockCompare,
+  getStockFundamentals,
 } from '../services/stockService.js';
 import { getMarketMovers } from '../services/marketMoversService.js';
+import { getPortfolioNews } from '../services/newsService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import {
   HISTORICAL_DATA_PERIODS,
@@ -18,6 +20,9 @@ import {
   YAHOO_QUOTE_BATCH_MAX_SIZE,
   STOCK_COMPARE_MAX_TICKERS,
   STOCK_COMPARE_MIN_TICKERS,
+  STOCK_HISTORY_BROWSER_CACHE_TTL_S,
+  STOCK_FUNDAMENTALS_BROWSER_CACHE_TTL_S,
+  STOCK_NEWS_BROWSER_CACHE_TTL_S,
   MARKET_MOVERS_BROWSER_CACHE_TTL_S,
   BACKTEST_MAX_TICKERS,
   BACKTEST_MIN_TICKERS,
@@ -33,12 +38,23 @@ import type {
   StockHistoryResponse,
   StockSearchResult,
   StockSector,
+  StockCompareItem,
   StockCompareResponse,
   StockBacktestResponse,
   MarketMoversResponse,
 } from '../types/stock.types.js';
+import type { PortfolioNewsItem } from '../types/news.types.js';
 import { isBacktestPeriod, runStockBacktest } from '../services/backtestService.js';
 import { parseDisplayCurrency } from '../utils/displayCurrency.js';
+import { isValidTickerSymbol, normalizeTickerSymbol } from '../utils/tickerValidation.js';
+
+function parseTickerParam(rawTicker: string): string {
+  const normalizedTicker = normalizeTickerSymbol(rawTicker);
+  if (!isValidTickerSymbol(normalizedTicker)) {
+    throw new AppError(400, 'Invalid ticker symbol');
+  }
+  return normalizedTicker;
+}
 
 const VALID_PERIODS = Object.values(HISTORICAL_DATA_PERIODS) as string[];
 const VALID_INTERVALS = Object.values(HISTORICAL_DATA_INTERVALS) as string[];
@@ -102,8 +118,32 @@ export async function getHistory(
     throw new AppError(400, `Invalid interval. Valid: ${VALID_INTERVALS.join(', ')}`);
   }
 
-  const history = await getStockHistory(ticker.toUpperCase(), period, interval);
+  const normalizedTicker = parseTickerParam(ticker);
+  const history = await getStockHistory(normalizedTicker, period, interval);
+  res.set('Cache-Control', `private, max-age=${STOCK_HISTORY_BROWSER_CACHE_TTL_S}`);
   res.json({ success: true, data: history });
+}
+
+export async function getFundamentals(
+  req: Request,
+  res: Response<ApiResponse<StockCompareItem>>
+): Promise<void> {
+  const ticker = (req.params as { ticker: string }).ticker;
+  const normalizedTicker = parseTickerParam(ticker);
+  const fundamentals = await getStockFundamentals(normalizedTicker);
+  res.set('Cache-Control', `private, max-age=${STOCK_FUNDAMENTALS_BROWSER_CACHE_TTL_S}`);
+  res.json({ success: true, data: fundamentals });
+}
+
+export async function getTickerNews(
+  req: Request,
+  res: Response<ApiResponse<PortfolioNewsItem[]>>
+): Promise<void> {
+  const ticker = (req.params as { ticker: string }).ticker;
+  const normalizedTicker = parseTickerParam(ticker);
+  const news = await getPortfolioNews([normalizedTicker]);
+  res.set('Cache-Control', `private, max-age=${STOCK_NEWS_BROWSER_CACHE_TTL_S}`);
+  res.json({ success: true, data: news });
 }
 
 export function getTickerTape(_req: Request, res: Response<ApiResponse<StockQuote[]>>): void {

@@ -409,6 +409,18 @@
   white-space: nowrap;
 }
 
+.tickerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .tickerSymbol {
+    color: $color-primary;
+  }
+}
+
 .tickerSymbol {
   font-size: $font-size-sm;
   font-weight: $font-weight-bold;

@@ -635,6 +635,21 @@ export async function getBuyTransactionsForTicker(
   return rows.map(mapTransactionRowToResponse);
 }
 
+export async function getTransactionsForTicker(
+  userId: string,
+  ticker: string
+): Promise<TransactionResponse[]> {
+  const normalizedTicker = normalizeTickerSymbol(ticker);
+  if (!isValidTickerSymbol(normalizedTicker)) {
+    throw new AppError(400, 'Invalid ticker');
+  }
+
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+  const rows = await getTransactionsByTicker(portfolioId, normalizedTicker);
+  return rows.map(mapTransactionRowToResponse);
+}
+
 export async function removeBuyTransaction(userId: string, transactionId: string): Promise<void> {
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);

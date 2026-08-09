@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch } from './useAppDispatch';
 import { useAppSelector } from './useAppSelector';
+import { useLeaderIntervalWhileVisible } from './useLeaderIntervalWhileVisible';
 import { useTabLeader } from '../utils/tabLeader';
 import { HOLDINGS_CLIENT_POLL_INTERVAL_MS } from '../constants';
 import { selectIsLivePollingScopeActive } from '../features/livePolling/livePollingSlice';
@@ -40,6 +41,7 @@ function buildHoldingsSignature(payload: HoldingsQuotesSyncPayload): string {
 /**
  * Keeps holdings quotes fresh while the holdings scope is active.
  * Only the leader tab polls the API; all tabs stay in sync via BroadcastChannel.
+ * Polling pauses while the document is hidden (Page Visibility API).
  */
 export function useHoldingsPolling(): void {
   const dispatch = useAppDispatch();
@@ -88,17 +90,16 @@ export function useHoldingsPolling(): void {
     void dispatch(fetchPortfolioRebalancingThunk());
   }, [dispatch, isScopeActive]);
 
-  useEffect(() => {
-    if (!isLeader || !isScopeActive) return;
+  const refreshHoldingsQuotes = useCallback(() => {
+    void dispatch(refreshHoldingsQuotesThunk());
+  }, [dispatch]);
 
-    const intervalId = setInterval(() => {
-      void dispatch(refreshHoldingsQuotesThunk());
-    }, HOLDINGS_CLIENT_POLL_INTERVAL_MS);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [dispatch, isLeader, isScopeActive]);
+  useLeaderIntervalWhileVisible({
+    isLeader,
+    isActive: isScopeActive,
+    intervalMs: HOLDINGS_CLIENT_POLL_INTERVAL_MS,
+    onTick: refreshHoldingsQuotes,
+  });
 
   useEffect(() => {
     if (!isScopeActive) return;

@@ -1,3 +1,13 @@
+/** Yahoo marketState values (exchange-aware: US vs Europe hours). */
+export type StockMarketState =
+  | 'PRE'
+  | 'REGULAR'
+  | 'POST'
+  | 'CLOSED'
+  | 'PREPRE'
+  | 'POSTPOST'
+  | string;
+
 export interface StockQuote {
   ticker: string;
   name: string;
@@ -11,6 +21,14 @@ export interface StockQuote {
   fiftyTwoWeekLow: number | null;
   /** Yahoo CDN logo URL when available; null for ETFs/futures/etc. */
   logoUrl: string | null;
+  marketState: StockMarketState | null;
+  exchange: string | null;
+  preMarketPrice: number | null;
+  preMarketChange: number | null;
+  preMarketChangePercent: number | null;
+  postMarketPrice: number | null;
+  postMarketChange: number | null;
+  postMarketChangePercent: number | null;
 }
 
 export interface OhlcvCandle {
