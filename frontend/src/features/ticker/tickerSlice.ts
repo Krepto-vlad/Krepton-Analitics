@@ -179,6 +179,7 @@ const tickerSlice = createSlice({
       })
       .addCase(fetchTickerQuoteThunk.fulfilled, (state, action) => {
         state.isLoadingQuote = false;
+        state.error = null;
         state.quotesByTicker[action.payload.ticker.toUpperCase()] = {
           data: action.payload,
           fetchedAt: Date.now(),
@@ -190,7 +191,6 @@ const tickerSlice = createSlice({
       })
       .addCase(fetchTickerHistoryThunk.pending, (state) => {
         state.isLoadingHistory = true;
-        state.error = null;
       })
       .addCase(fetchTickerHistoryThunk.fulfilled, (state, action) => {
         state.isLoadingHistory = false;
@@ -199,13 +199,11 @@ const tickerSlice = createSlice({
           fetchedAt: Date.now(),
         };
       })
-      .addCase(fetchTickerHistoryThunk.rejected, (state, action) => {
+      .addCase(fetchTickerHistoryThunk.rejected, (state) => {
         state.isLoadingHistory = false;
-        state.error = action.payload ?? ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED;
       })
       .addCase(fetchTickerFundamentalsThunk.pending, (state) => {
         state.isLoadingFundamentals = true;
-        state.error = null;
       })
       .addCase(fetchTickerFundamentalsThunk.fulfilled, (state, action) => {
         state.isLoadingFundamentals = false;
@@ -214,9 +212,8 @@ const tickerSlice = createSlice({
           fetchedAt: Date.now(),
         };
       })
-      .addCase(fetchTickerFundamentalsThunk.rejected, (state, action) => {
+      .addCase(fetchTickerFundamentalsThunk.rejected, (state) => {
         state.isLoadingFundamentals = false;
-        state.error = action.payload ?? ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED;
       })
       .addCase(fetchTickerNewsThunk.pending, (state) => {
         state.isLoadingNews = true;

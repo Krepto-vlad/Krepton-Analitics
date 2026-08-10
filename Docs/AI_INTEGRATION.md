@@ -1,10 +1,15 @@
-# Интеграция AI (Gemini) — News Daily Summary
+# Интеграция AI (Gemini)
 
-Документ описывает архитектуру, конфигурацию, API, квоты, кэширование и UI первой AI-фичи платформы Krepton Analytics: **ежедневный саммари новостей по выбранным тикерам портфеля**.
+Документ описывает AI-фичи платформы Krepton Analytics на базе Gemini:
+
+1. **News Daily Briefing** (§1–13) — ежедневный саммари новостей по выбранным тикерам портфеля.
+2. **Ticker AI Chat** (§18) — чат на странице тикера с продуктовыми guardrails (scope + output check).
+
+Общие принципы: API key только на backend, минимум PII в промптах, единый gateway `geminiClient.ts`, квоты через `ai_usage_events`.
 
 ---
 
-## 1. Обзор фичи
+## 1. Обзор фичи (News Daily Briefing)
 
 **Что делает пользователь:**
 1. Открывает страницу `/news`.
@@ -540,5 +545,130 @@ curl -b cookies.txt -X POST http://localhost:3001/api/portfolio/news/summary \
 | P0b | Enable Google Search grounding | 🔲 После billing card → `GEMINI_GROUNDING_ENABLED=true` |
 | P1 | Sentiment tags inline в ленте | 🔲 Planned |
 | P2 | «Explain my alignment» на rebalancing | ✅ Реализовано (AI Insights tab; includes false-diversification check) |
+| P2b | Ticker AI Chat (scoped drawer + guardrails) | ✅ Реализовано (§18) |
+| P2c | Suggested prompt chips (marquee + click-to-send) | ✅ Реализовано |
 | P3 | Weekly portfolio digest | 🔲 Planned |
 | — | Pro tier limits (50/month) | 🔲 Требует subscription model в БД |
+
+---
+
+## 18. Ticker AI Chat
+
+Чат на странице `/ticker/:ticker`: боковая панель (push layout, resizable), контекст всегда привязан к текущему тикеру. История **эфемерная** (только в памяти браузера; при закрытии чата / смене тикера сбрасывается). В БД диалоги не пишем.
+
+### 18.1. Зачем
+
+- Пользователь может спросить про цену, позицию, риски, новости, return/P&L **по этой бумаге**.
+- Не должен использовать чат как общий Gemini (код, стихи, jailbreak) и не должен получать персональные buy/sell-указания.
+
+### 18.2. Поток данных
+
+```mermaid
+sequenceDiagram
+  participant UI as TickerChatDrawer
+  participant API as POST /portfolio/ticker-chat
+  participant SVC as tickerChatService
+  participant SCOPE as tickerChatScope
+  participant QUOTA as aiQuotaService
+  participant Q as quoteCacheService
+  participant AI as geminiClient
+  participant OUT as output guardrails
+
+  UI->>API: { ticker, message, history }
+  API->>SVC: sendTickerChatMessage
+  SVC->>SCOPE: evaluateTickerChatInputScope
+  alt soft_redirect (abuse)
+    SCOPE-->>SVC: fixed reply
+    SVC-->>UI: reply + quota (без Gemini, без списания)
+  else allow / steered
+    SVC->>QUOTA: assertAiQuotaAvailable
+    SVC->>Q: quote + optional holding
+    SVC->>AI: generateTickerChatReplyWithGemini
+    AI->>OUT: sanitizeTickerChatReply
+    OUT-->>AI: safe reply or soft replace
+    AI-->>SVC: reply
+    SVC->>QUOTA: recordAiUsage
+    SVC-->>UI: reply + disclaimer + quota
+  end
+```
+
+### 18.3. API
+
+| Method | Path | Auth | Описание |
+|---|---|---|---|
+| `GET` | `/api/portfolio/ticker-chat/quota` | JWT cookie | `{ remaining, limit, used, resetsAt }` |
+| `POST` | `/api/portfolio/ticker-chat` | JWT cookie + rate limit | Тело: `{ ticker, message, history[] }` → `{ ticker, reply, disclaimer, quota }` |
+
+Rate limit: `AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS` (30 / 15 min).  
+Daily quota: `AI_TICKER_CHAT_FREE_DAILY_LIMIT` = **20** (`AiFeatureId`: `ticker_chat`).
+
+### 18.4. Константы (backend / frontend sync)
+
+| Константа | Значение | Назначение |
+|---|---|---|
+| `AI_TICKER_CHAT_MAX_MESSAGE_CHARS` | 1000 | Лимит текущего user message |
+| `AI_TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS` | 4000 | Per-message cap в history (assistant длиннее user) |
+| `AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS` | 12000 | Бюджет history; старые режутся первыми |
+| `AI_TICKER_CHAT_MAX_HISTORY_MESSAGES` | 12 | Макс. число turns в history |
+| `AI_TICKER_CHAT_MAX_OUTPUT_TOKENS` | 1024 | Потолок ответа модели |
+| `AI_TICKER_CHAT_TEMPERATURE` | 0.4 | Стабильнее «креатива» |
+
+History на бэке: truncate per message + trim total budget (не hard-fail 400 на длинный ответ ассистента). На UI текст остаётся полным; режется только payload в API.
+
+### 18.5. Контекст в промпте
+
+В system instruction попадают:
+
+- ticker + company name;
+- last quote (price, change %, market state, exchange);
+- optional holding (shares, avg buy, unrealized P&L %) из портфеля пользователя;
+- IN SCOPE / OUT OF SCOPE правила (см. ниже).
+
+В Gemini **не** уходят email, имена, номера счетов — только обезличенный portfolio context по тикеру.
+
+### 18.6. Защита (layered guardrails)
+
+Подход как в production LLM apps: **prompt ≠ security**. Несколько слоёв; детерминированные проверки в приложении важнее «попросить модель вести себя хорошо».
+
+| Слой | Где | Что делает |
+|---|---|---|
+| **1. Product UX** | Frontend | FAB/drawer только на `/ticker/:ticker`; `key={ticker}` сбрасывает историю при смене бумаги |
+| **2. System prompt** | `geminiClient.buildTickerChatSystemInstruction` | Allowlist (цена, позиция, риски, концепты на этой бумаге) + denylist (код, general chat, buy/sell advice). Mixed request: ответить finance-intent, **не** писать код. Без preachy «as an AI» |
+| **3. Input gate** | `tickerChatScope.evaluateTickerChatInputScope` | Очевидный abuse (стихи, «ты теперь ChatGPT», jailbreak) → soft redirect **без** Gemini и **без** списания квоты. Coding-запросы → steer-суффикс («не пиши код, ответь по рынку/return») и обычный вызов модели |
+| **4. Output guardrail** | `tickerChatScope.applyTickerChatOutputGuardrails` | **После** Gemini, **до** ответа клиенту: если в тексте есть code fences / персональные buy-sell / «гарантии» результата — подмена на короткий soft redirect. Аналитический разбор рисков без указания сделки пропускается |
+| **5. Quota + rate limit** | `aiQuotaService` + Express limiter | Анти-абьюз бесплатного Gemini как «общего чата» |
+
+Ключевые файлы:
+
+- `backend/src/services/tickerChatService.ts` — оркестрация
+- `backend/src/services/tickerChatScope.ts` — input/output guardrails
+- `backend/src/services/geminiClient.ts` — `generateTickerChatReplyWithGemini`
+- `backend/src/__tests__/unit/services/tickerChatScope.test.ts` — unit-тесты паттернов
+- `frontend/.../TickerChatDrawer.tsx` — UI, ephemeral history, truncate history payload
+
+### 18.7. Output check — что считается нарушением
+
+Срабатывает regex-эвристика (EN/RU), затем soft replace:
+
+- **code** — fenced блоки `python` / `js` / `sql` / …
+- **personalized_advice** — «рекомендую купить», «you should buy», императивы «покупай/продавай»
+- **guaranteed_outcome** — «guaranteed return», «точно вырастет», «без риска прибыль»
+
+Не блокируем нейтральный анализ вроде «upside depends on launch; risks are delay… Not financial advice.»
+
+> Эвристики — POC-уровень: ловят частые кейсы, не заменяют отдельный moderation model. При ложных срабатываниях править паттерны в `tickerChatScope.ts` + тесты.
+
+### 18.8. Frontend UX
+
+- Push-панель справа (контент сдвигается), resize за левый край (280–640 px).
+- Header: `AI chat` · `{TICKER} · {company}` · quota badge.
+- Suggestion chips: marquee → на hover пауза + scroll с сохранением позиции; клик сразу шлёт запрос.
+- Composer: textarea 1000 chars, Send, постоянный disclaimer под Send.
+- Ответы ассистента рендерятся как Markdown (`ChatMarkdown`).
+
+### 18.9. Ручная проверка
+
+1. Открыть `/ticker/TTWO` → FAB → спросить про риски / return позиции → ожидается аналитический ответ.
+2. «Дай код на питоне посчитать return» → без скрипта; возможен разбор return или soft redirect при code fence.
+3. «Напиши стихотворение» → soft redirect, квота не должна списаться.
+4. Если модель всё же выдала «рекомендую купить» — клиент получает подменённый текст output guardrail, не исходный.

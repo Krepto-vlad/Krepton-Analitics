@@ -11,6 +11,8 @@ import {
   postNewsSummaryHandler,
   getAlignmentExplanationQuotaHandler,
   postAlignmentExplanationHandler,
+  getTickerChatQuotaHandler,
+  postTickerChatHandler,
   getPortfolioDividendsHandler,
   getPortfolioRebalancingHandler,
   getRebalancingStrategiesHandler,
@@ -45,6 +47,8 @@ import {
   AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS,
   AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_WINDOW_MS,
   AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS,
+  AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS,
+  AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS,
 } from '../constants.js';
 
 // Apply rate limiting only to write operations to prevent abuse
@@ -76,6 +80,14 @@ const aiExplainAlignmentLimiter = rateLimit({
   windowMs: AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_WINDOW_MS,
   max: AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS,
   message: { success: false, error: 'Too many AI requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const aiTickerChatLimiter = rateLimit({
+  windowMs: AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS,
+  max: AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS,
+  message: { success: false, error: 'Too many AI chat requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -116,6 +128,13 @@ router.post(
   aiExplainAlignmentLimiter,
   portfolioWriteLimiter,
   asyncHandler(postAlignmentExplanationHandler)
+);
+router.get('/ticker-chat/quota', asyncHandler(getTickerChatQuotaHandler));
+router.post(
+  '/ticker-chat',
+  aiTickerChatLimiter,
+  portfolioWriteLimiter,
+  asyncHandler(postTickerChatHandler)
 );
 router.put(
   '/rebalancing/strategy',

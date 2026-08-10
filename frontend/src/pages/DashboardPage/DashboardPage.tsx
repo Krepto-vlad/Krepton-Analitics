@@ -81,6 +81,7 @@ export function DashboardPage() {
       <div className={styles.topRow}>
         <PortfolioHealthCard
           alignmentScore={portfolioHealth.alignmentScore}
+          strategyId={portfolioHealth.strategyId}
           strategyName={portfolioHealth.strategyName}
           deviations={portfolioHealth.deviations}
           isLoading={isDashboardBootstrapping}

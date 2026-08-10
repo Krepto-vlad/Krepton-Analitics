@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Loader, Moon, Star } from 'lucide-react';
 import {
@@ -7,6 +7,7 @@ import {
   ERROR_MESSAGES,
   ROUTES,
   STOCK_PERIODS,
+  TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX,
   TICKER_FORMAT_PATTERN,
   type Currency,
 } from '../../constants';
@@ -36,7 +37,13 @@ import {
 import { AsyncStatePanel, ErrorBanner, TickerAvatar } from '../../components/ui';
 import { getRejectedMessage } from '../../utils/apiError';
 import { buildTickerMarketSessionView } from '../../utils/marketSession';
-import { formatMoney, formatSignedMoney, getTodayIsoDate } from '../../utils/moneyDisplay';
+import {
+  convertAmountToDisplayCurrency,
+  convertAmountWithRate,
+  formatMoney,
+  formatSignedMoney,
+  getTodayIsoDate,
+} from '../../utils/moneyDisplay';
 import { aggregateTickerHoldings } from '../../utils/tickerHoldings';
 import { buildTradeChartMarkers } from '../../utils/tradeChartMarkers';
 import type { OhlcvCandle } from '../../types/stock.types';
@@ -47,6 +54,7 @@ import {
   formatCompareMetricValue,
   getCompareMetricSecondaryValue,
 } from '../ScreenerPage/utils/compareMatrix';
+import { TickerChatDrawer } from './components/TickerChatDrawer';
 import { TickerNewsPanel } from './components/TickerNewsPanel';
 import { TickerPriceChartPanel } from './components/TickerPriceChartPanel';
 import styles from './TickerDetailPage.module.scss';
@@ -68,6 +76,7 @@ const TICKER_DETAIL_METRIC_KEYS: CompareMetricKey[] = [
 
 const EMPTY_CANDLES: OhlcvCandle[] = [];
 const EMPTY_TRANSACTIONS: PortfolioTransaction[] = [];
+const DEFAULT_FX_RATES: Record<Currency, number> = { USD: 1, EUR: 1 };
 
 type StockPeriodValue = (typeof STOCK_PERIODS)[number]['value'];
 
@@ -79,10 +88,31 @@ function resolveTickerFromRouteParam(rawTicker: string): string {
   }
 }
 
-function formatSignedChange(change: number, changePercent: number): string {
+function formatSignedChange(change: number, changePercent: number, currency: Currency): string {
   const changePrefix = change >= 0 ? '+' : '';
   const percentPrefix = changePercent >= 0 ? '+' : '';
-  return `${changePrefix}${change.toFixed(2)} (${percentPrefix}${changePercent.toFixed(2)}%)`;
+  return `${changePrefix}${formatMoney(change, currency)} (${percentPrefix}${changePercent.toFixed(2)}%)`;
+}
+
+function convertCandlesToDisplayCurrency(
+  candles: OhlcvCandle[],
+  fromCurrency: Currency,
+  displayCurrency: Currency,
+  fxRates: Record<Currency, number>
+): OhlcvCandle[] {
+  if (fromCurrency === displayCurrency) {
+    return candles;
+  }
+
+  const fxRate = fxRates[fromCurrency] ?? 1;
+
+  return candles.map((candle) => ({
+    ...candle,
+    open: convertAmountWithRate(candle.open, fxRate),
+    high: convertAmountWithRate(candle.high, fxRate),
+    low: convertAmountWithRate(candle.low, fxRate),
+    close: convertAmountWithRate(candle.close, fxRate),
+  }));
 }
 
 export function TickerDetailPage() {
@@ -96,7 +126,15 @@ export function TickerDetailPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<StockPeriodValue>(
     DEFAULT_PERIOD as StockPeriodValue
   );
-  const [fxRates, setFxRates] = useState<Record<Currency, number>>({ USD: 1, EUR: 1 });
+  const [fxRatesState, setFxRatesState] = useState<{
+    requestKey: string;
+    rates: Record<Currency, number>;
+    isReady: boolean;
+  }>({
+    requestKey: '',
+    rates: DEFAULT_FX_RATES,
+    isReady: false,
+  });
   const [watchlistActionErrorState, setWatchlistActionErrorState] = useState<{
     ticker: string;
     message: string;
@@ -105,6 +143,29 @@ export function TickerDetailPage() {
     ticker: string;
     items: PortfolioTransaction[];
   }>({ ticker: '', items: [] });
+  const [chatDrawerState, setChatDrawerState] = useState<{
+    ticker: string;
+    isOpen: boolean;
+  }>({ ticker: '', isOpen: false });
+  const [chatDrawerWidthPx, setChatDrawerWidthPx] = useState(TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX);
+  const [isChatDrawerResizing, setIsChatDrawerResizing] = useState(false);
+
+  const isChatOpen = chatDrawerState.ticker === ticker && chatDrawerState.isOpen;
+
+  const handleChatOpenChange = useCallback(
+    (nextIsOpen: boolean) => {
+      setChatDrawerState({ ticker, isOpen: nextIsOpen });
+    },
+    [ticker]
+  );
+
+  const handleChatWidthChange = useCallback((nextWidthPx: number) => {
+    setChatDrawerWidthPx(nextWidthPx);
+  }, []);
+
+  const handleChatResizingChange = useCallback((nextIsResizing: boolean) => {
+    setIsChatDrawerResizing(nextIsResizing);
+  }, []);
 
   const watchlistActionError =
     watchlistActionErrorState?.ticker === ticker ? watchlistActionErrorState.message : null;
@@ -135,8 +196,27 @@ export function TickerDetailPage() {
   const isWatchlistSubmitting = useAppSelector((state) => state.watchlist.isSubmitting);
 
   const candles = history?.candles ?? EMPTY_CANDLES;
-  const chartCurrency = quote?.currency ?? fundamentals?.currency ?? 'USD';
+  const priceCurrency = (quote?.currency ?? fundamentals?.currency ?? 'USD') as Currency;
   const sourceCurrency = (fundamentals?.currency ?? quote?.currency ?? 'USD') as Currency;
+
+  const fxSourceCurrencies = useMemo(() => {
+    const currencies = new Set<Currency>([sourceCurrency, priceCurrency]);
+
+    for (const trade of tickerTransactions) {
+      currencies.add(trade.currency as Currency);
+    }
+
+    return Array.from(currencies);
+  }, [priceCurrency, sourceCurrency, tickerTransactions]);
+
+  const fxRatesRequestKey = useMemo(
+    () => `${displayCurrency}|${fxSourceCurrencies.slice().sort().join(',')}`,
+    [displayCurrency, fxSourceCurrencies]
+  );
+
+  const hasLiveFxRates = fxRatesState.requestKey === fxRatesRequestKey && fxRatesState.isReady;
+  const fxRates =
+    fxRatesState.requestKey === fxRatesRequestKey ? fxRatesState.rates : DEFAULT_FX_RATES;
 
   const watchlistItem = useMemo(
     () => watchlistItems.find((item) => item.ticker.trim().toUpperCase() === ticker) ?? null,
@@ -154,9 +234,15 @@ export function TickerDetailPage() {
     [quote]
   );
 
+  const displayCandles = useMemo(() => {
+    const chartCurrency =
+      hasLiveFxRates || priceCurrency === displayCurrency ? displayCurrency : priceCurrency;
+    return convertCandlesToDisplayCurrency(candles, priceCurrency, chartCurrency, fxRates);
+  }, [candles, displayCurrency, fxRates, hasLiveFxRates, priceCurrency]);
+
   const tradeMarkers = useMemo(
-    () => buildTradeChartMarkers(tickerTransactions, candles),
-    [candles, tickerTransactions]
+    () => buildTradeChartMarkers(tickerTransactions, displayCandles),
+    [displayCandles, tickerTransactions]
   );
 
   useEffect(() => {
@@ -222,30 +308,44 @@ export function TickerDetailPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const requestKey = fxRatesRequestKey;
 
-    void fetchLiveFxRates([sourceCurrency], displayCurrency, getTodayIsoDate())
+    void fetchLiveFxRates(fxSourceCurrencies, displayCurrency, getTodayIsoDate())
       .then((rates) => {
         if (!cancelled) {
-          setFxRates(rates);
+          setFxRatesState({
+            requestKey,
+            rates,
+            isReady: true,
+          });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setFxRates({ USD: 1, EUR: 1 });
+          setFxRatesState({
+            requestKey,
+            rates: DEFAULT_FX_RATES,
+            isReady: false,
+          });
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [displayCurrency, sourceCurrency]);
+  }, [displayCurrency, fxRatesRequestKey, fxSourceCurrencies]);
+
+  const quoteMoneyCurrency =
+    hasLiveFxRates || priceCurrency === displayCurrency ? displayCurrency : priceCurrency;
+  const fundamentalsMoneyCurrency =
+    hasLiveFxRates || sourceCurrency === displayCurrency ? displayCurrency : sourceCurrency;
 
   const displayContext = useMemo<CompareDisplayContext>(
     () => ({
-      displayCurrency,
+      displayCurrency: fundamentalsMoneyCurrency,
       fxRates,
     }),
-    [displayCurrency, fxRates]
+    [fundamentalsMoneyCurrency, fxRates]
   );
 
   const detailMetrics = useMemo(
@@ -266,7 +366,32 @@ export function TickerDetailPage() {
   );
 
   const companyName = quote?.name ?? fundamentals?.name ?? ticker;
-  const priceCurrency = (quote?.currency ?? 'USD') as Currency;
+  const displayPrice = marketSession
+    ? convertAmountToDisplayCurrency(
+        marketSession.displayPrice,
+        priceCurrency,
+        quoteMoneyCurrency,
+        fxRates
+      )
+    : null;
+  const displayFiftyTwoWeekLow =
+    quote?.fiftyTwoWeekLow != null
+      ? convertAmountToDisplayCurrency(
+          quote.fiftyTwoWeekLow,
+          priceCurrency,
+          quoteMoneyCurrency,
+          fxRates
+        )
+      : null;
+  const displayFiftyTwoWeekHigh =
+    quote?.fiftyTwoWeekHigh != null
+      ? convertAmountToDisplayCurrency(
+          quote.fiftyTwoWeekHigh,
+          priceCurrency,
+          quoteMoneyCurrency,
+          fxRates
+        )
+      : null;
   const isInitialLoading =
     isValidTicker &&
     !quote &&
@@ -314,248 +439,288 @@ export function TickerDetailPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.topBar}>
-        <Link to={ROUTES.DASHBOARD} className={styles.backLink}>
-          <ArrowLeft size={16} />
-          Back to dashboard
-        </Link>
+    <div className={styles.layout}>
+      <div
+        className={`${styles.mainColumn} ${isChatDrawerResizing ? styles.mainColumnResizing : ''}`}
+        style={{ paddingRight: isChatOpen ? chatDrawerWidthPx : 0 }}
+      >
+        <div className={styles.page}>
+          <div className={styles.topBar}>
+            <Link to={ROUTES.DASHBOARD} className={styles.backLink}>
+              <ArrowLeft size={16} />
+              Back to dashboard
+            </Link>
 
-        <button
-          type="button"
-          className={`${styles.watchlistButton} ${isOnWatchlist ? styles.watchlistButtonActive : ''}`}
-          onClick={() => {
-            void handleWatchlistToggle();
-          }}
-          disabled={isWatchlistSubmitting || !hasHydratedWatchlist}
-          aria-label={isOnWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
-          title={isOnWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
-        >
-          <Star size={18} fill={isOnWatchlist ? 'currentColor' : 'none'} />
-        </button>
+            <button
+              type="button"
+              className={`${styles.watchlistButton} ${isOnWatchlist ? styles.watchlistButtonActive : ''}`}
+              onClick={() => {
+                void handleWatchlistToggle();
+              }}
+              disabled={isWatchlistSubmitting || !hasHydratedWatchlist}
+              aria-label={isOnWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+              title={isOnWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+            >
+              <Star size={18} fill={isOnWatchlist ? 'currentColor' : 'none'} />
+            </button>
+          </div>
+
+          {error && !quote && <ErrorBanner message={error} />}
+          {watchlistActionError && <ErrorBanner message={watchlistActionError} />}
+
+          {isInitialLoading ? (
+            <AsyncStatePanel
+              isLoading
+              loadingMessage="Loading ticker details…"
+              className={styles.loadingPanel}
+            />
+          ) : (
+            <>
+              <section className={styles.headerCard}>
+                <div className={styles.identity}>
+                  <TickerAvatar ticker={ticker} logoUrl={quote?.logoUrl ?? null} size="md" />
+                  <div className={styles.identityText}>
+                    <h1 className={styles.tickerSymbol}>{ticker}</h1>
+                    <p className={styles.companyName}>{companyName}</p>
+                    <div className={styles.metaRow}>
+                      {fundamentals?.sector && (
+                        <span className={styles.metaChip}>{fundamentals.sector}</span>
+                      )}
+                      {fundamentals?.industry && (
+                        <span className={styles.metaChip}>{fundamentals.industry}</span>
+                      )}
+                      {marketSession?.exchange && (
+                        <span className={styles.metaChip}>{marketSession.exchange}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.priceBlock}>
+                  {quote && marketSession && displayPrice != null ? (
+                    <>
+                      <div className={styles.priceHeader}>
+                        <p className={styles.price}>
+                          {formatMoney(displayPrice, quoteMoneyCurrency)}
+                        </p>
+                        <span
+                          className={`${styles.sessionBadge} ${
+                            marketSession.normalizedState === 'PRE' ||
+                            marketSession.normalizedState === 'POST'
+                              ? styles.sessionBadgeExtended
+                              : ''
+                          }`}
+                        >
+                          {(marketSession.normalizedState === 'PRE' ||
+                            marketSession.normalizedState === 'CLOSED') && (
+                            <Moon size={12} aria-hidden />
+                          )}
+                          {marketSession.sessionLabel}
+                        </span>
+                      </div>
+
+                      {marketSession.lines.map((line) => {
+                        const isPositive = line.changePercent >= 0;
+                        const displayChange = convertAmountToDisplayCurrency(
+                          line.change,
+                          priceCurrency,
+                          quoteMoneyCurrency,
+                          fxRates
+                        );
+                        return (
+                          <p
+                            key={line.label}
+                            className={`${styles.change} ${isPositive ? styles.positive : styles.negative}`}
+                          >
+                            {formatSignedChange(
+                              displayChange,
+                              line.changePercent,
+                              quoteMoneyCurrency
+                            )}
+                            <span className={styles.changeLabel}>{line.label}</span>
+                          </p>
+                        );
+                      })}
+                    </>
+                  ) : isLoadingQuote ? (
+                    <Loader size={20} />
+                  ) : (
+                    <p className={styles.companyName}>Quote unavailable</p>
+                  )}
+                </div>
+              </section>
+
+              <section className={styles.chartCard}>
+                <div className={styles.chartHeader}>
+                  <div className={styles.chartTitleBlock}>
+                    <h2 className={styles.sectionTitle}>Price chart</h2>
+                    {tradeMarkers.length > 0 && (
+                      <div className={styles.tradeLegend}>
+                        <span className={styles.tradeLegendBuy}>Buy</span>
+                        <span className={styles.tradeLegendSell}>Sell</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.periodSelector}>
+                    {STOCK_PERIODS.map((period) => (
+                      <button
+                        key={period.value}
+                        type="button"
+                        className={`${styles.periodButton} ${selectedPeriod === period.value ? styles.activePeriod : ''}`}
+                        onClick={() => setSelectedPeriod(period.value)}
+                      >
+                        {period.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <TickerPriceChartPanel
+                  candles={displayCandles}
+                  currency={quoteMoneyCurrency}
+                  isLoading={isLoadingHistory}
+                  tradeMarkers={tradeMarkers}
+                  trades={tickerTransactions}
+                  fxRates={fxRates}
+                />
+                <p className={styles.chartZoomHint}>Ctrl / ⌘ + scroll to zoom</p>
+              </section>
+
+              {holding && (
+                <section className={styles.holdingsCard}>
+                  <div className={styles.holdingsHeader}>
+                    <h2 className={styles.sectionTitle}>Your position</h2>
+                    <Link
+                      to={`${ROUTES.PORTFOLIO}?section=positions`}
+                      className={styles.holdingsLink}
+                    >
+                      View portfolio
+                    </Link>
+                  </div>
+
+                  <div className={styles.holdingsRow}>
+                    <div className={styles.holdingsItem}>
+                      <span className={styles.holdingsLabel}>Total value</span>
+                      <span className={styles.holdingsValue}>
+                        {formatMoney(holding.totalValue, holding.currency)}
+                      </span>
+                    </div>
+                    <div className={styles.holdingsItem}>
+                      <span className={styles.holdingsLabel}>P&amp;L</span>
+                      <span
+                        className={`${styles.holdingsValue} ${
+                          holding.pnlPercent >= 0 ? styles.positive : styles.negative
+                        }`}
+                      >
+                        {formatSignedMoney(holding.pnlAmount, holding.currency)}
+                        <span className={styles.changeLabel}>
+                          {holding.pnlPercent >= 0 ? '+' : ''}
+                          {holding.pnlPercent.toFixed(2)}%
+                        </span>
+                      </span>
+                    </div>
+                    <div className={styles.holdingsItem}>
+                      <span className={styles.holdingsLabel}>Shares</span>
+                      <span className={styles.holdingsValue}>
+                        {holding.shares.toLocaleString('en-US')}
+                      </span>
+                    </div>
+                    <div className={styles.holdingsItem}>
+                      <span className={styles.holdingsLabel}>Avg cost</span>
+                      <span className={styles.holdingsValue}>
+                        {formatMoney(holding.avgBuyPrice, holding.currency)}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              <div className={styles.bottomRow}>
+                <section className={styles.sideCard}>
+                  <h2 className={styles.sectionTitle}>Key statistics</h2>
+
+                  {isLoadingFundamentals && !fundamentals ? (
+                    <AsyncStatePanel
+                      isLoading
+                      loadingMessage="Loading fundamentals…"
+                      className={styles.loadingPanel}
+                    />
+                  ) : detailMetrics.length === 0 &&
+                    !(quote?.fiftyTwoWeekLow != null && quote.fiftyTwoWeekHigh != null) ? (
+                    <p className={styles.companyName}>
+                      Fundamentals are unavailable for this ticker.
+                    </p>
+                  ) : (
+                    <dl className={styles.statsList}>
+                      {detailMetrics.map((metric) => {
+                        if (!fundamentals) {
+                          return null;
+                        }
+
+                        const secondaryValue = getCompareMetricSecondaryValue(
+                          metric.key,
+                          fundamentals
+                        );
+
+                        return (
+                          <div key={metric.key} className={styles.statsRow}>
+                            <dt className={styles.statLabel}>
+                              <span>{metric.label}</span>
+                              {secondaryValue && (
+                                <span className={styles.statSecondary}>{secondaryValue}</span>
+                              )}
+                            </dt>
+                            <dd className={styles.statValue}>
+                              {formatCompareMetricValue(metric.key, fundamentals, displayContext)}
+                            </dd>
+                          </div>
+                        );
+                      })}
+
+                      {displayFiftyTwoWeekLow != null && displayFiftyTwoWeekHigh != null && (
+                        <div className={styles.statsRow}>
+                          <dt className={styles.statLabel}>52-Week Range</dt>
+                          <dd className={styles.statValue}>
+                            {formatMoney(displayFiftyTwoWeekLow, quoteMoneyCurrency)} –{' '}
+                            {formatMoney(displayFiftyTwoWeekHigh, quoteMoneyCurrency)}
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                  )}
+
+                  <p className={styles.disclaimer}>
+                    Market data from Yahoo Finance. Values may be delayed. Not financial advice.
+                  </p>
+                </section>
+
+                <TickerNewsPanel
+                  ticker={ticker}
+                  logoUrl={quote?.logoUrl ?? null}
+                  news={news}
+                  isLoading={isLoadingNews}
+                  error={newsError}
+                  onRetry={() => {
+                    void dispatch(fetchTickerNewsThunk(ticker));
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      {error && <ErrorBanner message={error} />}
-      {watchlistActionError && <ErrorBanner message={watchlistActionError} />}
-
-      {isInitialLoading ? (
-        <AsyncStatePanel
-          isLoading
-          loadingMessage="Loading ticker details…"
-          className={styles.loadingPanel}
+      {!isInitialLoading && (
+        <TickerChatDrawer
+          key={ticker}
+          ticker={ticker}
+          companyName={companyName}
+          isOpen={isChatOpen}
+          widthPx={chatDrawerWidthPx}
+          onOpenChange={handleChatOpenChange}
+          onWidthChange={handleChatWidthChange}
+          onResizingChange={handleChatResizingChange}
         />
-      ) : (
-        <>
-          <section className={styles.headerCard}>
-            <div className={styles.identity}>
-              <TickerAvatar ticker={ticker} logoUrl={quote?.logoUrl ?? null} size="md" />
-              <div className={styles.identityText}>
-                <h1 className={styles.tickerSymbol}>{ticker}</h1>
-                <p className={styles.companyName}>{companyName}</p>
-                <div className={styles.metaRow}>
-                  {fundamentals?.sector && (
-                    <span className={styles.metaChip}>{fundamentals.sector}</span>
-                  )}
-                  {fundamentals?.industry && (
-                    <span className={styles.metaChip}>{fundamentals.industry}</span>
-                  )}
-                  {marketSession?.exchange && (
-                    <span className={styles.metaChip}>{marketSession.exchange}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.priceBlock}>
-              {quote && marketSession ? (
-                <>
-                  <div className={styles.priceHeader}>
-                    <p className={styles.price}>
-                      {formatMoney(marketSession.displayPrice, priceCurrency)}
-                    </p>
-                    <span
-                      className={`${styles.sessionBadge} ${
-                        marketSession.normalizedState === 'PRE' ||
-                        marketSession.normalizedState === 'POST'
-                          ? styles.sessionBadgeExtended
-                          : ''
-                      }`}
-                    >
-                      {(marketSession.normalizedState === 'PRE' ||
-                        marketSession.normalizedState === 'CLOSED') && (
-                        <Moon size={12} aria-hidden />
-                      )}
-                      {marketSession.sessionLabel}
-                    </span>
-                  </div>
-
-                  {marketSession.lines.map((line) => {
-                    const isPositive = line.changePercent >= 0;
-                    return (
-                      <p
-                        key={line.label}
-                        className={`${styles.change} ${isPositive ? styles.positive : styles.negative}`}
-                      >
-                        {formatSignedChange(line.change, line.changePercent)}
-                        <span className={styles.changeLabel}>{line.label}</span>
-                      </p>
-                    );
-                  })}
-                </>
-              ) : isLoadingQuote ? (
-                <Loader size={20} />
-              ) : (
-                <p className={styles.companyName}>Quote unavailable</p>
-              )}
-            </div>
-          </section>
-
-          <section className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <div className={styles.chartTitleBlock}>
-                <h2 className={styles.sectionTitle}>Price chart</h2>
-                {tradeMarkers.length > 0 && (
-                  <div className={styles.tradeLegend}>
-                    <span className={styles.tradeLegendBuy}>Buy</span>
-                    <span className={styles.tradeLegendSell}>Sell</span>
-                  </div>
-                )}
-              </div>
-              <div className={styles.periodSelector}>
-                {STOCK_PERIODS.map((period) => (
-                  <button
-                    key={period.value}
-                    type="button"
-                    className={`${styles.periodButton} ${selectedPeriod === period.value ? styles.activePeriod : ''}`}
-                    onClick={() => setSelectedPeriod(period.value)}
-                  >
-                    {period.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <TickerPriceChartPanel
-              candles={candles}
-              currency={chartCurrency}
-              isLoading={isLoadingHistory}
-              tradeMarkers={tradeMarkers}
-              trades={tickerTransactions}
-            />
-          </section>
-
-          {holding && (
-            <section className={styles.holdingsCard}>
-              <div className={styles.holdingsHeader}>
-                <h2 className={styles.sectionTitle}>Your position</h2>
-                <Link to={`${ROUTES.PORTFOLIO}?section=positions`} className={styles.holdingsLink}>
-                  View portfolio
-                </Link>
-              </div>
-
-              <div className={styles.holdingsRow}>
-                <div className={styles.holdingsItem}>
-                  <span className={styles.holdingsLabel}>Total value</span>
-                  <span className={styles.holdingsValue}>
-                    {formatMoney(holding.totalValue, holding.currency)}
-                  </span>
-                </div>
-                <div className={styles.holdingsItem}>
-                  <span className={styles.holdingsLabel}>P&amp;L</span>
-                  <span
-                    className={`${styles.holdingsValue} ${
-                      holding.pnlPercent >= 0 ? styles.positive : styles.negative
-                    }`}
-                  >
-                    {formatSignedMoney(holding.pnlAmount, holding.currency)}
-                    <span className={styles.changeLabel}>
-                      {holding.pnlPercent >= 0 ? '+' : ''}
-                      {holding.pnlPercent.toFixed(2)}%
-                    </span>
-                  </span>
-                </div>
-                <div className={styles.holdingsItem}>
-                  <span className={styles.holdingsLabel}>Shares</span>
-                  <span className={styles.holdingsValue}>
-                    {holding.shares.toLocaleString('en-US')}
-                  </span>
-                </div>
-                <div className={styles.holdingsItem}>
-                  <span className={styles.holdingsLabel}>Avg cost</span>
-                  <span className={styles.holdingsValue}>
-                    {formatMoney(holding.avgBuyPrice, holding.currency)}
-                  </span>
-                </div>
-              </div>
-            </section>
-          )}
-
-          <div className={styles.bottomRow}>
-            <section className={styles.sideCard}>
-              <h2 className={styles.sectionTitle}>Key statistics</h2>
-
-              {isLoadingFundamentals && !fundamentals ? (
-                <AsyncStatePanel
-                  isLoading
-                  loadingMessage="Loading fundamentals…"
-                  className={styles.loadingPanel}
-                />
-              ) : detailMetrics.length === 0 &&
-                !(quote?.fiftyTwoWeekLow != null && quote.fiftyTwoWeekHigh != null) ? (
-                <p className={styles.companyName}>Fundamentals are unavailable for this ticker.</p>
-              ) : (
-                <dl className={styles.statsList}>
-                  {detailMetrics.map((metric) => {
-                    if (!fundamentals) {
-                      return null;
-                    }
-
-                    const secondaryValue = getCompareMetricSecondaryValue(metric.key, fundamentals);
-
-                    return (
-                      <div key={metric.key} className={styles.statsRow}>
-                        <dt className={styles.statLabel}>
-                          <span>{metric.label}</span>
-                          {secondaryValue && (
-                            <span className={styles.statSecondary}>{secondaryValue}</span>
-                          )}
-                        </dt>
-                        <dd className={styles.statValue}>
-                          {formatCompareMetricValue(metric.key, fundamentals, displayContext)}
-                        </dd>
-                      </div>
-                    );
-                  })}
-
-                  {quote?.fiftyTwoWeekLow != null && quote.fiftyTwoWeekHigh != null && (
-                    <div className={styles.statsRow}>
-                      <dt className={styles.statLabel}>52-Week Range</dt>
-                      <dd className={styles.statValue}>
-                        {formatMoney(quote.fiftyTwoWeekLow, priceCurrency)} –{' '}
-                        {formatMoney(quote.fiftyTwoWeekHigh, priceCurrency)}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              )}
-
-              <p className={styles.disclaimer}>
-                Market data from Yahoo Finance. Values may be delayed. Not financial advice.
-              </p>
-            </section>
-
-            <TickerNewsPanel
-              ticker={ticker}
-              logoUrl={quote?.logoUrl ?? null}
-              news={news}
-              isLoading={isLoadingNews}
-              error={newsError}
-              onRetry={() => {
-                void dispatch(fetchTickerNewsThunk(ticker));
-              }}
-            />
-          </div>
-        </>
       )}
     </div>
   );

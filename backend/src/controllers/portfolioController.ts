@@ -25,6 +25,7 @@ import {
   generateAlignmentExplanation,
   getAlignmentExplanationQuota,
 } from '../services/alignmentExplainService.js';
+import { getTickerChatQuota, sendTickerChatMessage } from '../services/tickerChatService.js';
 import { buildPortfolioExportXlsxBuffer } from '../utils/portfolioExportWorkbook.js';
 import {
   DEFAULT_PORTFOLIO_EXPORT_FORMAT,
@@ -124,6 +125,16 @@ export async function postAlignmentExplanationHandler(req: Request, res: Respons
   const { displayCurrency } = req.query;
   const explanation = await generateAlignmentExplanation(requireUserId(req), displayCurrency);
   res.json({ success: true, data: explanation });
+}
+
+export async function getTickerChatQuotaHandler(req: Request, res: Response): Promise<void> {
+  const quota = await getTickerChatQuota(requireUserId(req));
+  res.json({ success: true, data: quota });
+}
+
+export async function postTickerChatHandler(req: Request, res: Response): Promise<void> {
+  const response = await sendTickerChatMessage(requireUserId(req), req.body);
+  res.json({ success: true, data: response });
 }
 
 export async function getPortfolioDividendsHandler(req: Request, res: Response): Promise<void> {

@@ -16,6 +16,10 @@
 
   &.sidebarExpanded {
     left: $sidebar-width-expanded;
+
+    .center {
+      left: calc(50vw - #{$sidebar-width-expanded});
+    }
   }
 }
 
@@ -25,6 +29,21 @@
   display: flex;
   align-items: center;
   gap: $space-3;
+  min-width: 0;
+  flex-shrink: 1;
+  z-index: 1;
+}
+
+.center {
+  position: absolute;
+  /* True viewport center, independent of asymmetric left/right header content. */
+  left: calc(50vw - #{$sidebar-width-collapsed});
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: max-content;
+  z-index: 2;
 }
 
 .pageTitle {
@@ -75,6 +94,8 @@
   display: flex;
   align-items: center;
   gap: $space-4;
+  flex-shrink: 0;
+  z-index: 1;
 }
 
 .currencySwitcher {

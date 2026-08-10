@@ -3,16 +3,17 @@ import type { PortfolioTransaction } from '../../../api/portfolioApi';
 import { CHART_COLORS, CHART_TRADE_TOOLTIP_OFFSET_PX, type Currency } from '../../../constants';
 import { AsyncStatePanel } from '../../../components/ui';
 import { useTickerPriceChart } from '../../../hooks/useTickerPriceChart';
-import { formatMoney } from '../../../utils/moneyDisplay';
+import { convertAmountToDisplayCurrency, formatMoney } from '../../../utils/moneyDisplay';
 import type { OhlcvCandle } from '../../../types/stock.types';
 import styles from '../TickerDetailPage.module.scss';
 
 interface TickerPriceChartPanelProps {
   candles: OhlcvCandle[];
-  currency: string;
+  currency: Currency;
   isLoading: boolean;
   tradeMarkers?: SeriesMarker<Time>[];
   trades?: PortfolioTransaction[];
+  fxRates?: Record<Currency, number>;
 }
 
 function resolveTradeDateLabel(trade: PortfolioTransaction): string {
@@ -40,6 +41,7 @@ export function TickerPriceChartPanel({
   isLoading,
   tradeMarkers = [],
   trades = [],
+  fxRates = { USD: 1, EUR: 1 },
 }: TickerPriceChartPanelProps) {
   const { containerRef, hoveredTrade } = useTickerPriceChart(
     candles,
@@ -48,9 +50,25 @@ export function TickerPriceChartPanel({
     trades
   );
 
-  const tradeCurrency = (hoveredTrade?.trade.currency ?? currency) as Currency;
-  const tradeTotal =
-    hoveredTrade != null ? hoveredTrade.trade.shares * hoveredTrade.trade.pricePerShare : 0;
+  const tradeSourceCurrency = (hoveredTrade?.trade.currency ?? currency) as Currency;
+  const displayTradePrice =
+    hoveredTrade != null
+      ? convertAmountToDisplayCurrency(
+          hoveredTrade.trade.pricePerShare,
+          tradeSourceCurrency,
+          currency,
+          fxRates
+        )
+      : 0;
+  const displayTradeTotal =
+    hoveredTrade != null
+      ? convertAmountToDisplayCurrency(
+          hoveredTrade.trade.shares * hoveredTrade.trade.pricePerShare,
+          tradeSourceCurrency,
+          currency,
+          fxRates
+        )
+      : 0;
 
   return (
     <div className={styles.chartArea}>
@@ -106,11 +124,11 @@ export function TickerPriceChartPanel({
             </div>
             <div className={styles.tradeTooltipRow}>
               <dt>Price</dt>
-              <dd>{formatMoney(hoveredTrade.trade.pricePerShare, tradeCurrency)}</dd>
+              <dd>{formatMoney(displayTradePrice, currency)}</dd>
             </div>
             <div className={styles.tradeTooltipRow}>
               <dt>Total</dt>
-              <dd>{formatMoney(tradeTotal, tradeCurrency)}</dd>
+              <dd>{formatMoney(displayTradeTotal, currency)}</dd>
             </div>
           </dl>
         </div>

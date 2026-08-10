@@ -1,4 +1,4 @@
-export type AiFeatureId = 'news_summary' | 'explain_alignment' | 'import_schema';
+export type AiFeatureId = 'news_summary' | 'explain_alignment' | 'import_schema' | 'ticker_chat';
 
 export type NewsSummarySentiment = 'bullish' | 'neutral' | 'bearish';
 
@@ -173,4 +173,44 @@ export interface AlignmentPromptContext {
   }>;
   topHoldings: AlignmentPromptHolding[];
   falseDiversificationHints: AlignmentFalseDiversificationHints;
+}
+
+export type TickerChatRole = 'user' | 'assistant';
+
+export interface TickerChatHistoryMessage {
+  role: TickerChatRole;
+  content: string;
+}
+
+export interface TickerChatHoldingContext {
+  shares: number;
+  avgBuyPrice: number;
+  currency: string;
+  unrealizedPnlPercent: number;
+}
+
+export interface TickerChatPromptContext {
+  ticker: string;
+  companyName: string;
+  currency: string;
+  price: number;
+  changePercent: number;
+  marketState: string | null;
+  exchange: string | null;
+  holding: TickerChatHoldingContext | null;
+  history: TickerChatHistoryMessage[];
+  userMessage: string;
+}
+
+export interface GenerateTickerChatDto {
+  ticker: string;
+  message: string;
+  history?: TickerChatHistoryMessage[];
+}
+
+export interface TickerChatResponse {
+  ticker: string;
+  reply: string;
+  disclaimer: string;
+  quota: AiQuotaStatus;
 }

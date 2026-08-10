@@ -83,3 +83,29 @@ export interface AlignmentExplanationResponse {
   fromCache: boolean;
   quota: AiQuotaStatus;
 }
+
+export type TickerChatRole = 'user' | 'assistant';
+
+export interface TickerChatHistoryMessage {
+  role: TickerChatRole;
+  content: string;
+}
+
+export interface GenerateTickerChatPayload {
+  ticker: string;
+  message: string;
+  history: TickerChatHistoryMessage[];
+}
+
+export interface TickerChatResponse {
+  ticker: string;
+  reply: string;
+  disclaimer: string;
+  quota: AiQuotaStatus;
+}
+
+export interface TickerChatUiMessage {
+  id: string;
+  role: TickerChatRole;
+  content: string;
+}

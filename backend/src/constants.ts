@@ -161,7 +161,12 @@ export const PORTFOLIO_NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
 export const STOCK_NEWS_BROWSER_CACHE_TTL_S = Math.floor(PORTFOLIO_NEWS_CACHE_TTL_MS / 1000);
 
 // ─── AI (Gemini) — news summary + explain alignment ────────────────────────────
-export const AI_FEATURES = ['news_summary', 'explain_alignment', 'import_schema'] as const;
+export const AI_FEATURES = [
+  'news_summary',
+  'explain_alignment',
+  'import_schema',
+  'ticker_chat',
+] as const;
 export type AiFeatureId = (typeof AI_FEATURES)[number];
 
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
@@ -180,6 +185,21 @@ export const AI_EXPLAIN_ALIGNMENT_DISCLAIMER =
 export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS = 10;
 export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1400;
+
+export const AI_TICKER_CHAT_FREE_DAILY_LIMIT = 20;
+export const AI_TICKER_CHAT_DISCLAIMER =
+  'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
+export const AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS = 30;
+export const AI_TICKER_CHAT_MAX_OUTPUT_TOKENS = 1024;
+export const AI_TICKER_CHAT_TEMPERATURE = 0.4;
+/** Soft cap for the current user message (composer input). */
+export const AI_TICKER_CHAT_MAX_MESSAGE_CHARS = 1000;
+/** Per-message cap for history items (assistant replies are often longer than user input). */
+export const AI_TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS = 4000;
+/** Total history char budget sent to the model; oldest messages are dropped first. */
+export const AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 12000;
+export const AI_TICKER_CHAT_MAX_HISTORY_MESSAGES = 12;
 
 export const AI_BRIEFING_MACRO_TICKERS = [
   { ticker: 'SPY', label: 'S&P 500' },

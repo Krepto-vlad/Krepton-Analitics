@@ -1,6 +1,7 @@
 import {
   AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT,
   AI_NEWS_SUMMARY_FREE_DAILY_LIMIT,
+  AI_TICKER_CHAT_FREE_DAILY_LIMIT,
   IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT,
   type AiFeatureId,
 } from '../constants.js';
@@ -28,6 +29,10 @@ function getDailyLimitForFeature(feature: AiFeatureId): number {
 
   if (feature === 'import_schema') {
     return IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT;
+  }
+
+  if (feature === 'ticker_chat') {
+    return AI_TICKER_CHAT_FREE_DAILY_LIMIT;
   }
 
   return 0;

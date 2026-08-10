@@ -165,6 +165,27 @@ function getCachedQuoteEvenIfExpired(ticker: string): StockQuote | null {
   return quoteCache.get(ticker)?.quote ?? null;
 }
 
+function setCachedQuote(ticker: string, quote: StockQuote, now: number): void {
+  quoteCache.set(ticker, {
+    quote,
+    expiresAt: now + YAHOO_QUOTE_CACHE_TTL_MS,
+  });
+}
+
+/**
+ * Caches a miss (or keeps a still-usable positive stale quote) so repeated
+ * lookups for invalid/unknown tickers do not re-hit Yahoo every request.
+ */
+function cacheQuoteMissOrStale(ticker: string, now: number): void {
+  const staleQuote = getCachedQuoteEvenIfExpired(ticker);
+  if (staleQuote && staleQuote.price > 0) {
+    setCachedQuote(ticker, staleQuote, now);
+    return;
+  }
+
+  setCachedQuote(ticker, buildEmptyStockQuote(ticker), now);
+}
+
 function chunkTickers(tickers: string[]): string[][] {
   const chunks: string[][] = [];
   for (let index = 0; index < tickers.length; index += YAHOO_QUOTE_BATCH_MAX_SIZE) {
@@ -199,14 +220,18 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
 
       for (const ticker of chunk) {
         const row = rowByTicker.get(ticker);
-        const quote = row
-          ? mapYahooRowToStockQuote(row, ticker)
-          : (getCachedQuoteEvenIfExpired(ticker) ?? buildEmptyStockQuote(ticker));
+        if (!row) {
+          cacheQuoteMissOrStale(ticker, now);
+          continue;
+        }
 
-        quoteCache.set(ticker, {
-          quote,
-          expiresAt: now + YAHOO_QUOTE_CACHE_TTL_MS,
-        });
+        const quote = mapYahooRowToStockQuote(row, ticker);
+        if (quote.price <= 0) {
+          cacheQuoteMissOrStale(ticker, now);
+          continue;
+        }
+
+        setCachedQuote(ticker, quote, now);
       }
 
       recordYahooCall();
@@ -215,13 +240,12 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
         tickers: chunk,
       });
 
+      // Transient provider errors: extend usable stale data only — do not
+      // negative-cache, so the next request can retry Yahoo.
       for (const ticker of chunk) {
         const staleQuote = getCachedQuoteEvenIfExpired(ticker);
-        if (staleQuote) {
-          quoteCache.set(ticker, {
-            quote: staleQuote,
-            expiresAt: now + YAHOO_QUOTE_CACHE_TTL_MS,
-          });
+        if (staleQuote && staleQuote.price > 0) {
+          setCachedQuote(ticker, staleQuote, now);
         }
       }
     }
@@ -261,15 +285,23 @@ function startBackgroundRefreshIfNeeded(): void {
 }
 
 async function ensurePendingTickersRefreshed(): Promise<void> {
-  if (pendingRefreshTickers.size === 0) {
-    return;
-  }
+  // A concurrent drain may finish before our tickers were included in its batch.
+  // Keep awaiting/starting drains until the queue for pending tickers is empty.
+  let safetyCounter = 0;
+  while ((pendingRefreshTickers.size > 0 || activeYahooFetch) && safetyCounter < 8) {
+    safetyCounter += 1;
 
-  if (!activeYahooFetch) {
-    startBackgroundRefreshIfNeeded();
-  }
+    if (!activeYahooFetch && pendingRefreshTickers.size > 0) {
+      startBackgroundRefreshIfNeeded();
+    }
 
-  await activeYahooFetch;
+    if (activeYahooFetch) {
+      await activeYahooFetch;
+      continue;
+    }
+
+    break;
+  }
 }
 
 function queueStaleTickerRefresh(staleTickers: string[]): void {
@@ -305,16 +337,22 @@ export async function getCachedStockQuotes(tickers: string[]): Promise<StockQuot
 
   for (const ticker of normalized) {
     const entry = quoteCache.get(ticker);
+    // Empty (negative-cached) quotes stay fresh until TTL so invalid tickers
+    // do not re-hit Yahoo on every request.
     if (!entry || entry.expiresAt <= now) {
       staleTickers.push(ticker);
     }
   }
 
   if (staleTickers.length > 0) {
-    const hasWarmCache = normalized.some((ticker) => quoteCache.has(ticker));
+    const hasWarmUsableCache = normalized.some((ticker) => {
+      const entry = quoteCache.get(ticker);
+      return entry != null && entry.expiresAt > now && entry.quote.price > 0;
+    });
+
     queueStaleTickerRefresh(staleTickers);
 
-    if (!hasWarmCache) {
+    if (!hasWarmUsableCache) {
       await ensurePendingTickersRefreshed();
     }
   }

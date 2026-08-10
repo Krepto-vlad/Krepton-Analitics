@@ -10,6 +10,7 @@ import {
 } from '../../api/authApi';
 import { ERROR_MESSAGES } from '../../constants';
 import { getRejectedMessage } from '../../utils/apiError';
+import { clearStrategyDriftAlertDismissal } from '../../utils/strategyDriftAlertStorage';
 import type { AuthState, LoginCredentials, RegisterCredentials } from '../../types/auth.types';
 
 const initialState: AuthState = {
@@ -79,6 +80,7 @@ export const resendVerificationThunk = createAsyncThunk(
 );
 
 export const logoutThunk = createAsyncThunk('auth/logout', async () => {
+  clearStrategyDriftAlertDismissal();
   await apiLogout();
 });
 

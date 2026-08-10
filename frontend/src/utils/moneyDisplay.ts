@@ -59,6 +59,23 @@ export function convertAmountWithRate(amount: number, rate: number): number {
   return Math.round(amount * rate * 100) / 100;
 }
 
+/**
+ * Converts a monetary amount from source currency to display currency using FX rates.
+ * Falls back to rate 1 when the pair is missing (caller should avoid mislabeling).
+ */
+export function convertAmountToDisplayCurrency(
+  amount: number,
+  fromCurrency: Currency,
+  displayCurrency: Currency,
+  fxRates: Record<Currency, number>
+): number {
+  if (fromCurrency === displayCurrency) {
+    return amount;
+  }
+
+  return convertAmountWithRate(amount, fxRates[fromCurrency] ?? 1);
+}
+
 export function getTodayIsoDate(): string {
   const today = new Date();
   const year = today.getFullYear();

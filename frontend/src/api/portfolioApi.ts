@@ -17,7 +17,9 @@ import type {
   AiQuotaStatus,
   AlignmentExplanationResponse,
   GenerateNewsSummaryPayload,
+  GenerateTickerChatPayload,
   NewsSummaryResponse,
+  TickerChatResponse,
 } from '../types/ai.types';
 
 // ─── Types matching backend PositionResponse ──────────────────────────────────
@@ -275,6 +277,22 @@ export async function generateAlignmentExplanation(
   const { data } = await portfolioApiClient.post<
     ApiSuccessResponse<AlignmentExplanationResponse> | ApiErrorResponse
   >('/rebalancing/explain', undefined, { params: withDisplayCurrency(displayCurrency) });
+  return assertSuccess(data);
+}
+
+export async function fetchTickerChatQuota(): Promise<AiQuotaStatus> {
+  const { data } = await portfolioApiClient.get<
+    ApiSuccessResponse<AiQuotaStatus> | ApiErrorResponse
+  >('/ticker-chat/quota');
+  return assertSuccess(data);
+}
+
+export async function sendTickerChatMessage(
+  payload: GenerateTickerChatPayload
+): Promise<TickerChatResponse> {
+  const { data } = await portfolioApiClient.post<
+    ApiSuccessResponse<TickerChatResponse> | ApiErrorResponse
+  >('/ticker-chat', payload);
   return assertSuccess(data);
 }
 

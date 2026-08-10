@@ -100,10 +100,60 @@ export function useTickerPriceChart(
         fixRightEdge: true,
       },
       crosshair: { mode: 1 },
+      // Wheel scrolls the page by default; zoom/pan with wheel only while Ctrl/Cmd is held.
+      handleScroll: {
+        mouseWheel: false,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false,
+      },
+      handleScale: {
+        mouseWheel: false,
+        pinch: true,
+        axisPressedMouseMove: true,
+        axisDoubleClickReset: true,
+      },
       localization: {
         priceFormatter: (value: number) => formatChartPrice(value, currency),
       },
     });
+
+    function setWheelInteractionsEnabled(isEnabled: boolean): void {
+      chart.applyOptions({
+        handleScroll: {
+          mouseWheel: isEnabled,
+          pressedMouseMove: true,
+          horzTouchDrag: true,
+          vertTouchDrag: false,
+        },
+        handleScale: {
+          mouseWheel: isEnabled,
+          pinch: true,
+          axisPressedMouseMove: true,
+          axisDoubleClickReset: true,
+        },
+      });
+    }
+
+    function handleModifierKeyDown(event: KeyboardEvent): void {
+      if (event.key === 'Control' || event.key === 'Meta') {
+        setWheelInteractionsEnabled(true);
+      }
+    }
+
+    function handleModifierKeyUp(event: KeyboardEvent): void {
+      if (event.key === 'Control' || event.key === 'Meta') {
+        setWheelInteractionsEnabled(false);
+      }
+    }
+
+    function handleWindowBlur(): void {
+      setWheelInteractionsEnabled(false);
+    }
+
+    window.addEventListener('keydown', handleModifierKeyDown);
+    window.addEventListener('keyup', handleModifierKeyUp);
+    window.addEventListener('blur', handleWindowBlur);
 
     const areaSeries = chart.addSeries(AreaSeries, {
       lineColor: themeColors.line,
@@ -131,6 +181,9 @@ export function useTickerPriceChart(
     resizeObserver.observe(containerRef.current);
 
     return () => {
+      window.removeEventListener('keydown', handleModifierKeyDown);
+      window.removeEventListener('keyup', handleModifierKeyUp);
+      window.removeEventListener('blur', handleWindowBlur);
       resizeObserver.disconnect();
       markersPluginRef.current?.detach();
       markersPluginRef.current = null;

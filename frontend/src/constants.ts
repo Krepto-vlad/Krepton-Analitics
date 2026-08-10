@@ -77,6 +77,37 @@ export const TICKER_NEWS_CLIENT_CACHE_TTL_MS = 10 * 60 * 1000;
 export const TICKER_NEWS_INITIAL_VISIBLE = 6;
 export const TICKER_NEWS_LOAD_MORE_STEP = 6;
 
+/** Right-side AI chat drawer on the ticker detail page (shell only for now). */
+export const TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX = 380;
+export const TICKER_CHAT_DRAWER_MIN_WIDTH_PX = 280;
+export const TICKER_CHAT_DRAWER_MAX_WIDTH_PX = 640;
+/** Keep in sync with backend AI_TICKER_CHAT_* history/message limits. */
+export const TICKER_CHAT_MAX_MESSAGE_CHARS = 1000;
+export const TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS = 4000;
+export const TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 12000;
+export const TICKER_CHAT_MAX_HISTORY_MESSAGES = 12;
+/** Keep in sync with backend AI_TICKER_CHAT_DISCLAIMER. */
+export const TICKER_CHAT_DISCLAIMER =
+  'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
+/**
+ * Suggestion chips above the chat thread. `{ticker}` is replaced at render time.
+ * Keep exactly 8 for a balanced marquee loop.
+ */
+export const TICKER_CHAT_SUGGESTION_PROMPTS = [
+  'What moved {ticker} today?',
+  'Summarize key risks for {ticker}',
+  'How is my position in {ticker} doing?',
+  'Explain the latest price move for {ticker}',
+  'What catalysts should I watch for {ticker}?',
+  'How does valuation look for {ticker} right now?',
+  'What could go wrong with {ticker}?',
+  'Give a neutral overview of {ticker}',
+] as const;
+/** Suggestion marquee loop duration; keep in sync with TickerChatDrawer.module.scss. */
+export const TICKER_CHAT_SUGGESTIONS_MARQUEE_DURATION_SEC = 45;
+/** Keep in sync with AppShell `$header-height`. */
+export const APP_SHELL_HEADER_HEIGHT_PX = 60;
+
 /** Yahoo marketState → UI labels (exchange hours already baked into Yahoo's state). */
 export const STOCK_MARKET_SESSION_LABELS = {
   PRE: 'Premarket',
@@ -156,6 +187,7 @@ export const AI_NEWS_BRIEFING_COST_BASIS_TOOLTIP =
 export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
 export const STOCK_SEARCH_DEBOUNCE_MS = 350;
+export const HEADER_TICKER_SEARCH_MAX_RESULTS = 8;
 export const STOCK_SEARCH_DROPDOWN_LIMIT = 8;
 export const MARKET_MOVERS_COUNT = 10;
 
@@ -224,9 +256,16 @@ export const ERROR_MESSAGES = {
   PORTFOLIO_REBALANCING_SAVE_FAILED: 'Unable to save rebalancing strategy. Please try again.',
   AI_ALIGNMENT_EXPLAIN_FAILED: 'Unable to generate alignment explanation. Please try again.',
   AI_ALIGNMENT_EXPLAIN_QUOTA_FAILED: 'Unable to load AI quota. Please try again.',
+  AI_TICKER_CHAT_FAILED: 'Unable to get an AI reply. Please try again.',
+  AI_TICKER_CHAT_QUOTA_FAILED: 'Unable to load AI chat quota. Please try again.',
+  AI_TICKER_CHAT_EMPTY_MESSAGE: 'Enter a question about this ticker.',
 } as const;
 
 export const AI_ALIGNMENT_EXPLAIN_SESSION_STORAGE_KEY = 'krepton_ai_alignment_explain_v1';
+export const STRATEGY_DRIFT_ALERT_SESSION_STORAGE_KEY = 'krepton_strategy_drift_alert_dismissed_v1';
+
+/** Allowed URL schemes for Markdown links rendered from AI chat replies. */
+export const SAFE_MARKDOWN_LINK_PROTOCOLS = ['http:', 'https:', 'mailto:'] as const;
 
 export const REBALANCING_ALLOCATION_TOTAL_PERCENT = 100;
 export const REBALANCING_ALLOCATION_TOLERANCE = 0.01;

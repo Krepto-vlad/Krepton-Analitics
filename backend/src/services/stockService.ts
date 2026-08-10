@@ -15,6 +15,7 @@ import {
   STOCK_COMPARE_CACHE_TTL_MS,
   STOCK_HISTORY_CACHE_TTL_MS,
 } from '../constants.js';
+import { AppError } from '../middleware/errorHandler.js';
 import { getCachedStockQuote, getCachedStockQuotes } from './quoteCacheService.js';
 import { buildEmptyStockQuote } from '../utils/stockQuoteDefaults.js';
 
@@ -47,7 +48,7 @@ interface YahooSearchQuote {
 export async function getStockQuote(ticker: string): Promise<StockQuote> {
   const quote = await getCachedStockQuote(ticker.toUpperCase());
   if (quote.price <= 0) {
-    throw new Error(`No data found for ticker: ${ticker}`);
+    throw new AppError(404, `No data found for ticker: ${ticker}`);
   }
   return quote;
 }

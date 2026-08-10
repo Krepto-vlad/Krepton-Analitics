@@ -1,6 +1,25 @@
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
+.layout {
+  width: 100%;
+  min-height: 100%;
+}
+
+.mainColumn {
+  width: 100%;
+  min-width: 0;
+  transition: padding-right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.mainColumnResizing {
+  transition: none;
+}
+
 .page {
   display: flex;
   flex-direction: column;
@@ -272,6 +291,13 @@
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;
   color: $color-foreground;
+}
+
+.chartZoomHint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  text-align: center;
 }
 
 .tradeLegend {

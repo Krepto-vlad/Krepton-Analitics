@@ -178,6 +178,11 @@
   margin-top: 1px;
 }
 
+.alertContent {
+  flex: 1;
+  min-width: 0;
+}
+
 .alertHighlight {
   color: $color-health-high;
   font-weight: $font-weight-bold;
@@ -185,6 +190,31 @@
 
 .alertBody {
   color: $color-foreground-muted;
+}
+
+.alertDismissButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: -2px -4px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-health-high;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-danger-border;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-health-high;
+    outline-offset: 1px;
+  }
 }
 
 // ─── Sector bars ─────────────────────────────────────────────────────────────

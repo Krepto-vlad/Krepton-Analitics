@@ -4,6 +4,7 @@ import { Bell, Sun, Moon } from 'lucide-react';
 import { ROUTES, CURRENCY_OPTIONS } from '../../../constants';
 import type { Currency } from '../../../constants';
 import type { Theme } from '../../../constants';
+import { HeaderTickerSearch } from './HeaderTickerSearch';
 import styles from './AppHeader.module.scss';
 
 interface AppHeaderProps {
@@ -40,6 +41,10 @@ export function AppHeader({
       <div className={styles.left}>
         <h1 className={styles.pageTitle}>{pageTitle}</h1>
         <span className={styles.liveBadge}>LIVE</span>
+      </div>
+
+      <div className={styles.center}>
+        <HeaderTickerSearch />
       </div>
 
       <div className={styles.right}>

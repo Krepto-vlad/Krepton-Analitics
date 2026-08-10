@@ -1,16 +1,22 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, Minus, ShieldAlert } from 'lucide-react';
 import {
   PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
   PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
   ROUTES,
 } from '../../../../constants';
 import type { PortfolioHealthDeviation } from '../../../../types/portfolio.types';
+import {
+  dismissStrategyDriftAlert,
+  isStrategyDriftAlertDismissed,
+} from '../../../../utils/strategyDriftAlertStorage';
 import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import styles from './PortfolioHealthCard.module.scss';
 
 interface PortfolioHealthCardProps {
   alignmentScore: number | null;
+  strategyId: string | null;
   strategyName: string | null;
   deviations: PortfolioHealthDeviation[];
   isLoading: boolean;
@@ -53,10 +59,17 @@ function formatAllocationPair(currentPercent: number, targetPercent: number): st
 
 export function PortfolioHealthCard({
   alignmentScore,
+  strategyId,
   strategyName,
   deviations,
   isLoading,
 }: PortfolioHealthCardProps) {
+  const [dismissedForStrategyId, setDismissedForStrategyId] = useState<string | null>(null);
+
+  const isDriftAlertDismissed =
+    strategyId != null &&
+    (dismissedForStrategyId === strategyId || isStrategyDriftAlertDismissed(strategyId));
+
   const hasScore = alignmentScore !== null;
   const showEmptyState = !isLoading && !hasScore;
   const healthLevel = hasScore ? getHealthLevel(alignmentScore) : null;
@@ -75,7 +88,18 @@ export function PortfolioHealthCard({
       : null;
 
   const showDriftAlert =
-    hasScore && (alignmentScore < PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD || topDeviation !== null);
+    hasScore &&
+    !isDriftAlertDismissed &&
+    (alignmentScore < PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD || topDeviation !== null);
+
+  function handleDismissDriftAlert(): void {
+    if (!strategyId) {
+      return;
+    }
+
+    dismissStrategyDriftAlert(strategyId);
+    setDismissedForStrategyId(strategyId);
+  }
 
   return (
     <div className={styles.card}>
@@ -150,7 +174,7 @@ export function PortfolioHealthCard({
             {showDriftAlert && topDeviation && (
               <div className={styles.alertBanner}>
                 <AlertTriangle size={13} className={styles.alertIcon} />
-                <span>
+                <span className={styles.alertContent}>
                   <span className={styles.alertHighlight}>Strategy drift detected</span>
                   <span className={styles.alertBody}>
                     {' '}
@@ -159,6 +183,15 @@ export function PortfolioHealthCard({
                     {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
                   </span>
                 </span>
+                <button
+                  type="button"
+                  className={styles.alertDismissButton}
+                  onClick={handleDismissDriftAlert}
+                  aria-label="Dismiss strategy drift alert"
+                  title="Dismiss"
+                >
+                  <Minus size={14} />
+                </button>
               </div>
             )}
           </div>
