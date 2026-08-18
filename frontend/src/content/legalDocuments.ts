@@ -1,7 +1,4 @@
-import {
-  LEGAL_DOCUMENTS_PUBLIC_DIR,
-  LEGAL_LAST_UPDATED,
-} from './legalConstants';
+import { LEGAL_DOCUMENTS_PUBLIC_DIR, LEGAL_LAST_UPDATED } from './legalConstants';
 import { flattenLegalDocumentLines, type LegalDocumentContent } from './legal.types';
 import { PRIVACY_POLICY_CONTENT } from './privacyPolicy';
 import { TERMS_OF_SERVICE_CONTENT } from './termsOfService';

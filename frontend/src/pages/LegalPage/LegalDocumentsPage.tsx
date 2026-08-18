@@ -11,9 +11,7 @@ export function LegalDocumentsPage() {
       <main className={styles.body}>
         <div className={styles.inner}>
           <h1 className={styles.title}>Legal Documents</h1>
-          <p className={styles.subtitle}>
-            Official PDFs you can open in the browser or download.
-          </p>
+          <p className={styles.subtitle}>Official PDFs you can open in the browser or download.</p>
 
           <ul className={styles.list}>
             {LEGAL_PDF_DOCUMENTS.map((document) => (

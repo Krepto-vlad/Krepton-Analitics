@@ -83,6 +83,7 @@ npm run dev
 | Метод | URL | Описание |
 |---|---|---|
 | GET | `/health` | Health check |
+| GET | `/api/docs/openapi.yaml` | OpenAPI 3 spec (Backend min) |
 | GET | `/api/stocks/quote/:ticker` | Текущая цена акции |
 | GET | `/api/stocks/history/:ticker?period=1y&interval=1d` | OHLCV история для графика |
 | GET | `/api/stocks/search?q=Apple` | Поиск тикеров |
