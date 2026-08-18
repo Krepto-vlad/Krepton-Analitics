@@ -1,4 +1,5 @@
 import { AlertTriangle, X } from 'lucide-react';
+import { ERROR_BANNER_DISMISS_LABEL } from '../../../constants';
 import styles from './ErrorBanner.module.scss';
 
 interface ErrorBannerProps {
@@ -21,7 +22,7 @@ export function ErrorBanner({ message, onDismiss, className }: ErrorBannerProps)
           type="button"
           className={styles.dismissButton}
           onClick={onDismiss}
-          aria-label="Dismiss error"
+          aria-label={ERROR_BANNER_DISMISS_LABEL}
         >
           <X size={14} />
         </button>

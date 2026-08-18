@@ -1,12 +1,13 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { ROUTES } from '../constants';
+import { PORTFOLIO_WATCHLIST_PATH, ROUTE_CATCH_ALL_PATH, ROUTES } from '../constants';
 import { useAppDispatch } from '../hooks/useAppDispatch';
-import { useAppSelector } from '../hooks/useAppSelector';
 import { fetchCurrentUserThunk } from '../features/auth/authSlice';
 import { useWatchlistPolling } from '../hooks/useWatchlistPolling';
 import { useHoldingsPolling } from '../hooks/useHoldingsPolling';
 import { AppShell } from '../components/layout';
+import { PageLoader } from './PageLoader';
+import { RequireAuth } from './RequireAuth';
 
 const LandingPage = lazy(() =>
   import('../pages/LandingPage/LandingPage').then((m) => ({ default: m.LandingPage }))
@@ -81,24 +82,9 @@ const ResetPasswordPage = lazy(() =>
     default: m.ResetPasswordPage,
   }))
 );
-const WatchlistPage = () => (
-  <div style={{ color: '#fff', padding: 40 }}>Watchlist — coming soon</div>
+const NotFoundPage = lazy(() =>
+  import('../pages/NotFoundPage/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
 );
-const NotFoundPage = () => <div style={{ color: '#fff', padding: 40 }}>404 — Not Found</div>;
-
-function PageLoader() {
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#09090b',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    />
-  );
-}
 
 function AuthenticatedShell() {
   useWatchlistPolling();
@@ -111,14 +97,12 @@ function AuthenticatedShell() {
   );
 }
 
-// Single AppShell instance for all protected pages — sidebar state persists across navigation
 function ProtectedLayout() {
-  const { user, isInitialized } = useAppSelector((state) => state.auth);
-
-  if (!isInitialized) return <PageLoader />;
-  if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
-
-  return <AuthenticatedShell />;
+  return (
+    <RequireAuth>
+      <AuthenticatedShell />
+    </RequireAuth>
+  );
 }
 
 /** Scroll to top on route change. Landing handles its own scroll (Features deep-link). */
@@ -170,10 +154,13 @@ function AppRoutes() {
           <Route path={ROUTES.TICKER} element={<TickerDetailPage />} />
           <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
-          <Route path={ROUTES.WATCHLIST} element={<WatchlistPage />} />
+          <Route
+            path={ROUTES.WATCHLIST}
+            element={<Navigate to={PORTFOLIO_WATCHLIST_PATH} replace />}
+          />
         </Route>
 
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path={ROUTE_CATCH_ALL_PATH} element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );

@@ -4,7 +4,7 @@
 
 ### Status
 
-**Status:** In progress (backend unit 70% in CI; FE/e2e still thin)
+**Status:** In progress (backend unit 70% in CI; FE RTL min done; e2e still thin)
 
 **Date:** 2026-08-18
 
@@ -51,7 +51,7 @@ cd frontend && npm test
 | 2 | Coverage ≥ 70% + report | ✅ | Jest threshold; CI artifact `backend-coverage` |
 | 3 | Unit tests + edge cases | ✅ | Auth, portfolio, import, AI quota/chat, controllers |
 | 4 | Integration (API, auth, DB) | ❌ | `stocks.test.ts` is still a placeholder |
-| 5 | FE component and/or e2e | ❌ | Replace stub Dashboard test; need 3 real RTL tests |
+| 5 | FE component and/or e2e | ✅ | 3 RTL: ErrorBanner, AppErrorBoundary, RequireAuth (Playwright extra) |
 | 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` |
 | 7 | Naming / folders | ✅ | `*.test.ts` / `__tests__` |
 | 8 | How to run locally | ✅ | Commands above |
@@ -61,7 +61,7 @@ cd frontend && npm test
 | Limitation | Impact | Plan |
 |------------|--------|------|
 | Yahoo mocked in unit tests | Not a live-market integration | Staging smoke later |
-| FE coverage not gated | Auto tests min | D0.2 RTL + later threshold |
+| FE coverage not gated | Auto tests min | RTL min done; gate later if needed |
 | No test DB | Integration hole | D3 |
 
 ## References

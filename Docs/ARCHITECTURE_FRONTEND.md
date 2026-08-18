@@ -1,6 +1,6 @@
 # Frontend Architecture
 
-_Stack: React 18 + Vite + TypeScript + SCSS Modules_
+_Stack: React 19 + Vite + TypeScript + SCSS Modules_
 
 ---
 
@@ -171,3 +171,109 @@ export function MyComponent({ label, onClick }: MyComponentProps) {
 - Named exports only (no `export default`).
 - Props interface defined above the component.
 - Full names for functions and variables — no `x`, `tmp`, `cb`.
+
+---
+
+## Architecture diagrams (diploma draft)
+
+Thesis copy lives in `Docs/diploma/thesis/docs/02-technical/criteria/frontend.md`. Polish wording there before the zip.
+
+### Modules, routes, shell
+
+```mermaid
+flowchart TD
+  Browser[Browser] --> App[App]
+  App --> Boundary[AppErrorBoundary]
+  Boundary --> Theme[ThemeSync]
+  Boundary --> Router[AppRouter]
+  Router --> Public[Public routes]
+  Router --> Guard[RequireAuth]
+  Public --> Landing["/"]
+  Public --> Login["/login"]
+  Public --> Register["/register"]
+  Guard -->|session loading| Loader[PageLoader]
+  Guard -->|no cookie user| Login
+  Guard -->|authenticated| Shell[AppShell]
+  Shell --> Dashboard["/dashboard"]
+  Shell --> Portfolio["/portfolio"]
+  Shell --> Ticker["/ticker/:ticker"]
+  Shell --> News["/news"]
+```
+
+### Redux + HTTP
+
+```mermaid
+flowchart LR
+  UI[Pages / components] --> Dispatch[dispatch thunks]
+  Dispatch --> API["api/* axios withCredentials"]
+  API --> Slices[RTK slices]
+  Slices --> Auth[auth]
+  Slices --> Portfolio[portfolio]
+  Slices --> Watchlist[watchlist]
+  Slices --> Ticker[ticker]
+  Slices --> Ui[ui]
+  Slices --> Polling[livePolling]
+  Slices --> UI
+```
+
+### Cookie auth user flow
+
+```mermaid
+sequenceDiagram
+  participant Browser
+  participant SPA
+  participant API as Express API
+  Browser->>SPA: open /dashboard
+  SPA->>API: GET /api/auth/me Cookie HttpOnly JWT
+  alt valid session
+    API-->>SPA: 200 user JSON
+    SPA->>SPA: RequireAuth renders AppShell
+  else missing or expired
+    API-->>SPA: 401
+    SPA->>SPA: Navigate /login
+    Browser->>SPA: submit credentials
+    SPA->>API: POST /api/auth/login
+    API-->>Browser: Set-Cookie HttpOnly JWT
+    SPA->>SPA: Navigate /dashboard
+  end
+```
+
+JWT is never written to `localStorage`. Axios clients set `withCredentials: true`.
+
+## Client API examples
+
+Envelope matches the backend: `{ success, data }` or `{ success: false, error }`. Full paths are in `backend/openapi.yaml`.
+
+**Login** — sets HttpOnly cookie, body is not a bearer token:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{ "email": "investor@example.com", "password": "********" }
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "…",
+    "email": "investor@example.com",
+    "emailVerified": true,
+    "hasPassword": true,
+    "hasGoogle": false
+  }
+}
+```
+
+Response also includes `Set-Cookie` (HttpOnly, not readable from JS).
+
+**Session restore** on SPA boot (`fetchCurrentUserThunk`):
+
+```http
+GET /api/auth/me
+Cookie: <HttpOnly JWT>
+```
+
+401 → `RequireAuth` sends the user to `/login`.
+

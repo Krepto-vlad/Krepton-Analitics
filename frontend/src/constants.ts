@@ -27,6 +27,12 @@ export const ROUTES = {
   TICKER: '/ticker/:ticker',
 } as const;
 
+/** Watchlist UI lives on Portfolio; `/watchlist` redirects here. */
+export const PORTFOLIO_WATCHLIST_PATH = `${ROUTES.PORTFOLIO}?section=watchlist`;
+
+/** React Router splat — unknown paths render NotFoundPage. Not a navigable URL. */
+export const ROUTE_CATCH_ALL_PATH = '*';
+
 export function buildTickerDetailPath(ticker: string): string {
   return `/ticker/${encodeURIComponent(ticker.trim().toUpperCase())}`;
 }
@@ -36,6 +42,19 @@ export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
 
 /** React Router location.state flag: scroll landing page to #features after navigation. */
 export const LANDING_SCROLL_TO_FEATURES_STATE = { scrollToFeatures: true } as const;
+
+export const SESSION_LOADING_LABEL = 'Loading session';
+export const ERROR_BOUNDARY_TITLE = 'Something went wrong';
+export const ERROR_BOUNDARY_RETRY_LABEL = 'Try again';
+export const ERROR_BANNER_DISMISS_LABEL = 'Dismiss error';
+
+export const NOT_FOUND_STATUS_DIGIT = '4';
+export const NOT_FOUND_TITLE = 'OOPS! PAGE NOT FOUND';
+export const NOT_FOUND_MESSAGE = "Sorry, the page you're looking for doesn't exist.";
+export const NOT_FOUND_HOME_LABEL = 'Go to home';
+export const NOT_FOUND_SMILEY_SRC = '/smile.svg';
+export const NOT_FOUND_CODE_LABEL = '404';
+export const CLIENT_ERROR_LOG_PREFIX = '[AppErrorBoundary]';
 
 export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
 export const ACCOUNT_DELETE_CONFIRMATION = 'DELETE ACCOUNT';
@@ -215,6 +234,8 @@ export type BacktestPeriod = (typeof BACKTEST_PERIODS)[number]['value'];
 
 export const ERROR_MESSAGES = {
   UNKNOWN: 'Something went wrong. Please try again.',
+  APP_RENDER_FAILED:
+    'This page ran into an unexpected error. You can try again without leaving the app.',
   NETWORK: 'Unable to connect. Check your internet connection and try again.',
   TIMEOUT: 'The request timed out. Please try again.',
   SERVER: 'The service is temporarily unavailable. Please try again later.',

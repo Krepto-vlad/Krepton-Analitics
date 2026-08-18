@@ -1,0 +1,88 @@
+@use '../../styles/variables' as *;
+
+$content-max-width: 36rem;
+$digit-size: clamp(5.5rem, 18vw, 9rem);
+$smiley-size: clamp(4.25rem, 13vw, 7rem);
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-8 $space-6;
+  background: $color-background;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: $content-max-width;
+}
+
+.code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  margin: 0 0 $space-6;
+}
+
+.digit {
+  color: $color-primary;
+  font-size: $digit-size;
+  font-weight: $font-weight-bold;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  background: linear-gradient(90deg, $color-primary, $color-primary-hover);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.smiley {
+  flex-shrink: 0;
+  width: $smiley-size;
+  height: $smiley-size;
+  background-color: $color-foreground;
+  -webkit-mask: var(--not-found-smiley-url) center / contain no-repeat;
+  mask: var(--not-found-smiley-url) center / contain no-repeat;
+}
+
+.title {
+  margin: 0 0 $space-3;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: $font-weight-bold;
+  letter-spacing: -0.02em;
+  color: $color-foreground;
+}
+
+.message {
+  margin: 0 0 $space-8;
+  font-size: $font-size-md;
+  line-height: 1.6;
+  color: $color-foreground-muted;
+}
+
+.homeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-4 $space-8;
+  border-radius: $radius-xl;
+  background: $color-primary;
+  color: $color-on-primary;
+  font-family: $font-family;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  text-decoration: none;
+  box-shadow: $shadow-glow-primary;
+  transition:
+    background $transition-fast,
+    box-shadow $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}

@@ -54,7 +54,7 @@ BA защищается **отдельной комиссией**, не у ин�
 |---|----------|-----------|--------|------------------|
 | 1 | Business Analysis | required | plan | Есть: GDPR (`Docs/GDPR_ITD.md`, Privacy/Terms PDF), архитектура (`ARCHITECTURE_*.md`, mermaid в `AI_INTEGRATION.md`), эпики в `ВозможныеФичи.md`. Нет BA-пакета: vision, stakeholders, use case diagram, in/out of scope, NFR. |
 | 2 | Backend | required | plan | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist), **OpenAPI**, **pino** + `x-request-id`, Jest **≥70%** + CI artifact. Нет: public deploy. HMAC portfolio ещё raw SQL (ADR). |
-| 3 | Frontend | required | plan | React SPA, Vite, Redux Toolkit, 15+ lazy routes, SCSS kit, формы, таблицы, поиск, desktop+mobile, axios interceptor, ErrorBanner. Нет FE-диаграммы, user flows, Error Boundary, e2e, ≥3 реальных component-тестов (`Dashboard.test.tsx` — заглушка). |
+| 3 | Frontend | required | plan | React SPA, Vite, Redux Toolkit, 15+ lazy routes, SCSS kit, формы, таблицы, поиск, desktop+mobile, axios interceptor, ErrorBanner, **Error Boundary**, RTL на ErrorBanner / RequireAuth / AppErrorBoundary. Нет e2e (Playwright на staging). |
 | 4 | Database | data | plan | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE, транзакции в репозиториях, bcrypt, HMAC `owner_token`. Нет data dictionary, ER-диаграммы, seed/ролей БД, CHECK-constraints, доказательства 3NF. |
 | 5 | Real-time Analytics | data | — | **Не брать.** Котировки — polling ~30 с (TTL кэша). `useStockWebSocket.ts` не подключён, WS-сервера на бэке нет. Рубрика явно не считает delay > 10 с / cron. |
 | 6 | ML Model | data | — | **Не брать.** Gemini — LLM API, не своё обучение. |
@@ -67,7 +67,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | 13 | Containerization | infrastructure | — | **Не заявляем.** Dockerfile+compose пишем как контракт CI/Azure без локального Docker. Можно добавить 9-м, если образы доказаны в Actions. |
 | 14 | Microservices | infrastructure | — | **Не брать.** Монолит FE+BE+Postgres не считается. |
 | 15 | API Documentation | processes | — | Текстовые эндпоинты AI в `AI_INTEGRATION.md` ≠ OpenAPI-портал. Для Backend min хватит текста/Swagger; как отдельный критерий — нет. |
-| 16 | Automated tests 70%+ | processes | plan | Backend Jest **≥70%** statements/lines/functions, HTML в CI. FE всё ещё stub Dashboard. Нет integration с БД, нет e2e. |
+| 16 | Automated tests 70%+ | processes | plan | Backend Jest **≥70%** statements/lines/functions, HTML в CI. FE: 3 RTL + money/rebalancing unit. Нет integration с БД, нет Playwright e2e. |
 | 17 | Qualitative / quantitative testing | processes | — | Нет тест-плана, ручных кейсов, JMeter/Postman-коллекции как артефакта защиты. |
 
 **Проверка набора:** required 3 · technical 1 (AI) · data 1 (Database) · infrastructure 2 (Cloud + CI/CD) · processes 1 (Auto tests) · всего **8 ≥ 7**. Adaptive/UX в `plan` по коду, но в официальную восьмёрку не входят.
@@ -162,11 +162,11 @@ Node.js / Express подходит как «modern framework».
 
 Документация:
 
-- [ ] Диаграмма FE-архитектуры (модули, компоненты, роуты, state) — текст в `ARCHITECTURE_FRONTEND.md`, диаграммы нет
+- [x] Диаграмма FE-архитектуры (модули, компоненты, роуты, state) — mermaid в `Docs/ARCHITECTURE_FRONTEND.md` и thesis `criteria/frontend.md`
 - [x] Описание подхода (component-based, Redux/Flux, …) — `Docs/ARCHITECTURE_FRONTEND.md`
-- [ ] API, с которым работает клиент (схемы, примеры)
-- [ ] User flows / navigation diagram
-- [ ] Обоснование стека (фреймворк, state, UI kit) — стек перечислен, обоснование слабое
+- [x] API, с которым работает клиент (схемы, примеры) — cookie login / `GET /api/auth/me` в `ARCHITECTURE_FRONTEND.md`; полный контракт — `backend/openapi.yaml`
+- [x] User flows / navigation diagram — mermaid RequireAuth + cookie session
+- [x] Обоснование стека (фреймворк, state, UI kit) — ADR в thesis `criteria/frontend.md` + `tech-stack.md`
 
 Архитектура:
 
@@ -188,19 +188,19 @@ Node.js / Express подходит как «modern framework».
 - [x] Фильтр / поиск / сортировка (хотя бы одно) — ticker search, screener picker
 - [x] Responsive: desktop + mobile — SCSS mixins `mobile` / `tablet`
 - [x] ESLint + Prettier
-- [ ] Базовое логирование ошибок — нет клиента логов (Sentry и т.п.), только UI-баннеры
+- [x] Базовое логирование ошибок — `logClientError` в `AppErrorBoundary` (`console.error`); Sentry не берём (YAGNI)
 
 Ошибки:
 
-- [x] Global error handler (interceptor / error boundary) — axios interceptor в `apiClient.ts`; **Error Boundary нет**
+- [x] Global error handler (interceptor / error boundary) — axios interceptor в `apiClient.ts`; `AppErrorBoundary` в `App.tsx`
 - [x] Понятные сообщения пользователю (toast/dialog) — `ErrorBanner` (не toast)
 - [x] Корректная обработка 401 / 403 / 404 / 500 — `frontend/src/utils/apiError.ts` + catch-all 404 route
 - [ ] Skeleton/loading на все async-операции — `AsyncStatePanel` есть, покрыты не все экраны
 
 Тесты:
 
-- [ ] Unit: минимум 3 ключевых компонента/сервиса — есть `rebalancingEngine.test.ts`; `Dashboard.test.tsx` — stub
-- [ ] Integration/e2e: 1–2 теста (Cypress / Playwright / RTL)
+- [x] Unit: минимум 3 ключевых компонента/сервиса — RTL: ErrorBanner, AppErrorBoundary, RequireAuth; unit: `moneyDisplay`, `rebalancingAllocations`
+- [ ] Integration/e2e: 1–2 теста (Cypress / Playwright / RTL) — RTL есть; Playwright login→dashboard ещё на staging
 
 Запрещено: inline-styles без архитектуры CSS · один компонент на весь проект · токены в коде · необработанные API-ошибки · `any` без причины · «SPA» из статичного HTML.
 
@@ -563,7 +563,7 @@ Backend min уже требует 70% unit. Этот критерий шире: 
 - [x] Coverage **≥ 70%** инструментом (Istanbul/Jest и т.п.) + число и отчёт/скрин — порог в `backend/jest.config.js`, HTML в CI artifact `backend-coverage`
 - [x] Unit-тесты по FIRST, включая edge cases — parser, FX, tickerChatScope, password reset, stockService, …
 - [ ] Integration: API, БД, auth, конфиг — есть `backend/src/__tests__/integration/routes/stocks.test.ts`, этого мало для критерия
-- [ ] Если есть FE: component и/или e2e (RTL / Cypress / Playwright) — RTL настроен, реальных component-тестов почти нет
+- [x] Если есть FE: component и/или e2e (RTL / Cypress / Playwright) — 3 RTL (ErrorBanner, AppErrorBoundary, RequireAuth); e2e Playwright позже
 - [x] Все тесты в CI, видно в логах — `.github/workflows/ci.yml`
 - [x] Стратегия в отчёте: типы, инструменты, как гонять локально, пробелы — `Docs/diploma/thesis/docs/02-technical/criteria/automated-tests.md`
 - [x] Понятная структура `*.test.ts` / `tests/` — `backend/src/__tests__/unit|integration`, `frontend/src/**/__tests__`
@@ -632,7 +632,7 @@ Coverage < 70%: −2. Тесты, которые не проверяют лог�
 |----------|-----------|-------------|
 | Business Analysis | required | комиссия; пакет после апрува темы |
 | Backend | required | Express + слои; добить ORM, OpenAPI, логи, deploy, 70% |
-| Frontend | required | SPA + Redux + Vite; добить диаграммы, Error Boundary, настоящие тесты |
+| Frontend | required | SPA + Redux + Vite; Error Boundary + RTL min закрыты; e2e Playwright на staging |
 | Database | data | Postgres + миграции + HMAC; добить dictionary, ER, роли, CHECK |
 | AI Assistant | technical | ближайший к min; добить dialog pack, user guide, замер latency |
 | Cloud | infrastructure | Azure + managed Postgres + public URL (фаза D4) |
