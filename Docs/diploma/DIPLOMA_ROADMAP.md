@@ -155,10 +155,10 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 ### D0.3 Database (дыры min)
 
-- [ ] CHECK на инварианты (`shares > 0`, currency char(3), …).
-- [ ] Роли `app_read` / `app_write` / `admin` в миграции + документация «кто чем коннектится».
-- [ ] Черновик data dictionary (таблица → колонки → ключи) — можно дополнять по мере миграций.
-- [ ] `seed:demo` для пустого стенда защиты.
+- [x] CHECK на инварианты (`shares > 0`, currency USD/EUR, ticker format, BUY/SELL, HMAC hex).
+- [x] Роли `app_read` / `app_write` / `app_admin` в миграции + `Docs/diploma/DATABASE_ROLES.md`.
+- [x] Черновик data dictionary (таблица → колонки → ключи) — thesis `appendices/db-schema.md`.
+- [x] `seed:demo` для пустого стенда защиты.
 
 ### D0.4 Tests + CI (ещё без Azure)
 
@@ -226,8 +226,8 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 ### Database (эксперт)
 
-- [ ] ER + data dictionary + 3NF note + «integrity = constraints + transactions» со ссылкой на код.
-- [ ] Скрин ролей. Индексы: зачем `owner_token`, `portfolio_id`, `email`.
+- [x] ER + data dictionary + 3NF note + «integrity = constraints + transactions» со ссылкой на код.
+- [ ] Скрин ролей. Индексы: зачем `owner_token`, `portfolio_id`, `email` — текст готов; `\du` на стенде.
 
 ### AI Assistant (эксперт)
 

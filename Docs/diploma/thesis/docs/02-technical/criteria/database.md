@@ -14,7 +14,7 @@ Portfolio state must survive restarts. The schema must stay anonymous: `users` h
 
 ### Decision
 
-PostgreSQL, 3NF transactional model, migrations in Git. `portfolio_accounts.owner_token` is HMAC-SHA256(userId, secret). Application must not use a superuser at runtime (roles still to be added in a migration).
+PostgreSQL, 3NF transactional model, migrations in Git. `portfolio_accounts.owner_token` is HMAC-SHA256(userId, secret). Staging API should connect as `app_write`, not a superuser (roles created NOLOGIN in a migration; operator attaches LOGIN).
 
 ### Alternatives Considered
 
@@ -40,31 +40,34 @@ See [Database schema appendix](../../appendices/db-schema.md).
 |----------|-----------|
 | node-pg-migrate | Reproducible DDL |
 | HMAC owner_token | Anonymity without storing userId on portfolio rows |
+| CHECK constraints | Defense in depth for shares, currency, ticker, trade type |
+| Three DB roles, thin | Rubric + non-superuser API; one pool, no UX change |
 | Quotes not stored as source of truth | Live/cached API; DB is holdings + users + AI cache |
 
 ## Requirements Checklist
 
 | # | Requirement | Status | Evidence |
 |---|-------------|--------|----------|
-| 1 | Data dictionary | ⚠️ | Appendix started; complete column list still open |
-| 2 | Integrity + transactions | ⚠️ | PK/FK on related tables; CHECK constraints TBD |
-| 3 | Logical / ER diagram | ⚠️ | Sketch in appendix; polish in assets/diagrams |
+| 1 | Data dictionary | ✅ | [db-schema appendix](../../appendices/db-schema.md) |
+| 2 | Integrity + transactions | ✅ | CHECK migration + `portfolioRepository` transactions |
+| 3 | Logical / ER diagram | ✅ | mermaid ER in the appendix |
 | 4 | DDL in Git | ✅ | `backend/src/migrations/` |
-| 5 | Modern RDBMS + 3NF | ✅ | PostgreSQL |
-| 6 | Keys, types, constraints | ⚠️ | Exists; extra CHECKs in D0 |
-| 7 | Test / seed data | ❌ | `seed:demo` planned |
-| 8 | DB roles, not superuser | ❌ | Migration for app_read/write/admin |
+| 5 | Modern RDBMS + 3NF | ✅ | PostgreSQL; 3NF table in appendix |
+| 6 | Keys, types, constraints | ✅ | PK/FK/UNIQUE/CHECK |
+| 7 | Test / seed data | ✅ | `npm run seed:demo` |
+| 8 | DB roles, not superuser | ✅ | `app_read` / `app_write` / `app_admin`; `\du` screenshot on the stand |
 | 9 | Password hashing | ✅ | bcrypt, not plaintext |
-| 10 | Indexes justified | ⚠️ | Describe owner_token, email uniqueness |
+| 10 | Indexes justified | ✅ | appendix “Indexes (why)” |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| Missing DB roles | Database min | D0.3 migration |
-| No seed script | Demo friction | `npm run seed:demo` |
+| Local still uses owner URL | Fine for inner loop | Staging `DATABASE_URL` = `app_write` |
+| `\du` screenshot not in zip yet | Expert evidence | Capture on the defense DB |
 
 ## References
 
 - `backend/src/migrations/`
 - `backend/src/db/schema.ts`
+- `Docs/diploma/DATABASE_ROLES.md` (working note, not in the final zip)

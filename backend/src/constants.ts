@@ -120,6 +120,9 @@ export const MAX_PRICE = 999_999_999;
 export const ALLOWED_CURRENCIES: ReadonlyArray<string> = ['USD', 'EUR'] as const;
 export type AllowedCurrency = (typeof ALLOWED_CURRENCIES)[number];
 
+export const TRANSACTION_TYPES = ['BUY', 'SELL'] as const;
+export type TransactionType = (typeof TRANSACTION_TYPES)[number];
+
 // ─── FX rates (Frankfurter API) ───────────────────────────────────────────────
 export const FRANKFURTER_API_BASE_URL = 'https://api.frankfurter.app';
 export const FX_HISTORICAL_RATE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -289,3 +292,12 @@ export const MONTH_LABELS = [
   'Nov',
   'Dec',
 ] as const;
+
+/** Rubric names: read / write / admin. Prefix avoids colliding with a cluster role named `admin`. */
+export const DB_ROLE_APP_READ = 'app_read';
+export const DB_ROLE_APP_WRITE = 'app_write';
+export const DB_ROLE_APP_ADMIN = 'app_admin';
+
+/** Defense / empty-stand account. Never seed this in production. */
+export const SEED_DEMO_EMAIL = 'demo@krepton.local';
+export const SEED_DEMO_PASSWORD_FALLBACK = 'DemoPassw0rd!';

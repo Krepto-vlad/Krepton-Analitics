@@ -21,6 +21,7 @@ export const env = {
   jwtExpiresIn: optionalEnv('JWT_EXPIRES_IN', '15m'),
   jwtRefreshExpiresIn: optionalEnv('JWT_REFRESH_EXPIRES_IN', '7d'),
   databaseUrl: optionalEnv('DATABASE_URL', ''),
+  seedDemoPassword: optionalEnv('SEED_DEMO_PASSWORD', ''),
   // Used to compute HMAC(userId) stored as owner_token in portfolio_accounts.
   // Without this secret an attacker who dumps the DB cannot link positions to users.
   portfolioSecret: optionalEnv('PORTFOLIO_SECRET', 'change-me-in-production-portfolio'),

@@ -55,7 +55,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | 1 | Business Analysis | required | plan | Есть: GDPR (`Docs/GDPR_ITD.md`, Privacy/Terms PDF), архитектура (`ARCHITECTURE_*.md`, mermaid в `AI_INTEGRATION.md`), эпики в `ВозможныеФичи.md`. Нет BA-пакета: vision, stakeholders, use case diagram, in/out of scope, NFR. |
 | 2 | Backend | required | plan | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist), **OpenAPI**, **pino** + `x-request-id`, Jest **≥70%** + CI artifact. Нет: public deploy. HMAC portfolio ещё raw SQL (ADR). |
 | 3 | Frontend | required | plan | React SPA, Vite, Redux Toolkit, 15+ lazy routes, SCSS kit, формы, таблицы, поиск, desktop+mobile, axios interceptor, ErrorBanner, **Error Boundary**, RTL на ErrorBanner / RequireAuth / AppErrorBoundary. Нет e2e (Playwright на staging). |
-| 4 | Database | data | plan | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE, транзакции в репозиториях, bcrypt, HMAC `owner_token`. Нет data dictionary, ER-диаграммы, seed/ролей БД, CHECK-constraints, доказательства 3NF. |
+| 4 | Database | data | plan | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE/**CHECK**, транзакции, bcrypt, HMAC `owner_token`, роли `app_*`, `seed:demo`, dictionary/ER в thesis appendix. Скрин `\du` — на стенде. |
 | 5 | Real-time Analytics | data | — | **Не брать.** Котировки — polling ~30 с (TTL кэша). `useStockWebSocket.ts` не подключён, WS-сервера на бэке нет. Рубрика явно не считает delay > 10 с / cron. |
 | 6 | ML Model | data | — | **Не брать.** Gemini — LLM API, не своё обучение. |
 | 7 | Adaptive UI | technical | — | Запас, не в восьмёрке. Код: mixins, rem, theme. Критерий упирается в Figma на 3 форм-фактора. |
@@ -221,18 +221,18 @@ Node.js / Express подходит как «modern framework».
 
 ### Minimum OLTP (5)
 
-- [ ] Data dictionary (таблицы, колонки, типы, ключи, качество данных)
-- [ ] Как обеспечивается целостность и транзакции — транзакции есть в `portfolioRepository.ts`, отдельного документа нет
-- [ ] Логическая схема (читаемая диаграмма; ER опционален)
+- [x] Data dictionary (таблицы, колонки, типы, ключи, качество данных) — thesis `appendices/db-schema.md`
+- [x] Как обеспечивается целостность и транзакции — CHECKs в миграции + `BEGIN` в `portfolioRepository.ts` + appendix
+- [x] Логическая схема (читаемая диаграмма; ER опционален) — mermaid ER в `db-schema.md`
 - [x] DDL / миграции в Git (не руками в проде) — `backend/src/migrations/`
 - [x] Современная реляционная СУБД — PostgreSQL
-- [ ] Нормализация до **3NF** — схема выглядит нормализованной, доказательства/документа нет
+- [x] Нормализация до **3NF** — таблица в `db-schema.md` (quotes не кладём в OLTP)
 - [x] Достаточно таблиц и разных типов связей — users, portfolio_accounts, positions, transactions, watchlist, strategies, AI cache/quota
-- [ ] PK / FK, NOT NULL, UNIQUE, CHECK, осмысленные типы — PK/FK/NOT NULL/UNIQUE есть, **CHECK нет**
-- [ ] Тестовые данные + скрипты справочников
-- [ ] Роли: минимум app_read / app_write / admin; приложение **не под superuser**
+- [x] PK / FK, NOT NULL, UNIQUE, CHECK, осмысленные типы — `1751370012000_add-data-integrity-checks.js`
+- [x] Тестовые данные + скрипты справочников — `npm run seed:demo`
+- [x] Роли: минимум app_read / app_write / admin; приложение **не под superuser** — `app_admin`; API на staging = `app_write`; локально owner OK (`DATABASE_ROLES.md`). Скрин `\du` на стенде.
 - [x] Пароли только хэш (не MD5/SHA-1) — bcrypt
-- [x] Целостность через constraints + transactions — FK CASCADE, unique, `BEGIN`/`COMMIT`/`ROLLBACK`
+- [x] Целостность через constraints + transactions — FK CASCADE, unique, CHECK, `BEGIN`/`COMMIT`/`ROLLBACK`
 
 Запрещено: пароли plaintext · CSV/Excel как единственное хранилище · JSON-свалка в реляционной БД без модели · нет ключей/constraints/транзакций.
 
@@ -633,7 +633,7 @@ Coverage < 70%: −2. Тесты, которые не проверяют лог�
 | Business Analysis | required | комиссия; пакет после апрува темы |
 | Backend | required | Express + слои; добить ORM, OpenAPI, логи, deploy, 70% |
 | Frontend | required | SPA + Redux + Vite; Error Boundary + RTL min закрыты; e2e Playwright на staging |
-| Database | data | Postgres + миграции + HMAC; добить dictionary, ER, роли, CHECK |
+| Database | data | Postgres + миграции + HMAC + CHECK + роли + seed + dictionary/ER |
 | AI Assistant | technical | ближайший к min; добить dialog pack, user guide, замер latency |
 | Cloud | infrastructure | Azure + managed Postgres + public URL (фаза D4) |
 | CI/CD | infrastructure | GitHub Actions; CD можно manual trigger |

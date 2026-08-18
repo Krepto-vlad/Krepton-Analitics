@@ -35,8 +35,8 @@ Fill this chapter honestly before pre-defense. Below are known facts as of 2026-
 
 | ID | Issue | Severity | Potential fix |
 |----|-------|----------|---------------|
-| TD-001 | Coverage not proven ≥ 70% | High | D3 + CI artifact |
-| TD-002 | DB roles / CHECKs incomplete | Medium | D0.3 migrations |
+| TD-001 | Coverage not proven ≥ 70% | High | Done for backend unit; keep the CI artifact |
+| TD-002 | `\du` screenshot not captured | Low | Defense / staging DB |
 | TD-003 | OpenAPI vs TypeScript drift | Medium | Generate or lint spec |
 | TD-004 | HMAC domain still raw SQL | Low | Map in Drizzle later |
 | TD-005 | No public URL | High | Azure D4 |
