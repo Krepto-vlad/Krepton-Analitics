@@ -30,6 +30,7 @@ import type {
   TickerChatUiMessage,
 } from '../../../types/ai.types';
 import { getRejectedMessage } from '../../../utils/apiError';
+import { AiGeneratedNotice } from '../../../components/ui';
 import styles from './TickerChatDrawer.module.scss';
 
 interface TickerChatDrawerProps {
@@ -553,6 +554,7 @@ export function TickerChatDrawer({
                 Send
               </button>
             </div>
+            <AiGeneratedNotice />
             <p className={styles.disclaimer}>{TICKER_CHAT_DISCLAIMER}</p>
           </form>
         </div>

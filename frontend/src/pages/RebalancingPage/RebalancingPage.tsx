@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Scale, Sparkles } from 'lucide-react';
-import { ERROR_MESSAGES, type Currency } from '../../constants';
+import { ERROR_MESSAGES, LEGAL_REBALANCING_DISCLAIMER, type Currency } from '../../constants';
 import {
   fetchPortfolioRebalancing,
   fetchRebalancingStrategies,
@@ -311,6 +311,8 @@ export function RebalancingPage() {
               mappings={analysis.tickerMappings}
               displayCurrency={displayCurrency}
             />
+
+            <p className={styles.disclaimer}>{LEGAL_REBALANCING_DISCLAIMER}</p>
           </>
         ) : (
           <AlignmentExplainPanel

@@ -11,6 +11,7 @@ import type {
   FalseDiversificationRiskLevel,
 } from '../../../../types/ai.types';
 import { getRejectedMessage } from '../../../../utils/apiError';
+import { AiGeneratedNotice } from '../../../../components/ui';
 import {
   clearPersistedAlignmentExplanation,
   loadPersistedAlignmentExplanation,
@@ -247,6 +248,7 @@ export function AlignmentExplainPanel({
             <p className={styles.whatItMeans}>{explanation.whatItMeans}</p>
           </section>
 
+          <AiGeneratedNotice />
           <p className={styles.disclaimer}>{explanation.disclaimer}</p>
         </div>
       )}

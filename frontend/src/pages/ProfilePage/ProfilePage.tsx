@@ -430,6 +430,18 @@ export function ProfilePage() {
           <span className={styles.activeBadge}>Active</span>
         </div>
 
+        <div className={styles.legalLinks}>
+          <Link to={ROUTES.LEGAL} className={styles.legalLink}>
+            Legal Documents
+          </Link>
+          <Link to={ROUTES.PRIVACY} className={styles.legalLink}>
+            Privacy Policy
+          </Link>
+          <Link to={ROUTES.TERMS} className={styles.legalLink}>
+            Terms of Service
+          </Link>
+        </div>
+
         <div className={styles.dataActionRow}>
           <div className={styles.dataActionCopy}>
             <p className={styles.securityTitle}>Export your data</p>

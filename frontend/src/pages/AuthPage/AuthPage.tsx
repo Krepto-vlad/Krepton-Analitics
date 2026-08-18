@@ -12,7 +12,7 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { ERROR_MESSAGES, ROUTES } from '../../constants';
+import { ERROR_MESSAGES, LEGAL_NOT_INVESTMENT_ADVICE, ROUTES } from '../../constants';
 import { Button, ErrorBanner } from '../../components/ui';
 import { Input } from '../../components/ui';
 import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
@@ -191,9 +191,43 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           </div>
 
           <div className={styles.cardBody}>
+            {mode === 'register' && (
+              <div
+                className={styles.agreement}
+                onClick={() => setAgreed((current) => !current)}
+                role="checkbox"
+                aria-checked={agreed}
+                tabIndex={0}
+                onKeyDown={(event) => event.key === 'Enter' && setAgreed((current) => !current)}
+              >
+                <div className={`${styles.checkbox} ${agreed ? styles.checked : ''}`.trim()}>
+                  {agreed && <Check size={10} />}
+                </div>
+                <span className={styles.agreementText}>
+                  I agree to the{' '}
+                  <Link
+                    to={ROUTES.TERMS}
+                    className={styles.inlineLegalLink}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link
+                    to={ROUTES.PRIVACY}
+                    className={styles.inlineLegalLink}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    Privacy Policy
+                  </Link>
+                  . Insights are for educational purposes only.
+                </span>
+              </div>
+            )}
+
             <GoogleSignInButton
               text={mode === 'register' ? 'signup_with' : 'continue_with'}
-              disabled={isLoading}
+              disabled={isLoading || (mode === 'register' && !agreed)}
               onCredential={(idToken) => void handleGoogleCredential(idToken)}
               onError={() => setGoogleError(ERROR_MESSAGES.AUTH_GOOGLE_LOGIN_FAILED)}
             />
@@ -362,26 +396,6 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               </div>
             )}
 
-            {/* Agreement (register only) */}
-            {mode === 'register' && (
-              <div
-                className={styles.agreement}
-                onClick={() => setAgreed((v) => !v)}
-                role="checkbox"
-                aria-checked={agreed}
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && setAgreed((v) => !v)}
-              >
-                <div className={`${styles.checkbox} ${agreed ? styles.checked : ''}`.trim()}>
-                  {agreed && <Check size={10} />}
-                </div>
-                <span className={styles.agreementText}>
-                  I understand that Krepton does not collect personal data and insights are for
-                  educational purposes only.
-                </span>
-              </div>
-            )}
-
             {/* Error / info */}
             {(error || googleError) && <ErrorBanner message={error ?? googleError ?? ''} />}
             {infoMessage && <p className={styles.infoMessage}>{infoMessage}</p>}
@@ -458,8 +472,14 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         </div>
 
         <p className={styles.disclaimer}>
-          By continuing, you acknowledge that Krepton provides analytical tools for educational
-          purposes only and does not constitute formal financial advice.
+          {LEGAL_NOT_INVESTMENT_ADVICE}{' '}
+          <Link to={ROUTES.PRIVACY} className={styles.inlineLegalLink}>
+            Privacy Policy
+          </Link>
+          {' · '}
+          <Link to={ROUTES.TERMS} className={styles.inlineLegalLink}>
+            Terms of Service
+          </Link>
         </p>
       </div>
     </div>

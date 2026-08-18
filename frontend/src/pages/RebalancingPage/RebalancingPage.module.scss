@@ -98,3 +98,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+.disclaimer {
+  margin: 0;
+  font-size: $font-size-xs;
+  line-height: 1.5;
+  color: $color-foreground-subtle;
+}

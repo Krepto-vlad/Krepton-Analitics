@@ -17,6 +17,12 @@ const PricingPage = lazy(() =>
 const SecurityPage = lazy(() =>
   import('../pages/SecurityPage/SecurityPage').then((m) => ({ default: m.SecurityPage }))
 );
+const LegalDocumentsPage = lazy(() =>
+  import('../pages/LegalPage/LegalDocumentsPage').then((m) => ({ default: m.LegalDocumentsPage }))
+);
+const LegalPdfViewerPage = lazy(() =>
+  import('../pages/LegalPage/LegalPdfViewerPage').then((m) => ({ default: m.LegalPdfViewerPage }))
+);
 const LoginPage = lazy(() =>
   import('../pages/AuthPage/AuthPage').then((m) => ({
     default: () => <m.AuthPage initialMode="login" />,
@@ -144,6 +150,8 @@ function AppRoutes() {
         <Route path={ROUTES.HOME} element={<LandingPage />} />
         <Route path={ROUTES.PRICING} element={<PricingPage />} />
         <Route path={ROUTES.SECURITY} element={<SecurityPage />} />
+        <Route path={ROUTES.LEGAL} element={<LegalDocumentsPage />} />
+        <Route path={ROUTES.LEGAL_DOCUMENT} element={<LegalPdfViewerPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
         <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />

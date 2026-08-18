@@ -10,6 +10,10 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   PRICING: '/pricing',
   SECURITY: '/security',
+  LEGAL: '/legal',
+  LEGAL_DOCUMENT: '/legal/:documentId',
+  PRIVACY: '/legal/privacy-policy',
+  TERMS: '/legal/terms-of-service',
   DASHBOARD: '/dashboard',
   PORTFOLIO: '/portfolio',
   PROFILE: '/profile',
@@ -266,6 +270,18 @@ export const STRATEGY_DRIFT_ALERT_SESSION_STORAGE_KEY = 'krepton_strategy_drift_
 
 /** Allowed URL schemes for Markdown links rendered from AI chat replies. */
 export const SAFE_MARKDOWN_LINK_PROTOCOLS = ['http:', 'https:', 'mailto:'] as const;
+
+export {
+  AI_GENERATED_HALLUCINATION_CAVEAT,
+  AI_GENERATED_LABEL,
+  LEGAL_AUTH_COOKIE_NAME,
+  LEGAL_CONTACT_EMAIL,
+  LEGAL_COPYRIGHT_YEAR,
+  LEGAL_DOCUMENTS_PUBLIC_DIR,
+  LEGAL_LAST_UPDATED,
+  LEGAL_NOT_INVESTMENT_ADVICE,
+  LEGAL_REBALANCING_DISCLAIMER,
+} from './content/legalConstants';
 
 export const REBALANCING_ALLOCATION_TOTAL_PERCENT = 100;
 export const REBALANCING_ALLOCATION_TOLERANCE = 0.01;

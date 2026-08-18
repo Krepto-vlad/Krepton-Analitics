@@ -2,14 +2,21 @@
 @use '../../../styles/mixins' as *;
 
 .footer {
-  padding: $space-8 $space-6;
+  padding: $space-8 $space-6 $space-6;
   border-top: 1px solid $color-divider;
   margin-top: 48px;
 }
 
 .footerInner {
-  max-width: 980px;
+  max-width: 1100px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+}
+
+.topRow,
+.bottomRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -25,10 +32,9 @@
   display: flex;
   align-items: center;
   gap: $space-2;
-  font-size: 0.8125rem;
-  color: $color-foreground-subtle;
-  font-weight: $font-weight-medium;
-  font-family: $font-family;
+  font-size: $font-size-sm;
+  color: $color-foreground;
+  font-weight: $font-weight-semibold;
 }
 
 .footerBrandIcon {
@@ -42,15 +48,36 @@
   justify-content: center;
 }
 
-.footerDisclaimer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: $font-mono;
-  font-size: 0.8125rem;
-  color: $color-foreground-subtle;
+.footerEmail {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-primary;
+    text-decoration: underline;
+  }
 }
 
-.footerDisclaimerIcon {
-  color: $color-primary;
+.footerLinks {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+}
+
+.footerLink {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.copyright {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
 }

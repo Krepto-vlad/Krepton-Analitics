@@ -636,6 +636,23 @@
   font-weight: $font-weight-semibold;
 }
 
+.legalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+}
+
+.legalLink {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .subscriptionCard {
   display: flex;
   align-items: center;

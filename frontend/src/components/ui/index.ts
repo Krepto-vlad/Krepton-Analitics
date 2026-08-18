@@ -6,4 +6,5 @@ export { ErrorBanner } from './ErrorBanner/ErrorBanner';
 export { ErrorState } from './ErrorState/ErrorState';
 export { AsyncStatePanel } from './AsyncStatePanel/AsyncStatePanel';
 export { TickerAvatar } from './TickerAvatar/TickerAvatar';
+export { AiGeneratedNotice } from './AiGeneratedNotice/AiGeneratedNotice';
 export type { SelectOption } from './Select/Select';

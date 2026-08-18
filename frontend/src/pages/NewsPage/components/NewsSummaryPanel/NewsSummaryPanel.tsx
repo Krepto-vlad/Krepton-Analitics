@@ -16,7 +16,7 @@ import type {
   NewsSummaryMarketBenchmark,
   NewsSummaryResponse,
 } from '../../../../types/ai.types';
-import { TickerAvatar } from '../../../../components/ui';
+import { AiGeneratedNotice, TickerAvatar } from '../../../../components/ui';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import {
   clearPersistedNewsBriefing,
@@ -513,6 +513,7 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
             </section>
           )}
 
+          <AiGeneratedNotice />
           <p className={styles.disclaimer}>{summary.disclaimer}</p>
         </div>
       )}

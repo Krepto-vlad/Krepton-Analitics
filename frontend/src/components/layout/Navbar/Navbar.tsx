@@ -8,7 +8,7 @@ import styles from './Navbar.module.scss';
 type ActiveRoute = 'home' | 'pricing' | 'security';
 
 interface NavbarProps {
-  activeRoute: ActiveRoute;
+  activeRoute?: ActiveRoute;
 }
 
 export function Navbar({ activeRoute }: NavbarProps) {

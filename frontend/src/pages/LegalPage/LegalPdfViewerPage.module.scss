@@ -1,0 +1,110 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  min-height: 100vh;
+  width: 100%;
+  background: $color-background;
+  color: $color-foreground;
+  font-family: $font-family;
+  display: flex;
+  flex-direction: column;
+}
+
+.body {
+  padding-top: $header-height;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  flex-wrap: wrap;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: $space-5 $space-6 $space-4;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.toolbarText {
+  flex: 1;
+  min-width: 180px;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.meta {
+  margin: 4px 0 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.actionButton,
+.actionButtonPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+}
+
+.actionButton {
+  border: 1px solid $color-border;
+  color: $color-foreground;
+  background: transparent;
+
+  &:hover {
+    border-color: $color-primary-border;
+    color: $color-primary;
+  }
+}
+
+.actionButtonPrimary {
+  background: $color-primary;
+  color: $color-on-primary;
+
+  &:hover {
+    opacity: 0.92;
+  }
+}
+
+.viewer {
+  flex: 1;
+  width: 100%;
+  min-height: 70vh;
+  border: none;
+  border-top: 1px solid $color-divider;
+  background: $color-background;
+}
