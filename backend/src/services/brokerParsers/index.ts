@@ -1,6 +1,7 @@
 import { AppError } from '../../middleware/errorHandler.js';
 import { isGeminiConfigured } from '../../config/env.js';
 import { IMPORT_DEFAULT_CURRENCY } from '../../constants.js';
+import { logger } from '../../utils/logger.js';
 import type { BrokerParseMeta, BrokerParseResult } from '../../types/import.types.js';
 import type { SafeSheetData } from '../../utils/excelSafeReader.js';
 import { inferImportSchemaWithGemini } from '../geminiClient.js';
@@ -40,15 +41,18 @@ function logParseMeta(
   skippedCount: number
 ): void {
   // GDPR: never log cell values, filenames, or statement contents — metadata only.
-  console.info('[BrokerImport] parse complete', {
-    userId,
-    mode: meta.mode,
-    confidence: meta.confidence,
-    headerFingerprint: meta.headerFingerprint,
-    tradeCount,
-    skippedCount,
-    hasWarning: Boolean(meta.warning),
-  });
+  logger.info(
+    {
+      userId,
+      mode: meta.mode,
+      confidence: meta.confidence,
+      headerFingerprint: meta.headerFingerprint,
+      tradeCount,
+      skippedCount,
+      hasWarning: Boolean(meta.warning),
+    },
+    'Broker statement parse complete'
+  );
 }
 
 /**
@@ -84,11 +88,14 @@ export async function parseBrokerStatement(
   await assertAiQuotaAvailable(userId, 'import_schema');
 
   const sample = buildGdprSafeSchemaSample(sheetData);
-  console.info('[BrokerImport] requesting AI schema from truncated sample', {
-    userId,
-    sampleRowCount: sample.sampleRows.length,
-    columnCount: sample.columnCount,
-  });
+  logger.info(
+    {
+      userId,
+      sampleRowCount: sample.sampleRows.length,
+      columnCount: sample.columnCount,
+    },
+    'Requesting AI schema from truncated sample'
+  );
 
   let aiMapping;
   try {
@@ -97,7 +104,7 @@ export async function parseBrokerStatement(
     if (error instanceof AppError) {
       throw error;
     }
-    console.error('[BrokerImport] AI schema inference failed:', error);
+    logger.error({ err: error }, 'AI schema inference failed');
     throw new AppError(
       502,
       'AI schema assist failed. Try a CSV/XLSX trade export with clear column headers.'

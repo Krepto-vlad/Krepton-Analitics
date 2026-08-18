@@ -1,6 +1,7 @@
 import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import { env, isGoogleAuthConfigured } from '../config/env.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
 
 export interface VerifiedGoogleIdentity {
   googleSub: string;
@@ -28,7 +29,7 @@ export async function verifyGoogleIdToken(idToken: unknown): Promise<VerifiedGoo
     });
     payload = ticket.getPayload();
   } catch (error) {
-    console.warn('[GoogleAuth] ID token verification failed', error);
+    logger.warn({ err: error }, 'Google ID token verification failed');
     throw new AppError(401, 'Invalid Google credentials');
   }
 

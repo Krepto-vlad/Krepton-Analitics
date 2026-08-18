@@ -6,6 +6,7 @@ import {
   MARKET_MOVERS_LOSERS_SCREENER_ID,
 } from '../constants.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
 import type { MarketMoverItem, MarketMoversResponse } from '../types/stock.types.js';
 
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
@@ -127,7 +128,7 @@ export async function getMarketMovers(): Promise<MarketMoversResponse> {
       throw error;
     }
 
-    console.error('[MarketMovers] Failed to fetch Yahoo screener data:', error);
+    logger.error({ err: error }, 'Failed to fetch Yahoo screener data');
     throw new AppError(502, 'Unable to load market movers. Please try again later.');
   }
 }

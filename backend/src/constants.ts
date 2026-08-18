@@ -25,6 +25,27 @@ export const API_ROUTES = {
   AUTH: '/api/auth',
   PORTFOLIO: '/api/portfolio',
   FX: '/api/fx',
+  DOCS: '/api/docs',
+} as const;
+
+export const HEALTH_CHECK_PATH = '/health';
+export const OPENAPI_SPEC_FILENAME = 'openapi.yaml';
+export const OPENAPI_SPEC_CONTENT_TYPE = 'application/yaml';
+export const REQUEST_ID_HEADER_NAME = 'x-request-id';
+export const REQUEST_ID_MAX_LENGTH = 128;
+export const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]{1,128}$/;
+
+export const LOG_EVENT = {
+  HTTP_REQUEST: 'http_request',
+  SERVER_STARTED: 'server_started',
+  SERVER_SHUTDOWN: 'server_shutdown',
+  HTTP_SERVER_CLOSED: 'http_server_closed',
+  DB_CONNECTED: 'db_connected',
+  DB_CONNECTION_FAILED: 'db_connection_failed',
+  DB_POOL_ERROR: 'db_pool_error',
+  UNHANDLED_ERROR: 'unhandled_error',
+  APP_ERROR: 'app_error',
+  OPENAPI_SPEC_MISSING: 'openapi_spec_missing',
 } as const;
 
 export const WS_QUOTE_POLL_INTERVAL_MS = 30_000;

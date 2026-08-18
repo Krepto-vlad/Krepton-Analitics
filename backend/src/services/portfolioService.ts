@@ -1,4 +1,5 @@
 import { AppError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
 import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
 import {
   isValidTickerSymbol,
@@ -734,7 +735,7 @@ export async function getPortfolioEquityHistory(
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getPositionsByPortfolioId(portfolioId);
 
-  console.log(`[EquityHistory] portfolioId=${portfolioId} rows=${rows.length}`);
+  logger.info({ portfolioId, positionCount: rows.length }, 'Building equity history');
 
   if (rows.length === 0) return [];
 
@@ -764,8 +765,9 @@ export async function getPortfolioEquityHistory(
 
   const uniqueTickers = [...new Set(rows.map((row) => row.ticker))];
 
-  console.log(
-    `[EquityHistory] tickers=${uniqueTickers.join(',')} earliest=${earliestStartDate} period=${period}`
+  logger.debug(
+    { tickers: uniqueTickers, earliestStartDate, period },
+    'Equity history fetch window'
   );
 
   // Fetch historical daily closes in parallel
@@ -780,8 +782,14 @@ export async function getPortfolioEquityHistory(
       const count = result.value.candles.length;
       const first = result.value.candles[0];
       const last = result.value.candles[count - 1];
-      console.log(
-        `[EquityHistory] ${uniqueTickers[index]}: ${count} candles, first=${first ? new Date(first.time * 1000).toISOString().slice(0, 10) : 'n/a'} last=${last ? new Date(last.time * 1000).toISOString().slice(0, 10) : 'n/a'}`
+      logger.debug(
+        {
+          ticker: uniqueTickers[index],
+          candleCount: count,
+          firstDate: first ? new Date(first.time * 1000).toISOString().slice(0, 10) : null,
+          lastDate: last ? new Date(last.time * 1000).toISOString().slice(0, 10) : null,
+        },
+        'Equity history candles loaded'
       );
       priceMaps[uniqueTickers[index]] = {};
       result.value.candles.forEach((candle) => {
@@ -789,8 +797,9 @@ export async function getPortfolioEquityHistory(
         priceMaps[uniqueTickers[index]][date] = candle.close;
       });
     } else {
-      console.log(
-        `[EquityHistory] ${uniqueTickers[index]}: FAILED – ${String((result as PromiseRejectedResult).reason)}`
+      logger.warn(
+        { ticker: uniqueTickers[index], err: result.reason },
+        'Equity history ticker fetch failed'
       );
     }
   });
@@ -804,9 +813,7 @@ export async function getPortfolioEquityHistory(
   });
 
   const sortedDates = [...allDates].sort();
-  console.log(
-    `[EquityHistory] allDates=${sortedDates.length} positionEntries=${JSON.stringify(positionEntries.map((p) => ({ ticker: p.ticker, startDate: p.startDate, shares: p.shares })))}`
-  );
+  logger.debug({ dateCount: sortedDates.length }, 'Equity history trading days collected');
   if (sortedDates.length === 0) return [];
 
   const fxLookup = new Map<string, number>();
@@ -1121,8 +1128,14 @@ export async function exportUserPortfolioData(
     getPortfolioRebalancingStrategy(portfolioId),
   ]);
 
-  console.info(
-    `[PortfolioExport] userId=${userId} positions=${positionRows.length} transactions=${transactionRows.length} watchlist=${watchlistRows.length}`
+  logger.info(
+    {
+      userId,
+      positionCount: positionRows.length,
+      transactionCount: transactionRows.length,
+      watchlistCount: watchlistRows.length,
+    },
+    'Portfolio export assembled'
   );
 
   return {

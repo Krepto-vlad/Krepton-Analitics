@@ -17,6 +17,7 @@ import {
 } from '../constants/falseDiversification.constants.js';
 import { env, isGeminiConfigured, isGeminiGroundingEnabled } from '../config/env.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
 import type {
   AlignmentExplanationPayload,
   AlignmentPromptContext,
@@ -279,7 +280,7 @@ function logGroundingUsage(data: GeminiGenerateContentResponse): void {
 
   const queries = metadata.webSearchQueries ?? [];
   if (queries.length > 0) {
-    console.info('[GeminiClient] Grounding search queries:', queries.join(' | '));
+    logger.info({ queries }, 'Gemini grounding search queries');
   }
 }
 
@@ -299,7 +300,7 @@ function handleGeminiAxiosError(error: unknown): never {
         : undefined;
 
     if (geminiMessage) {
-      console.error(`[GeminiClient] API error (${status ?? 'unknown'}):`, geminiMessage);
+      logger.error({ status, geminiMessage }, 'Gemini API error');
     }
 
     if (status === 429) {
@@ -312,12 +313,12 @@ function handleGeminiAxiosError(error: unknown): never {
     }
 
     if (status === 400 || status === 403 || status === 404) {
-      console.error('[GeminiClient] Request rejected:', error.response?.data);
+      logger.error({ status, responseData: error.response?.data }, 'Gemini request rejected');
       throw new AppError(503, 'AI service is unavailable. Please try again later.');
     }
   }
 
-  console.error('[GeminiClient] Briefing generation failed:', error);
+  logger.error({ err: error }, 'Briefing generation failed');
   throw new AppError(502, 'Failed to generate AI summary. Please try again.');
 }
 
@@ -805,10 +806,13 @@ export async function inferImportSchemaWithGemini(
       throw new AppError(502, 'AI returned an empty schema mapping. Please try again.');
     }
 
-    console.info('[GeminiClient] Import schema inferred from truncated sample', {
-      sampleRowCount: input.sampleRows.length,
-      columnCount: input.columnCount,
-    });
+    logger.info(
+      {
+        sampleRowCount: input.sampleRows.length,
+        columnCount: input.columnCount,
+      },
+      'Import schema inferred from truncated sample'
+    );
 
     return parseImportSchemaResponse(rawText, input.columnCount, input.sampleRows.length);
   } catch (error) {

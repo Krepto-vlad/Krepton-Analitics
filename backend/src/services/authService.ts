@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 import {
   createGoogleUser,
   createPasswordUser,
@@ -102,7 +103,7 @@ async function issueVerificationEmail(user: UserRow, rawToken: string): Promise<
   try {
     await sendEmailVerificationLink(user.email, rawToken);
   } catch (error) {
-    console.error('[Auth] Failed to send verification email', error);
+    logger.error({ err: error, userId: user.id }, 'Failed to send verification email');
     throw new AppError(500, 'Unable to send verification email. Please try again later.');
   }
 }
@@ -346,14 +347,14 @@ export async function requestPasswordReset(email: unknown): Promise<{ message: s
       const resetToken = createPasswordResetToken();
       await setPasswordResetToken(user.id, resetToken.tokenHash, resetToken.expiresAt);
       await sendPasswordResetLink(user.email, resetToken.token);
-      console.info('[Auth] password reset email issued', { userId: user.id });
+      logger.info({ userId: user.id }, 'Password reset email issued');
     } else if (user?.google_sub && !user.password_hash) {
       await sendGoogleOnlySignInHint(user.email);
-      console.info('[Auth] Google-only sign-in hint issued', { userId: user.id });
+      logger.info({ userId: user.id }, 'Google-only sign-in hint issued');
     }
   } catch (error) {
     // Do not leak whether the account exists via SMTP/config failures.
-    console.error('[Auth] Password reset request side-effect failed', error);
+    logger.error({ err: error }, 'Password reset request side-effect failed');
   }
 
   return { message: PASSWORD_RESET_REQUEST_GENERIC_MESSAGE };
@@ -385,7 +386,7 @@ export async function resetPasswordWithToken(
     throw new AppError(500, 'Unable to update password');
   }
 
-  console.info('[Auth] password reset completed', { userId: user.id });
+  logger.info({ userId: user.id }, 'Password reset completed');
   return { message: 'Password updated successfully. You can sign in with your new password.' };
 }
 
@@ -420,10 +421,7 @@ export async function deleteUserAccount(
   }
 
   // GDPR: never log email or statement content — metadata only.
-  console.info('[Auth] account deleted', {
-    userId,
-    hadPortfolio: Boolean(portfolioId),
-  });
+  logger.info({ userId, hadPortfolio: Boolean(portfolioId) }, 'Account deleted');
 }
 
 export function signAccessToken(userId: string): string {

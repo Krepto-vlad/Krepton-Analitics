@@ -1,25 +1,30 @@
-import { pool } from '../config/db.js';
+import { and, asc, count, eq } from 'drizzle-orm';
+import { db } from '../config/db.js';
+import { watchlistItems } from '../db/schema.js';
 import type { WatchlistItemRow } from '../types/watchlist.types.js';
 
-export async function getWatchlistByPortfolioId(portfolioId: string): Promise<WatchlistItemRow[]> {
-  const result = await pool.query<WatchlistItemRow>(
-    `SELECT id, portfolio_id, ticker, company_name, created_at
-     FROM watchlist_items
-     WHERE portfolio_id = $1
-     ORDER BY created_at ASC`,
-    [portfolioId]
-  );
+const WATCHLIST_ITEM_COLUMNS = {
+  id: watchlistItems.id,
+  portfolio_id: watchlistItems.portfolio_id,
+  ticker: watchlistItems.ticker,
+  company_name: watchlistItems.company_name,
+  created_at: watchlistItems.created_at,
+} as const;
 
-  return result.rows;
+export async function getWatchlistByPortfolioId(portfolioId: string): Promise<WatchlistItemRow[]> {
+  return db
+    .select(WATCHLIST_ITEM_COLUMNS)
+    .from(watchlistItems)
+    .where(eq(watchlistItems.portfolio_id, portfolioId))
+    .orderBy(asc(watchlistItems.created_at));
 }
 
 export async function countWatchlistByPortfolioId(portfolioId: string): Promise<number> {
-  const result = await pool.query<{ count: string }>(
-    'SELECT COUNT(*)::text AS count FROM watchlist_items WHERE portfolio_id = $1',
-    [portfolioId]
-  );
-
-  return parseInt(result.rows[0]?.count ?? '0', 10);
+  const rows = await db
+    .select({ value: count() })
+    .from(watchlistItems)
+    .where(eq(watchlistItems.portfolio_id, portfolioId));
+  return Number(rows[0]?.value ?? 0);
 }
 
 export async function insertWatchlistItem(
@@ -27,35 +32,33 @@ export async function insertWatchlistItem(
   ticker: string,
   companyName: string
 ): Promise<WatchlistItemRow> {
-  const result = await pool.query<WatchlistItemRow>(
-    `INSERT INTO watchlist_items (portfolio_id, ticker, company_name)
-     VALUES ($1, $2, $3)
-     RETURNING id, portfolio_id, ticker, company_name, created_at`,
-    [portfolioId, ticker, companyName]
-  );
-
-  return result.rows[0];
+  const rows = await db
+    .insert(watchlistItems)
+    .values({
+      portfolio_id: portfolioId,
+      ticker,
+      company_name: companyName,
+    })
+    .returning(WATCHLIST_ITEM_COLUMNS);
+  return rows[0];
 }
 
 export async function deleteWatchlistItem(itemId: string, portfolioId: string): Promise<boolean> {
-  const result = await pool.query(
-    'DELETE FROM watchlist_items WHERE id = $1 AND portfolio_id = $2',
-    [itemId, portfolioId]
-  );
-
-  return (result.rowCount ?? 0) > 0;
+  const rows = await db
+    .delete(watchlistItems)
+    .where(and(eq(watchlistItems.id, itemId), eq(watchlistItems.portfolio_id, portfolioId)))
+    .returning({ id: watchlistItems.id });
+  return rows.length > 0;
 }
 
 export async function getWatchlistItemByTicker(
   portfolioId: string,
   ticker: string
 ): Promise<WatchlistItemRow | null> {
-  const result = await pool.query<WatchlistItemRow>(
-    `SELECT id, portfolio_id, ticker, company_name, created_at
-     FROM watchlist_items
-     WHERE portfolio_id = $1 AND ticker = $2`,
-    [portfolioId, ticker]
-  );
-
-  return result.rows[0] ?? null;
+  const rows = await db
+    .select(WATCHLIST_ITEM_COLUMNS)
+    .from(watchlistItems)
+    .where(and(eq(watchlistItems.portfolio_id, portfolioId), eq(watchlistItems.ticker, ticker)))
+    .limit(1);
+  return rows[0] ?? null;
 }

@@ -6,6 +6,7 @@ import {
   DIVIDEND_UPCOMING_PAYMENTS_LIMIT,
   MONTH_LABELS,
 } from '../constants.js';
+import { logger } from '../utils/logger.js';
 import type { DisplayCurrency } from '../types/fx.types.js';
 import type {
   DividendCalendarMonth,
@@ -93,10 +94,7 @@ async function fetchDividendHistory(ticker: string): Promise<DividendHistoryEntr
 
     return historical;
   } catch (error) {
-    console.warn(
-      `[DividendCalendar] Failed to load dividend history for ${upperTicker}:`,
-      (error as Error).message
-    );
+    logger.warn({ ticker: upperTicker, err: error }, 'Failed to load dividend history');
     return [];
   }
 }

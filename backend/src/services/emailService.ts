@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { env, isSmtpConfigured } from '../config/env.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
 
 function assertSmtpConfigured(): void {
   if (!isSmtpConfigured) {
@@ -41,7 +42,7 @@ async function sendMail(params: {
       html: params.html,
     });
   } catch (error) {
-    console.error('[EmailService] Failed to send email', error);
+    logger.error({ err: error }, 'Failed to send email');
     throw new AppError(503, params.failureMessage);
   }
 }

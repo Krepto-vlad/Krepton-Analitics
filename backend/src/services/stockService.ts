@@ -16,6 +16,7 @@ import {
   STOCK_HISTORY_CACHE_TTL_MS,
 } from '../constants.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
 import { getCachedStockQuote, getCachedStockQuotes } from './quoteCacheService.js';
 import { buildEmptyStockQuote } from '../utils/stockQuoteDefaults.js';
 
@@ -141,12 +142,15 @@ async function refreshTickerTape(): Promise<void> {
 
     if (successCount > 0) {
       tickerTapeData = fresh;
-      console.log(`[TickerTape] Refreshed ${successCount}/${TICKER_TAPE_SYMBOLS.length} symbols`);
+      logger.info(
+        { successCount, totalCount: TICKER_TAPE_SYMBOLS.length },
+        'Ticker tape refreshed'
+      );
     } else {
-      console.warn('[TickerTape] All fetches failed — keeping previous data');
+      logger.warn('Ticker tape refresh returned no live quotes — keeping previous data');
     }
   } catch (error) {
-    console.warn('[TickerTape] Refresh failed — keeping previous data:', (error as Error).message);
+    logger.warn({ err: error }, 'Ticker tape refresh failed — keeping previous data');
   }
 }
 
@@ -157,11 +161,11 @@ async function refreshTickerTape(): Promise<void> {
  */
 export function initializeTickerTapeScheduler(): ReturnType<typeof setInterval> {
   // Kick off first fetch without blocking startup
-  refreshTickerTape().catch((err) => console.error('[TickerTape] Initial fetch failed:', err));
+  refreshTickerTape().catch((err) => logger.error({ err }, 'Ticker tape initial fetch failed'));
 
   return setInterval(() => {
     refreshTickerTape().catch((err) =>
-      console.error('[TickerTape] Scheduled refresh failed:', err)
+      logger.error({ err }, 'Ticker tape scheduled refresh failed')
     );
   }, TICKER_TAPE_REFRESH_INTERVAL_MS);
 }
@@ -193,10 +197,10 @@ export async function getStockSector(
     const sector = typeof profile?.sector === 'string' && profile.sector ? profile.sector : 'Other';
     const industry = typeof profile?.industry === 'string' ? profile.industry : '';
 
-    console.log(`[Sector] ${ticker} → ${sector} / ${industry}`);
+    logger.debug({ ticker, sector, industry }, 'Sector resolved');
     return { sector, industry };
   } catch (err) {
-    console.warn(`[Sector] ${ticker} fetch failed — fallback "Other":`, (err as Error).message);
+    logger.warn({ ticker, err }, 'Sector fetch failed — fallback Other');
     return { sector: 'Other', industry: '' };
   }
 }

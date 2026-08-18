@@ -84,8 +84,9 @@ export async function getStockQuote(req: Request): Promise<void> { ... }
 ```
 
 ### repositories/
-- Raw SQL queries only.
-- Return typed rows — no transformation.
+- Data access only. Return typed rows — no business transformation.
+- **Users / watchlist:** Drizzle ORM (`src/db/schema.ts`, `db` from `config/db.ts`). See `Docs/diploma/ADR-001-drizzle-orm.md`.
+- **Portfolio (HMAC `owner_token`):** raw SQL in `portfolioRepository.ts` until that domain is mapped — the token math must stay explicit.
 - **No business logic** — no conditions about what to do with data.
 - Accept primitive arguments (ids, strings) — not full objects.
 
@@ -98,8 +99,10 @@ export async function findUserByEmail(email: string): Promise<UserRow | null> {
 
 ### middleware/
 - `asyncHandler`: wraps async route handlers to forward errors to Express error handler.
-- `errorHandler`: global error handler, catches `AppError` and unknown errors.
-- `authMiddleware` (planned): validates JWT from HttpOnly cookie, attaches `userId` to `req`.
+- `errorHandler`: global error handler, catches `AppError` and unknown errors; logs JSON via `pino`.
+- `requestIdMiddleware`: accepts or generates `x-request-id`, stores it in AsyncLocalStorage so service logs correlate.
+- `requestLogger`: structured HTTP log (`method`, `path`, `status`, `durationMs`, `requestId`).
+- `authMiddleware`: validates JWT from HttpOnly cookie, attaches `userId` to `req`.
 
 ---
 
@@ -117,7 +120,7 @@ throw new AppError(404, 'Resource not found');
 // { success: false, error: 'message' }
 ```
 
-Never `console.error` and swallow — always re-throw or pass to `next(err)`.
+Never swallow errors after logging — always re-throw or pass to `next(err)`. HTTP and domain events go through `pino` (`backend/src/utils/logger.ts`), not `console.*`.
 
 ---
 

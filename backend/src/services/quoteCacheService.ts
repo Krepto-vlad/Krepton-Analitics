@@ -8,6 +8,7 @@ import {
   FMP_STOCK_LOGO_URL_TEMPLATE,
 } from '../constants.js';
 import { buildEmptyStockQuote } from '../utils/stockQuoteDefaults.js';
+import { logger } from '../utils/logger.js';
 
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 
@@ -236,9 +237,7 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
 
       recordYahooCall();
     } catch (error) {
-      console.warn('[QuoteCache] Yahoo batch fetch failed:', (error as Error).message, {
-        tickers: chunk,
-      });
+      logger.warn({ err: error, tickers: chunk }, 'Yahoo batch fetch failed');
 
       // Transient provider errors: extend usable stale data only — do not
       // negative-cache, so the next request can retry Yahoo.
@@ -255,9 +254,7 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
 async function drainPendingRefreshQueue(): Promise<void> {
   while (pendingRefreshTickers.size > 0) {
     if (!hasYahooBudget()) {
-      console.warn(
-        '[QuoteCache] Yahoo minute budget exhausted — serving stale quotes for remaining tickers'
-      );
+      logger.warn('Yahoo minute budget exhausted — serving stale quotes for remaining tickers');
       return;
     }
 
@@ -363,4 +360,13 @@ export async function getCachedStockQuotes(tickers: string[]): Promise<StockQuot
 export async function getCachedStockQuote(ticker: string): Promise<StockQuote> {
   const [quote] = await getCachedStockQuotes([ticker.toUpperCase()]);
   return quote;
+}
+
+/** @internal Test helper — resets in-memory cache and Yahoo rate-limit state. */
+export function clearQuoteCacheForTests(): void {
+  quoteCache.clear();
+  yahooCallTimestamps.length = 0;
+  pendingRefreshTickers.clear();
+  lastYahooFetchAt = 0;
+  activeYahooFetch = null;
 }

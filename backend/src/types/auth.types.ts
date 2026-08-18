@@ -82,5 +82,6 @@ export type RegisterPendingResponse = ApiResponse<RegisterPendingResult>;
 declare module 'express-serve-static-core' {
   interface Request {
     userId?: string;
+    requestId?: string;
   }
 }

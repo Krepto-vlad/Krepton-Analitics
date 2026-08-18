@@ -5,6 +5,7 @@ import {
   PORTFOLIO_NEWS_MAX_TICKERS,
   PORTFOLIO_NEWS_PER_TICKER,
 } from '../constants.js';
+import { logger } from '../utils/logger.js';
 import type { PortfolioNewsItem } from '../types/news.types.js';
 
 const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com';
@@ -139,7 +140,7 @@ export async function getPortfolioNews(tickers: string[]): Promise<PortfolioNews
 
   for (const result of results) {
     if (result.status !== 'fulfilled') {
-      console.warn('[NewsService] Ticker news fetch failed:', result.reason);
+      logger.warn({ err: result.reason }, 'Ticker news fetch failed');
       continue;
     }
 
