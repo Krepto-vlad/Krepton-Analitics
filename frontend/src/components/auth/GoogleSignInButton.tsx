@@ -44,7 +44,6 @@ export function GoogleSignInButton({
         size="large"
         shape="rectangular"
         text={text}
-        locale="en"
         width="100%"
       />
     </div>

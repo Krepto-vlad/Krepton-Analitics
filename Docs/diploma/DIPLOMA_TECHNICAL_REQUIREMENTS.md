@@ -53,7 +53,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | # | Критерий | Категория | Статус | Артефакты / дыры |
 |---|----------|-----------|--------|------------------|
 | 1 | Business Analysis | required | plan | Есть: GDPR (`Docs/GDPR_ITD.md`, Privacy/Terms PDF), архитектура (`ARCHITECTURE_*.md`, mermaid в `AI_INTEGRATION.md`), эпики в `ВозможныеФичи.md`. Нет BA-пакета: vision, stakeholders, use case diagram, in/out of scope, NFR. |
-| 2 | Backend | required | plan | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist), **OpenAPI** (`backend/openapi.yaml`), **pino** + `x-request-id`. Нет: public deploy, coverage ≥70%, полный SOLID write-up. HMAC portfolio ещё raw SQL (ADR). |
+| 2 | Backend | required | plan | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist), **OpenAPI**, **pino** + `x-request-id`, Jest **≥70%** + CI artifact. Нет: public deploy. HMAC portfolio ещё raw SQL (ADR). |
 | 3 | Frontend | required | plan | React SPA, Vite, Redux Toolkit, 15+ lazy routes, SCSS kit, формы, таблицы, поиск, desktop+mobile, axios interceptor, ErrorBanner. Нет FE-диаграммы, user flows, Error Boundary, e2e, ≥3 реальных component-тестов (`Dashboard.test.tsx` — заглушка). |
 | 4 | Database | data | plan | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE, транзакции в репозиториях, bcrypt, HMAC `owner_token`. Нет data dictionary, ER-диаграммы, seed/ролей БД, CHECK-constraints, доказательства 3NF. |
 | 5 | Real-time Analytics | data | — | **Не брать.** Котировки — polling ~30 с (TTL кэша). `useStockWebSocket.ts` не подключён, WS-сервера на бэке нет. Рубрика явно не считает delay > 10 с / cron. |
@@ -63,11 +63,11 @@ BA защищается **отдельной комиссией**, не у ин�
 | 9 | AI Assistant / Chatbot | technical | plan | Сильнейший technical: news briefing, alignment, ticker chat, import schema; system prompt; quota; rate limit; guardrails; `AI_INTEGRATION.md`. Нет user guide, ≥10 примерных диалогов, замера <10 с / 10 concurrent, стриминга. |
 | 10 | Cryptography | technical | — | **Не брать.** bcrypt/JWT/HMAC сами по себе критерий не закрывают. HMAC `owner_token` — плюс к Database/GDPR, не отдельная криптозадача. |
 | 11 | Cloud | infrastructure | plan | Берём обязательно. Нет Azure/публичного URL/managed DB. Фаза D4 в `Docs/diploma/DIPLOMA_ROADMAP.md`. |
-| 12 | CI/CD | infrastructure | plan | Берём вместе с Cloud. Сейчас только Husky. Нужен GitHub Actions (lint/test/build + CD). |
+| 12 | CI/CD | infrastructure | plan | GitHub Actions: lint, build, Jest, coverage artifact, `npm audit`. Husky pre-push с coverage. Нет CD/Azure. |
 | 13 | Containerization | infrastructure | — | **Не заявляем.** Dockerfile+compose пишем как контракт CI/Azure без локального Docker. Можно добавить 9-м, если образы доказаны в Actions. |
 | 14 | Microservices | infrastructure | — | **Не брать.** Монолит FE+BE+Postgres не считается. |
 | 15 | API Documentation | processes | — | Текстовые эндпоинты AI в `AI_INTEGRATION.md` ≠ OpenAPI-портал. Для Backend min хватит текста/Swagger; как отдельный критерий — нет. |
-| 16 | Automated tests 70%+ | processes | plan | Jest unit (BE сервисы, parser, FX, chat scope) + 1 integration `stocks.test.ts` + FE `rebalancingEngine.test.ts`. Coverage-порога в Jest нет, отчёта ≥70% нет, CI нет, e2e нет. |
+| 16 | Automated tests 70%+ | processes | plan | Backend Jest **≥70%** statements/lines/functions, HTML в CI. FE всё ещё stub Dashboard. Нет integration с БД, нет e2e. |
 | 17 | Qualitative / quantitative testing | processes | — | Нет тест-плана, ручных кейсов, JMeter/Postman-коллекции как артефакта защиты. |
 
 **Проверка набора:** required 3 · technical 1 (AI) · data 1 (Database) · infrastructure 2 (Cloud + CI/CD) · processes 1 (Auto tests) · всего **8 ≥ 7**. Adaptive/UX в `plan` по коду, но в официальную восьмёрку не входят.
@@ -117,17 +117,17 @@ Node.js / Express подходит как «modern framework».
 - [x] БД, если есть состояние данных — PostgreSQL (`pg`)
 - [x] ORM — Drizzle on `users` + `watchlist_items`; HMAC portfolio still raw SQL (`Docs/diploma/ADR-001-drizzle-orm.md`)
 - [x] Слоистая архитектура (presentation / business / data) — routes → controllers → services → repositories
-- [ ] SOLID — слои есть, отдельного обоснования/рефакторинга под экспертную шкалу нет
+- [x] SOLID — слои + таблица примеров в `Docs/diploma/thesis/docs/02-technical/criteria/backend.md`
 - [x] Описание API (OpenAPI/Swagger или текст) — `backend/openapi.yaml`, отдаётся как `GET /api/docs/openapi.yaml`
 - [x] Централизованный error handling — `backend/src/middleware/errorHandler.ts` + `AppError`
 - [x] Структурированные логи ключевых событий и ошибок — `pino` JSON + `x-request-id` (ELK не нужен для min)
 - [ ] Production deploy, доступный внешним пользователям (cloud или свой сервер/Docker)
-- [ ] Unit-тесты бизнес-логики, **coverage ≥ 70%**, отчёт coverage-инструментом — тесты есть, порога и отчёта нет
+- [x] Unit-тесты бизнес-логики, **coverage ≥ 70%**, отчёт coverage-инструментом — Jest `coverageThreshold`; HTML/lcov в CI artifact `backend-coverage`
 
 **Обязательные ограничения:**
 
 - [x] Нет платных библиотек, которые мешают проверке
-- [x] Аудит уязвимостей зависимостей (`npm audit` и аналоги) — отчёт `Docs/diploma/NPM_AUDIT_BACKEND.md`; axios high ещё не пропатчен
+- [x] Аудит уязвимостей зависимостей (`npm audit` и аналоги) — отчёт `Docs/diploma/NPM_AUDIT_BACKEND.md`; axios пропатчен; xlsx high принят
 - [x] Git с историей
 - [x] JSON как основной формат обмена
 - [x] Секреты не в репозитории (env / secret store) — `.gitignore` + `backend/.env.example` / `frontend/.env.example`
@@ -445,27 +445,27 @@ CI (build+tests) обязателен. CD можно упростить, даж�
 
 ### Minimum (5)
 
-- [ ] Диаграмма pipeline: build → tests → artifact → deploy
-- [ ] Описание инструмента (GitHub Actions и т.п.)
-- [ ] Зачем каждый stage
-- [ ] Список артефактов
-- [ ] Среды Dev / Test / Prod (хотя бы логически)
+- [x] Диаграмма pipeline: build → tests → artifact → deploy
+- [x] Описание инструмента (GitHub Actions и т.п.)
+- [x] Зачем каждый stage
+- [x] Список артефактов
+- [x] Среды Dev / Test / Prod (хотя бы логически)
 
 CI ≥ 3 стадий:
 
-- [ ] Lint + format check
-- [ ] Build
-- [ ] Unit-тесты (e2e если есть)
+- [x] Lint + format check
+- [x] Build
+- [x] Unit-тесты (e2e если есть)
 
 Плюс:
 
 - [ ] Хоть один CD: Docker / cloud / SSH / GitHub Pages / Compose
-- [ ] Триггер на push и/или PR
-- [ ] Кэш зависимостей
-- [ ] Артефакт (dist / image / zip)
-- [ ] Pipeline падает на ошибке build/test
-- [ ] Секреты в GitHub Secrets, не в YAML
-- [ ] Хотя бы один security scan (`npm audit` и аналоги)
+- [x] Триггер на push и/или PR
+- [x] Кэш зависимостей
+- [x] Артефакт (dist / image / zip)
+- [x] Pipeline падает на ошибке build/test
+- [x] Секреты в GitHub Secrets, не в YAML
+- [x] Хотя бы один security scan (`npm audit` и аналоги)
 
 Запрещено: ручная заливка артефактов · секреты в репо · один job с одной командой · нет тестов · полностью ручной деплой.
 
@@ -560,12 +560,12 @@ Backend min уже требует 70% unit. Этот критерий шире: 
 
 ### Minimum (5)
 
-- [ ] Coverage **≥ 70%** инструментом (Istanbul/Jest и т.п.) + число и отчёт/скрин — скрипт `test:coverage` есть, порога и сохранённого отчёта нет
+- [x] Coverage **≥ 70%** инструментом (Istanbul/Jest и т.п.) + число и отчёт/скрин — порог в `backend/jest.config.js`, HTML в CI artifact `backend-coverage`
 - [x] Unit-тесты по FIRST, включая edge cases — parser, FX, tickerChatScope, password reset, stockService, …
 - [ ] Integration: API, БД, auth, конфиг — есть `backend/src/__tests__/integration/routes/stocks.test.ts`, этого мало для критерия
 - [ ] Если есть FE: component и/или e2e (RTL / Cypress / Playwright) — RTL настроен, реальных component-тестов почти нет
-- [ ] Все тесты в CI, видно в логах — только Husky, GitHub Actions для приложения нет
-- [ ] Стратегия в отчёте: типы, инструменты, как гонять локально, пробелы
+- [x] Все тесты в CI, видно в логах — `.github/workflows/ci.yml`
+- [x] Стратегия в отчёте: типы, инструменты, как гонять локально, пробелы — `Docs/diploma/thesis/docs/02-technical/criteria/automated-tests.md`
 - [x] Понятная структура `*.test.ts` / `tests/` — `backend/src/__tests__/unit|integration`, `frontend/src/**/__tests__`
 
 ### Maximum (10)

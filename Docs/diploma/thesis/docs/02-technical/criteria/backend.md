@@ -60,6 +60,20 @@ backend/src/
 | Multer memory storage | Course rule: no broker files on disk |
 | JWT cookie, not LocalStorage | XSS-resistant session |
 
+### SOLID (how we show it on the code)
+
+This is not a Java inheritance hierarchy. The expert gets one example per letter from this repo:
+
+| Principle | In this codebase |
+|-----------|------------------|
+| **S**ingle Responsibility | `errorHandler.ts` only maps errors to HTTP JSON. `tickerChatScope.ts` only decides allow vs soft-redirect. Broker column mapping lives in `brokerParsers/`, not in `importService.ts`. |
+| **O**pen/Closed | A new statement layout is a mapper + parser module. `importService` stays “read buffer → preview → confirm”; it does not grow a `if (broker === …)` ladder. |
+| **L**iskov | Little class inheritance by design (TypeScript + functions). Substitutability is structural: any `NormalizedTrade[]` can go through `confirmImportedTrades`. We do not invent base classes for the letter. |
+| **I**nterface Segregation | Narrow DTOs in `types/*.ts` (`AddPositionDto` ≠ `PortfolioDataExport`). Services import the slice they need. |
+| **D**ependency Inversion | Controllers depend on service functions, not `pg`. Services depend on repository functions, not `Request`/`Response`. HMAC SQL stays behind `portfolioRepository` (port), not in HTTP handlers. |
+
+`portfolioService.ts` is still a large façade. New features should open a new module rather than keep growing that file (SRP debt, not a missing layer).
+
 ### Diagrams
 
 See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_BACKEND.md` (engineering copy; this ADR is the diploma copy).
@@ -72,20 +86,20 @@ See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_B
 | 2 | Database for state | ✅ | PostgreSQL |
 | 3 | ORM | ⚠️ | Drizzle on users/watchlist; portfolio still raw SQL |
 | 4 | Layered architecture | ✅ | routes / controllers / services / repositories |
-| 5 | SOLID | ⚠️ | Documented with code pointers; no Java-style inheritance |
+| 5 | SOLID | ✅ | Table above; composition over inheritance |
 | 6 | API description | ⚠️ | `backend/openapi.yaml` — keep in sync |
 | 7 | Global error handling | ✅ | `errorHandler.ts` |
 | 8 | Structured logging | ✅ | pino + request id |
 | 9 | Production deploy | ❌ | Azure D4 |
-| 10 | Unit tests ≥ 70% | ⚠️ | Jest exists; threshold not enforced yet |
+| 10 | Unit tests ≥ 70% | ✅ | Jest `coverageThreshold` 70% statements/lines/functions; HTML+lcov artifact in CI |
 | 11 | JSON, Git, secrets in env, no custom JWT | ✅ | |
-| 12 | `npm audit` | ⚠️ | See working note `Docs/diploma/NPM_AUDIT_BACKEND.md` |
+| 12 | `npm audit` | ✅ | CI job + `Docs/diploma/NPM_AUDIT_BACKEND.md` (xlsx high accepted) |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| Coverage gate | Backend min + Auto tests | Phase D3 |
+| Branch coverage ~50% | Not the diploma counter (statements/lines) | Optional later |
 | No public URL | Backend min + Cloud | Phase D4 |
 
 ## References

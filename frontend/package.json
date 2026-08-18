@@ -10,8 +10,8 @@
     "generate:legal-pdfs": "npx --yes tsx scripts/generateLegalPdfs.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,scss}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,scss}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,scss}\" \"jest.config.cjs\" \"eslint.config.js\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,scss}\" \"jest.config.cjs\" \"eslint.config.js\"",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
@@ -19,7 +19,7 @@
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
     "@reduxjs/toolkit": "^2.12.0",
-    "axios": "^1.17.0",
+    "axios": "^1.19.0",
     "lightweight-charts": "^5.2.0",
     "lucide-react": "^1.20.0",
     "react": "^19.2.6",

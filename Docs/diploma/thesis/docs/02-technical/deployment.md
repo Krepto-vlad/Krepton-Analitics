@@ -30,11 +30,15 @@ Until D4, reviewers run the stack locally. Container files may exist for CI/Azur
 
 ## CI/CD Pipeline
 
-Intended pipeline (see [CI/CD criterion](criteria/cicd.md)):
+Live CI: `.github/workflows/ci.yml` (see [CI/CD criterion](criteria/cicd.md)).
 
 ```
-push/PR → lint + format check → build FE/BE → Jest → (optional docker build) → CD (manual/workflow_dispatch)
+push/PR → lint + format check → build FE/BE → Jest (backend coverage ≥ 70%) → artifacts
+         → npm audit (fail on critical)
+CD (manual/workflow_dispatch to Azure) is phase D4.
 ```
+
+Local `git push` also runs Husky: lint, Prettier, backend coverage.
 
 Secrets stay in GitHub Secrets / Azure settings, never in YAML.
 

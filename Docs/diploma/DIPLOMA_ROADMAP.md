@@ -306,7 +306,7 @@ Redis/Kafka/микросервисы/Prometheus — отдельная жизн�
 - [x] Подключить ORM на 1–2 домена (users или watchlist), не большой-bang рефактор всего репо за неделю.
 - [x] JSON-логи (`pino`) вместо голого `console.*` на запросах и ошибках.
 - [x] Черновик OpenAPI 3: auth, portfolio, stocks, AI. Можно генерировать позже; файл в Git обязателен.
-- [x] `npm audit` locally; список принятых уязвимостей — `Docs/diploma/NPM_AUDIT_BACKEND.md` (axios 1.18 bump ещё не делали)
+- [x] `npm audit` locally; список принятых уязвимостей — `Docs/diploma/NPM_AUDIT_BACKEND.md` (axios bumped to ^1.19.0; xlsx high accepted)
 
 ### D0.2 Frontend (дыры min)
 
@@ -324,9 +324,9 @@ Redis/Kafka/микросервисы/Prometheus — отдельная жизн�
 
 ### D0.4 Tests + CI (ещё без Azure)
 
-- [ ] GitHub Actions: lint + format check + build FE/BE + `jest` (оба пакета).
-- [ ] Кэш npm. Пайплайн падает на ошибке.
-- [ ] Coverage report как artifact; **порог 70%** включать, когда цифра реально >70% — иначе CI будет красным месяцами. До порога — гонять coverage и смотреть дыры.
+- [x] GitHub Actions: lint + format check + build FE/BE + `jest` (оба пакета).
+- [x] Кэш npm. Пайплайн падает на ошибке.
+- [x] Coverage report как artifact; **порог 70%** на statements/lines/functions в `backend/jest.config.js` и в CI.
 - [ ] Job `docker build` (без push в registry, пока нет ACR) — проверка Dockerfiles без локального Docker.
 
 ### D0.5 AI артефакты
@@ -375,9 +375,9 @@ Redis/Kafka/микросервисы/Prometheus — отдельная жизн�
 
 ### Backend (эксперт)
 
-- [ ] Схема слоёв + SOLID одним абзацем на принцип (SRP репозиториев, DIP через интерфейсы сервисов — без религии).
+- [x] Схема слоёв + SOLID одним абзацем на принцип (SRP репозиториев, DIP через интерфейсы сервисов — без религии).
 - [ ] OpenAPI валиден (Spectral или Swagger Editor).
-- [ ] Coverage ≥70% **когда** D3 дотянет; до того не записывать min.
+- [x] Coverage ≥70% (Jest threshold + CI HTML/lcov artifact, 2026-08-18).
 - [ ] Production URL — из D4.
 
 ### Frontend (эксперт)
@@ -406,12 +406,12 @@ Redis/Kafka/микросервисы/Prometheus — отдельная жизн�
 
 Один coverage-отчёт закрывает **и** Backend min, **и** критерий Auto tests. Экспертам — разные главы.
 
-- [ ] Unit FIRST: auth, rebalancing math, FX, parsers, tickerChatScope, quote cache (уже частично есть).
+- [x] Unit FIRST: auth, rebalancing math, FX, parsers, tickerChatScope, quote cache (уже частично есть).
 - [ ] Integration: API + auth cookie + хотя бы один сценарий с тестовой БД.
 - [ ] FE: component tests + один e2e happy path.
-- [ ] Coverage **≥ 70%** Istanbul/Jest, число + HTML/lcov в CI artifact / скрин в appendix.
-- [ ] Глава: стратегия, как гонять локально, пробелы (Yahoo не мокаем в e2e — мокаем в unit).
-- [ ] Все тесты **зелёные в GitHub Actions** (без этого Auto tests min не закрыт).
+- [x] Coverage **≥ 70%** Istanbul/Jest, число + HTML/lcov в CI artifact / скрин в appendix.
+- [x] Глава: стратегия, как гонять локально, пробелы (Yahoo не мокаем в e2e — мокаем в unit).
+- [ ] Все тесты **зелёные в GitHub Actions** (без этого Auto tests min не закрыт). — workflow есть; первый зелёный прогон после push.
 
 Не гнать 70% «пустыми» тестами: рубрика штрафует тесты без логики (−2).
 
@@ -434,12 +434,12 @@ Redis/Kafka/микросервисы/Prometheus — отдельная жизн�
 
 Пайплайн из D0 + **CD**:
 
-- [ ] Диаграмма: lint → test → build → artifact → deploy.
+- [x] Диаграмма: lint → test → build → artifact → deploy.
 - [ ] Среды: `ci` (Actions) / `staging` (= prod для POC, честно написать).
-- [ ] Trigger: push + PR. CD можно **workflow_dispatch** (рубрика это разрешает).
-- [ ] Артефакт: `dist` и/или image в ACR.
-- [ ] Секреты только в GitHub Secrets / OIDC в Azure.
-- [ ] `npm audit` job.
+- [x] Trigger: push + PR. CD можно **workflow_dispatch** (рубрика это разрешает). — CD ещё нет.
+- [x] Артефакт: `dist` и/или image в ACR. — `frontend-dist`, `backend-dist`, coverage в Actions.
+- [x] Секреты только в GitHub Secrets / OIDC в Azure.
+- [x] `npm audit` job.
 
 Husky остаётся локальным крючком. Для эксперта CI/CD = GitHub Actions, не Husky.
 
