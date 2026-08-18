@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { parseBrokerStatement } from '../../../services/brokerParsers/index.js';
-import { readSafeXlsxBuffer } from '../../../utils/excelSafeReader.js';
+import type { SafeSheetData } from '../../../utils/excelSafeReader.js';
 
 jest.mock('../../../services/geminiClient.js', () => ({
   inferImportSchemaWithGemini: jest.fn(),
@@ -13,16 +11,21 @@ jest.mock('../../../config/env.js', () => ({
   env: { geminiApiKey: '' },
 }));
 
-const SAMPLE_FILE_PATH = resolve(
-  process.cwd(),
-  '../Docs/statements/trading_account_statement_2026_01_01_2026_07_13_en_us_3b3ee6 copy.xlsx'
-);
+function sheet(rows: unknown[][]): SafeSheetData {
+  return { sheetName: 'Sheet1', rows };
+}
 
 describe('Revolut statement via universal heuristic', () => {
   it('parses trades and skips non-trade rows without AI', async () => {
-    const buffer = readFileSync(SAMPLE_FILE_PATH);
-    const sheetData = readSafeXlsxBuffer(buffer);
-    const result = await parseBrokerStatement(sheetData, 'user-test');
+    const result = await parseBrokerStatement(
+      sheet([
+        ['Date', 'Ticker', 'Type', 'Quantity', 'Price', 'FX Rate', 'Piti'],
+        ['2026-01-09T23:18:36.037880Z', 'MU', 'BUY - MARKET', 1.8610141, 'USD 340.61', 1.1709, 1],
+        ['2026-01-10T14:55:00.112233Z', 'MU', 'SELL - STOP', 1.8610141, 'EUR 363.69', 1.1639, 2],
+        ['2026-01-11T09:00:00.000000Z', '', 'CASH TOP-UP', '', '', '', ''],
+      ]),
+      'user-test'
+    );
 
     expect(result.meta.mode).toBe('heuristic');
     expect(result.trades.length).toBeGreaterThan(0);
