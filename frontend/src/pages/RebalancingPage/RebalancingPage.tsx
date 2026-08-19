@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Scale, Sparkles } from 'lucide-react';
-import { ERROR_MESSAGES, LEGAL_REBALANCING_DISCLAIMER, type Currency } from '../../constants';
+import {
+  ERROR_MESSAGES,
+  LEGAL_REBALANCING_DISCLAIMER,
+  LOADING_MESSAGES,
+  type Currency,
+} from '../../constants';
 import {
   fetchPortfolioRebalancing,
   fetchRebalancingStrategies,
@@ -8,7 +13,7 @@ import {
 } from '../../api/portfolioApi';
 import { getRejectedMessage } from '../../utils/apiError';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { ErrorBanner } from '../../components/ui';
+import { ErrorBanner, ContentSkeleton } from '../../components/ui';
 import type {
   RebalancingAnalysisResponse,
   RebalancingPrebuiltStrategyId,
@@ -282,7 +287,7 @@ export function RebalancingPage() {
       {error && <ErrorBanner message={error} className={styles.errorBanner} />}
 
       {isLoading && !showContent ? (
-        <div className={styles.loadingState}>Loading rebalancing analysis…</div>
+        <ContentSkeleton preset="page" label={LOADING_MESSAGES.REBALANCING_ANALYSIS} />
       ) : showContent ? (
         activeTab === 'technical' ? (
           <>

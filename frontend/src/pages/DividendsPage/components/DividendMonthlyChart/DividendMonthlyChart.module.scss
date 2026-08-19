@@ -55,6 +55,14 @@
   border-radius: 2px;
 }
 
+.legendSwatchDividend {
+  background: $color-success;
+}
+
+.legendSwatchCoupon {
+  background: $color-benchmark;
+}
+
 .plotWrapper {
   position: relative;
 }
@@ -105,6 +113,7 @@
   width: 100%;
   max-width: 28px;
   min-height: 4px;
+  height: var(--bar-height);
   border-radius: $radius-sm $radius-sm 2px 2px;
   overflow: hidden;
 }
@@ -117,10 +126,18 @@
   opacity: 1;
 }
 
-.dividendSegment,
 .couponSegment {
   width: 100%;
   min-height: 2px;
+  height: var(--coupon-share);
+  background: $color-benchmark;
+}
+
+.dividendSegment {
+  width: 100%;
+  min-height: 2px;
+  flex: 1;
+  background: $color-success;
 }
 
 .barLabel {

@@ -4,7 +4,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
@@ -14,6 +13,7 @@ import { ChatMarkdown } from '../../../components/ChatMarkdown/ChatMarkdown';
 import {
   APP_SHELL_HEADER_HEIGHT_PX,
   ERROR_MESSAGES,
+  LOADING_MESSAGES,
   TICKER_CHAT_DISCLAIMER,
   TICKER_CHAT_DRAWER_MAX_WIDTH_PX,
   TICKER_CHAT_DRAWER_MIN_WIDTH_PX,
@@ -30,7 +30,8 @@ import type {
   TickerChatUiMessage,
 } from '../../../types/ai.types';
 import { getRejectedMessage } from '../../../utils/apiError';
-import { AiGeneratedNotice } from '../../../components/ui';
+import { toCssCustomProperties } from '../../../utils/cssCustomProperties';
+import { AiGeneratedNotice, Skeleton } from '../../../components/ui';
 import styles from './TickerChatDrawer.module.scss';
 
 interface TickerChatDrawerProps {
@@ -145,6 +146,7 @@ export function TickerChatDrawer({
   const [quota, setQuota] = useState<AiQuotaStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const isQuotaPending = quota === null && error === null;
 
   const suggestionPrompts = buildSuggestionPrompts(ticker);
   /** Duplicate for a seamless CSS marquee loop. */
@@ -367,14 +369,11 @@ export function TickerChatDrawer({
     await sendChatMessage(draftMessage);
   }
 
-  const drawerStyle = {
+  const drawerStyle = toCssCustomProperties({
     '--ticker-chat-drawer-width': `${widthPx}px`,
     '--app-shell-header-height': `${APP_SHELL_HEADER_HEIGHT_PX}px`,
-  } as CSSProperties;
-
-  const suggestionsTrackStyle = {
     '--marquee-duration': `${TICKER_CHAT_SUGGESTIONS_MARQUEE_DURATION_SEC}s`,
-  } as CSSProperties;
+  });
 
   const canSend =
     !isSending && draftMessage.trim().length > 0 && (quota == null || quota.remaining > 0);
@@ -428,7 +427,17 @@ export function TickerChatDrawer({
               </p>
             </div>
             <div className={styles.headerMeta}>
-              <span className={styles.quotaBadge}>{formatQuotaLabel(quota)}</span>
+              {isQuotaPending ? (
+                <span
+                  className={styles.quotaBadge}
+                  aria-busy="true"
+                  aria-label={LOADING_MESSAGES.AI_QUOTA}
+                >
+                  <Skeleton className={styles.quotaSkeleton} />
+                </span>
+              ) : (
+                <span className={styles.quotaBadge}>{formatQuotaLabel(quota)}</span>
+              )}
               <button
                 type="button"
                 className={styles.closeButton}
@@ -464,11 +473,7 @@ export function TickerChatDrawer({
               viewport.scrollLeft += event.deltaY;
             }}
           >
-            <div
-              ref={suggestionsTrackRef}
-              className={styles.suggestionsTrack}
-              style={suggestionsTrackStyle}
-            >
+            <div ref={suggestionsTrackRef} className={styles.suggestionsTrack}>
               {marqueePrompts.map((prompt, index) => (
                 <button
                   key={`${prompt}-${index}`}
@@ -519,10 +524,15 @@ export function TickerChatDrawer({
             {isSending && (
               <div className={`${styles.messageBubble} ${styles.messageAssistant}`}>
                 <p className={styles.messageRole}>Krepton AI</p>
-                <p className={styles.typingRow}>
-                  <Loader2 size={14} className={styles.spinner} />
-                  Thinking…
-                </p>
+                <div
+                  className={styles.typingSkeleton}
+                  role="status"
+                  aria-busy="true"
+                  aria-label={LOADING_MESSAGES.AI_CHAT_REPLY}
+                >
+                  <Skeleton className={styles.typingLinePrimary} />
+                  <Skeleton className={styles.typingLineSecondary} />
+                </div>
               </div>
             )}
 

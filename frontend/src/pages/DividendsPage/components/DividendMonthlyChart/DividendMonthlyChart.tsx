@@ -2,6 +2,7 @@ import { LineChart } from 'lucide-react';
 import type { Currency } from '../../../../constants';
 import type { DividendCalendarMonth } from '../../../../types/dividend.types';
 import { formatMoneyWhole } from '../../../../utils/moneyDisplay';
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import styles from './DividendMonthlyChart.module.scss';
 
 interface DividendMonthlyChartProps {
@@ -9,9 +10,6 @@ interface DividendMonthlyChartProps {
   monthlyPayouts: DividendCalendarMonth[];
   displayCurrency: Currency;
 }
-
-const DIVIDEND_COLOR = '#10b981';
-const COUPON_COLOR = '#3b82f6';
 
 function normalizeBarHeight(value: number, maxValue: number): number {
   if (maxValue <= 0) {
@@ -38,11 +36,11 @@ export function DividendMonthlyChart({
         </div>
         <div className={styles.legend}>
           <span className={styles.legendItem}>
-            <span className={styles.legendSwatch} style={{ backgroundColor: DIVIDEND_COLOR }} />
+            <span className={`${styles.legendSwatch} ${styles.legendSwatchDividend}`} />
             Dividends
           </span>
           <span className={styles.legendItem}>
-            <span className={styles.legendSwatch} style={{ backgroundColor: COUPON_COLOR }} />
+            <span className={`${styles.legendSwatch} ${styles.legendSwatchCoupon}`} />
             Coupons
           </span>
         </div>
@@ -58,6 +56,7 @@ export function DividendMonthlyChart({
           {monthlyPayouts.map((month) => {
             const dividendHeight = normalizeBarHeight(month.dividendTotal, maxValue);
             const couponHeight = normalizeBarHeight(month.couponTotal, maxValue);
+            const stackedHeight = Math.max(dividendHeight + couponHeight, 1);
             const isCurrentMonth = month.month === currentMonth;
 
             return (
@@ -68,26 +67,19 @@ export function DividendMonthlyChart({
                 <div className={styles.barTrack}>
                   <div
                     className={`${styles.stackedBar} ${month.isProjected ? styles.projected : styles.historical}`}
-                    style={{ height: `${normalizeBarHeight(month.total, maxValue)}%` }}
+                    style={toCssCustomProperties({
+                      '--bar-height': `${normalizeBarHeight(month.total, maxValue)}%`,
+                    })}
                   >
                     {month.couponTotal > 0 && (
                       <div
                         className={styles.couponSegment}
-                        style={{
-                          height: `${(couponHeight / Math.max(dividendHeight + couponHeight, 1)) * 100}%`,
-                          backgroundColor: COUPON_COLOR,
-                        }}
+                        style={toCssCustomProperties({
+                          '--coupon-share': `${(couponHeight / stackedHeight) * 100}%`,
+                        })}
                       />
                     )}
-                    {month.dividendTotal > 0 && (
-                      <div
-                        className={styles.dividendSegment}
-                        style={{
-                          flex: 1,
-                          backgroundColor: DIVIDEND_COLOR,
-                        }}
-                      />
-                    )}
+                    {month.dividendTotal > 0 && <div className={styles.dividendSegment} />}
                   </div>
                 </div>
                 <span className={styles.barLabel}>

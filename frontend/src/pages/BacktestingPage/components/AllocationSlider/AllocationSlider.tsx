@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { TickerAvatar } from '../../../../components/ui';
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import styles from './AllocationSlider.module.scss';
 
 interface AllocationSliderProps {
@@ -88,7 +89,7 @@ export function AllocationSlider({
           max={100}
           step={0.1}
           className={styles.slider}
-          style={{ '--fill-percent': sliderFillPercent } as React.CSSProperties}
+          style={toCssCustomProperties({ '--fill-percent': sliderFillPercent })}
           value={weightPercent}
           onChange={(event) => onWeightChange(Number(event.target.value))}
           aria-label={`Allocation slider for ${ticker}`}

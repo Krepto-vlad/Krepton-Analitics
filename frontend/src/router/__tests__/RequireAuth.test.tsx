@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { ROUTES, SESSION_LOADING_LABEL } from '../../constants';
+import { LOADING_MESSAGES, ROUTES } from '../../constants';
 import { authReducer } from '../../features/auth/authSlice';
 import type { AuthState, AuthUser } from '../../types/auth.types';
 import { RequireAuth } from '../RequireAuth';
@@ -54,7 +54,7 @@ describe('RequireAuth', () => {
   it('shows a session loader before auth has been resolved', () => {
     renderGuard(idleAuthState);
 
-    expect(screen.getByRole('status', { name: SESSION_LOADING_LABEL })).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: LOADING_MESSAGES.SESSION })).toBeInTheDocument();
     expect(screen.queryByText('Protected dashboard')).not.toBeInTheDocument();
     expect(screen.queryByText('Login page')).not.toBeInTheDocument();
   });

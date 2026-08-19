@@ -27,9 +27,10 @@ import {
   clearAuthError,
   clearAuthInfoMessage,
 } from '../../features/auth/authSlice';
+import { joinClassNames } from '../../utils/classNames';
 import {
   PASSWORD_RULES,
-  PASSWORD_STRENGTH_COLORS,
+  PASSWORD_STRENGTH_BAR_NUMBERS,
   PASSWORD_STRENGTH_LABELS,
   calculatePasswordStrength,
 } from '../../utils/passwordValidation';
@@ -297,24 +298,24 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               )}
 
               {mode === 'register' && password.length > 0 && (
-                <div className={styles.strengthRow}>
+                <div
+                  className={joinClassNames(
+                    styles.strengthRow,
+                    passwordStrength > 0 && styles[`strengthLevel${passwordStrength}`]
+                  )}
+                >
                   <div className={styles.strengthBars}>
-                    {[1, 2, 3, 4].map((i) => (
+                    {PASSWORD_STRENGTH_BAR_NUMBERS.map((barNumber) => (
                       <div
-                        key={i}
-                        className={styles.strengthBar}
-                        style={
-                          i <= passwordStrength
-                            ? { background: PASSWORD_STRENGTH_COLORS[passwordStrength] }
-                            : undefined
-                        }
+                        key={barNumber}
+                        className={joinClassNames(
+                          styles.strengthBar,
+                          barNumber <= passwordStrength && styles.filled
+                        )}
                       />
                     ))}
                   </div>
-                  <span
-                    className={styles.strengthLabel}
-                    style={{ color: PASSWORD_STRENGTH_COLORS[passwordStrength] }}
-                  >
+                  <span className={styles.strengthLabel}>
                     {PASSWORD_STRENGTH_LABELS[passwordStrength]}
                   </span>
                 </div>

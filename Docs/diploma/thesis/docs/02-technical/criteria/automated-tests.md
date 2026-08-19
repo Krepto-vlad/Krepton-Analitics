@@ -30,7 +30,7 @@ Istanbul gate in `backend/jest.config.js`: statements, lines, and functions **�
 ### Consequences
 
 **Positive:** One coverage number serves Backend min.  
-**Negative:** Auto-tests **min** still wants a real integration path and more FE tests.
+**Negative:** No live Postgres in CI yet; Playwright e2e still extra.
 
 ## How to run
 
@@ -50,7 +50,7 @@ cd frontend && npm test
 | 1 | Documented strategy | ✅ | This ADR |
 | 2 | Coverage ≥ 70% + report | ✅ | Jest threshold; CI artifact `backend-coverage` |
 | 3 | Unit tests + edge cases | ✅ | Auth, portfolio, import, AI quota/chat, controllers |
-| 4 | Integration (API, auth, DB) | ❌ | `stocks.test.ts` is still a placeholder |
+| 4 | Integration (API, auth, DB) | ⚠️ | HTTP: `/health`, 401 on `/api/portfolio`, 400 on search without `q`. No live Postgres in CI yet |
 | 5 | FE component and/or e2e | ✅ | 3 RTL: ErrorBanner, AppErrorBoundary, RequireAuth (Playwright extra) |
 | 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` |
 | 7 | Naming / folders | ✅ | `*.test.ts` / `__tests__` |
@@ -62,7 +62,7 @@ cd frontend && npm test
 |------------|--------|------|
 | Yahoo mocked in unit tests | Not a live-market integration | Staging smoke later |
 | FE coverage not gated | Auto tests min | RTL min done; gate later if needed |
-| No test DB | Integration hole | D3 |
+| No test DB | Auth/API integration does not hit Postgres | Staging smoke / testcontainers later |
 
 ## References
 

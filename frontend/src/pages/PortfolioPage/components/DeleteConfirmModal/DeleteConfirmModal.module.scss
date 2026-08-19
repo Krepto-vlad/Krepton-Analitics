@@ -66,13 +66,7 @@
 }
 
 .loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-2;
-  padding: $space-4;
-  color: $color-foreground-muted;
-  font-size: $font-size-sm;
+  padding: $space-2 0;
 }
 
 .spinner {

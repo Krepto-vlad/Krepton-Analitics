@@ -1,5 +1,6 @@
 import { Minus, Plus } from 'lucide-react';
 import { Select } from '../../../../components/ui';
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import type { RebalancingStrategyId } from '../../../../types/rebalancing.types';
 import type { StrategyBucketAllocation } from '../../utils/rebalancingAllocations';
 import styles from './StrategyPanel.module.scss';
@@ -74,7 +75,7 @@ export function StrategyPanel({
             <div
               key={allocation.bucketId}
               className={styles.row}
-              style={{ '--asset-color': allocation.color } as React.CSSProperties}
+              style={toCssCustomProperties({ '--asset-color': allocation.color })}
             >
               <div className={styles.rowHeader}>
                 <div className={styles.assetLabelGroup}>
@@ -109,7 +110,7 @@ export function StrategyPanel({
                 max={100}
                 step={0.1}
                 className={styles.slider}
-                style={{ '--fill-percent': fillPercent } as React.CSSProperties}
+                style={toCssCustomProperties({ '--fill-percent': fillPercent })}
                 value={allocation.weightPercent}
                 disabled={isSaving}
                 onChange={(event) =>

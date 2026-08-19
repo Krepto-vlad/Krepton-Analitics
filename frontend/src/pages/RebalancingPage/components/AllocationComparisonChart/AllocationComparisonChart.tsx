@@ -1,5 +1,6 @@
 import styles from './AllocationComparisonChart.module.scss';
 import { REBALANCING_CURRENT_BAR_COLOR } from '../../../../constants';
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import type { RebalancingAllocationItem } from '../../../../types/rebalancing.types';
 
 interface AllocationComparisonChartProps {
@@ -37,15 +38,15 @@ export function AllocationComparisonChart({
   );
 
   return (
-    <section className={styles.card}>
+    <section
+      className={styles.card}
+      style={toCssCustomProperties({ '--current-bar-color': REBALANCING_CURRENT_BAR_COLOR })}
+    >
       <div className={styles.header}>
         <h2 className={styles.title}>Current vs. Target Allocation</h2>
         <div className={styles.legend}>
           <span className={styles.legendItem}>
-            <span
-              className={styles.legendSwatch}
-              style={{ backgroundColor: REBALANCING_CURRENT_BAR_COLOR }}
-            />
+            <span className={`${styles.legendSwatch} ${styles.legendSwatchCurrent}`} />
             Current
           </span>
           <span className={styles.legendItem}>
@@ -69,24 +70,26 @@ export function AllocationComparisonChart({
             <div key={bucketId} className={styles.group}>
               <div className={styles.bars}>
                 <div
-                  className={styles.bar}
-                  style={{
-                    height: `${normalizeBarHeight(currentValue, maxValue)}%`,
-                    backgroundColor: REBALANCING_CURRENT_BAR_COLOR,
-                  }}
+                  className={`${styles.bar} ${styles.barCurrent}`}
+                  style={toCssCustomProperties({
+                    '--bar-height': `${normalizeBarHeight(currentValue, maxValue)}%`,
+                  })}
                   title={`Current: ${currentValue.toFixed(1)}%`}
                 />
                 <div
                   className={styles.bar}
-                  style={{
-                    height: `${normalizeBarHeight(targetValue, maxValue)}%`,
-                    backgroundColor: targetColor,
-                  }}
+                  style={toCssCustomProperties({
+                    '--bar-height': `${normalizeBarHeight(targetValue, maxValue)}%`,
+                    '--bar-color': targetColor,
+                  })}
                   title={`Target: ${targetValue.toFixed(1)}%`}
                 />
               </div>
               <span className={styles.labelGroup}>
-                <span className={styles.labelDot} style={{ backgroundColor: targetColor }} />
+                <span
+                  className={styles.labelDot}
+                  style={toCssCustomProperties({ '--bar-color': targetColor })}
+                />
                 <span className={styles.label}>{label}</span>
               </span>
             </div>

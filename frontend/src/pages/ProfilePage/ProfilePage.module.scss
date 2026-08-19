@@ -214,6 +214,7 @@
 }
 
 .strengthRow {
+  @include password-strength-meter;
   display: flex;
   align-items: center;
   gap: $space-2;
@@ -226,14 +227,15 @@
 }
 
 .strengthBar {
+  @include password-strength-bar;
   height: 2px;
   flex: 1;
   border-radius: $radius-full;
-  background: rgba(255, 255, 255, 0.1);
   transition: background $transition-base;
 }
 
 .strengthLabel {
+  @include password-strength-label;
   font-family: $font-mono;
   font-size: 0.8125rem;
   font-weight: $font-weight-semibold;
@@ -245,15 +247,15 @@
   gap: 6px;
   padding: 10px $space-3;
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: $color-overlay;
+  border: 1px solid $color-border;
 }
 
 .passwordRulesTitle {
   margin: 0 0 2px;
   font-family: $font-mono;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: $color-foreground-subtle;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -263,7 +265,16 @@
   align-items: center;
   gap: $space-2;
   font-size: 0.8125rem;
+  color: $color-foreground-subtle;
   transition: color $transition-fast;
+
+  &.passed {
+    color: $color-foreground-muted;
+  }
+
+  &.failed {
+    color: $color-danger;
+  }
 }
 
 .passwordRuleIcon {
@@ -274,12 +285,29 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: $color-overlay;
+  border: 1px solid $color-border;
+  color: $color-danger;
+  transition:
+    background $transition-base,
+    border-color $transition-base;
+
+  &.passed {
+    background: $color-primary-muted;
+    border-color: $color-primary-border;
+    color: $color-success;
+  }
+
+  &.failed {
+    background: $color-danger-muted;
+    border-color: $color-danger-border;
+  }
 }
 
 .passwordRuleFailMark {
   font-size: 0.45rem;
   font-weight: $font-weight-bold;
-  color: #ef4444;
+  color: $color-danger;
   line-height: 1;
 }
 

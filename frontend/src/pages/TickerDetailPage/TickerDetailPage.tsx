@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader, Moon, Star } from 'lucide-react';
+import { ArrowLeft, Moon, Star } from 'lucide-react';
 import {
   DEFAULT_INTERVAL,
   DEFAULT_PERIOD,
   ERROR_MESSAGES,
+  LOADING_MESSAGES,
   ROUTES,
   STOCK_PERIODS,
   TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX,
@@ -34,7 +35,7 @@ import {
   deleteWatchlistItemThunk,
   fetchWatchlistThunk,
 } from '../../features/watchlist/watchlistSlice';
-import { AsyncStatePanel, ErrorBanner, TickerAvatar } from '../../components/ui';
+import { AsyncStatePanel, ErrorBanner, Skeleton, TickerAvatar } from '../../components/ui';
 import { getRejectedMessage } from '../../utils/apiError';
 import { buildTickerMarketSessionView } from '../../utils/marketSession';
 import {
@@ -45,6 +46,7 @@ import {
   getTodayIsoDate,
 } from '../../utils/moneyDisplay';
 import { aggregateTickerHoldings } from '../../utils/tickerHoldings';
+import { toCssCustomProperties } from '../../utils/cssCustomProperties';
 import { buildTradeChartMarkers } from '../../utils/tradeChartMarkers';
 import type { OhlcvCandle } from '../../types/stock.types';
 import {
@@ -442,7 +444,9 @@ export function TickerDetailPage() {
     <div className={styles.layout}>
       <div
         className={`${styles.mainColumn} ${isChatDrawerResizing ? styles.mainColumnResizing : ''}`}
-        style={{ paddingRight: isChatOpen ? chatDrawerWidthPx : 0 }}
+        style={toCssCustomProperties({
+          '--chat-drawer-inset': isChatOpen ? `${chatDrawerWidthPx}px` : '0px',
+        })}
       >
         <div className={styles.page}>
           <div className={styles.topBar}>
@@ -471,7 +475,8 @@ export function TickerDetailPage() {
           {isInitialLoading ? (
             <AsyncStatePanel
               isLoading
-              loadingMessage="Loading ticker details…"
+              loadingPreset="page"
+              loadingMessage={LOADING_MESSAGES.TICKER_DETAILS}
               className={styles.loadingPanel}
             />
           ) : (
@@ -543,7 +548,15 @@ export function TickerDetailPage() {
                       })}
                     </>
                   ) : isLoadingQuote ? (
-                    <Loader size={20} />
+                    <div
+                      className={styles.priceSkeleton}
+                      role="status"
+                      aria-busy="true"
+                      aria-label={LOADING_MESSAGES.TICKER_QUOTE}
+                    >
+                      <Skeleton className={styles.priceValueSkeleton} />
+                      <Skeleton className={styles.priceMetaSkeleton} />
+                    </div>
                   ) : (
                     <p className={styles.companyName}>Quote unavailable</p>
                   )}
@@ -642,7 +655,8 @@ export function TickerDetailPage() {
                   {isLoadingFundamentals && !fundamentals ? (
                     <AsyncStatePanel
                       isLoading
-                      loadingMessage="Loading fundamentals…"
+                      loadingPreset="stats"
+                      loadingMessage={LOADING_MESSAGES.TICKER_FUNDAMENTALS}
                       className={styles.loadingPanel}
                     />
                   ) : detailMetrics.length === 0 &&

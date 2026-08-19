@@ -47,11 +47,12 @@ import { clearPersistedAlignmentExplanation } from '../../utils/alignmentExplain
 import { clearPersistedNewsBriefing } from '../../utils/newsBriefingStorage';
 import {
   PASSWORD_RULES,
-  PASSWORD_STRENGTH_COLORS,
+  PASSWORD_STRENGTH_BAR_NUMBERS,
   PASSWORD_STRENGTH_LABELS,
   calculatePasswordStrength,
   isPasswordStrong,
 } from '../../utils/passwordValidation';
+import { joinClassNames } from '../../utils/classNames';
 import styles from './ProfilePage.module.scss';
 
 const FREE_PLAN_FEATURES =
@@ -606,25 +607,24 @@ export function ProfilePage() {
               />
 
               {newPassword.length > 0 && (
-                <div className={styles.strengthRow}>
+                <div
+                  className={joinClassNames(
+                    styles.strengthRow,
+                    passwordStrength > 0 && styles[`strengthLevel${passwordStrength}`]
+                  )}
+                >
                   <div className={styles.strengthBars}>
-                    {[1, 2, 3, 4].map((barIndex) => (
+                    {PASSWORD_STRENGTH_BAR_NUMBERS.map((barNumber) => (
                       <div
-                        key={barIndex}
-                        className={styles.strengthBar}
-                        style={{
-                          background:
-                            barIndex <= passwordStrength
-                              ? PASSWORD_STRENGTH_COLORS[passwordStrength]
-                              : 'rgba(255,255,255,0.1)',
-                        }}
+                        key={barNumber}
+                        className={joinClassNames(
+                          styles.strengthBar,
+                          barNumber <= passwordStrength && styles.filled
+                        )}
                       />
                     ))}
                   </div>
-                  <span
-                    className={styles.strengthLabel}
-                    style={{ color: PASSWORD_STRENGTH_COLORS[passwordStrength] }}
-                  >
+                  <span className={styles.strengthLabel}>
                     {PASSWORD_STRENGTH_LABELS[passwordStrength]}
                   </span>
                 </div>
@@ -635,36 +635,19 @@ export function ProfilePage() {
                 {PASSWORD_RULES.map((rule) => {
                   const passed = newPassword.length > 0 && rule.test(newPassword);
                   const touched = newPassword.length > 0;
+                  const ruleStateClassName = passed
+                    ? styles.passed
+                    : touched
+                      ? styles.failed
+                      : undefined;
+
                   return (
                     <div
                       key={rule.id}
-                      className={styles.passwordRule}
-                      style={{
-                        color: passed
-                          ? 'rgba(255,255,255,0.65)'
-                          : touched
-                            ? 'rgba(239,68,68,0.7)'
-                            : 'rgba(255,255,255,0.3)',
-                      }}
+                      className={joinClassNames(styles.passwordRule, ruleStateClassName)}
                     >
-                      <div
-                        className={styles.passwordRuleIcon}
-                        style={{
-                          background: passed
-                            ? 'rgba(16,185,129,0.2)'
-                            : touched
-                              ? 'rgba(239,68,68,0.15)'
-                              : 'rgba(255,255,255,0.06)',
-                          border: `1px solid ${
-                            passed
-                              ? 'rgba(16,185,129,0.5)'
-                              : touched
-                                ? 'rgba(239,68,68,0.4)'
-                                : 'rgba(255,255,255,0.1)'
-                          }`,
-                        }}
-                      >
-                        {passed && <Check size={8} color="#10B981" />}
+                      <div className={joinClassNames(styles.passwordRuleIcon, ruleStateClassName)}>
+                        {passed && <Check size={8} />}
                         {!passed && touched && (
                           <span className={styles.passwordRuleFailMark}>✕</span>
                         )}

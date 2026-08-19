@@ -1,4 +1,5 @@
 import type { ReactNode, ButtonHTMLAttributes } from 'react';
+import { joinClassNames } from '../../../utils/classNames';
 import styles from './Button.module.scss';
 
 type ButtonVariant = 'primary' | 'outline' | 'ghost';
@@ -24,18 +25,16 @@ export function Button({
   className,
   ...rest
 }: ButtonProps) {
-  const classNames = [
+  const buttonClassName = joinClassNames(
     styles.button,
     styles[variant],
     styles[size],
-    fullWidth ? styles.fullWidth : '',
-    className ?? '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+    fullWidth && styles.fullWidth,
+    className
+  );
 
   return (
-    <button className={classNames} disabled={disabled || loading} {...rest}>
+    <button className={buttonClassName} disabled={disabled || loading} {...rest}>
       {loading ? <span className={styles.spinner} /> : leftIcon}
       {children}
     </button>

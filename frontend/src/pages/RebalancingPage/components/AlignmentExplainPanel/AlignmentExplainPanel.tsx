@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Sparkles } from 'lucide-react';
-import { ERROR_MESSAGES, type Currency } from '../../../../constants';
+import { ERROR_MESSAGES, LOADING_MESSAGES, type Currency } from '../../../../constants';
 import {
   fetchAlignmentExplanationQuota,
   generateAlignmentExplanation,
@@ -11,7 +11,7 @@ import type {
   FalseDiversificationRiskLevel,
 } from '../../../../types/ai.types';
 import { getRejectedMessage } from '../../../../utils/apiError';
-import { AiGeneratedNotice } from '../../../../components/ui';
+import { AiGeneratedNotice, ContentSkeleton, Skeleton } from '../../../../components/ui';
 import {
   clearPersistedAlignmentExplanation,
   loadPersistedAlignmentExplanation,
@@ -167,7 +167,15 @@ export function AlignmentExplainPanel({
               {quota.remaining} of {quota.limit} left today
             </span>
           )}
-          {isLoadingQuota && !quota && <span className={styles.quotaBadge}>Loading quota…</span>}
+          {isLoadingQuota && !quota && (
+            <span
+              className={styles.quotaBadge}
+              aria-busy="true"
+              aria-label={LOADING_MESSAGES.AI_QUOTA}
+            >
+              <Skeleton className={styles.quotaSkeleton} />
+            </span>
+          )}
         </div>
       </div>
 
@@ -181,7 +189,7 @@ export function AlignmentExplainPanel({
           {isGenerating ? (
             <>
               <Loader2 size={16} className={styles.spinner} />
-              Generating explanation…
+              {LOADING_MESSAGES.AI_ALIGNMENT_EXPLANATION}
             </>
           ) : (
             <>
@@ -199,6 +207,10 @@ export function AlignmentExplainPanel({
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
+
+      {isGenerating && !explanation && (
+        <ContentSkeleton preset="stats" label={LOADING_MESSAGES.AI_ALIGNMENT_EXPLANATION} />
+      )}
 
       {explanation && (
         <div className={styles.resultBlock}>

@@ -4,6 +4,7 @@ import { Plus, Trash2, Search, Loader, Star } from 'lucide-react';
 import { Button, AsyncStatePanel, ErrorBanner, TickerAvatar } from '../../../../components/ui';
 import {
   buildTickerDetailPath,
+  LOADING_MESSAGES,
   WATCHLIST_TABLE_HEADER_HEIGHT_PX,
   WATCHLIST_TABLE_ROW_HEIGHT_PX,
   type Currency,
@@ -11,6 +12,7 @@ import {
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import {
   convertAmountWithRate,
   formatMoney,
@@ -109,7 +111,11 @@ export function WatchlistPanel() {
   if (isLoading && items.length === 0) {
     return (
       <div className={styles.panel}>
-        <AsyncStatePanel isLoading loadingMessage="Loading watchlist…" />
+        <AsyncStatePanel
+          isLoading
+          loadingPreset="list"
+          loadingMessage={LOADING_MESSAGES.WATCHLIST}
+        />
       </div>
     );
   }
@@ -185,7 +191,12 @@ export function WatchlistPanel() {
             </span>
           </div>
 
-          <div className={styles.tableWrapper} style={{ minHeight: watchlistTableMinHeightPx }}>
+          <div
+            className={styles.tableWrapper}
+            style={toCssCustomProperties({
+              '--table-min-height': `${watchlistTableMinHeightPx}px`,
+            })}
+          >
             <table className={styles.table}>
               <colgroup>
                 <col className={styles.colTicker} />

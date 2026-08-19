@@ -46,6 +46,10 @@
   border-radius: 2px;
 }
 
+.legendSwatchCurrent {
+  background: var(--current-bar-color);
+}
+
 .plot {
   display: flex;
   flex: 1;
@@ -80,7 +84,13 @@
   flex: 1;
   max-width: 22px;
   min-height: 4px;
+  height: var(--bar-height);
   border-radius: 2px 2px 0 0;
+  background: var(--bar-color);
+}
+
+.barCurrent {
+  background: var(--current-bar-color);
 }
 
 .legendSwatchTarget {
@@ -106,6 +116,7 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  background: var(--bar-color);
 }
 
 .label {

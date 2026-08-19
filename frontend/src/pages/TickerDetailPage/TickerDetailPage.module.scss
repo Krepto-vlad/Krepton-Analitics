@@ -9,6 +9,7 @@
 .mainColumn {
   width: 100%;
   min-width: 0;
+  padding-right: var(--chat-drawer-inset, 0px);
   transition: padding-right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
   @media (prefers-reduced-motion: reduce) {
@@ -132,6 +133,22 @@
 .priceBlock {
   text-align: right;
   min-width: 180px;
+}
+
+.priceSkeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $space-2;
+}
+
+.priceValueSkeleton {
+  width: 8.75rem;
+  height: 2rem;
+}
+
+.priceMetaSkeleton {
+  width: 6.75rem;
 }
 
 .priceHeader {
@@ -386,6 +403,8 @@
 
 .tradeTooltip {
   position: absolute;
+  left: var(--tooltip-left);
+  top: var(--tooltip-top);
   z-index: 3;
   min-width: 160px;
   padding: $space-3;
@@ -400,6 +419,14 @@
   margin: 0 0 $space-2;
   font-size: $font-size-sm;
   font-weight: $font-weight-bold;
+}
+
+.tradeTooltipBuy {
+  color: $color-chart-up;
+}
+
+.tradeTooltipSell {
+  color: $color-chart-down;
 }
 
 .tradeTooltipStats {

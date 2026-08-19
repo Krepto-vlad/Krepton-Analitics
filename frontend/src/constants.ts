@@ -43,7 +43,45 @@ export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
 /** React Router location.state flag: scroll landing page to #features after navigation. */
 export const LANDING_SCROLL_TO_FEATURES_STATE = { scrollToFeatures: true } as const;
 
-export const SESSION_LOADING_LABEL = 'Loading session';
+/** Accessible names for every async state: skeleton placeholders and spinners. */
+export const LOADING_MESSAGES = {
+  DEFAULT: 'Loading…',
+  SESSION: 'Loading session…',
+  PORTFOLIO_POSITIONS: 'Loading positions…',
+  PORTFOLIO_HOLDINGS: 'Loading portfolio…',
+  PORTFOLIO_EQUITY: 'Loading portfolio equity…',
+  PORTFOLIO_ALIGNMENT: 'Loading strategy alignment…',
+  PORTFOLIO_TRANSACTIONS: 'Loading transaction history…',
+  PORTFOLIO_PURCHASES: 'Loading purchases…',
+  PORTFOLIO_NEWS: 'Loading news for your holdings…',
+  WATCHLIST: 'Loading watchlist…',
+  DIVIDEND_CALENDAR: 'Loading dividend calendar…',
+  REBALANCING_ANALYSIS: 'Loading rebalancing analysis…',
+  STOCK_COMPARE: 'Loading comparison data…',
+  MARKET_MOVERS: 'Loading market movers…',
+  BACKTEST_CALCULATION: 'Calculating backtest…',
+  TICKER_DETAILS: 'Loading ticker details…',
+  TICKER_QUOTE: 'Loading quote…',
+  TICKER_FUNDAMENTALS: 'Loading fundamentals…',
+  TICKER_PRICE_HISTORY: 'Loading price history…',
+  TICKER_NEWS: 'Loading news…',
+  AI_QUOTA: 'Loading AI quota…',
+  AI_NEWS_BRIEFING: 'Generating briefing…',
+  AI_ALIGNMENT_EXPLANATION: 'Generating explanation…',
+  AI_CHAT_REPLY: 'Generating reply…',
+} as const;
+
+/** Row/column counts drive skeleton structure; every size lives in SCSS. */
+export const SKELETON_TABLE_ROW_COUNT = 6;
+export const SKELETON_TABLE_COLUMN_COUNT = 5;
+export const SKELETON_LIST_ITEM_COUNT = 5;
+export const SKELETON_NEWS_ITEM_COUNT = 4;
+export const SKELETON_CARD_COUNT = 3;
+export const SKELETON_STAT_ROW_COUNT = 8;
+export const SKELETON_MOVER_COLUMN_COUNT = 2;
+export const SKELETON_MOVER_ROW_COUNT = 5;
+export const SKELETON_COMPARE_COLUMN_COUNT = 3;
+
 export const ERROR_BOUNDARY_TITLE = 'Something went wrong';
 export const ERROR_BOUNDARY_RETRY_LABEL = 'Try again';
 export const ERROR_BANNER_DISMISS_LABEL = 'Dismiss error';
@@ -86,6 +124,7 @@ export const CHART_COLORS = {
 
 export const CHART_TRADE_MARKER_SIZE = 1.25;
 export const CHART_TRADE_TOOLTIP_OFFSET_PX = 12;
+export const CHART_TRADE_TOOLTIP_MIN_TOP_PX = 8;
 
 export const DEFAULT_TICKER = 'AAPL';
 export const DEFAULT_PERIOD = '1y';

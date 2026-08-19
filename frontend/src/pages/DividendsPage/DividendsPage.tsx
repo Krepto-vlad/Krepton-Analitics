@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarRange } from 'lucide-react';
-import { ERROR_MESSAGES, type Currency } from '../../constants';
+import { ERROR_MESSAGES, LOADING_MESSAGES, type Currency } from '../../constants';
 import { fetchPortfolioDividends } from '../../api/portfolioApi';
 import { getRejectedMessage } from '../../utils/apiError';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { ErrorBanner } from '../../components/ui';
+import { ErrorBanner, ContentSkeleton } from '../../components/ui';
 import type { DividendCalendarResponse } from '../../types/dividend.types';
 import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { DividendSummaryCards } from './components/DividendSummaryCards/DividendSummaryCards';
@@ -69,7 +69,7 @@ export function DividendsPage() {
       )}
 
       {isLoading && !showContent ? (
-        <div className={styles.loadingState}>Loading dividend calendar…</div>
+        <ContentSkeleton preset="page" label={LOADING_MESSAGES.DIVIDEND_CALENDAR} />
       ) : showContent ? (
         <>
           <DividendSummaryCards summary={calendarData.summary} displayCurrency={displayCurrency} />

@@ -8,7 +8,8 @@ _Stack: Node.js + Express + TypeScript_
 
 ```
 backend/src/
-├── index.ts                # Entry point — app bootstrap, graceful shutdown
+├── index.ts                # Entry point — listen, ticker tape, graceful shutdown
+├── app.ts                  # Express app factory (used by HTTP tests without listen)
 ├── constants.ts            # All BE constants (no magic values)
 ├── config/                 # Environment config, DB connection
 │   └── db.ts

@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { ExternalLink, Newspaper } from 'lucide-react';
-import { TICKER_NEWS_INITIAL_VISIBLE, TICKER_NEWS_LOAD_MORE_STEP } from '../../../constants';
+import {
+  LOADING_MESSAGES,
+  TICKER_NEWS_INITIAL_VISIBLE,
+  TICKER_NEWS_LOAD_MORE_STEP,
+} from '../../../constants';
 import { AsyncStatePanel, ErrorBanner, TickerAvatar } from '../../../components/ui';
 import type { NewsItem } from '../../../types/portfolio.types';
 import styles from '../TickerDetailPage.module.scss';
@@ -40,7 +44,12 @@ function TickerNewsPanelContent({
       {error && <ErrorBanner message={error} />}
 
       {isLoading && news.length === 0 ? (
-        <AsyncStatePanel isLoading loadingMessage="Loading news…" className={styles.loadingPanel} />
+        <AsyncStatePanel
+          isLoading
+          loadingPreset="news"
+          loadingMessage={LOADING_MESSAGES.TICKER_NEWS}
+          className={styles.loadingPanel}
+        />
       ) : news.length === 0 ? (
         <div className={styles.newsEmpty}>
           <p className={styles.companyName}>No recent news for this ticker.</p>

@@ -1,6 +1,6 @@
 import { TrendingUp } from 'lucide-react';
 import type { PortfolioStats, EquityDataPoint } from '../../../../types/portfolio.types';
-import { EQUITY_PERIODS, ROUTES } from '../../../../constants';
+import { EQUITY_PERIODS, LOADING_MESSAGES, ROUTES } from '../../../../constants';
 import { useEquityChart } from '../../../../hooks/useEquityChart';
 import type { EquityPeriod } from '../../../../hooks/useEquityChart';
 import type { Currency } from '../../../../constants';
@@ -59,7 +59,8 @@ export function PortfolioEquityCard({
       {showLoadingState || showEmptyState ? (
         <DashboardPanelEmptyState
           isLoading={showLoadingState}
-          loadingMessage="Loading portfolio equity…"
+          loadingPreset="chart"
+          loadingMessage={LOADING_MESSAGES.PORTFOLIO_EQUITY}
           icon={<TrendingUp size={24} />}
           title="No equity history yet"
           description="Upload holdings or import a broker report to see portfolio value, P&L, and performance over time."

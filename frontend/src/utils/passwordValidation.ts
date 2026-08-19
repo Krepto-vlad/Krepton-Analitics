@@ -16,7 +16,7 @@ export const PASSWORD_RULES: PasswordRule[] = [
 ];
 
 export const PASSWORD_STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'] as const;
-export const PASSWORD_STRENGTH_COLORS = ['', '#EF4444', '#F59E0B', '#3B82F6', '#10B981'] as const;
+export const PASSWORD_STRENGTH_BAR_NUMBERS = PASSWORD_RULES.map((_, index) => index + 1);
 
 export function calculatePasswordStrength(password: string): number {
   if (!password) {

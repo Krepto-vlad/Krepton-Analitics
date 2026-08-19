@@ -7,11 +7,12 @@ import { apiResetPassword } from '../../api/authApi';
 import { getRejectedMessage } from '../../utils/apiError';
 import {
   PASSWORD_RULES,
-  PASSWORD_STRENGTH_COLORS,
+  PASSWORD_STRENGTH_BAR_NUMBERS,
   PASSWORD_STRENGTH_LABELS,
   calculatePasswordStrength,
   isPasswordStrong,
 } from '../../utils/passwordValidation';
+import { joinClassNames } from '../../utils/classNames';
 import styles from './ResetPasswordPage.module.scss';
 
 export function ResetPasswordPage() {
@@ -91,25 +92,24 @@ export function ResetPasswordPage() {
                 />
 
                 {newPassword.length > 0 && (
-                  <div className={styles.strengthRow}>
+                  <div
+                    className={joinClassNames(
+                      styles.strengthRow,
+                      passwordStrength > 0 && styles[`strengthLevel${passwordStrength}`]
+                    )}
+                  >
                     <div className={styles.strengthBars}>
-                      {[1, 2, 3, 4].map((barIndex) => (
+                      {PASSWORD_STRENGTH_BAR_NUMBERS.map((barNumber) => (
                         <div
-                          key={barIndex}
-                          className={styles.strengthBar}
-                          style={{
-                            background:
-                              barIndex <= passwordStrength
-                                ? PASSWORD_STRENGTH_COLORS[passwordStrength]
-                                : undefined,
-                          }}
+                          key={barNumber}
+                          className={joinClassNames(
+                            styles.strengthBar,
+                            barNumber <= passwordStrength && styles.filled
+                          )}
                         />
                       ))}
                     </div>
-                    <span
-                      className={styles.strengthLabel}
-                      style={{ color: PASSWORD_STRENGTH_COLORS[passwordStrength] }}
-                    >
+                    <span className={styles.strengthLabel}>
                       {PASSWORD_STRENGTH_LABELS[passwordStrength]}
                     </span>
                   </div>

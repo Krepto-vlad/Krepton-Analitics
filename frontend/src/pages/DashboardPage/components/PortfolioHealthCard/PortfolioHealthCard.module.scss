@@ -256,6 +256,7 @@
   height: 8px;
   border-radius: 2px;
   flex-shrink: 0;
+  background: var(--swatch-color);
 }
 
 .sectorName {
@@ -273,8 +274,10 @@
 }
 
 .barFill {
+  width: var(--fill-percent);
   height: 100%;
   border-radius: $radius-full;
+  background: var(--swatch-color);
   transition: width $transition-slow;
 }
 

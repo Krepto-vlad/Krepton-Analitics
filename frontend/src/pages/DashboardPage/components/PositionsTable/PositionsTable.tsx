@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Briefcase, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 import type { Currency } from '../../../../constants';
-import { buildTickerDetailPath, ROUTES } from '../../../../constants';
+import { buildTickerDetailPath, LOADING_MESSAGES, ROUTES } from '../../../../constants';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
 import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
 import { TickerAvatar } from '../../../../components/ui';
@@ -68,7 +68,8 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
       {isLoading || isEmpty ? (
         <DashboardPanelEmptyState
           isLoading={isLoading}
-          loadingMessage="Loading positions…"
+          loadingPreset="table"
+          loadingMessage={LOADING_MESSAGES.PORTFOLIO_POSITIONS}
           icon={<Briefcase size={24} />}
           title="No positions yet"
           description="You haven't added any holdings yet. Add a position or import a broker report to track your P&L here."

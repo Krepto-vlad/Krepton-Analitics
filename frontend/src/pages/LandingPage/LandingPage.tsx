@@ -1,11 +1,4 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  type CSSProperties,
-  type MouseEvent,
-} from 'react';
+import { useState, useEffect, useRef, useCallback, type MouseEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
@@ -25,6 +18,8 @@ import { ROUTES, TICKER_CACHE_TTL_MS } from '../../constants';
 import { fetchTickerTape } from '../../api/stockApi';
 import type { StockQuote } from '../../types/stock.types';
 import { Navbar, Footer } from '../../components/layout';
+import { joinClassNames } from '../../utils/classNames';
+import { toCssCustomProperties } from '../../utils/cssCustomProperties';
 import styles from './LandingPage.module.scss';
 
 // ─── Ticker data ──────────────────────────────────────────────────────────────
@@ -82,11 +77,26 @@ async function loadTickerData(): Promise<TickerItem[]> {
 
 // ─── Static page data ─────────────────────────────────────────────────────────
 
-const FEATURES = [
+type LandingAccentTone = 'primary' | 'indigo' | 'warning' | 'blue' | 'pink';
+
+const LANDING_ACCENT_CLASS_NAME: Record<LandingAccentTone, string> = {
+  primary: styles.accentPrimary,
+  indigo: styles.accentIndigo,
+  warning: styles.accentWarning,
+  blue: styles.accentBlue,
+  pink: styles.accentPink,
+};
+
+const FEATURES: Array<{
+  icon: typeof Upload;
+  accent: LandingAccentTone;
+  title: string;
+  description: string;
+  tags: string[];
+}> = [
   {
     icon: Upload,
-    color: '#10B981',
-    bg: 'rgba(16,185,129,0.10)',
+    accent: 'primary',
     title: 'Multi-Broker Import',
     description:
       'Seamlessly import portfolio statements from Interactive Brokers, Revolut, Charles Schwab, Fidelity and more via CSV or XLSX.',
@@ -94,8 +104,7 @@ const FEATURES = [
   },
   {
     icon: Sparkles,
-    color: '#6366F1',
-    bg: 'rgba(99,102,241,0.10)',
+    accent: 'indigo',
     title: 'AI Insights',
     description:
       'Automated portfolio health audits, allocation deviation warnings, and rebalancing recommendations powered by AI analysis.',
@@ -103,8 +112,7 @@ const FEATURES = [
   },
   {
     icon: Calendar,
-    color: '#F59E0B',
-    bg: 'rgba(245,158,11,0.10)',
+    accent: 'warning',
     title: 'Dividend Calendar',
     description:
       '12-month passive income forecasting based on historical ex-dividend dates. Track coupons, dividends and total yield in one view.',
@@ -112,8 +120,7 @@ const FEATURES = [
   },
   {
     icon: BarChart3,
-    color: '#3B82F6',
-    bg: 'rgba(59,130,246,0.10)',
+    accent: 'blue',
     title: 'Stock Screener',
     description:
       'Side-by-side fundamental comparison with P/E, ROE, Debt/Equity, Dividend Yield. Superior metrics automatically highlighted.',
@@ -121,8 +128,7 @@ const FEATURES = [
   },
   {
     icon: Zap,
-    color: '#EC4899',
-    bg: 'rgba(236,72,153,0.10)',
+    accent: 'pink',
     title: 'Auto Rebalancing',
     description:
       'Strategy-driven rebalancing engine. Pre-built Ray Dalio, Buffett 90/10, and custom allocation targets with exact trade instructions.',
@@ -130,8 +136,7 @@ const FEATURES = [
   },
   {
     icon: Lock,
-    color: '#10B981',
-    bg: 'rgba(16,185,129,0.10)',
+    accent: 'primary',
     title: 'Zero-Identity Architecture',
     description:
       'No KYC. No real names. No bank linking. Cryptographic separation of financial records from personal identity by design.',
@@ -233,16 +238,17 @@ function DashboardPreview() {
         </div>
 
         <div className={styles.previewBars}>
-          {MINI_CHART_HEIGHTS.map((h, i) => (
+          {MINI_CHART_HEIGHTS.map((heightPercent, barIndex) => (
             <div
-              key={i}
-              className={`${styles.previewBar} ${i === 11 ? styles.previewBarPeak : ''}`}
-              style={
-                {
-                  height: `${h}%`,
-                  '--bar-opacity': String(0.2 + i * 0.04),
-                } as CSSProperties
-              }
+              key={barIndex}
+              className={joinClassNames(
+                styles.previewBar,
+                barIndex === MINI_CHART_HEIGHTS.length - 1 && styles.previewBarPeak
+              )}
+              style={toCssCustomProperties({
+                '--bar-height': `${heightPercent}%`,
+                '--bar-opacity': 0.2 + barIndex * 0.04,
+              })}
             />
           ))}
         </div>
@@ -462,13 +468,10 @@ export function LandingPage() {
               return (
                 <div
                   key={feat.title}
-                  className={styles.featureCard}
-                  style={
-                    {
-                      '--feature-accent': feat.color,
-                      '--feature-bg': feat.bg,
-                    } as CSSProperties
-                  }
+                  className={joinClassNames(
+                    styles.featureCard,
+                    LANDING_ACCENT_CLASS_NAME[feat.accent]
+                  )}
                 >
                   <div className={styles.featureIconWrap}>
                     <Icon size={17} />

@@ -15,7 +15,6 @@ import {
   convertBacktestResponseForDisplay,
   formatBacktestMoney,
   formatBacktestPercent,
-  getBacktestTickerColor,
 } from '../../utils/backtestFormat';
 import { TickerAvatar } from '../../../../components/ui';
 import { formatAllocationLabel } from '../../utils/backtestAllocations';
@@ -146,7 +145,7 @@ export function BacktestResults({ data, displayCurrency }: BacktestResultsProps)
       <div className={styles.holdingsSection}>
         <h3 className={styles.holdingsTitle}>Holdings breakdown</h3>
         <div className={styles.resultsGrid}>
-          {resultData.holdings.map((holding, index) => {
+          {resultData.holdings.map((holding) => {
             const isPositive = holding.returnPercent >= 0;
 
             return (
@@ -154,12 +153,7 @@ export function BacktestResults({ data, displayCurrency }: BacktestResultsProps)
                 <div className={styles.holdingHeader}>
                   <div className={styles.resultTickerRow}>
                     <TickerAvatar ticker={holding.ticker} size="sm" />
-                    <span
-                      className={styles.resultTicker}
-                      style={{ color: getBacktestTickerColor(index) }}
-                    >
-                      ${holding.ticker}
-                    </span>
+                    <span className={styles.resultTicker}>${holding.ticker}</span>
                   </div>
                   <span className={styles.holdingWeight}>{holding.weightPercent.toFixed(1)}%</span>
                 </div>

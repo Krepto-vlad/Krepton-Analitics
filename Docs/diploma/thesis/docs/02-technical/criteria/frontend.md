@@ -55,7 +55,10 @@ frontend/src/
 | Decision | Rationale |
 |----------|-----------|
 | RTK + local useState | Global vs widget state split |
-| SCSS modules | No inline-style soup |
+| `Skeleton` + `AsyncStatePanel` | Page/list fetches use layout placeholders; button/search mutations keep a spinner |
+| `ContentSkeleton` owns `role="status"` | One announcement per pending fetch, no duplicated wrappers at call sites |
+| `LOADING_MESSAGES` in `constants.ts` | Same string serves the accessible name and the visible pending label |
+| SCSS modules | No inline-style soup; skeleton geometry is CSS, counts are constants |
 | `withCredentials: true` | Cookie session |
 | Central axios + Error Boundary | HTTP errors and render crashes both have UI |
 
@@ -131,8 +134,9 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 | 7 | Responsive desktop + mobile | ⚠️ | Tokens/mixins; tablet evidence screenshots TBD |
 | 8 | ESLint + Prettier | ✅ | |
 | 9 | Global errors + user-visible messages | ✅ | Interceptor, ErrorBanner, AppErrorBoundary |
-| 10 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | 3 RTL suites; Playwright still D-later |
-| 11 | No tokens in code | ✅ | |
+| 10 | Skeleton/loading on async fetches | ✅ | `Skeleton`, `AsyncStatePanel` presets; search/auth keep button spinners |
+| 11 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | RTL includes ErrorBanner, RequireAuth, AsyncStatePanel, Skeleton; Playwright still D-later |
+| 12 | No tokens in code | ✅ | |
 
 ## Known Limitations
 

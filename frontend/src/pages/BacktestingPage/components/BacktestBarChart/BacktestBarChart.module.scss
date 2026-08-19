@@ -49,7 +49,9 @@
   width: 100%;
   max-width: 48px;
   min-height: 4px;
+  height: var(--bar-height);
   border-radius: $radius-sm $radius-sm 2px 2px;
+  background: var(--bar-color);
   transition: height $transition-fast;
 }
 
@@ -137,7 +139,9 @@
   flex: 1;
   max-width: 18px;
   min-height: 4px;
+  height: var(--bar-height);
   border-radius: 2px 2px 0 0;
+  background: var(--bar-color);
 }
 
 .periodLabel {
@@ -166,4 +170,5 @@
   height: 10px;
   border-radius: 2px;
   flex-shrink: 0;
+  background: var(--bar-color);
 }

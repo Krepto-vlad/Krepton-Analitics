@@ -1,3 +1,4 @@
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import styles from './BacktestBarChart.module.scss';
 
 export interface BacktestBarChartItem {
@@ -52,10 +53,10 @@ export function BacktestComparisonChart({ title, items }: BacktestComparisonChar
               <div className={styles.barTrack}>
                 <div
                   className={styles.bar}
-                  style={{
-                    height: `${normalizeBarHeight(item.value, maxValue)}%`,
-                    backgroundColor: item.color,
-                  }}
+                  style={toCssCustomProperties({
+                    '--bar-height': `${normalizeBarHeight(item.value, maxValue)}%`,
+                    '--bar-color': item.color,
+                  })}
                 />
               </div>
               <span className={styles.barLabel}>{item.label}</span>
@@ -92,10 +93,10 @@ export function BacktestGroupedPeriodChart({ title, periods, legend }: BacktestG
                   <div
                     key={bar.id}
                     className={styles.periodBar}
-                    style={{
-                      height: `${normalizeBarHeight(bar.value, maxValue)}%`,
-                      backgroundColor: bar.color,
-                    }}
+                    style={toCssCustomProperties({
+                      '--bar-height': `${normalizeBarHeight(bar.value, maxValue)}%`,
+                      '--bar-color': bar.color,
+                    })}
                     title={`${bar.label}: ${bar.value.toFixed(1)}%`}
                   />
                 ))}
@@ -109,7 +110,10 @@ export function BacktestGroupedPeriodChart({ title, periods, legend }: BacktestG
         <div className={styles.legend}>
           {legend.map((entry) => (
             <span key={entry.label} className={styles.legendItem}>
-              <span className={styles.legendSwatch} style={{ backgroundColor: entry.color }} />
+              <span
+                className={styles.legendSwatch}
+                style={toCssCustomProperties({ '--bar-color': entry.color })}
+              />
               {entry.label}
             </span>
           ))}

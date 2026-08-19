@@ -292,6 +292,7 @@
 // ─── Password strength ────────────────────────────────────────────────────────
 
 .strengthRow {
+  @include password-strength-meter;
   display: flex;
   align-items: center;
   gap: $space-2;
@@ -305,14 +306,15 @@
 }
 
 .strengthBar {
+  @include password-strength-bar;
   height: 2px;
   flex: 1;
   border-radius: $radius-full;
-  background: $color-gauge-track;
   transition: background $transition-base;
 }
 
 .strengthLabel {
+  @include password-strength-label;
   font-family: $font-mono;
   font-size: 0.8125rem;
   font-weight: $font-weight-semibold;

@@ -75,7 +75,7 @@ frontend/src/
 - No business logic inside pages — delegate to feature slices or services.
 
 ### components/ui/
-- **Stateless presentational primitives**: Button, Input, Card, Badge, Spinner, etc.
+- **Stateless presentational primitives**: Button, Input, Select, Skeleton, AsyncStatePanel, etc.
 - Accept only props — no `useNavigate`, no Redux, no API calls.
 - Every primitive has its own folder with `Component.tsx` + `Component.module.scss`.
 - Export everything via `components/ui/index.ts`.

@@ -197,11 +197,6 @@ $news-ticker-column-width: 12.5rem;
   min-height: 160px;
 }
 
-.loadingSpinner {
-  animation: spin 0.8s linear infinite;
-  color: $color-foreground-muted;
-}
-
 .emptyTitle {
   margin: 0;
   font-size: $font-size-base;
@@ -281,11 +276,5 @@ $news-ticker-column-width: 12.5rem;
     color: $color-primary;
     border-color: $color-primary-border;
     background: $color-primary-muted;
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }

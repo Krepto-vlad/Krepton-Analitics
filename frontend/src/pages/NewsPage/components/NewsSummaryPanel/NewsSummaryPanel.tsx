@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CircleHelp, ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import {
+  AiGeneratedNotice,
+  ContentSkeleton,
+  Skeleton,
+  TickerAvatar,
+} from '../../../../components/ui';
+import {
   AI_NEWS_BRIEFING_COST_BASIS_TOOLTIP,
   AI_NEWS_BRIEFING_SP500_LABEL,
   AI_NEWS_BRIEFING_SP500_TICKER,
   AI_NEWS_SUMMARY_MAX_TICKERS,
   AI_NEWS_SUMMARY_MIN_TICKERS,
   ERROR_MESSAGES,
+  LOADING_MESSAGES,
 } from '../../../../constants';
 import { fetchNewsSummaryQuota, generateNewsSummary } from '../../../../api/portfolioApi';
 import { fetchStockQuote } from '../../../../api/stockApi';
@@ -16,7 +23,6 @@ import type {
   NewsSummaryMarketBenchmark,
   NewsSummaryResponse,
 } from '../../../../types/ai.types';
-import { AiGeneratedNotice, TickerAvatar } from '../../../../components/ui';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import {
   clearPersistedNewsBriefing,
@@ -313,7 +319,15 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
             {quota.remaining} of {quota.limit} left today
           </span>
         )}
-        {isLoadingQuota && !quota && <span className={styles.quotaBadge}>Loading quota…</span>}
+        {isLoadingQuota && !quota && (
+          <span
+            className={styles.quotaBadge}
+            aria-busy="true"
+            aria-label={LOADING_MESSAGES.AI_QUOTA}
+          >
+            <Skeleton className={styles.quotaSkeleton} />
+          </span>
+        )}
       </div>
 
       <div className={styles.tickerRow}>
@@ -375,7 +389,7 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
           {isGenerating ? (
             <>
               <Loader2 size={16} className={styles.spinner} />
-              Generating briefing…
+              {LOADING_MESSAGES.AI_NEWS_BRIEFING}
             </>
           ) : (
             <>
@@ -393,6 +407,10 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
+
+      {isGenerating && !summary && (
+        <ContentSkeleton preset="stats" label={LOADING_MESSAGES.AI_NEWS_BRIEFING} />
+      )}
 
       {summary && (
         <div className={styles.summaryBlock}>

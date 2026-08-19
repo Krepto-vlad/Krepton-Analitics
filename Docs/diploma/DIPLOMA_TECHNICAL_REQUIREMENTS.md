@@ -67,7 +67,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | 13 | Containerization | infrastructure | — | **Не заявляем.** Файлы есть (`Dockerfile` ×2, compose, `.env.example`). Критерий не берём, пока `compose up` не доказан на машине с Docker. |
 | 14 | Microservices | infrastructure | — | **Не брать.** Монолит FE+BE+Postgres не считается. |
 | 15 | API Documentation | processes | — | Текстовые эндпоинты AI в `AI_INTEGRATION.md` ≠ OpenAPI-портал. Для Backend min хватит текста/Swagger; как отдельный критерий — нет. |
-| 16 | Automated tests 70%+ | processes | plan | Backend Jest **≥70%** statements/lines/functions, HTML в CI. FE: 3 RTL + money/rebalancing unit. Нет integration с БД, нет Playwright e2e. |
+| 16 | Automated tests 70%+ | processes | plan | Backend Jest **≥70%** + HTTP integration (`httpApi.test.ts`: health, 401 portfolio, 400 search). FE: 3 RTL. Нет test DB и Playwright e2e. |
 | 17 | Qualitative / quantitative testing | processes | — | Нет тест-плана, ручных кейсов, JMeter/Postman-коллекции как артефакта защиты. |
 
 **Проверка набора:** required 3 · technical 1 (AI) · data 1 (Database) · infrastructure 2 (Cloud + CI/CD) · processes 1 (Auto tests) · всего **8 ≥ 7**. Adaptive/UX в `plan` по коду, но в официальную восьмёрку не входят.
@@ -195,11 +195,11 @@ Node.js / Express подходит как «modern framework».
 - [x] Global error handler (interceptor / error boundary) — axios interceptor в `apiClient.ts`; `AppErrorBoundary` в `App.tsx`
 - [x] Понятные сообщения пользователю (toast/dialog) — `ErrorBanner` (не toast)
 - [x] Корректная обработка 401 / 403 / 404 / 500 — `frontend/src/utils/apiError.ts` + catch-all 404 route
-- [ ] Skeleton/loading на все async-операции — `AsyncStatePanel` есть, покрыты не все экраны
+- [x] Skeleton/loading на все async-операции — `Skeleton` / `ContentSkeleton`; `AsyncStatePanel` по умолчанию рисует skeleton; кнопки/поиск — `loading` spinner
 
 Тесты:
 
-- [x] Unit: минимум 3 ключевых компонента/сервиса — RTL: ErrorBanner, AppErrorBoundary, RequireAuth; unit: `moneyDisplay`, `rebalancingAllocations`
+- [x] Unit: минимум 3 ключевых компонента/сервиса — RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel; unit: `moneyDisplay`, `rebalancingAllocations`
 - [ ] Integration/e2e: 1–2 теста (Cypress / Playwright / RTL) — RTL есть; Playwright login→dashboard ещё на staging
 
 Запрещено: inline-styles без архитектуры CSS · один компонент на весь проект · токены в коде · необработанные API-ошибки · `any` без причины · «SPA» из статичного HTML.
@@ -562,7 +562,7 @@ Backend min уже требует 70% unit. Этот критерий шире: 
 
 - [x] Coverage **≥ 70%** инструментом (Istanbul/Jest и т.п.) + число и отчёт/скрин — порог в `backend/jest.config.js`, HTML в CI artifact `backend-coverage`
 - [x] Unit-тесты по FIRST, включая edge cases — parser, FX, tickerChatScope, password reset, stockService, …
-- [ ] Integration: API, БД, auth, конфиг — есть `backend/src/__tests__/integration/routes/stocks.test.ts`, этого мало для критерия
+- [x] Integration: API, БД, auth, конфиг — `httpApi.test.ts`: `/health`, 401 на `/api/portfolio` (без cookie и с мусорным JWT), 400 на search без `q`. Живой Postgres в CI ещё нет.
 - [x] Если есть FE: component и/или e2e (RTL / Cypress / Playwright) — 3 RTL (ErrorBanner, AppErrorBoundary, RequireAuth); e2e Playwright позже
 - [x] Все тесты в CI, видно в логах — `.github/workflows/ci.yml`
 - [x] Стратегия в отчёте: типы, инструменты, как гонять локально, пробелы — `Docs/diploma/thesis/docs/02-technical/criteria/automated-tests.md`

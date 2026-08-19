@@ -1,9 +1,16 @@
 import type { SeriesMarker, Time } from 'lightweight-charts';
 import type { PortfolioTransaction } from '../../../api/portfolioApi';
-import { CHART_COLORS, CHART_TRADE_TOOLTIP_OFFSET_PX, type Currency } from '../../../constants';
+import {
+  CHART_TRADE_TOOLTIP_MIN_TOP_PX,
+  CHART_TRADE_TOOLTIP_OFFSET_PX,
+  LOADING_MESSAGES,
+  type Currency,
+} from '../../../constants';
 import { AsyncStatePanel } from '../../../components/ui';
 import { useTickerPriceChart } from '../../../hooks/useTickerPriceChart';
 import { convertAmountToDisplayCurrency, formatMoney } from '../../../utils/moneyDisplay';
+import { joinClassNames } from '../../../utils/classNames';
+import { toCssCustomProperties } from '../../../utils/cssCustomProperties';
 import type { OhlcvCandle } from '../../../types/stock.types';
 import styles from '../TickerDetailPage.module.scss';
 
@@ -76,7 +83,8 @@ export function TickerPriceChartPanel({
         <div className={styles.chartOverlay}>
           <AsyncStatePanel
             isLoading
-            loadingMessage="Loading price history…"
+            loadingPreset="chart"
+            loadingMessage={LOADING_MESSAGES.TICKER_PRICE_HISTORY}
             className={styles.loadingPanel}
           />
         </div>
@@ -96,20 +104,19 @@ export function TickerPriceChartPanel({
       {hoveredTrade && (
         <div
           className={styles.tradeTooltip}
-          style={{
-            left: hoveredTrade.x + CHART_TRADE_TOOLTIP_OFFSET_PX,
-            top: Math.max(hoveredTrade.y - CHART_TRADE_TOOLTIP_OFFSET_PX, 8),
-          }}
+          style={toCssCustomProperties({
+            '--tooltip-left': `${hoveredTrade.x + CHART_TRADE_TOOLTIP_OFFSET_PX}px`,
+            '--tooltip-top': `${Math.max(hoveredTrade.y - CHART_TRADE_TOOLTIP_OFFSET_PX, CHART_TRADE_TOOLTIP_MIN_TOP_PX)}px`,
+          })}
           role="tooltip"
         >
           <p
-            className={styles.tradeTooltipType}
-            style={{
-              color:
-                hoveredTrade.trade.transactionType === 'BUY'
-                  ? CHART_COLORS.TRADE_BUY
-                  : CHART_COLORS.TRADE_SELL,
-            }}
+            className={joinClassNames(
+              styles.tradeTooltipType,
+              hoveredTrade.trade.transactionType === 'BUY'
+                ? styles.tradeTooltipBuy
+                : styles.tradeTooltipSell
+            )}
           >
             {hoveredTrade.trade.transactionType === 'BUY' ? 'Buy' : 'Sell'}
           </p>

@@ -49,10 +49,3 @@
 .errorBanner {
   width: 100%;
 }
-
-.loadingState {
-  @include card($space-5);
-  color: $color-foreground-muted;
-  font-size: $font-size-sm;
-  text-align: center;
-}

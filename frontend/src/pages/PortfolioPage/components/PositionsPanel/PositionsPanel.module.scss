@@ -10,47 +10,6 @@
   padding: $space-5;
 }
 
-// ─── Loading / Error states ───────────────────────────────────────────────────
-
-.loadingState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: $space-3;
-  padding: $space-10 $space-5;
-  color: $color-foreground-muted;
-  font-size: $font-size-sm;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loadingSpinner {
-  animation: spin 1s linear infinite;
-  color: $color-primary;
-}
-
-.errorState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-3;
-  padding: $space-10 $space-5;
-  text-align: center;
-}
-
-.errorText {
-  color: $color-danger;
-  font-size: $font-size-sm;
-}
-
 // ─── Stats row ────────────────────────────────────────────────────────────────
 
 .statsRow {
@@ -205,6 +164,17 @@
   flex-shrink: 0;
 }
 
+.donutRing {
+  fill: none;
+  stroke: var(--swatch-color);
+  opacity: 0.9;
+}
+
+.donutSlice {
+  fill: var(--swatch-color);
+  opacity: 0.9;
+}
+
 .allocationLegend {
   list-style: none;
   display: flex;
@@ -224,6 +194,7 @@
   height: 8px;
   border-radius: $radius-full;
   flex-shrink: 0;
+  background: var(--swatch-color);
 }
 
 .legendLabel {
@@ -307,6 +278,7 @@
   border-radius: $radius-lg;
   border: 1px solid $color-border;
   background: $color-surface;
+  min-height: var(--table-min-height);
   @include custom-scrollbar;
 }
 
@@ -563,16 +535,6 @@
   display: flex;
   justify-content: center;
   padding-top: $space-3;
-}
-
-.inlineLoading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-2;
-  padding: $space-6 $space-4;
-  color: $color-foreground-muted;
-  font-size: $font-size-sm;
 }
 
 .emptyHistoryText {

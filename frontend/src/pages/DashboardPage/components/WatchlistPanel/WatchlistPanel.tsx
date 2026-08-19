@@ -2,7 +2,11 @@ import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { Radio, ChevronRight, Star } from 'lucide-react';
 import type { Currency } from '../../../../constants';
-import { buildTickerDetailPath, PORTFOLIO_WATCHLIST_PATH } from '../../../../constants';
+import {
+  buildTickerDetailPath,
+  LOADING_MESSAGES,
+  PORTFOLIO_WATCHLIST_PATH,
+} from '../../../../constants';
 import type { WatchlistItem } from '../../../../types/watchlist.types';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
 import {
@@ -88,7 +92,8 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
       {isLoading || isEmpty ? (
         <DashboardPanelEmptyState
           isLoading={isLoading}
-          loadingMessage="Loading watchlist…"
+          loadingPreset="list"
+          loadingMessage={LOADING_MESSAGES.WATCHLIST}
           icon={<Star size={24} />}
           title="Watchlist is empty"
           description="You haven't added any tickers yet. Follow stocks you're interested in and see live price updates here."

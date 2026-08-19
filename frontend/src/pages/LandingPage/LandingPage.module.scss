@@ -1,6 +1,35 @@
 ﻿@use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
+$landing-indigo: #6366f1;
+$landing-blue: #3b82f6;
+$landing-pink: #ec4899;
+
+.accentPrimary {
+  --feature-accent: #{$color-primary};
+  --feature-bg: #{$color-primary-muted};
+}
+
+.accentIndigo {
+  --feature-accent: #{$landing-indigo};
+  --feature-bg: rgb(99 102 241 / 10%);
+}
+
+.accentWarning {
+  --feature-accent: #{$color-warning};
+  --feature-bg: rgb(245 158 11 / 10%);
+}
+
+.accentBlue {
+  --feature-accent: #{$landing-blue};
+  --feature-bg: rgb(59 130 246 / 10%);
+}
+
+.accentPink {
+  --feature-accent: #{$landing-pink};
+  --feature-bg: rgb(236 72 153 / 10%);
+}
+
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
 .page {
@@ -338,6 +367,7 @@
 
 .previewBar {
   flex: 1;
+  height: var(--bar-height);
   border-radius: 2px;
   background: color-mix(
     in srgb,

@@ -5,6 +5,7 @@ import {
   BACKTEST_DEFAULT_AMOUNT,
   BACKTEST_MAX_TICKERS,
   ERROR_MESSAGES,
+  LOADING_MESSAGES,
   type BacktestPeriod,
 } from '../../constants';
 import { fetchStockBacktest } from '../../api/stockApi';
@@ -13,7 +14,7 @@ import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchWatchlistThunk } from '../../features/watchlist/watchlistSlice';
 import { fetchPortfolioSummaryThunk } from '../../features/portfolio/portfolioSlice';
-import { ErrorBanner } from '../../components/ui';
+import { ContentSkeleton, ErrorBanner } from '../../components/ui';
 import type { StockBacktestResponse } from '../../types/stock.types';
 import { BacktestInputPanel } from './components/BacktestInputPanel/BacktestInputPanel';
 import { BacktestResults } from './components/BacktestResults/BacktestResults';
@@ -156,6 +157,10 @@ export function BacktestingPage() {
           void runBacktest();
         }}
       />
+
+      {isCalculating && !backtestData && (
+        <ContentSkeleton preset="page" label={LOADING_MESSAGES.BACKTEST_CALCULATION} />
+      )}
 
       {backtestData ? (
         <BacktestResults data={backtestData} displayCurrency={displayCurrency} />

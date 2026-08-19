@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Minus, ShieldAlert } from 'lucide-react';
 import {
+  LOADING_MESSAGES,
   PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
   PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
   ROUTES,
@@ -12,6 +13,7 @@ import {
   isStrategyDriftAlertDismissed,
 } from '../../../../utils/strategyDriftAlertStorage';
 import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import styles from './PortfolioHealthCard.module.scss';
 
 interface PortfolioHealthCardProps {
@@ -131,7 +133,8 @@ export function PortfolioHealthCard({
       {isLoading || showEmptyState ? (
         <DashboardPanelEmptyState
           isLoading={isLoading}
-          loadingMessage="Loading strategy alignment…"
+          loadingPreset="stats"
+          loadingMessage={LOADING_MESSAGES.PORTFOLIO_ALIGNMENT}
           icon={<ShieldAlert size={24} />}
           title="No alignment data yet"
           description="Add holdings or import a broker report to measure how your portfolio tracks the selected strategy."
@@ -203,7 +206,7 @@ export function PortfolioHealthCard({
                   <div className={styles.sectorNameGroup}>
                     <span
                       className={styles.sectorIcon}
-                      style={{ background: deviation.color }}
+                      style={toCssCustomProperties({ '--swatch-color': deviation.color })}
                       aria-hidden="true"
                     />
                     <span className={styles.sectorName}>{deviation.label}</span>
@@ -215,10 +218,10 @@ export function PortfolioHealthCard({
                 <div className={styles.barTrack}>
                   <div
                     className={styles.barFill}
-                    style={{
-                      width: `${Math.max(deviation.currentPercent, 0)}%`,
-                      background: deviation.color,
-                    }}
+                    style={toCssCustomProperties({
+                      '--fill-percent': `${Math.max(deviation.currentPercent, 0)}%`,
+                      '--swatch-color': deviation.color,
+                    })}
                   />
                 </div>
               </div>

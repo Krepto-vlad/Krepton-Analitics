@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import {
   NOT_FOUND_CODE_LABEL,
@@ -9,11 +8,8 @@ import {
   NOT_FOUND_TITLE,
   ROUTES,
 } from '../../constants';
+import { toCssCustomProperties } from '../../utils/cssCustomProperties';
 import styles from './NotFoundPage.module.scss';
-
-const smileyMaskStyle = {
-  '--not-found-smiley-url': `url("${NOT_FOUND_SMILEY_SRC}")`,
-} as CSSProperties;
 
 export function NotFoundPage() {
   return (
@@ -23,7 +19,13 @@ export function NotFoundPage() {
           <span className={styles.digit} aria-hidden="true">
             {NOT_FOUND_STATUS_DIGIT}
           </span>
-          <span className={styles.smiley} style={smileyMaskStyle} aria-hidden="true" />
+          <span
+            className={styles.smiley}
+            style={toCssCustomProperties({
+              '--not-found-smiley-url': `url("${NOT_FOUND_SMILEY_SRC}")`,
+            })}
+            aria-hidden="true"
+          />
           <span className={styles.digit} aria-hidden="true">
             {NOT_FOUND_STATUS_DIGIT}
           </span>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { buildTickerDetailPath, type Currency } from '../../../../constants';
+import { buildTickerDetailPath, LOADING_MESSAGES, type Currency } from '../../../../constants';
 import type { StockCompareItem } from '../../../../types/stock.types';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
 import { AsyncStatePanel, TickerAvatar } from '../../../../components/ui';
@@ -89,7 +89,11 @@ export function ComparisonMatrix({
   if (isLoading) {
     return (
       <section className={styles.card}>
-        <AsyncStatePanel isLoading loadingMessage="Loading comparison data…" />
+        <AsyncStatePanel
+          isLoading
+          loadingPreset="compare"
+          loadingMessage={LOADING_MESSAGES.STOCK_COMPARE}
+        />
       </section>
     );
   }

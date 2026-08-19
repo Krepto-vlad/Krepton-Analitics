@@ -81,13 +81,6 @@
   width: 100%;
 }
 
-.loadingState {
-  @include card($space-5);
-  color: $color-foreground-muted;
-  font-size: $font-size-sm;
-  text-align: center;
-}
-
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);

@@ -162,3 +162,33 @@ $breakpoint-xl: 1280px;
     transition: background-color 99999s ease-out 0s;
   }
 }
+
+@mixin password-strength-meter {
+  &.strengthLevel1 {
+    --password-strength-color: #{$color-danger};
+  }
+
+  &.strengthLevel2 {
+    --password-strength-color: #{$color-warning};
+  }
+
+  &.strengthLevel3 {
+    --password-strength-color: #{$color-benchmark};
+  }
+
+  &.strengthLevel4 {
+    --password-strength-color: #{$color-success};
+  }
+}
+
+@mixin password-strength-bar {
+  background: $color-gauge-track;
+
+  &.filled {
+    background: var(--password-strength-color);
+  }
+}
+
+@mixin password-strength-label {
+  color: var(--password-strength-color);
+}

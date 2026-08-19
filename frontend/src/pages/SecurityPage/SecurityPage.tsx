@@ -15,12 +15,14 @@ import {
 } from 'lucide-react';
 import { ROUTES } from '../../constants';
 import { Navbar, Footer } from '../../components/layout';
+import { joinClassNames } from '../../utils/classNames';
 import styles from './SecurityPage.module.scss';
+
+type SecurityAccentTone = 'primary' | 'indigo' | 'warning' | 'danger' | 'pink';
 
 interface Pillar {
   icon: React.ElementType;
-  iconBg: string;
-  iconColor: string;
+  accent: SecurityAccentTone;
   title: string;
   description: string;
   points: string[];
@@ -29,8 +31,7 @@ interface Pillar {
 const PILLARS: Pillar[] = [
   {
     icon: UserX,
-    iconBg: 'rgba(16,185,129,0.10)',
-    iconColor: '#10B981',
+    accent: 'primary',
     title: 'Zero-Identity by Design',
     description:
       'Your financial data is completely decoupled from your personal identity. We never ask for your real name, phone number, address, or government-issued ID.',
@@ -43,8 +44,7 @@ const PILLARS: Pillar[] = [
   },
   {
     icon: Lock,
-    iconBg: 'rgba(99,102,241,0.10)',
-    iconColor: '#6366F1',
+    accent: 'indigo',
     title: 'End-to-End Encryption',
     description:
       'All data in transit is encrypted via TLS 1.3. Sensitive fields at rest are encrypted with AES-256. Passwords are hashed using bcrypt with a per-user salt.',
@@ -57,8 +57,7 @@ const PILLARS: Pillar[] = [
   },
   {
     icon: Server,
-    iconBg: 'rgba(245,158,11,0.10)',
-    iconColor: '#F59E0B',
+    accent: 'warning',
     title: 'Minimal Data Storage',
     description:
       'We store only what is strictly necessary: email hash, password hash, and anonymised trade records. No browser fingerprints, no IP logs, no analytics cookies.',
@@ -73,8 +72,7 @@ const PILLARS: Pillar[] = [
 
 interface TechCard {
   icon: React.ElementType;
-  iconBg: string;
-  iconColor: string;
+  accent: SecurityAccentTone;
   title: string;
   body: string;
   tags: string[];
@@ -83,53 +81,55 @@ interface TechCard {
 const TECH_CARDS: TechCard[] = [
   {
     icon: Key,
-    iconBg: 'rgba(16,185,129,0.10)',
-    iconColor: '#10B981',
+    accent: 'primary',
     title: 'Authentication & Sessions',
     body: 'Authentication is based on JWT tokens with a short expiry window. Tokens are transmitted exclusively via HttpOnly, Secure, SameSite=Strict cookies — making them inaccessible to JavaScript and immune to XSS attacks. Refresh tokens are rotated on every use.',
     tags: ['JWT', 'HttpOnly Cookie', 'SameSite=Strict', 'Token Rotation'],
   },
   {
     icon: FileX,
-    iconBg: 'rgba(239,68,68,0.10)',
-    iconColor: '#EF4444',
+    accent: 'danger',
     title: 'Broker Report Processing',
     body: 'Uploaded CSV and XLSX broker reports are parsed entirely in-memory using a streaming reader. The raw file bytes never touch the server disk and are garbage-collected immediately after parsing. Only the extracted trade records (ticker, quantity, price, date) are persisted.',
     tags: ['In-memory parsing', 'No disk write', 'Immediate GC', 'Field-only storage'],
   },
   {
     icon: Database,
-    iconBg: 'rgba(99,102,241,0.10)',
-    iconColor: '#6366F1',
+    accent: 'indigo',
     title: 'Database Architecture',
     body: 'The PostgreSQL schema is split into two isolated logical zones: an auth zone (email hash + password hash) and a portfolio zone (userId foreign key + trade data). These zones share no columns containing personal identifiers, making re-identification technically unfeasible.',
     tags: ['Split-zone schema', 'FK without PII', 'No real names in DB', 'PostgreSQL'],
   },
   {
     icon: Eye,
-    iconBg: 'rgba(245,158,11,0.10)',
-    iconColor: '#F59E0B',
+    accent: 'warning',
     title: 'No Telemetry, No Ads',
     body: 'Krepton Analytics does not embed Google Analytics, Meta Pixel, Hotjar, or any third-party tracking script. There are no advertising SDKs. The only external calls the frontend makes are to our own backend API — everything else is blocked by a strict Content Security Policy.',
     tags: ['No Google Analytics', 'No Meta Pixel', 'Strict CSP', 'No ad SDKs'],
   },
   {
     icon: EyeOff,
-    iconBg: 'rgba(16,185,129,0.10)',
-    iconColor: '#10B981',
+    accent: 'primary',
     title: 'AI Feature Privacy',
     body: 'AI-powered insights use only anonymised, aggregated portfolio metrics — ticker symbols, weights, and basic statistics. No raw transaction details or personal identifiers are ever sent to an external model. All AI calls are rate-limited per account.',
     tags: ['Anonymised metrics only', 'No raw transactions', 'Rate limited', 'No PII to AI'],
   },
   {
     icon: Fingerprint,
-    iconBg: 'rgba(236,72,153,0.10)',
-    iconColor: '#EC4899',
+    accent: 'pink',
     title: 'Account Deletion',
     body: 'A full account deletion request removes all records from both the auth and portfolio zones within 24 hours. Deletion is irreversible. No backup retention of personal data after deletion — only anonymised aggregate statistics for platform health monitoring are retained.',
     tags: ['< 24h deletion', 'Fully irreversible', 'No backup of PII', 'Aggregate only'],
   },
 ];
+
+const SECURITY_ACCENT_CLASS_NAME: Record<SecurityAccentTone, string> = {
+  primary: styles.accentPrimary,
+  indigo: styles.accentIndigo,
+  warning: styles.accentWarning,
+  danger: styles.accentDanger,
+  pink: styles.accentPink,
+};
 
 interface FaqItem {
   question: string;
@@ -223,8 +223,13 @@ export function SecurityPage() {
                 const Icon = pillar.icon;
                 return (
                   <div key={pillar.title} className={styles.pillarCard}>
-                    <div className={styles.pillarIconWrap} style={{ background: pillar.iconBg }}>
-                      <Icon size={20} color={pillar.iconColor} />
+                    <div
+                      className={joinClassNames(
+                        styles.pillarIconWrap,
+                        SECURITY_ACCENT_CLASS_NAME[pillar.accent]
+                      )}
+                    >
+                      <Icon size={20} />
                     </div>
                     <div>
                       <h3 className={styles.pillarTitle}>{pillar.title}</h3>
@@ -265,8 +270,13 @@ export function SecurityPage() {
                 return (
                   <div key={card.title} className={styles.techCard}>
                     <div className={styles.techCardHeader}>
-                      <div className={styles.techCardIcon} style={{ background: card.iconBg }}>
-                        <Icon size={17} color={card.iconColor} />
+                      <div
+                        className={joinClassNames(
+                          styles.techCardIcon,
+                          SECURITY_ACCENT_CLASS_NAME[card.accent]
+                        )}
+                      >
+                        <Icon size={17} />
                       </div>
                       <h3 className={styles.techCardTitle}>{card.title}</h3>
                     </div>

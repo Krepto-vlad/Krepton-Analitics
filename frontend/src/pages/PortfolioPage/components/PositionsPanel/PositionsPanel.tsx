@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, HandCoins, Search, TrendingUp, Loader } from 'lucide-react';
-import { Button, AsyncStatePanel, TickerAvatar } from '../../../../components/ui';
+import { Plus, Trash2, HandCoins, Search, TrendingUp } from 'lucide-react';
+import { Button, AsyncStatePanel, ContentSkeleton, TickerAvatar } from '../../../../components/ui';
 import { buildLogoByTicker } from '../../../../utils/tickerLogos';
+import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import {
@@ -10,6 +11,7 @@ import {
   EQUITY_PERIODS,
   HOLDINGS_TABLE_HEADER_HEIGHT_PX,
   HOLDINGS_TABLE_ROW_HEIGHT_PX,
+  LOADING_MESSAGES,
 } from '../../../../constants';
 import type { Currency } from '../../../../constants';
 import { useEquityChart, formatChartPrice } from '../../../../hooks/useEquityChart';
@@ -229,19 +231,21 @@ function DonutChart({ sectors }: DonutChartProps) {
         <div className={styles.allocationBody}>
           <svg width={180} height={180} viewBox="0 0 180 180" className={styles.donutSvg}>
             <circle
+              className={styles.donutRing}
               cx={cx}
               cy={cy}
               r={ringRadius}
-              stroke={chartSectors[0].color}
               strokeWidth={ringWidth}
-              fill="none"
-              opacity={0.9}
+              style={toCssCustomProperties({ '--swatch-color': chartSectors[0].color })}
             />
           </svg>
           <ul className={styles.allocationLegend}>
             {sectors.map((sector) => (
               <li key={sector.sector} className={styles.legendItem}>
-                <span className={styles.legendDot} style={{ background: sector.color }} />
+                <span
+                  className={styles.legendDot}
+                  style={toCssCustomProperties({ '--swatch-color': sector.color })}
+                />
                 <span className={styles.legendLabel}>{sector.sector}</span>
                 <span className={styles.legendValue}>{sector.displayPercentage}%</span>
               </li>
@@ -294,13 +298,21 @@ function DonutChart({ sectors }: DonutChartProps) {
       <div className={styles.allocationBody}>
         <svg width={180} height={180} viewBox="0 0 180 180" className={styles.donutSvg}>
           {slices.map((slice) => (
-            <path key={slice.sector} d={slice.path} fill={slice.color} opacity={0.9} />
+            <path
+              key={slice.sector}
+              className={styles.donutSlice}
+              d={slice.path}
+              style={toCssCustomProperties({ '--swatch-color': slice.color })}
+            />
           ))}
         </svg>
         <ul className={styles.allocationLegend}>
           {sectors.map((sector) => (
             <li key={sector.sector} className={styles.legendItem}>
-              <span className={styles.legendDot} style={{ background: sector.color }} />
+              <span
+                className={styles.legendDot}
+                style={toCssCustomProperties({ '--swatch-color': sector.color })}
+              />
               <span className={styles.legendLabel}>{sector.sector}</span>
               <span className={styles.legendValue}>{sector.displayPercentage}%</span>
             </li>
@@ -467,7 +479,11 @@ export function PositionsPanel() {
   if (isLoading) {
     return (
       <>
-        <AsyncStatePanel isLoading loadingMessage="Loading portfolio…" />
+        <AsyncStatePanel
+          isLoading
+          loadingPreset="table"
+          loadingMessage={LOADING_MESSAGES.PORTFOLIO_HOLDINGS}
+        />
         <AddPositionModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
       </>
     );
@@ -587,7 +603,10 @@ export function PositionsPanel() {
           </div>
         </div>
 
-        <div className={styles.tableWrapper} style={{ minHeight: holdingsTableMinHeightPx }}>
+        <div
+          className={styles.tableWrapper}
+          style={toCssCustomProperties({ '--table-min-height': `${holdingsTableMinHeightPx}px` })}
+        >
           <table className={styles.table}>
             <thead>
               <tr>
@@ -723,10 +742,7 @@ export function PositionsPanel() {
         </div>
 
         {isLoadingTransactions ? (
-          <div className={styles.inlineLoading}>
-            <Loader size={18} className={styles.loadingSpinner} />
-            <span>Loading history…</span>
-          </div>
+          <ContentSkeleton preset="table" label={LOADING_MESSAGES.PORTFOLIO_TRANSACTIONS} />
         ) : transactions.length === 0 ? (
           <p className={styles.emptyHistoryText}>No buy or sell transactions yet.</p>
         ) : (

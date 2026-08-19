@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
-import { ERROR_MESSAGES, MARKET_MOVERS_COUNT, type Currency } from '../../../../constants';
+import {
+  ERROR_MESSAGES,
+  LOADING_MESSAGES,
+  MARKET_MOVERS_COUNT,
+  type Currency,
+} from '../../../../constants';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
 import { fetchMarketMovers } from '../../../../api/stockApi';
-import { TickerAvatar } from '../../../../components/ui';
+import { TickerAvatar, ContentSkeleton } from '../../../../components/ui';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import type { MarketMoverItem, MarketMoversResponse } from '../../../../types/stock.types';
 import { getRejectedMessage } from '../../../../utils/apiError';
@@ -220,7 +225,9 @@ export function MarketMoversPanel({
 
       {error && <p className={styles.errorState}>{error}</p>}
 
-      {isLoading && !movers && <p className={styles.loadingState}>Loading market movers…</p>}
+      {isLoading && !movers && (
+        <ContentSkeleton preset="movers" label={LOADING_MESSAGES.MARKET_MOVERS} />
+      )}
 
       {movers && (
         <>

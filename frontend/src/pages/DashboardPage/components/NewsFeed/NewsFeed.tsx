@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Newspaper, ExternalLink, Loader } from 'lucide-react';
+import { Newspaper, ExternalLink } from 'lucide-react';
 import {
   ROUTES,
   DASHBOARD_NEWS_INITIAL_VISIBLE,
   DASHBOARD_NEWS_LOAD_MORE_STEP,
+  LOADING_MESSAGES,
 } from '../../../../constants';
-import { ErrorBanner, TickerAvatar } from '../../../../components/ui';
+import { ContentSkeleton, ErrorBanner, TickerAvatar } from '../../../../components/ui';
 import type { NewsItem } from '../../../../types/portfolio.types';
 import styles from './NewsFeed.module.scss';
 
@@ -80,10 +81,7 @@ export function NewsFeed({
 
       <div className={styles.newsList}>
         {isLoading ? (
-          <div className={styles.emptyState} aria-busy="true">
-            <Loader size={22} className={styles.loadingSpinner} />
-            <p className={styles.emptyText}>Loading news for your holdings…</p>
-          </div>
+          <ContentSkeleton preset="news" label={LOADING_MESSAGES.PORTFOLIO_NEWS} />
         ) : !hasPortfolioHoldings ? (
           <div className={styles.emptyState}>
             <p className={styles.emptyTitle}>No holdings yet</p>

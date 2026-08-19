@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Loader2, Trash2 } from 'lucide-react';
-import { Button } from '../../../../components/ui';
+import { LOADING_MESSAGES } from '../../../../constants';
+import { Button, ContentSkeleton } from '../../../../components/ui';
 import { fetchBuyTransactionsForTicker } from '../../../../api/portfolioApi';
 import type { PortfolioTransaction } from '../../../../api/portfolioApi';
 import styles from './DeleteConfirmModal.module.scss';
@@ -149,10 +150,11 @@ function DeleteConfirmModalContent({
         </div>
 
         {isLoadingBuys ? (
-          <div className={styles.loadingState}>
-            <Loader2 size={18} className={styles.spinner} />
-            <span>Loading purchases…</span>
-          </div>
+          <ContentSkeleton
+            preset="table"
+            label={LOADING_MESSAGES.PORTFOLIO_PURCHASES}
+            className={styles.loadingState}
+          />
         ) : buys.length > 0 ? (
           <div className={styles.tableWrapper}>
             <p className={styles.tableLabel}>Purchase history</p>
