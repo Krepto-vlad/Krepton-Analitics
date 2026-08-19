@@ -60,7 +60,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | 6 | ML Model | data | — | **Не брать.** Gemini — LLM API, не своё обучение. |
 | 7 | Adaptive UI | technical | — | Запас, не в восьмёрке. Код: mixins, rem, theme. Критерий упирается в Figma на 3 форм-фактора. |
 | 8 | Refined UX | technical | — | Запас, не в восьмёрке. Код: стиль, ошибки, empty states. Нет UX spec / персон. |
-| 9 | AI Assistant / Chatbot | technical | plan | Сильнейший technical: news briefing, alignment, ticker chat, import schema; system prompt; quota; rate limit; guardrails; `AI_INTEGRATION.md`. Нет user guide, ≥10 примерных диалогов, замера <10 с / 10 concurrent, стриминга. |
+| 9 | AI Assistant / Chatbot | technical | plan | Сильнейший technical: news briefing, alignment, ticker chat, import schema; system prompt; quota; rate limit; guardrails; `AI_INTEGRATION.md`; **14 диалогов** + user guide + lab p95. Нет скрина чата; staging SLA после D4. |
 | 10 | Cryptography | technical | — | **Не брать.** bcrypt/JWT/HMAC сами по себе критерий не закрывают. HMAC `owner_token` — плюс к Database/GDPR, не отдельная криптозадача. |
 | 11 | Cloud | infrastructure | plan | Берём обязательно. Нет Azure/публичного URL/managed DB. Фаза D4 в `Docs/diploma/DIPLOMA_ROADMAP.md`. |
 | 12 | CI/CD | infrastructure | plan | GitHub Actions: lint, build, Jest, coverage artifact, `npm audit`, `docker build` + `compose config`. Husky pre-push с coverage. Нет CD/Azure. |
@@ -366,15 +366,15 @@ Node.js / Express подходит как «modern framework».
 - [x] Архитектура UI → Backend → LLM API, обоснование модели — mermaid + Gemini gateway `geminiClient.ts`
 - [x] System prompt с пояснением частей — `buildTickerChatSystemInstruction` + briefing/alignment prompts
 - [x] ≥ 3 prompt-шаблона под сценарии — news briefing, explain alignment, ticker chat, import schema
-- [ ] Примеры диалогов — ручная проверка в §18.9, отдельного пакета примеров нет
+- [x] Примеры диалогов — [ai-dialogs.md](./thesis/docs/appendices/ai-dialogs.md) (14 сценариев; jailbreak/code/buy)
 - [x] API docs эндпоинтов — таблицы в `AI_INTEGRATION.md` (не OpenAPI)
 - [x] Что ассистент **не умеет** — IN/OUT OF SCOPE + layered guardrails §18.6
-- [ ] User guide
+- [x] User guide — thesis `03-user-guide/ai-assistant.md`
 - [x] Чат UI + typing/processing/error + новая беседа — `TickerChatDrawer.tsx` (история сбрасывается при close / смене ticker)
 - [x] Валидация ввода, обработка timeout/429, логи — quota, Express rate limit, Gemini 429→503
 - [x] Ключи в env, базовая защита от prompt injection, rate limit — `GEMINI_API_KEY`, input gate + output guardrails
-- [ ] ≥ 10 примерных диалогов + некорректные запросы — unit-тесты scope есть, пакет диалогов нет
-- [ ] Ответ < 10 с, ≥ 10 concurrent users, история в рамках сессии — история ephemeral есть; SLA/нагрузка не замерены
+- [x] ≥ 10 примерных диалогов + некорректные запросы — appendix + `tickerChatScope.test.ts`
+- [x] Ответ < 10 с, ≥ 10 concurrent users, история в рамках сессии — lab 2026-08-19 p95 **947 ms** / 10 parallel Gemini **870 ms** wall; история ephemeral в drawer. Не prod SLA (нет staging).
 
 Запрещено: сырой прокси · нет system prompt · захардкоженные ответы · ключи в коде.
 
@@ -634,7 +634,7 @@ Coverage < 70%: −2. Тесты, которые не проверяют лог�
 | Backend | required | Express + слои; добить ORM, OpenAPI, логи, deploy, 70% |
 | Frontend | required | SPA + Redux + Vite; Error Boundary + RTL min закрыты; e2e Playwright на staging |
 | Database | data | Postgres + миграции + HMAC + CHECK + роли + seed + dictionary/ER |
-| AI Assistant | technical | ближайший к min; добить dialog pack, user guide, замер latency |
+| AI Assistant | technical | dialog pack + user guide + lab p95 закрыты; скрин и staging SLA — до слота |
 | Cloud | infrastructure | Azure + managed Postgres + public URL (фаза D4) |
 | CI/CD | infrastructure | GitHub Actions; CD можно manual trigger |
 | Automated tests 70%+ | processes | тот же coverage, что Backend min, плюс integration + FE + CI logs |

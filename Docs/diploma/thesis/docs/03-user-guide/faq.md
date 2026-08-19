@@ -22,7 +22,7 @@ A: Email and a password hash on `users`. Portfolio rows use an HMAC token, not y
 
 **Q: Why did AI refuse my question?**
 
-A: Ticker chat is scoped. Jailbreaks, unrelated coding, and buy/sell instructions are blocked by design.
+A: Ticker chat is scoped. Jailbreaks and poems never reach Gemini. Coding asks are steered to a finance answer. Buy/sell wording is stripped if the model emits advice. Examples: [dialog appendix](../appendices/ai-dialogs.md).
 
 **Q: Quotes look stale.**
 

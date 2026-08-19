@@ -169,8 +169,8 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 ### D0.5 AI артефакты
 
-- [ ] 10+ диалогов: нормальные вопросы + «ignore previous instructions» + «напиши код» + «купи AAPL».
-- [ ] Замер latency на staging, когда он появится; до этого — локальный p95 на 20 запросах (честно пометить как lab, не prod SLA).
+- [x] 10+ диалогов: нормальные вопросы + «ignore previous instructions» + «напиши код» + «купи AAPL».
+- [x] Замер latency на staging, когда он появится; до этого — локальный p95 на 20 запросах (честно пометить как lab, не prod SLA).
 
 ### D0.6 Docker-контракт (не критерий)
 
@@ -231,9 +231,9 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 ### AI Assistant (эксперт)
 
-- [ ] `AI_INTEGRATION.md` = основной evidence (уже сильный).
-- [ ] User guide (EN, 1–2 страницы).
-- [ ] Что **не** умеет: не советник, не общий ChatGPT, не код.
+- [x] `AI_INTEGRATION.md` = основной evidence (уже сильный).
+- [x] User guide (EN, 1–2 страницы).
+- [x] Что **не** умеет: не советник, не общий ChatGPT, не код.
 - [ ] Скрин чата + quota + disclaimer.
 
 Каждый выбранный критерий → файл `docs/02-technical/criteria/<name>.md` по `_template.md` (можно копить в `Docs/thesis/` до переезда в MkDocs).

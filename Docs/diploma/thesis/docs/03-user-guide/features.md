@@ -1,4 +1,4 @@
-<!-- prev: index.md | next: faq.md -->
+<!-- prev: index.md | next: ai-assistant.md -->
 
 # Feature Walkthrough
 
@@ -28,7 +28,9 @@ On News, select tickers you already hold (limit applies). Generate today’s sum
 
 ## Ticker AI chat
 
-Open the drawer on a ticker page. Ask about price, position, or news for **this** ticker. Requests like “ignore previous instructions” or “buy 100 shares” should be refused or steered. History is session-only (not stored in PostgreSQL).
+Open the drawer on a ticker page. Ask about **this** ticker (price, position, risks). Closing the drawer starts a new conversation. Jailbreaks and poems never reach Gemini.
+
+How-to: [AI user guide](ai-assistant.md). Full examples: [dialog appendix](../appendices/ai-dialogs.md).
 
 ## Privacy controls
 

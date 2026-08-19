@@ -1,4 +1,4 @@
-<!-- prev: api-reference.md | next: none -->
+<!-- prev: ai-lab-latency.md | next: none -->
 
 # Database Schema
 

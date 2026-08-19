@@ -1,4 +1,4 @@
-<!-- prev: glossary.md | next: db-schema.md -->
+<!-- prev: glossary.md | next: ai-dialogs.md -->
 
 # API Reference
 

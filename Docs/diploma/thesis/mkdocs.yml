@@ -81,11 +81,14 @@ nav:
   - User Guide:
     - Getting Started: 03-user-guide/index.md
     - Features: 03-user-guide/features.md
+    - AI assistant: 03-user-guide/ai-assistant.md
     - FAQ: 03-user-guide/faq.md
   - Retrospective: 04-retrospective/index.md
   - Appendices:
     - Glossary: appendices/glossary.md
     - API Reference: appendices/api-reference.md
+    - AI dialogs: appendices/ai-dialogs.md
+    - AI lab latency: appendices/ai-lab-latency.md
     - Database Schema: appendices/db-schema.md
 
 extra:

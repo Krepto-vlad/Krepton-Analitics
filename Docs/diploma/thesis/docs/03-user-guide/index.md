@@ -5,6 +5,7 @@
 ## Contents
 
 - [Features Walkthrough](features.md)
+- [AI assistant](ai-assistant.md)
 - [FAQ & Troubleshooting](faq.md)
 
 ## Getting Started

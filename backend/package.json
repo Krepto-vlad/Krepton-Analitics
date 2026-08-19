@@ -17,7 +17,8 @@
     "migrate:up": "node-pg-migrate up --migrations-dir src/migrations --database-url-var DATABASE_URL",
     "migrate:down": "node-pg-migrate down --migrations-dir src/migrations --database-url-var DATABASE_URL",
     "migrate:create": "node-pg-migrate create --migrations-dir src/migrations",
-    "seed:demo": "tsx src/scripts/seedDemo.ts"
+    "seed:demo": "tsx src/scripts/seedDemo.ts",
+    "ai:lab-latency": "tsx scripts/measureAiLabLatency.ts"
   },
   "dependencies": {
     "axios": "^1.19.0",

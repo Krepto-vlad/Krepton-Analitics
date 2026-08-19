@@ -32,7 +32,7 @@ System prompts, templates, and “what we cannot do” are part of the product, 
 ### Consequences
 
 **Positive:** Clear expert story: prompts, gateway, guardrails, quota.  
-**Negative:** Example-dialog pack and latency table still need a dedicated thesis artifact.  
+**Negative:** Staging SLA still pending (lab numbers only).  
 **Neutral:** RAG / multi-model routing is AI **max**, not required for 5.
 
 ## Implementation Details
@@ -63,14 +63,14 @@ Sequence diagrams: keep the mermaid from the engineering note when shortening th
 |---|-------------|--------|----------|
 | 1 | Purpose, audience, use cases | ✅ | This ADR + BA features |
 | 2 | Architecture + model choice | ✅ | Gemini via backend gateway |
-| 3 | Prompt engineering (system + ≥3 templates) | ⚠️ | In `geminiClient` / constants; copy into appendix |
-| 4 | API docs for AI endpoints | ⚠️ | `backend/openapi.yaml` tag AI |
-| 5 | Limitations (“cannot do”) | ⚠️ | Product copy; expand here |
-| 6 | Chat UI + status + new conversation | ✅ | Ticker drawer |
-| 7 | Validation, timeouts, logging | ⚠️ | Errors handled; structured AI logs TBD |
-| 8 | Keys in env, injection filter, rate limit | ✅ | |
-| 9 | ≥10 example dialogs | ❌ | Collect into appendix |
-| 10 | <10 s, ≥10 concurrent, session history | ⚠️ | History in-session for ticker; load test TBD |
+| 3 | Prompt engineering (system + ≥3 templates) | ✅ | `buildTickerChatSystemInstruction` + briefing/alignment/import prompts |
+| 4 | API docs for AI endpoints | ✅ | `backend/openapi.yaml` tag AI; [api-reference.md](../../appendices/api-reference.md) |
+| 5 | Limitations (“cannot do”) | ✅ | [AI user guide](../../03-user-guide/ai-assistant.md) |
+| 6 | Chat UI + status + new conversation | ✅ | Ticker drawer; close clears history |
+| 7 | Validation, timeouts, logging | ⚠️ | 400/429/503 handled; pino; dedicated AI cost dashboard is max |
+| 8 | Keys in env, injection filter, rate limit | ✅ | `GEMINI_API_KEY`, tickerChatScope, express-rate-limit |
+| 9 | ≥10 example dialogs | ✅ | [ai-dialogs.md](../../appendices/ai-dialogs.md) (14 scenarios) |
+| 10 | <10 s, ≥10 concurrent, session history | ✅ | [ai-lab-latency.md](../../appendices/ai-lab-latency.md) lab 2026-08-19; history in drawer |
 | 11 | Not a dumb proxy | ✅ | Scope + sanitizer + quota + cache |
 
 ## Known Limitations
@@ -85,3 +85,6 @@ Sequence diagrams: keep the mermaid from the engineering note when shortening th
 
 - `backend/src/services/geminiClient.ts`, `tickerChatScope`, `newsSummaryService`
 - Working (internal): `Docs/AI_INTEGRATION.md`
+- Dialogs: [ai-dialogs.md](../../appendices/ai-dialogs.md)
+- Lab latency: [ai-lab-latency.md](../../appendices/ai-lab-latency.md)
+- User guide: [ai-assistant.md](../../03-user-guide/ai-assistant.md)
