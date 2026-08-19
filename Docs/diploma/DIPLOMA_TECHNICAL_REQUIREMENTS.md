@@ -63,8 +63,8 @@ BA защищается **отдельной комиссией**, не у ин�
 | 9 | AI Assistant / Chatbot | technical | plan | Сильнейший technical: news briefing, alignment, ticker chat, import schema; system prompt; quota; rate limit; guardrails; `AI_INTEGRATION.md`. Нет user guide, ≥10 примерных диалогов, замера <10 с / 10 concurrent, стриминга. |
 | 10 | Cryptography | technical | — | **Не брать.** bcrypt/JWT/HMAC сами по себе критерий не закрывают. HMAC `owner_token` — плюс к Database/GDPR, не отдельная криптозадача. |
 | 11 | Cloud | infrastructure | plan | Берём обязательно. Нет Azure/публичного URL/managed DB. Фаза D4 в `Docs/diploma/DIPLOMA_ROADMAP.md`. |
-| 12 | CI/CD | infrastructure | plan | GitHub Actions: lint, build, Jest, coverage artifact, `npm audit`. Husky pre-push с coverage. Нет CD/Azure. |
-| 13 | Containerization | infrastructure | — | **Не заявляем.** Dockerfile+compose пишем как контракт CI/Azure без локального Docker. Можно добавить 9-м, если образы доказаны в Actions. |
+| 12 | CI/CD | infrastructure | plan | GitHub Actions: lint, build, Jest, coverage artifact, `npm audit`, `docker build` + `compose config`. Husky pre-push с coverage. Нет CD/Azure. |
+| 13 | Containerization | infrastructure | — | **Не заявляем.** Файлы есть (`Dockerfile` ×2, compose, `.env.example`). Критерий не берём, пока `compose up` не доказан на машине с Docker. |
 | 14 | Microservices | infrastructure | — | **Не брать.** Монолит FE+BE+Postgres не считается. |
 | 15 | API Documentation | processes | — | Текстовые эндпоинты AI в `AI_INTEGRATION.md` ≠ OpenAPI-портал. Для Backend min хватит текста/Swagger; как отдельный критерий — нет. |
 | 16 | Automated tests 70%+ | processes | plan | Backend Jest **≥70%** statements/lines/functions, HTML в CI. FE: 3 RTL + money/rebalancing unit. Нет integration с БД, нет Playwright e2e. |

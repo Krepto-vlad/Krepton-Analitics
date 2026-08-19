@@ -1,4 +1,5 @@
 export const DEFAULT_PORT = 3001;
+export const HTTPS_ORIGIN_PREFIX = 'https://';
 
 export const HISTORICAL_DATA_PERIODS = {
   ONE_WEEK: '7d',

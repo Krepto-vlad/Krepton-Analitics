@@ -165,7 +165,7 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 - [x] GitHub Actions: lint + format check + build FE/BE + `jest` (оба пакета).
 - [x] Кэш npm. Пайплайн падает на ошибке.
 - [x] Coverage report как artifact; **порог 70%** на statements/lines/functions в `backend/jest.config.js` и в CI.
-- [ ] Job `docker build` (без push в registry, пока нет ACR) — проверка Dockerfiles без локального Docker.
+- [x] Job `docker build` (без push в registry, пока нет ACR) — проверка Dockerfiles без локального Docker.
 
 ### D0.5 AI артефакты
 
@@ -174,9 +174,9 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 ### D0.6 Docker-контракт (не критерий)
 
-- [ ] `backend/Dockerfile`, `frontend/Dockerfile` (multi-stage, non-root, ENV).
-- [ ] `docker-compose.yml`: api + web + postgres; `.env.example`.
-- [ ] README: «local without Docker» vs «compose (CI/Azure)».
+- [x] `backend/Dockerfile`, `frontend/Dockerfile` (multi-stage, non-root, ENV).
+- [x] `docker-compose.yml`: api + web + postgres; `.env.example`.
+- [x] README: «local without Docker» vs «compose (CI/Azure)».
 
 ---
 

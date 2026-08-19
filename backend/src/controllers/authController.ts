@@ -13,7 +13,8 @@ import {
   resendVerificationEmail,
 } from '../services/authService.js';
 import { AppError } from '../middleware/errorHandler.js';
-import { JWT_COOKIE_NAME, JWT_COOKIE_MAX_AGE_MS } from '../constants.js';
+import { env } from '../config/env.js';
+import { HTTPS_ORIGIN_PREFIX, JWT_COOKIE_NAME, JWT_COOKIE_MAX_AGE_MS } from '../constants.js';
 import type {
   AuthResponse,
   RegisterBody,
@@ -37,7 +38,7 @@ function getAuthCookieOptions(): {
 } {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.frontendUrl.startsWith(HTTPS_ORIGIN_PREFIX),
     sameSite: 'strict',
     maxAge: JWT_COOKIE_MAX_AGE_MS,
   };
@@ -50,7 +51,7 @@ function setAuthCookie(res: Response, token: string): void {
 function clearAuthCookie(res: Response): void {
   res.clearCookie(JWT_COOKIE_NAME, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.frontendUrl.startsWith(HTTPS_ORIGIN_PREFIX),
     sameSite: 'strict',
   });
 }
