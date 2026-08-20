@@ -13,7 +13,7 @@
 | **Backend** | Node.js + Express 4 + TypeScript | Course stack; cookie middleware; not Nest (YAGNI) |
 | **Database** | PostgreSQL | OLTP, constraints, EU managed option on Azure |
 | **Migrations** | node-pg-migrate | DDL in Git |
-| **ORM** | drizzle-orm | SQL-first mapping for users/watchlist; HMAC stays raw |
+| **ORM** | drizzle-orm | SQL-first mapping for users/watchlist/AI cache+quota; HMAC stays raw |
 | **Logs** | pino | JSON logs + request id (Backend min) |
 | **AI** | Gemini via backend gateway | News + ticker chat; not a ChatGPT iframe |
 | **Market data** | yahoo-finance2 | Free public quotes, server-side |

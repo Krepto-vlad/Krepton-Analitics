@@ -32,8 +32,8 @@ System prompts, templates, and “what we cannot do” are part of the product, 
 ### Consequences
 
 **Positive:** Clear expert story: prompts, gateway, guardrails, quota.  
-**Negative:** Staging SLA still pending (lab numbers only).  
-**Neutral:** RAG / multi-model routing is AI **max**, not required for 5.
+**Negative:** Staging SLA still pending (lab numbers only). Screenshots of chat/briefing still missing.  
+**Neutral:** RAG / MCP / multi-model / persistent chat / SSE are AI **max** and **not claimed**. Target is 7–8 via guardrails + quota/cache. Google Search grounding (after billing) is citations, not RAG.
 
 ## Implementation Details
 
@@ -67,19 +67,22 @@ Sequence diagrams: keep the mermaid from the engineering note when shortening th
 | 4 | API docs for AI endpoints | ✅ | `backend/openapi.yaml` tag AI; [api-reference.md](../../appendices/api-reference.md) |
 | 5 | Limitations (“cannot do”) | ✅ | [AI user guide](../../03-user-guide/ai-assistant.md) |
 | 6 | Chat UI + status + new conversation | ✅ | Ticker drawer; close clears history |
-| 7 | Validation, timeouts, logging | ⚠️ | 400/429/503 handled; pino; dedicated AI cost dashboard is max |
+| 7 | Validation, timeouts, logging | ⚠️ | 400/429/503 handled; pino + `x-request-id`; no token-cost dashboard |
 | 8 | Keys in env, injection filter, rate limit | ✅ | `GEMINI_API_KEY`, tickerChatScope, express-rate-limit |
 | 9 | ≥10 example dialogs | ✅ | [ai-dialogs.md](../../appendices/ai-dialogs.md) (14 scenarios) |
-| 10 | <10 s, ≥10 concurrent, session history | ✅ | [ai-lab-latency.md](../../appendices/ai-lab-latency.md) lab 2026-08-19; history in drawer |
+| 10 | <10 s, ≥10 concurrent, session history | ⚠️ | [ai-lab-latency.md](../../appendices/ai-lab-latency.md) lab 2026-08-19; re-run on staging |
 | 11 | Not a dumb proxy | ✅ | Scope + sanitizer + quota + cache |
+| 12 | Screenshot chat + briefing | ❌ | Before the expert slot |
+| 13 | Max: pre/post + quota/cache | ✅ | `tickerChatScope`, `aiQuotaService`, `ai_news_summaries` |
+| 14 | Max skip | — | No RAG, MCP≥3, 2 models, SSE, chat-in-DB, multimodal LLM, Grafana tokens |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| Grounding off on free tier | Weaker citations | Enable when billing exists |
-| Chat history not persisted | Session-only | Document as privacy choice |
-| No RAG corpus | Not max | Out of declared grade |
+| Grounding off on free tier | Weaker citations | Enable when billing exists; still not RAG |
+| Chat history not persisted | Session-only | Document as privacy choice (anonymous OLTP) |
+| No RAG / MCP / second model / SSE | Expert may ask the max list | ADR in this file: one Gemini, Yahoo context, ephemeral drawer |
 
 ## References
 

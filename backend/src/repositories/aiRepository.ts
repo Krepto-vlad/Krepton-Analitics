@@ -1,4 +1,6 @@
-import { pool } from '../config/db.js';
+import { and, count, eq, gte, sql } from 'drizzle-orm';
+import { db } from '../config/db.js';
+import { aiNewsSummaries, aiUsageEvents } from '../db/schema.js';
 import type { AiFeatureId } from '../constants.js';
 import type {
   AiNewsSummaryRow,
@@ -16,20 +18,38 @@ interface AiFeatureCacheRow<TPayload> {
   created_at: Date;
 }
 
+function toCacheRow<TPayload>(
+  row: typeof aiNewsSummaries.$inferSelect
+): AiFeatureCacheRow<TPayload> {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    tickers_key: row.tickers_key,
+    summary_date: row.summary_date,
+    tickers: row.tickers,
+    summary_payload: row.summary_payload as TPayload,
+    created_at: row.created_at,
+  };
+}
+
 async function findAiFeatureCache<TPayload>(
   userId: string,
   cacheKey: string,
   cacheDate: string
 ): Promise<AiFeatureCacheRow<TPayload> | null> {
-  const result = await pool.query<AiFeatureCacheRow<TPayload>>(
-    `SELECT id, user_id, tickers_key, summary_date::text AS summary_date,
-            tickers, summary_payload, created_at
-     FROM ai_news_summaries
-     WHERE user_id = $1 AND tickers_key = $2 AND summary_date = $3`,
-    [userId, cacheKey, cacheDate]
-  );
+  const rows = await db
+    .select()
+    .from(aiNewsSummaries)
+    .where(
+      and(
+        eq(aiNewsSummaries.user_id, userId),
+        eq(aiNewsSummaries.tickers_key, cacheKey),
+        eq(aiNewsSummaries.summary_date, cacheDate)
+      )
+    )
+    .limit(1);
 
-  return result.rows[0] ?? null;
+  return rows[0] ? toCacheRow<TPayload>(rows[0]) : null;
 }
 
 async function saveAiFeatureCache(params: {
@@ -37,24 +57,25 @@ async function saveAiFeatureCache(params: {
   cacheKey: string;
   cacheDate: string;
   tags: string[];
-  payload: unknown;
+  payload: NewsSummaryPayload | AlignmentExplanationPayload;
 }): Promise<void> {
-  await pool.query(
-    `INSERT INTO ai_news_summaries (user_id, tickers_key, summary_date, tickers, summary_payload)
-     VALUES ($1, $2, $3, $4, $5)
-     ON CONFLICT (user_id, tickers_key, summary_date)
-     DO UPDATE SET
-       tickers = EXCLUDED.tickers,
-       summary_payload = EXCLUDED.summary_payload,
-       created_at = NOW()`,
-    [
-      params.userId,
-      params.cacheKey,
-      params.cacheDate,
-      JSON.stringify(params.tags),
-      JSON.stringify(params.payload),
-    ]
-  );
+  await db
+    .insert(aiNewsSummaries)
+    .values({
+      user_id: params.userId,
+      tickers_key: params.cacheKey,
+      summary_date: params.cacheDate,
+      tickers: params.tags,
+      summary_payload: params.payload,
+    })
+    .onConflictDoUpdate({
+      target: [aiNewsSummaries.user_id, aiNewsSummaries.tickers_key, aiNewsSummaries.summary_date],
+      set: {
+        tickers: params.tags,
+        summary_payload: params.payload,
+        created_at: sql`NOW()`,
+      },
+    });
 }
 
 export async function findNewsSummaryCache(
@@ -110,20 +131,23 @@ export async function countAiUsageSince(
   feature: AiFeatureId,
   since: Date
 ): Promise<number> {
-  const result = await pool.query<{ count: string }>(
-    `SELECT COUNT(*)::text AS count
-     FROM ai_usage_events
-     WHERE user_id = $1 AND feature = $2 AND created_at >= $3`,
-    [userId, feature, since.toISOString()]
-  );
+  const rows = await db
+    .select({ value: count() })
+    .from(aiUsageEvents)
+    .where(
+      and(
+        eq(aiUsageEvents.user_id, userId),
+        eq(aiUsageEvents.feature, feature),
+        gte(aiUsageEvents.created_at, since)
+      )
+    );
 
-  return parseInt(result.rows[0]?.count ?? '0', 10);
+  return Number(rows[0]?.value ?? 0);
 }
 
 export async function insertAiUsageEvent(userId: string, feature: AiFeatureId): Promise<void> {
-  await pool.query(
-    `INSERT INTO ai_usage_events (user_id, feature)
-     VALUES ($1, $2)`,
-    [userId, feature]
-  );
+  await db.insert(aiUsageEvents).values({
+    user_id: userId,
+    feature,
+  });
 }

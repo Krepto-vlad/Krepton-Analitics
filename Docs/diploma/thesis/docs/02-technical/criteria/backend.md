@@ -14,7 +14,7 @@ Backend is a required criterion. The API must be a real server (not static JSON)
 
 ### Decision
 
-Node.js + Express + TypeScript. Routes → middleware → controllers → services → repositories. Drizzle ORM for `users` and `watchlist`; HMAC portfolio SQL stays explicit. pino JSON logs. OpenAPI file in Git. Deploy to Azure in phase D4.
+Node.js + Express + TypeScript. Routes → middleware → controllers → services → repositories. Drizzle ORM for `users`, `watchlist`, AI cache/quota; HMAC portfolio SQL stays explicit. pino JSON logs. OpenAPI file in Git. Deploy to Azure in phase D4.
 
 ### Alternatives Considered
 
@@ -28,8 +28,8 @@ Node.js + Express + TypeScript. Routes → middleware → controllers → servic
 ### Consequences
 
 **Positive:** Expert can open folders and follow one request.  
-**Negative:** Two data-access styles until remaining tables are on Drizzle.  
-**Neutral:** Redis/Kafka/microservices are Backend **max** and not claimed.
+**Negative:** Two data-access styles by design: Drizzle for identity/AI/watchlist; raw SQL for HMAC `owner_token`.  
+**Neutral:** Redis/Kafka/microservices/Grafana/Sonar are Backend **max** and **not claimed**. Target is a solid 5 plus 2–3 honest ops directions (Azure CD, log stream, correlation id, one alert).
 
 ## Implementation Details
 
@@ -84,7 +84,7 @@ See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_B
 |---|-------------|--------|----------|
 | 1 | Modern framework | ✅ | Express |
 | 2 | Database for state | ✅ | PostgreSQL |
-| 3 | ORM | ⚠️ | Drizzle on users/watchlist; portfolio still raw SQL |
+| 3 | ORM | ✅ | Drizzle on users, watchlist, AI cache/quota; HMAC portfolio still raw SQL |
 | 4 | Layered architecture | ✅ | routes / controllers / services / repositories |
 | 5 | SOLID | ✅ | Table above; composition over inheritance |
 | 6 | API description | ⚠️ | `backend/openapi.yaml` — keep in sync |
@@ -94,6 +94,14 @@ See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_B
 | 10 | Unit tests ≥ 70% | ✅ | Jest `coverageThreshold` 70% statements/lines/functions; HTML+lcov artifact in CI |
 | 11 | JSON, Git, secrets in env, no custom JWT | ✅ | |
 | 12 | `npm audit` | ✅ | CI job + `Docs/diploma/NPM_AUDIT_BACKEND.md` (xlsx high accepted) |
+| 13 | OpenAPI valid + in sync | ❌ | Spectral in CI (D2) |
+| 14 | Drizzle on remaining non-HMAC tables | ✅ | `ai_news_summaries`, `ai_usage_events`; keep `owner_token` SQL (ADR) |
+| 15 | Max: CD image → registry | ❌ | D4; also Cloud + CI/CD |
+| 16 | Max: centralized logs | ❌ | Write-up + D4 Log stream screenshot; pino stdout already in code; not ELK |
+| 17 | Max: tracing | ⚠️ | Code done (`x-request-id`); remaining work is the thesis sentence, not a new tracer |
+| 18 | Max: alerting | ❌ | One Azure 5xx alert in D4 |
+| 19 | Max: deploy only if CI green | ❌ | D4 CD |
+| 20 | Max skip | — | No microservices, Kafka, Redis, Grafana, ELK cluster, Sonar, fake 80% coverage |
 
 ## Known Limitations
 
@@ -101,6 +109,7 @@ See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_B
 |------------|--------|------|
 | Branch coverage ~50% | Not the diploma counter (statements/lines) | Optional later |
 | No public URL | Backend min + Cloud | Phase D4 |
+| Max list not fully claimed | Expert may ask “where is Redis?” | ADR in this file: single instance, in-process quote cache |
 
 ## References
 

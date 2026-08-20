@@ -6,7 +6,7 @@
 |-----------|-------|
 | **Database** | PostgreSQL |
 | **DDL** | `backend/src/migrations/` (node-pg-migrate) |
-| **ORM** | drizzle-orm for `users`, `watchlist_items`; HMAC portfolio still SQL |
+| **ORM** | drizzle-orm for `users`, `watchlist_items`, `ai_news_summaries`, `ai_usage_events`; HMAC portfolio still SQL |
 | **Roles** | `app_read` / `app_write` / `app_admin` — see working note `Docs/diploma/DATABASE_ROLES.md` |
 | **Seed** | `cd backend && npm run seed:demo` (refused when `NODE_ENV=production`) |
 

@@ -29,8 +29,9 @@ Istanbul gate in `backend/jest.config.js`: statements, lines, and functions **�
 
 ### Consequences
 
-**Positive:** One coverage number serves Backend min.  
-**Negative:** No live Postgres in CI yet; Playwright e2e still extra.
+**Positive:** One coverage number serves Backend min. Quality gate is real (CI fails under 70%).  
+**Negative:** HTTP integration does not hit Postgres; Playwright e2e still extra.  
+**Neutral:** Mutation, Pact, k6, and FE coverage 70% are Auto tests **max** and **not claimed**. Target is 7–8 via gate + critical unit + thin pyramid (one DB test + one Playwright). Qualitative/JMeter is a different criterion.
 
 ## How to run
 
@@ -48,21 +49,26 @@ cd frontend && npm test
 | # | Requirement | Status | Evidence |
 |---|-------------|--------|----------|
 | 1 | Documented strategy | ✅ | This ADR |
-| 2 | Coverage ≥ 70% + report | ✅ | Jest threshold; CI artifact `backend-coverage` |
+| 2 | Coverage ≥ 70% + report | ✅ | Jest threshold; CI artifact `backend-coverage` (screenshot TBD) |
 | 3 | Unit tests + edge cases | ✅ | Auth, portfolio, import, AI quota/chat, controllers |
-| 4 | Integration (API, auth, DB) | ⚠️ | HTTP: `/health`, 401 on `/api/portfolio`, 400 on search without `q`. No live Postgres in CI yet |
-| 5 | FE component and/or e2e | ✅ | 3 RTL: ErrorBanner, AppErrorBoundary, RequireAuth (Playwright extra) |
+| 4 | Integration (API, auth, DB) | ⚠️ | HTTP: `/health`, 401 portfolio, 400 search. **No live Postgres in CI** |
+| 5 | FE component and/or e2e | ⚠️ | RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel, Skeleton; Playwright extra |
 | 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` |
 | 7 | Naming / folders | ✅ | `*.test.ts` / `__tests__` |
 | 8 | How to run locally | ✅ | Commands above |
+| 9 | Max: coverage quality gate | ✅ | statements/lines/functions ≥ 70%; branches not gated |
+| 10 | Max: screenshot green CI + coverage % | ❌ | Appendix |
+| 11 | Max skip | — | No mutation, Pact, k6, Cypress, FE 70% gate, branch 70% gate |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| Yahoo mocked in unit tests | Not a live-market integration | Staging smoke later |
-| FE coverage not gated | Auto tests min | RTL min done; gate later if needed |
-| No test DB | Auth/API integration does not hit Postgres | Staging smoke / testcontainers later |
+| Yahoo/Gemini mocked in unit tests | Not a live-market integration | Staging smoke later; keep mocks in CI |
+| FE coverage not gated | Honest: RTL min, not 70% SPA | Do not gate |
+| No test DB in CI | Auth/API integration does not hit Postgres | `services: postgres` or staging cookie smoke |
+| No Playwright | Frontend min e2e + Auto tests pyramid | login → dashboard |
+| Branches ~50% | Not the diploma counter | Leave ungated |
 
 ## References
 

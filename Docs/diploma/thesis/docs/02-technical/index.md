@@ -41,7 +41,7 @@
 |-----------|-------------|------------|
 | **Frontend** | SPA: auth, dashboard, import, news, ticker chat | React 19, Vite, Redux Toolkit, SCSS modules |
 | **Backend** | REST + WS, business logic, AI gateway | Node.js, Express, TypeScript |
-| **Database** | Users, portfolio, AI cache/quota | PostgreSQL + node-pg-migrate + Drizzle (users/watchlist) |
+| **Database** | Users, portfolio, AI cache/quota | PostgreSQL + node-pg-migrate + Drizzle (users/watchlist/AI); HMAC SQL |
 | **Cache** | Quotes / ticker tape in process memory | Application memory (not Redis) |
 | **External** | Quotes and headlines; LLM | Yahoo Finance; Google Gemini |
 

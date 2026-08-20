@@ -29,7 +29,7 @@ React 19 + Vite + TypeScript + React Router + Redux Toolkit + SCSS modules. Page
 
 **Positive:** Matches Frontend min architecture list.  
 **Negative:** Playwright e2e still waits for a public staging URL.  
-**Neutral:** Adaptive UI as a **separate criterion** is not declared.
+**Neutral:** Adaptive UI / Refined UX as **separate criteria** are not declared. Frontend max target is 7–8 via lazy + RTK + charts. Lighthouse is a walkthrough (prod build, landing + dashboard), not a promise of Performance ≥ 90 on the chart-heavy dashboard. Accessibility is an evidence check (Lighthouse a11y + keyboard + axe), not a WCAG criterion.
 
 ## Implementation Details
 
@@ -131,19 +131,26 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 | 4 | Global state | ✅ | Redux Toolkit |
 | 5 | Typed API client | ✅ | TypeScript + `api/` |
 | 6 | Forms + validation, lists, filter/search | ✅ | Auth, import, screener/search |
-| 7 | Responsive desktop + mobile | ⚠️ | Tokens/mixins; tablet evidence screenshots TBD |
+| 7 | Responsive desktop + mobile | ⚠️ | Tokens/mixins; **+ диплом** screenshots TBD |
 | 8 | ESLint + Prettier | ✅ | |
 | 9 | Global errors + user-visible messages | ✅ | Interceptor, ErrorBanner, AppErrorBoundary |
 | 10 | Skeleton/loading on async fetches | ✅ | `Skeleton`, `AsyncStatePanel` presets; search/auth keep button spinners |
-| 11 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | RTL includes ErrorBanner, RequireAuth, AsyncStatePanel, Skeleton; Playwright still D-later |
+| 11 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | RTL done; **+ продукт** Playwright smoke |
 | 12 | No tokens in code | ✅ | |
+| 13 | Max: lazy routes + RTK + charts/theme | ✅ | Three directions already in code |
+| 14 | Max: performance evidence | ❌ | Bundle visualizer + Lighthouse walkthrough (preview/staging; dashboard Performance 90 not claimed) |
+| 15 | Max: accessibility check | ❌ | Lighthouse a11y + keyboard + axe; Adaptive UI criterion still not declared |
+| 16 | Max skip | — | No FSD, Next, Figma-as-Frontend, Storybook, Sentry, toast lib, PWA |
+| 17 | Later (not max) | — | i18n EN+RU after the eight criteria; defense stays EN UI |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| No Playwright smoke | Auto tests max / extra FE min | Staging URL in D4 |
+| No Playwright smoke | Frontend min e2e + Auto tests | Staging URL in D4 or local API |
 | Tablet screenshots | Responsive evidence | Capture before pre-defense |
+| Dashboard Lighthouse Performance 45 (dev, 2026-08-19) | Expert may ask for 90 | Walk through report on **prod build**; accept charts/polling; do not fake the score |
+| Accessibility not a declared criterion | Still need evidence | Lighthouse a11y (96 on dashboard lab) + keyboard + axe; remaining in appendix |
 
 ## References
 

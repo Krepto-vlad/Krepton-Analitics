@@ -28,7 +28,7 @@ PostgreSQL, 3NF transactional model, migrations in Git. `portfolio_accounts.owne
 
 **Positive:** Integrity via PK/FK where it does not break anonymity; HMAC is auditable SQL.  
 **Negative:** Experts must be told why there is **no** FK from portfolio → users.  
-**Neutral:** No second analytical DBMS (OLAP max not claimed).
+**Neutral:** No second analytical DBMS, no triggers/views for the rubric letter. Database max target is 7–8 via migrations + justified indexes + HMAC masking. Azure PITR is Cloud, not a second database.
 
 ## Implementation Details
 
@@ -58,6 +58,11 @@ See [Database schema appendix](../../appendices/db-schema.md).
 | 8 | DB roles, not superuser | ✅ | `app_read` / `app_write` / `app_admin`; `\du` screenshot on the stand |
 | 9 | Password hashing | ✅ | bcrypt, not plaintext |
 | 10 | Indexes justified | ✅ | appendix “Indexes (why)” |
+| 11 | Max: schema migrations | ✅ | `node-pg-migrate` |
+| 12 | Max: PII masking | ✅ | HMAC `owner_token`, no portfolio→users FK |
+| 13 | Max: `\du` + `app_write` on staging | ❌ | Capture on the defense DB (D4) |
+| 14 | Max: EXPLAIN appendix | ❌ | `owner_token` / `email` lookup |
+| 15 | Max skip | — | No Timescale/ClickHouse, DWH, triggers, matviews, shards, Redis-as-DB |
 
 ## Known Limitations
 
@@ -65,6 +70,7 @@ See [Database schema appendix](../../appendices/db-schema.md).
 |------------|--------|------|
 | Local still uses owner URL | Fine for inner loop | Staging `DATABASE_URL` = `app_write` |
 | `\du` screenshot not in zip yet | Expert evidence | Capture on the defense DB |
+| No second DBMS / no triggers / no views | Expert may ask the max list | ADR: Yahoo+TTL, GDPR deletes transactions, aggregations need live prices |
 
 ## References
 

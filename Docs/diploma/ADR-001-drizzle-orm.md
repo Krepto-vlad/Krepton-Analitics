@@ -17,7 +17,8 @@ Use **Drizzle ORM** (`drizzle-orm` + existing `pg` Pool) as the ORM:
 - Schema lives in `backend/src/db/schema.ts` (TypeScript table mapping).
 - DDL source of truth remains **`node-pg-migrate`** (no Drizzle Kit push to prod).
 - First domains on Drizzle: **`users`** and **`watchlist_items`**.
-- HMAC portfolio queries stay raw SQL in `portfolioRepository.ts` until that domain is mapped with the same explicit token math.
+- Later mapped (same pool, still no HMAC SQL): **`ai_news_summaries`**, **`ai_usage_events`**.
+- HMAC portfolio queries stay raw SQL in `portfolioRepository.ts` (`owner_token`, `positions`, `transactions`).
 
 ## Alternatives considered
 
@@ -30,8 +31,8 @@ Use **Drizzle ORM** (`drizzle-orm` + existing `pg` Pool) as the ORM:
 
 ## Consequences
 
-**Positive:** Typed table schema an expert can open; CRUD without string-built SQL for users/watchlist; still one Postgres connection pool.
+**Positive:** Typed table schema an expert can open; CRUD without string-built SQL for users/watchlist/AI cache+quota; still one Postgres connection pool.
 
-**Negative:** Two access styles until remaining tables are mapped. Schema in TS can drift from migrations if someone adds a column in only one place — review both.
+**Negative:** Two access styles by design: Drizzle for identity/AI/watchlist; raw SQL for HMAC portfolio so the token math stays auditable.
 
 **Neutral:** `drizzle(pool)` shares the existing Pool; no second connection library.
