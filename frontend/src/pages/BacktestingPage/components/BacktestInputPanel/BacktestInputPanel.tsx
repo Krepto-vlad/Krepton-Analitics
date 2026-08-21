@@ -159,7 +159,7 @@ export function BacktestInputPanel({
       <div className={styles.headerRow}>
         <div className={styles.titleBlock}>
           <span className={styles.pageLabel}>What If Analysis</span>
-          <h1 className={styles.pageTitle}>Light Backtesting</h1>
+          <h2 className={styles.pageTitle}>Light Backtesting</h2>
           <p className={styles.pageSubtitle}>
             Build a weighted portfolio and compare its historical performance against the S&amp;P
             500.

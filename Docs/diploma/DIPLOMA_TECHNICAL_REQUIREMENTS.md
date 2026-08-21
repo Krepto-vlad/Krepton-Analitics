@@ -232,8 +232,8 @@ Node.js / Express подходит как «modern framework».
 - [x] **+ продукт** Advanced architecture: lazy routes (`AppRouter.tsx`)
 - [x] **+ продукт** Advanced state: RTK slices + async thunks (auth, portfolio, ticker, watchlist, …)
 - [x] **+ продукт** Advanced UI/UX: графики (`lightweight-charts`), dark/light, skeleton/ARIA на async
-- [ ] **+ диплом** Performance: Vite bundle visualizer + Lighthouse walkthrough на landing **и** dashboard (`vite preview` / staging, не `npm run dev`). Таблица scores + что починили / accepted. Не обещать Performance ≥ 90 на dashboard с чартами (lab baseline 2026-08-19, dashboard **dev**: P 45 / A 96 / BP 58 / SEO 82)
-- [ ] **+ диплом** Accessibility check: Lighthouse a11y ≥ 90 + keyboard pass + axe на 2–3 экранах; remaining в appendix. Это не заявка Adaptive UI / полной WCAG-спеки
+- [ ] **+ диплом** Performance: Vite bundle visualizer в appendix. Lighthouse **walkthrough закрыт** 2026-08-21 (`vite preview`): landing/auth/pricing/security + app screens; contrast/landmarks/labels/headings/`/me`. Не обещать Performance ≥ 90 на dashboard с чартами. HTTPS staging recapture — D4. Lab baseline 2026-08-19 dashboard **dev**: P 45 / A 96 / BP 58 / SEO 82
+- [x] **+ диплом** Accessibility check: Lighthouse a11y walkthrough (light/dark) на landing + marketing + auth + ключевых app-экранах. Это не заявка Adaptive UI / полной WCAG-спеки. Keyboard/axe — appendix по запросу
 - [ ] **+ диплом** В thesis явно: max = lazy + RTK + charts/theme; Lighthouse — разбор отчёта, не погоня за 90
 
 **Позже (не max, не D2)**

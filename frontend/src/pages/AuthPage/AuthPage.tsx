@@ -13,12 +13,14 @@ import {
   Moon,
 } from 'lucide-react';
 import { ERROR_MESSAGES, LEGAL_NOT_INVESTMENT_ADVICE, ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
 import { Button, ErrorBanner } from '../../components/ui';
 import { Input } from '../../components/ui';
 import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { useTheme } from '../../hooks/useTheme';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import {
   registerThunk,
   loginThunk,
@@ -64,6 +66,8 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
+
+  usePageSeo(PAGE_SEO_METADATA[mode === 'register' ? ROUTES.REGISTER : ROUTES.LOGIN]);
 
   useEffect(() => {
     if (user) {

@@ -2,12 +2,23 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, ExternalLink } from 'lucide-react';
 import { Navbar, Footer } from '../../components/layout';
 import { ROUTES } from '../../constants';
+import { SITE_NAME } from '../../constants/seo';
 import { getLegalPdfDocumentById } from '../../content/legalDocuments';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './LegalPdfViewerPage.module.scss';
 
 export function LegalPdfViewerPage() {
   const { documentId = '' } = useParams<{ documentId: string }>();
   const legalDocument = getLegalPdfDocumentById(documentId);
+
+  usePageSeo({
+    title: legalDocument
+      ? `${legalDocument.title} — ${SITE_NAME}`
+      : `Legal Document — ${SITE_NAME}`,
+    description: legalDocument
+      ? `Read the ${legalDocument.title} for ${SITE_NAME}, last updated ${legalDocument.lastUpdated}.`
+      : `Legal document for ${SITE_NAME}.`,
+  });
 
   if (!legalDocument) {
     return <Navigate to={ROUTES.LEGAL} replace />;

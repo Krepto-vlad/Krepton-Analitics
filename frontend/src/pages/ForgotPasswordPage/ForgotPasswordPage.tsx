@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { ERROR_MESSAGES, ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
 import { Button, ErrorBanner, Input } from '../../components/ui';
 import { apiForgotPassword } from '../../api/authApi';
 import { getRejectedMessage } from '../../utils/apiError';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './ForgotPasswordPage.module.scss';
 
 export function ForgotPasswordPage() {
+  usePageSeo(PAGE_SEO_METADATA[ROUTES.FORGOT_PASSWORD]);
+
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

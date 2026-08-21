@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { Star, Check, Shield, Lock, Globe, ChevronRight } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
 import {
   MARKETING_PLAN_CALL_TO_ACTIONS,
   PRICING_PLAN_DEFINITIONS,
 } from '../../constants/pricingPlans';
 import { Navbar, Footer } from '../../components/layout';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './PricingPage.module.scss';
 
 const PRIVACY_FEATURES = [
@@ -16,6 +18,8 @@ const PRIVACY_FEATURES = [
 
 export function PricingPage() {
   const navigate = useNavigate();
+
+  usePageSeo(PAGE_SEO_METADATA[ROUTES.PRICING]);
 
   const handleRegister = () => navigate(ROUTES.REGISTER);
 

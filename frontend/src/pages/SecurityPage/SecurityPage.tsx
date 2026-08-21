@@ -14,8 +14,10 @@ import {
   Check,
 } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
 import { Navbar, Footer } from '../../components/layout';
 import { joinClassNames } from '../../utils/classNames';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './SecurityPage.module.scss';
 
 type SecurityAccentTone = 'primary' | 'indigo' | 'warning' | 'danger' | 'pink';
@@ -36,23 +38,23 @@ const PILLARS: Pillar[] = [
     description:
       'Your financial data is completely decoupled from your personal identity. We never ask for your real name, phone number, address, or government-issued ID.',
     points: [
-      'Nickname-only registration',
+      'No real name, phone, or address required',
       'No KYC process, ever',
-      'Email stored as a one-way hash',
+      'Portfolio data is never linked to your email',
       'No link between portfolio and identity',
     ],
   },
   {
     icon: Lock,
     accent: 'indigo',
-    title: 'End-to-End Encryption',
+    title: 'Encrypted & Hardened by Default',
     description:
-      'All data in transit is encrypted via TLS 1.3. Sensitive fields at rest are encrypted with AES-256. Passwords are hashed using bcrypt with a per-user salt.',
+      'Every connection to our servers is encrypted. Passwords are hashed with bcrypt and are never stored — or recoverable — in plain text. Sessions run on short-lived tokens that renew automatically while you\u2019re active and expire quickly when you\u2019re not.',
     points: [
-      'TLS 1.3 in transit',
-      'AES-256 at rest for sensitive fields',
-      'bcrypt with cost factor ≥ 12',
-      'Per-user cryptographic salt',
+      'Encrypted connections end to end',
+      'bcrypt password hashing, never reversible',
+      'Short-lived, self-renewing session tokens',
+      'HttpOnly cookies — invisible to JavaScript',
     ],
   },
   {
@@ -60,7 +62,7 @@ const PILLARS: Pillar[] = [
     accent: 'warning',
     title: 'Minimal Data Storage',
     description:
-      'We store only what is strictly necessary: email hash, password hash, and anonymised trade records. No browser fingerprints, no IP logs, no analytics cookies.',
+      'We store only what is strictly necessary: your email, a hashed password, and anonymised trade records. No browser fingerprints, no IP logs, no analytics cookies.',
     points: [
       'No IP address logging',
       'No tracking cookies',
@@ -83,8 +85,8 @@ const TECH_CARDS: TechCard[] = [
     icon: Key,
     accent: 'primary',
     title: 'Authentication & Sessions',
-    body: 'Authentication is based on JWT tokens with a short expiry window. Tokens are transmitted exclusively via HttpOnly, Secure, SameSite=Strict cookies — making them inaccessible to JavaScript and immune to XSS attacks. Refresh tokens are rotated on every use.',
-    tags: ['JWT', 'HttpOnly Cookie', 'SameSite=Strict', 'Token Rotation'],
+    body: 'Authentication uses short-lived JWTs, transmitted exclusively via HttpOnly, Secure, SameSite=Strict cookies — inaccessible to JavaScript and immune to token theft via XSS. Sessions renew automatically while you\u2019re active and expire quickly when you\u2019re not. Login and registration are rate-limited against brute-force attempts.',
+    tags: ['JWT', 'HttpOnly Cookie', 'SameSite=Strict', 'Rate-Limited'],
   },
   {
     icon: FileX,
@@ -97,29 +99,29 @@ const TECH_CARDS: TechCard[] = [
     icon: Database,
     accent: 'indigo',
     title: 'Database Architecture',
-    body: 'The PostgreSQL schema is split into two isolated logical zones: an auth zone (email hash + password hash) and a portfolio zone (userId foreign key + trade data). These zones share no columns containing personal identifiers, making re-identification technically unfeasible.',
-    tags: ['Split-zone schema', 'FK without PII', 'No real names in DB', 'PostgreSQL'],
+    body: 'Your login (email + password hash) and your portfolio (positions, transactions, watchlist) live in separate tables with no direct foreign key between them. Portfolio records are addressed by a one-way cryptographic token derived from your account — not your email — so the two halves can\u2019t be casually joined, even with full database access.',
+    tags: ['Cryptographic linkage', 'No direct FK', 'No real names in DB', 'PostgreSQL'],
   },
   {
     icon: Eye,
     accent: 'warning',
     title: 'No Telemetry, No Ads',
-    body: 'Krepton Analytics does not embed Google Analytics, Meta Pixel, Hotjar, or any third-party tracking script. There are no advertising SDKs. The only external calls the frontend makes are to our own backend API — everything else is blocked by a strict Content Security Policy.',
+    body: 'Krepton Analytics does not embed Google Analytics, Meta Pixel, Hotjar, or any advertising SDK. The only third-party script we load is Google\u2019s own sign-in button, used strictly for authentication. Everything else is blocked by a strict Content Security Policy.',
     tags: ['No Google Analytics', 'No Meta Pixel', 'Strict CSP', 'No ad SDKs'],
   },
   {
     icon: EyeOff,
     accent: 'primary',
     title: 'AI Feature Privacy',
-    body: 'AI-powered insights use only anonymised, aggregated portfolio metrics — ticker symbols, weights, and basic statistics. No raw transaction details or personal identifiers are ever sent to an external model. All AI calls are rate-limited per account.',
+    body: 'AI-powered insights use only anonymised, aggregated portfolio metrics — ticker symbols, weights, and basic statistics. No raw transaction history or personal identifiers are ever sent to the AI provider. Every AI feature is capped by a daily usage limit per account.',
     tags: ['Anonymised metrics only', 'No raw transactions', 'Rate limited', 'No PII to AI'],
   },
   {
     icon: Fingerprint,
     accent: 'pink',
     title: 'Account Deletion',
-    body: 'A full account deletion request removes all records from both the auth and portfolio zones within 24 hours. Deletion is irreversible. No backup retention of personal data after deletion — only anonymised aggregate statistics for platform health monitoring are retained.',
-    tags: ['< 24h deletion', 'Fully irreversible', 'No backup of PII', 'Aggregate only'],
+    body: 'Deleting your account permanently removes your login and your entire portfolio — positions, transactions, watchlist — immediately. There\u2019s no grace period and no lingering copy: only anonymised, aggregate statistics for platform health monitoring survive, and those can\u2019t be traced back to you.',
+    tags: ['Instant deletion', 'Fully irreversible', 'No backup of PII', 'Aggregate only'],
   },
 ];
 
@@ -140,12 +142,12 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: 'Can Krepton employees see my portfolio?',
     answer:
-      'No. Portfolio data is stored against an internal userId with no link to a real-world identity. Without access to both the auth and portfolio zones simultaneously, individual data is meaningless — and access to production is audited.',
+      'No one can casually browse your holdings. Your portfolio is addressed by a one-way cryptographic token derived from your account, not by your email or a readable ID — so it can\u2019t be traced back to a login without deriving that token, and access to production systems is restricted and audited.',
   },
   {
     question: 'What happens to my data if I delete my account?',
     answer:
-      'All records in the auth and portfolio zones are hard-deleted within 24 hours. Only anonymous, aggregated platform statistics (e.g., total active users) are retained for monitoring — no per-user data is archived.',
+      'Everything is hard-deleted immediately and permanently — your login and your entire portfolio. Only anonymous, aggregated platform statistics (e.g., total active users) are retained for monitoring — no per-user data is archived.',
   },
   {
     question: 'Is my broker login stored anywhere?',
@@ -155,7 +157,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: 'Where is the data hosted?',
     answer:
-      'The backend runs on Render.com and the database on Neon.tech — both EU/US SOC 2 compliant providers. Data in transit is encrypted with TLS 1.3 and data at rest with AES-256.',
+      'On managed cloud infrastructure in the EU, with encrypted connections and strict access controls throughout. We don\u2019t publish exact vendor names or internal topology — keeping that footprint private is itself part of our security posture.',
   },
   {
     question: 'How are AI portfolio insights generated?',
@@ -165,12 +167,14 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: 'Do you comply with GDPR?',
     answer:
-      'By design, we minimise personal data to the point where GDPR obligations are minimal. Email is stored as a one-way hash and is not considered personal data in our schema. Full erasure on request is supported in under 24 hours.',
+      'We built the platform to minimise personal data from day one — no real names, no phone numbers, no bank connections, ever. Email and a hashed password are the only identifying information we hold. Full account and data erasure is available on request and takes effect immediately.',
   },
 ];
 
 export function SecurityPage() {
   const navigate = useNavigate();
+
+  usePageSeo(PAGE_SEO_METADATA[ROUTES.SECURITY]);
 
   const handleRegister = () => navigate(ROUTES.REGISTER);
   const handlePricing = () => navigate(ROUTES.PRICING);
@@ -193,10 +197,9 @@ export function SecurityPage() {
               Your finances. <span>Your secrets.</span> Always.
             </h1>
             <p className={styles.heroSubtitle}>
-              Krepton was built with privacy as a core constraint, not an afterthought. Zero
-              personal data collected. No bank connections. No identity linking. We designed the
-              architecture so that a security breach of our servers exposes no meaningful personal
-              information.
+              Krepton was built with privacy as a core constraint, not an afterthought. No real
+              names. No bank connections. No identity linking. We designed the architecture so
+              that your trades can never be traced back to who you are.
             </p>
             <button className={styles.heroCta} onClick={handleRegister}>
               Start Anonymously

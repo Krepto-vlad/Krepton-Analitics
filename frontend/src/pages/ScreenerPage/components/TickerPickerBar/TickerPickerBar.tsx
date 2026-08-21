@@ -144,7 +144,7 @@ export function TickerPickerBar({
       <div className={styles.headerRow}>
         <div className={styles.titleBlock}>
           <span className={styles.pageLabel}>Stock Matrix</span>
-          <h1 className={styles.pageTitle}>Stock Comparison Matrix</h1>
+          <h2 className={styles.pageTitle}>Stock Comparison Matrix</h2>
           <p className={styles.pageSubtitle}>
             Side-by-side fundamental analysis with automatic winner highlighting
           </p>

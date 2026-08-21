@@ -66,7 +66,7 @@ export function DividendsPage() {
         <div className={styles.titleBlock}>
           <div className={styles.titleRow}>
             <CalendarRange size={22} className={styles.titleIcon} />
-            <h1 className={styles.title}>Passive Income &amp; Dividend Calendar</h1>
+            <h2 className={styles.title}>Passive Income &amp; Dividend Calendar</h2>
           </div>
           <p className={styles.subtitle}>
             Projected monthly dividend and coupon payouts for the next 12 months

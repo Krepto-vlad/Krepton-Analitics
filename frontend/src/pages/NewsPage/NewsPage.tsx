@@ -61,7 +61,7 @@ export function NewsPage() {
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <Newspaper size={22} className={styles.titleIcon} />
-          <h1 className={styles.title}>Portfolio News</h1>
+          <h2 className={styles.title}>Portfolio News</h2>
         </div>
         <p className={styles.subtitle}>
           Headlines and AI-powered daily summaries for your holdings

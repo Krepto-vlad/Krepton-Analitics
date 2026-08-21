@@ -134,6 +134,7 @@ $landing-pink: #ec4899;
   font-family: $font-family;
   font-weight: $font-weight-bold;
   font-size: 0.95rem;
+  text-decoration: none;
   cursor: pointer;
   box-shadow: $shadow-glow-primary;
   transition:
@@ -158,6 +159,7 @@ $landing-pink: #ec4899;
   font-family: $font-family;
   font-weight: $font-weight-medium;
   font-size: 0.95rem;
+  text-decoration: none;
   cursor: pointer;
   transition:
     border-color $transition-fast,
@@ -823,6 +825,7 @@ $landing-pink: #ec4899;
   font-family: $font-family;
   font-weight: $font-weight-semibold;
   font-size: 0.82rem;
+  text-decoration: none;
   cursor: pointer;
   flex-shrink: 0;
   transition: background $transition-fast;

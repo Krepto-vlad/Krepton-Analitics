@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, type MouseEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
   Shield,
@@ -15,11 +15,13 @@ import {
   Check,
 } from 'lucide-react';
 import { ROUTES, TICKER_CACHE_TTL_MS } from '../../constants';
+import { LANDING_STRUCTURED_DATA, PAGE_SEO_METADATA } from '../../constants/seo';
 import { fetchTickerTape } from '../../api/stockApi';
 import type { StockQuote } from '../../types/stock.types';
 import { Navbar, Footer } from '../../components/layout';
 import { joinClassNames } from '../../utils/classNames';
 import { toCssCustomProperties } from '../../utils/cssCustomProperties';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './LandingPage.module.scss';
 
 // ─── Ticker data ──────────────────────────────────────────────────────────────
@@ -97,10 +99,10 @@ const FEATURES: Array<{
   {
     icon: Upload,
     accent: 'primary',
-    title: 'Multi-Broker Import',
+    title: 'Universal Broker Import',
     description:
-      'Seamlessly import portfolio statements from Interactive Brokers, Revolut, Charles Schwab, Fidelity and more via CSV or XLSX.',
-    tags: ['IB', 'Revolut', 'Schwab', 'Fidelity'],
+      'Upload a CSV or XLSX trade history from any broker — Interactive Brokers, Revolut, Schwab, and more. Smart column detection maps your file automatically, no fixed template required.',
+    tags: ['Any Broker', 'CSV/XLSX', 'Auto-Detect'],
   },
   {
     icon: Sparkles,
@@ -123,7 +125,7 @@ const FEATURES: Array<{
     accent: 'blue',
     title: 'Stock Screener',
     description:
-      'Side-by-side fundamental comparison with P/E, ROE, Debt/Equity, Dividend Yield. Superior metrics automatically highlighted.',
+      'Side-by-side comparison across 20+ fundamentals — P/E, ROE, margins, growth, leverage, and dividend yield. Best-in-class metrics highlighted automatically.',
     tags: ['P/E Ratio', 'ROE', 'Multi-ticker'],
   },
   {
@@ -131,7 +133,7 @@ const FEATURES: Array<{
     accent: 'pink',
     title: 'Auto Rebalancing',
     description:
-      'Strategy-driven rebalancing engine. Pre-built Ray Dalio, Buffett 90/10, and custom allocation targets with exact trade instructions.',
+      'Four pre-built strategies — Ray Dalio All-Weather, Buffett 90/10, Bogleheads, and Permanent Portfolio — plus fully custom targets with exact trade instructions.',
     tags: ['All-Weather', 'Buffett', 'Custom'],
   },
   {
@@ -139,16 +141,16 @@ const FEATURES: Array<{
     accent: 'primary',
     title: 'Zero-Identity Architecture',
     description:
-      'No KYC. No real names. No bank linking. Cryptographic separation of financial records from personal identity by design.',
+      'No KYC. No real names. No bank linking. Your portfolio is addressed by a one-way cryptographic token, never by your email or identity.',
     tags: ['No KYC', 'Encrypted', 'Anonymous'],
   },
 ];
 
 const STATS = [
-  { value: '0', suffix: '', label: 'Personal data collected' },
-  { value: '6', suffix: '+', label: 'Supported brokers' },
-  { value: '12', suffix: '-mo', label: 'Month income forecast' },
-  { value: '99.9', suffix: '%', label: 'Platform uptime' },
+  { value: '0', suffix: '', label: 'Real names required' },
+  { value: '4', suffix: '', label: 'Prebuilt strategies' },
+  { value: '20', suffix: '+', label: 'Fundamentals compared' },
+  { value: '12', suffix: '-mo', label: 'Income forecast horizon' },
 ];
 
 const MINI_CHART_HEIGHTS = [40, 55, 48, 62, 58, 72, 65, 80, 70, 88, 82, 95];
@@ -291,10 +293,11 @@ interface LandingLocationState {
 }
 
 export function LandingPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const [tickerItems, setTickerItems] = useState<TickerItem[]>(TICKER_FALLBACK);
   const tickerTrackRef = useRef<HTMLDivElement>(null);
+
+  usePageSeo({ ...PAGE_SEO_METADATA[ROUTES.HOME], structuredData: LANDING_STRUCTURED_DATA });
 
   // Reset scroll on entry; Features nav passes location.state (avoids keeping prior page scroll).
   useEffect(() => {
@@ -361,9 +364,6 @@ export function LandingPage() {
     return () => cancelAnimationFrame(rafId);
   }, [tickerItems]);
 
-  const handleLogin = () => navigate(ROUTES.LOGIN);
-  const handleRegister = () => navigate(ROUTES.REGISTER);
-
   return (
     <div className={styles.page}>
       <Navbar activeRoute="home" />
@@ -386,13 +386,13 @@ export function LandingPage() {
             </p>
 
             <div className={styles.heroCtas}>
-              <button className={styles.btnHeroPrimary} onClick={handleRegister}>
+              <Link to={ROUTES.REGISTER} className={styles.btnHeroPrimary}>
                 Analyze Your Portfolio Free
                 <ArrowRight size={16} />
-              </button>
-              <button className={styles.btnHeroOutline} onClick={handleLogin}>
+              </Link>
+              <Link to={ROUTES.LOGIN} className={styles.btnHeroOutline}>
                 Sign In
-              </button>
+              </Link>
             </div>
 
             <div className={styles.heroTrust}>
@@ -521,10 +521,10 @@ export function LandingPage() {
                 ))}
               </div>
             </div>
-            <button className={styles.btnPrivacyCta} onClick={handleRegister}>
+            <Link to={ROUTES.REGISTER} className={styles.btnPrivacyCta}>
               Start Anonymously
               <ChevronRight size={14} />
-            </button>
+            </Link>
           </div>
         </section>
       </main>

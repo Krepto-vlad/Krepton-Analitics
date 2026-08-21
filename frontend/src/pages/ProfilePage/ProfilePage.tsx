@@ -292,7 +292,7 @@ export function ProfilePage() {
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <User size={22} className={styles.titleIcon} />
-          <h1 className={styles.title}>My Profile</h1>
+          <h2 className={styles.title}>My Profile</h2>
         </div>
         <p className={styles.subtitle}>Manage your account, security settings and subscription.</p>
       </header>

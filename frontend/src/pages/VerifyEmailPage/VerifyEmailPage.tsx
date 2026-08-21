@@ -2,9 +2,11 @@ import { useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, MailCheck } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
 import { ErrorBanner } from '../../components/ui';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import { verifyEmailThunk } from '../../features/auth/authSlice';
 import styles from './VerifyEmailPage.module.scss';
 
@@ -15,6 +17,8 @@ export function VerifyEmailPage() {
   const token = searchParams.get('token') ?? '';
   const { isLoading, error, user } = useAppSelector((state) => state.auth);
   const hasRequestedRef = useRef(false);
+
+  usePageSeo(PAGE_SEO_METADATA[ROUTES.VERIFY_EMAIL]);
 
   useEffect(() => {
     if (!token || hasRequestedRef.current) {

@@ -32,7 +32,7 @@ export function SubscriptionPage() {
         </Link>
         <div className={styles.titleRow}>
           <CreditCard size={22} className={styles.titleIcon} />
-          <h1 className={styles.title}>Subscription</h1>
+          <h2 className={styles.title}>Subscription</h2>
         </div>
         <p className={styles.subtitle}>
           Choose a plan for your portfolio workspace. Payments are not processed in this demo.

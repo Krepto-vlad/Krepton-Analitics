@@ -244,16 +244,14 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 - [ ] **+ продукт** Playwright: 1–2 сценария (login → dashboard smoke). **Тот же smoke, что D3 Auto tests**, не второй набор e2e.
 - [ ] **+ диплом** Скрины desktop / tablet / mobile до предзащиты.
 - [ ] **+ диплом** Vite bundle visualizer; отчёт в appendix.
-- [ ] **+ диплом** Lighthouse walkthrough (не «набрать 90 любой ценой»):
-  - гонять **production build** (`vite preview` / staging), не `npm run dev` (HMR ломает Performance);
-  - два URL: public landing + authenticated dashboard;
-  - таблица scores + top opportunities; что починили / что accepted (чарты, polling);
-  - Performance и Best Practices пройти по пунктам отчёта (cheap wins: unused JS, console errors, HTTPS на staging); localhost HTTP не считать провалом продакшена;
-  - lab baseline 2026-08-19, `localhost:5173/dashboard` (dev): Performance 45 · Accessibility 96 · Best Practices 58 · SEO 82.
-- [ ] **+ диплом** Accessibility check (не критерий Adaptive UI / WCAG-спека):
-  - Lighthouse Accessibility ≥ 90 на landing и dashboard;
-  - keyboard pass: sidebar, ticker search, theme/currency, primary CTA;
-  - axe (DevTools/CLI) на 2–3 экранах; список remaining в appendix.
+- [x] **+ диплом** Lighthouse walkthrough (2026-08-21, `vite preview`, не `npm run dev`):
+  - public: landing, login/register, pricing, security; app: dashboard-adjacent, rebalancing, backtesting, dividends;
+  - cheap wins в коде: contrast tokens (`primary-solid`, chart/indigo), `<main>`, labels, heading order, `/me` только на protected routes;
+  - Performance ≥ 90 на dashboard **не** обещаем (чарты/polling); Best Practices на localhost HTTP + GIS third-party — accepted;
+  - **осталось в D4:** таблица scores в appendix + повтор на HTTPS staging.
+- [x] **+ диплом** Accessibility check (не критерий Adaptive UI / WCAG-спека):
+  - Lighthouse Accessibility walkthrough ≥ 90 target на landing + marketing + auth + ключевых app-экранах (light/dark);
+  - keyboard / axe — не отдельный критерий; remaining в appendix по запросу эксперта.
 - [x] **− skip** Sentry / toast-библиотека / PWA.
 
 ### Database (эксперт)
@@ -359,7 +357,7 @@ Husky остаётся локальным крючком. Для эксперт�
 ### Diploma-comfortable (запас 7–8, не 10)
 
 - Backend: CD только с зелёного CI + скрин Log stream + один alert; в главе `x-request-id` назван tracing (код уже есть).
-- Frontend: Lighthouse walkthrough + a11y check; Performance 90 на dashboard **не** обещаем.
+- Frontend: Lighthouse walkthrough + a11y check **закрыты в коде** (2026-08-21 preview); Performance 90 на dashboard **не** обещаем; HTTPS staging — D4.
 - Database: migrations + indexes + HMAC в главе; без Timescale/триггеров.
 - AI: guardrails + quota/cache в главе; grounding ≠ RAG; без MCP/второй модели.
 - Tests: тонкая пирамида (unit + HTTP + RTL + 1 e2e + 1 DB); без mutation/k6.

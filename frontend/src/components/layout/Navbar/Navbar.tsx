@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { TrendingUp, Menu, X, Sun, Moon } from 'lucide-react';
 import { LANDING_SCROLL_TO_FEATURES_STATE, ROUTES } from '../../../constants';
 import { useTheme } from '../../../hooks/useTheme';
@@ -17,12 +17,6 @@ export function Navbar({ activeRoute }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleHome = () => navigate(ROUTES.HOME, { state: null });
-  const handleLogin = () => navigate(ROUTES.LOGIN);
-  const handleRegister = () => navigate(ROUTES.REGISTER);
-  const handlePricing = () => navigate(ROUTES.PRICING);
-  const handleSecurity = () => navigate(ROUTES.SECURITY);
-
   const handleFeatures = () => {
     if (location.pathname === ROUTES.HOME) {
       document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
@@ -36,37 +30,31 @@ export function Navbar({ activeRoute }: NavbarProps) {
   return (
     <>
       <nav className={styles.navbar}>
-        <div
-          className={styles.logo}
-          onClick={handleHome}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleHome()}
-        >
+        <Link to={ROUTES.HOME} state={null} className={styles.logo}>
           <div className={styles.logoIcon}>
             <TrendingUp size={14} />
           </div>
           <span className={styles.logoText}>
             Krepton <span>Analytics</span>
           </span>
-        </div>
+        </Link>
 
         <div className={styles.navLinks}>
           <button className={styles.navLink} onClick={handleFeatures}>
             Features
           </button>
-          <button
+          <Link
+            to={ROUTES.PRICING}
             className={`${styles.navLink} ${activeRoute === 'pricing' ? styles.active : ''}`}
-            onClick={handlePricing}
           >
             Pricing
-          </button>
-          <button
+          </Link>
+          <Link
+            to={ROUTES.SECURITY}
             className={`${styles.navLink} ${activeRoute === 'security' ? styles.active : ''}`}
-            onClick={handleSecurity}
           >
             Security
-          </button>
+          </Link>
         </div>
 
         <div className={styles.navActions}>
@@ -79,12 +67,12 @@ export function Navbar({ activeRoute }: NavbarProps) {
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <button className={styles.btnSignIn} onClick={handleLogin}>
+          <Link to={ROUTES.LOGIN} className={styles.btnSignIn}>
             Sign In
-          </button>
-          <button className={styles.btnGetStarted} onClick={handleRegister}>
+          </Link>
+          <Link to={ROUTES.REGISTER} className={styles.btnGetStarted}>
             Get Started
-          </button>
+          </Link>
         </div>
 
         <button
@@ -107,24 +95,12 @@ export function Navbar({ activeRoute }: NavbarProps) {
           >
             Features
           </button>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              closeMobileMenu();
-              handlePricing();
-            }}
-          >
+          <Link to={ROUTES.PRICING} className={styles.mobileNavLink} onClick={closeMobileMenu}>
             Pricing
-          </button>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              closeMobileMenu();
-              handleSecurity();
-            }}
-          >
+          </Link>
+          <Link to={ROUTES.SECURITY} className={styles.mobileNavLink} onClick={closeMobileMenu}>
             Security
-          </button>
+          </Link>
           <div className={styles.mobileDivider} />
           <div className={styles.mobileThemeRow}>
             <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
@@ -137,24 +113,16 @@ export function Navbar({ activeRoute }: NavbarProps) {
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
-          <button
-            className={styles.mobileBtnSignIn}
-            onClick={() => {
-              closeMobileMenu();
-              handleLogin();
-            }}
-          >
+          <Link to={ROUTES.LOGIN} className={styles.mobileBtnSignIn} onClick={closeMobileMenu}>
             Sign In
-          </button>
-          <button
+          </Link>
+          <Link
+            to={ROUTES.REGISTER}
             className={styles.mobileBtnGetStarted}
-            onClick={() => {
-              closeMobileMenu();
-              handleRegister();
-            }}
+            onClick={closeMobileMenu}
           >
             Get Started Free
-          </button>
+          </Link>
         </div>
       )}
     </>

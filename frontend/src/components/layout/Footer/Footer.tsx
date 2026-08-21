@@ -20,7 +20,13 @@ export function Footer() {
         </div>
 
         <div className={styles.bottomRow}>
-          <nav className={styles.footerLinks} aria-label="Legal">
+          <nav className={styles.footerLinks} aria-label="Site">
+            <Link to={ROUTES.PRICING} className={styles.footerLink}>
+              Pricing
+            </Link>
+            <Link to={ROUTES.SECURITY} className={styles.footerLink}>
+              Security
+            </Link>
             <Link to={ROUTES.LEGAL} className={styles.footerLink}>
               Legal Documents
             </Link>

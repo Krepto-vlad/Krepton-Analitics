@@ -1,10 +1,15 @@
 import { Navbar, Footer } from '../../components/layout';
 import { LEGAL_PDF_DOCUMENTS } from '../../content/legalDocuments';
+import { ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import { ChevronRight, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import styles from './LegalDocumentsPage.module.scss';
 
 export function LegalDocumentsPage() {
+  usePageSeo(PAGE_SEO_METADATA[ROUTES.LEGAL]);
+
   return (
     <div className={styles.page}>
       <Navbar />

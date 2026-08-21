@@ -259,7 +259,7 @@ export function RebalancingPage() {
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <Scale size={22} className={styles.titleIcon} />
-          <h1 className={styles.title}>Portfolio Rebalancing &amp; Strategy Engine</h1>
+          <h2 className={styles.title}>Portfolio Rebalancing &amp; Strategy Engine</h2>
         </div>
         <p className={styles.subtitle}>
           Compare your current holdings against a target allocation strategy.

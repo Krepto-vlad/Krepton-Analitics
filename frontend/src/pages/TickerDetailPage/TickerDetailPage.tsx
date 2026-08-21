@@ -485,7 +485,7 @@ export function TickerDetailPage() {
                 <div className={styles.identity}>
                   <TickerAvatar ticker={ticker} logoUrl={quote?.logoUrl ?? null} size="md" />
                   <div className={styles.identityText}>
-                    <h1 className={styles.tickerSymbol}>{ticker}</h1>
+                    <h2 className={styles.tickerSymbol}>{ticker}</h2>
                     <p className={styles.companyName}>{companyName}</p>
                     <div className={styles.metaRow}>
                       {fundamentals?.sector && (

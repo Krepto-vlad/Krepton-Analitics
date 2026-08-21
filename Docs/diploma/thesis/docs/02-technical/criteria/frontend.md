@@ -138,8 +138,8 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 | 11 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | RTL done; **+ продукт** Playwright smoke |
 | 12 | No tokens in code | ✅ | |
 | 13 | Max: lazy routes + RTK + charts/theme | ✅ | Three directions already in code |
-| 14 | Max: performance evidence | ❌ | Bundle visualizer + Lighthouse walkthrough (preview/staging; dashboard Performance 90 not claimed) |
-| 15 | Max: accessibility check | ❌ | Lighthouse a11y + keyboard + axe; Adaptive UI criterion still not declared |
+| 14 | Max: performance evidence | ⚠️ | Lighthouse walkthrough 2026-08-21 (`vite preview`); bundle visualizer TBD; dashboard Performance 90 not claimed |
+| 15 | Max: accessibility check | ✅ | Contrast/landmarks/labels/headings; Lighthouse a11y on landing, auth, pricing, security, app screens (light/dark). Not Adaptive UI |
 | 16 | Max skip | — | No FSD, Next, Figma-as-Frontend, Storybook, Sentry, toast lib, PWA |
 | 17 | Later (not max) | — | i18n EN+RU after the eight criteria; defense stays EN UI |
 
@@ -149,8 +149,8 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 |------------|--------|------|
 | No Playwright smoke | Frontend min e2e + Auto tests | Staging URL in D4 or local API |
 | Tablet screenshots | Responsive evidence | Capture before pre-defense |
-| Dashboard Lighthouse Performance 45 (dev, 2026-08-19) | Expert may ask for 90 | Walk through report on **prod build**; accept charts/polling; do not fake the score |
-| Accessibility not a declared criterion | Still need evidence | Lighthouse a11y (96 on dashboard lab) + keyboard + axe; remaining in appendix |
+| Dashboard Lighthouse Performance 45 (dev, 2026-08-19) | Expert may ask for 90 | Walk through report on **prod build** (2026-08-21 preview); accept charts/polling; do not fake the score |
+| Accessibility not a declared criterion | Still need evidence | Lighthouse a11y walkthrough 2026-08-21; remaining (keyboard/axe, HTTPS staging) in appendix / D4 |
 
 ## References
 

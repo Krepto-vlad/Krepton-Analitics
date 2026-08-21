@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, KeyRound, Loader2 } from 'lucide-react';
 import { ERROR_MESSAGES, ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
 import { Button, ErrorBanner, Input } from '../../components/ui';
 import { apiResetPassword } from '../../api/authApi';
 import { getRejectedMessage } from '../../utils/apiError';
@@ -13,12 +14,15 @@ import {
   isPasswordStrong,
 } from '../../utils/passwordValidation';
 import { joinClassNames } from '../../utils/classNames';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './ResetPasswordPage.module.scss';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
+
+  usePageSeo(PAGE_SEO_METADATA[ROUTES.RESET_PASSWORD]);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

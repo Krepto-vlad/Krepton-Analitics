@@ -8,10 +8,14 @@ import {
   NOT_FOUND_TITLE,
   ROUTES,
 } from '../../constants';
+import { NOT_FOUND_SEO_METADATA } from '../../constants/seo';
 import { toCssCustomProperties } from '../../utils/cssCustomProperties';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './NotFoundPage.module.scss';
 
 export function NotFoundPage() {
+  usePageSeo(NOT_FOUND_SEO_METADATA);
+
   return (
     <main className={styles.page}>
       <div className={styles.content}>
