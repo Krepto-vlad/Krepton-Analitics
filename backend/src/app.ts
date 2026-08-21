@@ -1,5 +1,6 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { requestIdMiddleware } from './middleware/requestIdMiddleware.js';
@@ -15,6 +16,8 @@ import { API_ROUTES, HEALTH_CHECK_PATH } from './constants.js';
 export function createApp(): Express {
   const app = express();
 
+  // JSON-only API — no HTML is served, so the default CSP/COEP/CORP policies are safe as-is.
+  app.use(helmet());
   app.use(cors({ origin: env.frontendUrl, credentials: true }));
   app.use(express.json());
   app.use(cookieParser());
