@@ -179,8 +179,8 @@
   padding: $space-2 $space-4;
   font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
-  color: #fff;
-  background: $color-primary;
+  color: $color-on-primary;
+  background: $color-primary-solid;
   border: none;
   border-radius: $radius-md;
   cursor: pointer;
@@ -191,6 +191,6 @@
   }
 
   &:hover:not(:disabled) {
-    background: $color-primary-hover;
+    background: $color-primary-solid-hover;
   }
 }

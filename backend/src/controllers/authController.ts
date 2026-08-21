@@ -9,6 +9,8 @@ import {
   requestPasswordReset,
   resetPasswordWithToken,
   signAccessToken,
+  withSessionExpiry,
+  extendAccessSession,
   verifyEmailWithToken,
   resendVerificationEmail,
 } from '../services/authService.js';
@@ -27,6 +29,7 @@ import type {
   DeleteAccountBody,
   ForgotPasswordBody,
   ResetPasswordBody,
+  SessionExtensionResponse,
 } from '../types/auth.types.js';
 import type { ApiResponse } from '../types/stock.types.js';
 
@@ -92,7 +95,7 @@ export async function login(
   const token = signAccessToken(user.id);
 
   setAuthCookie(res, token);
-  res.json({ success: true, data: user });
+  res.json({ success: true, data: withSessionExpiry(user, token) });
 }
 
 export async function googleLogin(
@@ -103,7 +106,7 @@ export async function googleLogin(
   const token = signAccessToken(user.id);
 
   setAuthCookie(res, token);
-  res.json({ success: true, data: user });
+  res.json({ success: true, data: withSessionExpiry(user, token) });
 }
 
 export async function verifyEmail(
@@ -114,7 +117,7 @@ export async function verifyEmail(
   const token = signAccessToken(user.id);
 
   setAuthCookie(res, token);
-  res.json({ success: true, data: user });
+  res.json({ success: true, data: withSessionExpiry(user, token) });
 }
 
 export async function resendVerification(
@@ -143,7 +146,36 @@ export async function getMe(req: Request, res: Response<AuthResponse>): Promise<
   }
 
   const user = await getUserById(userId);
-  res.json({ success: true, data: user });
+  const accessToken = req.accessToken;
+  if (!accessToken) {
+    throw new AppError(401, 'Unauthorized');
+  }
+
+  res.json({ success: true, data: withSessionExpiry(user, accessToken) });
+}
+
+export async function extendSession(
+  req: Request,
+  res: Response<SessionExtensionResponse>
+): Promise<void> {
+  const userId = req.userId;
+  const accessToken = req.accessToken;
+  if (!userId || !accessToken) {
+    throw new AppError(401, 'Unauthorized');
+  }
+
+  const extension = extendAccessSession(userId, accessToken);
+  if (extension.renewed) {
+    setAuthCookie(res, extension.token);
+  }
+
+  res.json({
+    success: true,
+    data: {
+      sessionExpiresAt: extension.sessionExpiresAt,
+      renewed: extension.renewed,
+    },
+  });
 }
 
 export async function changePassword(

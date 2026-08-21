@@ -66,9 +66,9 @@
 }
 
 .tabActive {
-  color: $color-primary;
+  color: $color-primary-on-muted;
   background: $color-primary-muted;
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: $color-primary-border;
 }
 
 .comingSoon {

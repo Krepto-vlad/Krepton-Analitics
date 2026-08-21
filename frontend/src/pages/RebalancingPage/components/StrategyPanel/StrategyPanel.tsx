@@ -1,5 +1,6 @@
 import { Minus, Plus } from 'lucide-react';
 import { Select } from '../../../../components/ui';
+import { resolveRebalancingDisplayColor } from '../../../../constants';
 import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import type { RebalancingStrategyId } from '../../../../types/rebalancing.types';
 import type { StrategyBucketAllocation } from '../../utils/rebalancingAllocations';
@@ -75,7 +76,9 @@ export function StrategyPanel({
             <div
               key={allocation.bucketId}
               className={styles.row}
-              style={toCssCustomProperties({ '--asset-color': allocation.color })}
+              style={toCssCustomProperties({
+                '--asset-color': resolveRebalancingDisplayColor(allocation.color),
+              })}
             >
               <div className={styles.rowHeader}>
                 <div className={styles.assetLabelGroup}>

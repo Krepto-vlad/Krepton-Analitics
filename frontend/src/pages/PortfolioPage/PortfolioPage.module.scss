@@ -77,15 +77,15 @@
 
 .subNavItemActive {
   background: $color-primary-muted;
-  color: $color-primary;
+  color: $color-primary-on-muted;
 
   .subNavIcon {
-    color: $color-primary;
+    color: $color-primary-on-muted;
   }
 
   &:hover {
     background: $color-primary-muted;
-    color: $color-primary;
+    color: $color-primary-on-muted;
   }
 }
 
@@ -145,8 +145,8 @@
 
   &:hover {
     background: $color-primary-muted;
-    border-color: rgba(16, 185, 129, 0.35);
-    color: $color-primary;
+    border-color: $color-primary-border;
+    color: $color-primary-on-muted;
   }
 
   &:active {
@@ -185,7 +185,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $color-primary;
+  color: $color-primary-on-muted;
   flex-shrink: 0;
 }
 
@@ -281,7 +281,7 @@
 }
 
 .browseLink {
-  color: $color-primary;
+  color: $color-primary-on-muted;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   text-decoration: underline;
@@ -309,7 +309,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $color-primary;
+  color: $color-primary-on-muted;
 }
 
 .uploadedFileName {

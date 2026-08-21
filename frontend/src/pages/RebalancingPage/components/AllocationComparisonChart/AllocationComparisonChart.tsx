@@ -1,5 +1,8 @@
 import styles from './AllocationComparisonChart.module.scss';
-import { REBALANCING_CURRENT_BAR_COLOR } from '../../../../constants';
+import {
+  REBALANCING_CURRENT_BAR_COLOR,
+  resolveRebalancingDisplayColor,
+} from '../../../../constants';
 import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import type { RebalancingAllocationItem } from '../../../../types/rebalancing.types';
 
@@ -63,8 +66,9 @@ export function AllocationComparisonChart({
           const label = targetItem?.label ?? currentItem?.label ?? bucketId;
           const currentValue = currentItem?.weightPercent ?? 0;
           const targetValue = targetItem?.weightPercent ?? 0;
-          const targetColor =
-            targetItem?.color ?? currentItem?.color ?? REBALANCING_CURRENT_BAR_COLOR;
+          const targetColor = resolveRebalancingDisplayColor(
+            targetItem?.color ?? currentItem?.color ?? REBALANCING_CURRENT_BAR_COLOR
+          );
 
           return (
             <div key={bucketId} className={styles.group}>

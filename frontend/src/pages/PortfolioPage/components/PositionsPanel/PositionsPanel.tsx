@@ -509,7 +509,7 @@ export function PositionsPanel() {
           <div className={styles.emptyIcon}>
             <TrendingUp size={28} />
           </div>
-          <h3 className={styles.emptyTitle}>No positions yet</h3>
+          <h2 className={styles.emptyTitle}>No positions yet</h2>
           <p className={styles.emptyText}>
             Add your first position manually or import a broker report to get started.
           </p>
@@ -580,7 +580,7 @@ export function PositionsPanel() {
       {/* ── Holdings table ── */}
       <div className={styles.holdingsSection}>
         <div className={styles.holdingsHeader}>
-          <h3 className={styles.holdingsTitle}>Holdings</h3>
+          <h2 className={styles.holdingsTitle}>Holdings</h2>
           <div className={styles.holdingsActions}>
             <div className={styles.searchWrapper}>
               <Search size={13} className={styles.searchIcon} />
@@ -738,7 +738,7 @@ export function PositionsPanel() {
       {/* ── Transaction history ── */}
       <div className={styles.holdingsSection}>
         <div className={styles.holdingsHeader}>
-          <h3 className={styles.holdingsTitle}>History</h3>
+          <h2 className={styles.holdingsTitle}>History</h2>
         </div>
 
         {isLoadingTransactions ? (

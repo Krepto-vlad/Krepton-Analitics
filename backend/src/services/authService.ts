@@ -28,6 +28,7 @@ import {
   BCRYPT_SALT_ROUNDS,
   EMAIL_VERIFICATION_TOKEN_BYTES,
   EMAIL_VERIFICATION_TTL_MS,
+  JWT_SLIDING_RENEW_REMAINING_MS,
   PASSWORD_MIN_LENGTH,
   PASSWORD_RESET_REQUEST_GENERIC_MESSAGE,
   PASSWORD_RESET_TOKEN_BYTES,
@@ -35,6 +36,8 @@ import {
 } from '../constants.js';
 import type {
   AuthUser,
+  AuthUserProfile,
+  SessionExtensionResult,
   RegisterPendingResult,
   StepUpCredentials,
   TokenPayload,
@@ -48,7 +51,7 @@ import {
 } from './emailService.js';
 import { verifyGoogleIdToken } from './googleAuthService.js';
 
-function mapUserRowToAuthUser(user: UserRow): AuthUser {
+function mapUserRowToAuthUser(user: UserRow): AuthUserProfile {
   return {
     id: user.id,
     email: user.email,
@@ -166,7 +169,7 @@ export async function resendVerificationEmail(email: string): Promise<RegisterPe
   };
 }
 
-export async function verifyEmailWithToken(rawToken: unknown): Promise<AuthUser> {
+export async function verifyEmailWithToken(rawToken: unknown): Promise<AuthUserProfile> {
   if (typeof rawToken !== 'string' || rawToken.trim().length === 0) {
     throw new AppError(400, 'Verification token is required');
   }
@@ -185,7 +188,7 @@ export async function verifyEmailWithToken(rawToken: unknown): Promise<AuthUser>
   return mapUserRowToAuthUser(verifiedUser);
 }
 
-export async function loginUser(email: string, password: string): Promise<AuthUser> {
+export async function loginUser(email: string, password: string): Promise<AuthUserProfile> {
   const user = await findUserByEmail(email);
   if (!user || !user.password_hash) {
     throw new AppError(401, 'Invalid email or password');
@@ -203,7 +206,7 @@ export async function loginUser(email: string, password: string): Promise<AuthUs
   return mapUserRowToAuthUser(user);
 }
 
-export async function loginWithGoogleIdToken(idToken: unknown): Promise<AuthUser> {
+export async function loginWithGoogleIdToken(idToken: unknown): Promise<AuthUserProfile> {
   const googleIdentity = await verifyGoogleIdToken(idToken);
 
   let user = await findUserByGoogleSub(googleIdentity.googleSub);
@@ -229,7 +232,7 @@ export async function loginWithGoogleIdToken(idToken: unknown): Promise<AuthUser
   return mapUserRowToAuthUser(user);
 }
 
-export async function getUserById(userId: string): Promise<AuthUser> {
+export async function getUserById(userId: string): Promise<AuthUserProfile> {
   const user = await findUserById(userId);
   if (!user) {
     throw new AppError(401, 'User not found');
@@ -427,6 +430,48 @@ export async function deleteUserAccount(
 export function signAccessToken(userId: string): string {
   const payload: TokenPayload = { userId };
   return jwt.sign(payload, env.jwtSecret, { expiresIn: env.jwtExpiresIn } as jwt.SignOptions);
+}
+
+export function readAccessTokenExpiresAt(token: string): string {
+  const decoded = jwt.decode(token);
+  if (!decoded || typeof decoded === 'string' || typeof decoded.exp !== 'number') {
+    throw new AppError(500, 'Access token is missing an expiry');
+  }
+
+  return new Date(decoded.exp * 1000).toISOString();
+}
+
+export function withSessionExpiry(user: AuthUserProfile, token: string): AuthUser {
+  return {
+    ...user,
+    sessionExpiresAt: readAccessTokenExpiresAt(token),
+  };
+}
+
+export function getAccessTokenRemainingMs(token: string): number {
+  return Date.parse(readAccessTokenExpiresAt(token)) - Date.now();
+}
+
+export function shouldRenewAccessToken(token: string): boolean {
+  const remainingMs = getAccessTokenRemainingMs(token);
+  return Number.isFinite(remainingMs) && remainingMs <= JWT_SLIDING_RENEW_REMAINING_MS;
+}
+
+export function extendAccessSession(userId: string, currentToken: string): SessionExtensionResult {
+  if (!shouldRenewAccessToken(currentToken)) {
+    return {
+      token: currentToken,
+      sessionExpiresAt: readAccessTokenExpiresAt(currentToken),
+      renewed: false,
+    };
+  }
+
+  const token = signAccessToken(userId);
+  return {
+    token,
+    sessionExpiresAt: readAccessTokenExpiresAt(token),
+    renewed: true,
+  };
 }
 
 export function verifyAccessToken(token: string): TokenPayload {

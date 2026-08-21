@@ -31,7 +31,7 @@ export function VerifyEmailPage() {
   }, [user, navigate]);
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <div className={styles.card}>
         <MailCheck size={28} className={styles.icon} />
         <h1 className={styles.title}>Email verification</h1>
@@ -61,6 +61,6 @@ export function VerifyEmailPage() {
           </>
         )}
       </div>
-    </div>
+    </main>
   );
 }

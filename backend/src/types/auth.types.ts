@@ -24,6 +24,19 @@ export interface AuthUser {
   emailVerified: boolean;
   hasPassword: boolean;
   hasGoogle: boolean;
+  /** ISO timestamp of the HttpOnly JWT `exp` — not stored in the anonymous DB. */
+  sessionExpiresAt: string;
+}
+
+export type AuthUserProfile = Omit<AuthUser, 'sessionExpiresAt'>;
+
+export interface SessionExtension {
+  sessionExpiresAt: string;
+  renewed: boolean;
+}
+
+export interface SessionExtensionResult extends SessionExtension {
+  token: string;
 }
 
 export interface RegisterBody {
@@ -78,10 +91,12 @@ export interface ResetPasswordBody {
 
 export type AuthResponse = ApiResponse<AuthUser>;
 export type RegisterPendingResponse = ApiResponse<RegisterPendingResult>;
+export type SessionExtensionResponse = ApiResponse<SessionExtension>;
 
 declare module 'express-serve-static-core' {
   interface Request {
     userId?: string;
     requestId?: string;
+    accessToken?: string;
   }
 }

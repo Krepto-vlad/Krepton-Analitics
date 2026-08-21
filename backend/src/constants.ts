@@ -83,6 +83,8 @@ export const BCRYPT_SALT_ROUNDS = 12;
 export const JWT_COOKIE_NAME = 'accessToken';
 // 15 minutes in ms — matches JWT_EXPIRES_IN=15m
 export const JWT_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
+/** Re-issue a full-lifetime access token when remaining TTL is at most half. */
+export const JWT_SLIDING_RENEW_REMAINING_MS = JWT_COOKIE_MAX_AGE_MS / 2;
 export const PASSWORD_MIN_LENGTH = 10;
 export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
 /** Typed confirmation phrase required for hard account deletion (GDPR erasure). */

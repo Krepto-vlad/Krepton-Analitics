@@ -50,6 +50,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-height: 1.125rem;
+}
+
+.rebalancingLinkSlot {
+  min-height: 1.125rem;
 }
 
 .rebalancingLink {
@@ -61,6 +66,15 @@
   &:hover {
     text-decoration: underline;
   }
+}
+
+.riskBadgeSlot {
+  min-width: 5.5rem;
+  min-height: 1.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .cardTitle {
@@ -154,26 +168,37 @@
 .gaugeSvg {
   display: block;
   width: 100%;
+  height: auto;
+  aspect-ratio: 200 / 125;
   max-height: 170px;
   margin: 0 auto;
 }
 
 // ─── Alert banner ────────────────────────────────────────────────────────────
 
+.alertSlot {
+  flex-shrink: 0;
+  height: 3.75rem;
+  overflow: hidden;
+}
+
 .alertBanner {
   display: flex;
   align-items: flex-start;
   gap: $space-2;
+  height: 100%;
   padding: $space-2 $space-3;
   background: $color-danger-muted;
   border: 1px solid $color-danger-border;
   border-radius: $radius-md;
+  color: $color-danger-on-muted;
   font-size: $font-size-xs;
   line-height: 1.5;
+  overflow: hidden;
 }
 
 .alertIcon {
-  color: $color-health-high;
+  color: $color-danger-on-muted;
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -181,10 +206,14 @@
 .alertContent {
   flex: 1;
   min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .alertHighlight {
-  color: $color-health-high;
+  color: $color-danger-on-muted;
   font-weight: $font-weight-bold;
 }
 
@@ -204,15 +233,16 @@
   border: none;
   border-radius: $radius-sm;
   background: transparent;
-  color: $color-health-high;
+  color: $color-danger-on-muted;
   cursor: pointer;
 
   &:hover {
     background: $color-danger-border;
+    color: $color-danger-hover;
   }
 
   &:focus-visible {
-    outline: 2px solid $color-health-high;
+    outline: 2px solid $color-danger-on-muted;
     outline-offset: 1px;
   }
 }
@@ -236,6 +266,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-height: 1.75rem;
 }
 
 .sectorRowHeader {
@@ -251,12 +282,36 @@
   gap: $space-2;
 }
 
-.sectorIcon {
+.sectorIcon,
+.sectorIconPlaceholder {
   width: 8px;
   height: 8px;
   border-radius: 2px;
   flex-shrink: 0;
+}
+
+.sectorIcon {
   background: var(--swatch-color);
+}
+
+.sectorIconPlaceholder {
+  background: $color-overlay-strong;
+}
+
+.sectorNameSkeleton,
+.sectorPercentSkeleton {
+  display: block;
+  flex-shrink: 0;
+}
+
+.sectorNameSkeleton {
+  width: 7.5rem;
+  max-width: 40%;
+}
+
+.sectorPercentSkeleton {
+  width: 4.75rem;
+  max-width: 30%;
 }
 
 .sectorName {

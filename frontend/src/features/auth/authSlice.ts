@@ -7,6 +7,7 @@ import {
   apiGoogleLogin,
   apiVerifyEmail,
   apiResendVerification,
+  apiExtendSession,
 } from '../../api/authApi';
 import { ERROR_MESSAGES } from '../../constants';
 import { getRejectedMessage } from '../../utils/apiError';
@@ -81,7 +82,11 @@ export const resendVerificationThunk = createAsyncThunk(
 
 export const logoutThunk = createAsyncThunk('auth/logout', async () => {
   clearStrategyDriftAlertDismissal();
-  await apiLogout();
+  try {
+    await apiLogout();
+  } catch {
+    // Cookie may already be expired; still clear the SPA session below.
+  }
 });
 
 export const fetchCurrentUserThunk = createAsyncThunk(
@@ -89,6 +94,17 @@ export const fetchCurrentUserThunk = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await apiGetMe();
+    } catch {
+      return rejectWithValue(null);
+    }
+  }
+);
+
+export const extendSessionThunk = createAsyncThunk(
+  'auth/extendSession',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await apiExtendSession();
     } catch {
       return rejectWithValue(null);
     }
@@ -104,6 +120,13 @@ const authSlice = createSlice({
     },
     clearAuthInfoMessage(state) {
       state.infoMessage = null;
+    },
+    expireSession(state) {
+      state.user = null;
+      state.isInitialized = true;
+      state.pendingVerificationEmail = null;
+      state.infoMessage = null;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -130,6 +153,7 @@ const authSlice = createSlice({
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
+        state.isInitialized = true;
         state.pendingVerificationEmail = null;
         state.infoMessage = null;
       })
@@ -144,6 +168,7 @@ const authSlice = createSlice({
       .addCase(googleLoginThunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
+        state.isInitialized = true;
         state.pendingVerificationEmail = null;
         state.infoMessage = null;
       })
@@ -158,6 +183,7 @@ const authSlice = createSlice({
       .addCase(verifyEmailThunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
+        state.isInitialized = true;
         state.pendingVerificationEmail = null;
         state.infoMessage = 'Email verified. Welcome to Krepton.';
       })
@@ -179,8 +205,17 @@ const authSlice = createSlice({
       })
       .addCase(logoutThunk.fulfilled, (state) => {
         state.user = null;
+        state.isInitialized = true;
         state.pendingVerificationEmail = null;
         state.infoMessage = null;
+        state.error = null;
+      })
+      .addCase(logoutThunk.rejected, (state) => {
+        state.user = null;
+        state.isInitialized = true;
+        state.pendingVerificationEmail = null;
+        state.infoMessage = null;
+        state.error = null;
       })
       .addCase(fetchCurrentUserThunk.fulfilled, (state, action) => {
         state.user = action.payload;
@@ -189,9 +224,14 @@ const authSlice = createSlice({
       .addCase(fetchCurrentUserThunk.rejected, (state) => {
         state.user = null;
         state.isInitialized = true;
+      })
+      .addCase(extendSessionThunk.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.sessionExpiresAt = action.payload.sessionExpiresAt;
+        }
       });
   },
 });
 
-export const { clearAuthError, clearAuthInfoMessage } = authSlice.actions;
+export const { clearAuthError, clearAuthInfoMessage, expireSession } = authSlice.actions;
 export const authReducer = authSlice.reducer;

@@ -19,6 +19,13 @@ $breakpoint-xl: 1280px;
   }
 }
 
+/** Header chrome (date / LIVE) before the 1024px tablet layout — avoids overlap ~1020–1280. */
+@mixin header-compact {
+  @media (max-width: #{$breakpoint-xl - 1px}) {
+    @content;
+  }
+}
+
 @mixin tablet-up {
   @media (min-width: $breakpoint-md) {
     @content;

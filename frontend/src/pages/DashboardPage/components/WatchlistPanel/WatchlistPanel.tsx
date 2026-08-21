@@ -74,18 +74,18 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
           <span className={styles.cardTitle}>Watchlist</span>
         </div>
         <div className={styles.headerActions}>
-          {!isEmpty && (
-            <Link to={PORTFOLIO_WATCHLIST_PATH} className={styles.portfolioLink}>
-              View Watchlist
-              <ChevronRight size={14} />
-            </Link>
-          )}
-          {!isLoading && !isEmpty && (
-            <div className={styles.liveClock}>
-              <Radio size={12} className={styles.liveIcon} />
-              <span className={styles.clockText}>{now}</span>
-            </div>
-          )}
+          <Link to={PORTFOLIO_WATCHLIST_PATH} className={styles.portfolioLink}>
+            View Watchlist
+            <ChevronRight size={14} />
+          </Link>
+          <div
+            className={styles.liveClock}
+            data-ready={!isLoading && !isEmpty ? 'true' : 'false'}
+            aria-hidden={isLoading || isEmpty}
+          >
+            <Radio size={12} className={styles.liveIcon} />
+            <span className={styles.clockText}>{now}</span>
+          </div>
         </div>
       </div>
 

@@ -5,6 +5,13 @@ export interface AuthUser {
   emailVerified: boolean;
   hasPassword: boolean;
   hasGoogle: boolean;
+  /** ISO timestamp of the HttpOnly JWT `exp`. */
+  sessionExpiresAt: string;
+}
+
+export interface SessionExtension {
+  sessionExpiresAt: string;
+  renewed: boolean;
 }
 
 export interface StepUpCredentials {

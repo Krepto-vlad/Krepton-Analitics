@@ -1,5 +1,14 @@
 @use 'variables' as *;
 
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
 *,
 *::before,
 *::after {

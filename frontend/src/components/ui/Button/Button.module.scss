@@ -24,12 +24,12 @@
 // ─── Variants ────────────────────────────────────────────────────────────────
 
 .primary {
-  background: $color-primary;
-  color: #fff;
+  background: $color-primary-solid;
+  color: $color-on-primary;
   border: 1px solid transparent;
 
   &:hover:not(:disabled) {
-    background: $color-primary-hover;
+    background: $color-primary-solid-hover;
   }
 }
 

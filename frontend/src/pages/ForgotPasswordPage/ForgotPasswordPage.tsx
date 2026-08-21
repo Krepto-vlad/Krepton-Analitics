@@ -34,7 +34,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <div className={styles.card}>
         <KeyRound size={28} className={styles.icon} />
         <h1 className={styles.title}>Forgot password</h1>
@@ -77,6 +77,6 @@ export function ForgotPasswordPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

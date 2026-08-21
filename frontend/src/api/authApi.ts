@@ -7,6 +7,7 @@ import type {
   LoginCredentials,
   RegisterCredentials,
   RegisterPendingResult,
+  SessionExtension,
 } from '../types/auth.types';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
 
@@ -58,6 +59,13 @@ export async function apiLogout(): Promise<void> {
 
 export async function apiGetMe(): Promise<AuthUser> {
   const { data } = await authClient.get<ApiSuccessResponse<AuthUser> | ApiErrorResponse>('/me');
+  return assertSuccess(data);
+}
+
+export async function apiExtendSession(): Promise<SessionExtension> {
+  const { data } = await authClient.post<ApiSuccessResponse<SessionExtension> | ApiErrorResponse>(
+    '/extend'
+  );
   return assertSuccess(data);
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Briefcase, Loader, Plus, Search } from 'lucide-react';
 import {
   BACKTEST_DEFAULT_AMOUNT,
@@ -62,6 +62,7 @@ export function BacktestInputPanel({
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const amountInputId = useId();
 
   const isAtMaxTickers = selectedTickers.length >= BACKTEST_MAX_TICKERS;
   const totalWeight = getTotalAllocationWeight(selectedTickers);
@@ -219,6 +220,7 @@ export function BacktestInputPanel({
                   onFocus={() => searchResults.length > 0 && setIsDropdownOpen(true)}
                   disabled={isAtMaxTickers}
                   autoComplete="off"
+                  aria-label="Add ticker"
                 />
                 {isSearchLoading && <Loader size={14} className={styles.searchSpinner} />}
 
@@ -272,10 +274,15 @@ export function BacktestInputPanel({
         </div>
 
         <div className={styles.field}>
-          <span className={styles.fieldLabel}>Amount</span>
+          <label className={styles.fieldLabel} htmlFor={amountInputId}>
+            Amount
+          </label>
           <div className={styles.amountWrapper}>
-            <span className={styles.amountPrefix}>{getCurrencySymbol(displayCurrency)}</span>
+            <span className={styles.amountPrefix} aria-hidden="true">
+              {getCurrencySymbol(displayCurrency)}
+            </span>
             <input
+              id={amountInputId}
               type="text"
               inputMode="numeric"
               className={styles.amountInput}

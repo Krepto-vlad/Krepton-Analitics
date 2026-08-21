@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { PORTFOLIO_WATCHLIST_PATH, ROUTE_CATCH_ALL_PATH, ROUTES } from '../constants';
-import { useAppDispatch } from '../hooks/useAppDispatch';
-import { fetchCurrentUserThunk } from '../features/auth/authSlice';
 import { useWatchlistPolling } from '../hooks/useWatchlistPolling';
 import { useHoldingsPolling } from '../hooks/useHoldingsPolling';
+import { useSessionExpiry } from '../hooks/useSessionExpiry';
+import { useSessionRenewal } from '../hooks/useSessionRenewal';
 import { AppShell } from '../components/layout';
 import { PageLoader } from './PageLoader';
 import { RequireAuth } from './RequireAuth';
@@ -89,6 +89,8 @@ const NotFoundPage = lazy(() =>
 function AuthenticatedShell() {
   useWatchlistPolling();
   useHoldingsPolling();
+  useSessionExpiry();
+  useSessionRenewal();
 
   return (
     <AppShell>
@@ -120,12 +122,6 @@ function ScrollToTopOnNavigate() {
 }
 
 function AppRoutes() {
-  const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    dispatch(fetchCurrentUserThunk());
-  }, [dispatch]);
-
   return (
     <Suspense fallback={<PageLoader />}>
       <ScrollToTopOnNavigate />

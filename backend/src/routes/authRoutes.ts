@@ -11,6 +11,7 @@ import {
   resetPassword,
   verifyEmail,
   resendVerification,
+  extendSession,
 } from '../controllers/authController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -36,6 +37,7 @@ router.post('/forgot-password', authLimiter, asyncHandler(forgotPassword));
 router.post('/reset-password', authLimiter, asyncHandler(resetPassword));
 router.post('/logout', logout);
 router.get('/me', authMiddleware, asyncHandler(getMe));
+router.post('/extend', authMiddleware, asyncHandler(extendSession));
 router.put('/password', authMiddleware, authLimiter, asyncHandler(changePassword));
 router.delete('/account', authMiddleware, authLimiter, asyncHandler(deleteAccount));
 

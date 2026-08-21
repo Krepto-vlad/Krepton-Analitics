@@ -19,21 +19,27 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: $space-4;
-  min-height: 360px;
-  max-height: 640px;
+  height: var(--dashboard-panel-height);
+  min-height: var(--dashboard-panel-height);
+  max-height: var(--dashboard-panel-height);
 
   > * {
-    min-height: 360px;
+    min-height: 0;
+    height: 100%;
     min-width: 0;
     overflow: hidden;
   }
 
   @include tablet {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
     max-height: none;
 
     > * {
-      min-height: 300px;
+      min-height: var(--dashboard-panel-height);
+      height: var(--dashboard-panel-height);
+      max-height: var(--dashboard-panel-height);
     }
   }
 }
@@ -43,10 +49,9 @@
   display: grid;
   grid-template-columns: 3fr 2fr;
   gap: $space-4;
-  // ~6 position rows: header + table head + 6 data rows + card chrome
-  min-height: 520px;
-  height: 520px;
-  max-height: 520px;
+  height: var(--dashboard-panel-height);
+  min-height: var(--dashboard-panel-height);
+  max-height: var(--dashboard-panel-height);
 
   > * {
     min-height: 0;
@@ -57,11 +62,18 @@
   @include tablet {
     grid-template-columns: 1fr;
     height: auto;
-    min-height: 420px;
+    min-height: 0;
     max-height: none;
+
+    > * {
+      min-height: var(--dashboard-panel-height);
+      height: var(--dashboard-panel-height);
+      max-height: var(--dashboard-panel-height);
+    }
   }
 }
 
 .bottomRow {
   flex: 0 0 auto;
+  min-height: var(--dashboard-panel-height);
 }

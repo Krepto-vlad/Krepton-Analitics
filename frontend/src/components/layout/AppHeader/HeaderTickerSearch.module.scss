@@ -2,8 +2,8 @@
 
 .root {
   position: relative;
-  width: 420px;
-  max-width: 42vw;
+  width: 100%;
+  min-width: 0;
 }
 
 .searchWrapper {

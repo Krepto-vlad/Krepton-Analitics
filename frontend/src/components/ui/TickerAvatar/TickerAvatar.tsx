@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FMP_STOCK_LOGO_URL_TEMPLATE } from '../../../constants';
+import { FMP_STOCK_LOGO_URL_TEMPLATE, TICKER_AVATAR_SIZE_PX } from '../../../constants';
 import styles from './TickerAvatar.module.scss';
 
 interface TickerAvatarProps {
@@ -107,6 +107,8 @@ export function TickerAvatar({
     });
   }
 
+  const pixelSize = TICKER_AVATAR_SIZE_PX[size];
+
   return (
     <div className={rootClassName} aria-hidden="true">
       {shouldRenderImage ? (
@@ -114,6 +116,8 @@ export function TickerAvatar({
           key={activeLogoUrl}
           src={activeLogoUrl}
           alt=""
+          width={pixelSize}
+          height={pixelSize}
           className={styles.logo}
           loading="lazy"
           referrerPolicy="no-referrer"

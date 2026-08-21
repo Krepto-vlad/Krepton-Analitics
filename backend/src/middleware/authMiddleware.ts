@@ -13,6 +13,7 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
 
     const payload = verifyAccessToken(token);
     req.userId = payload.userId;
+    req.accessToken = token;
 
     next();
   } catch (error) {

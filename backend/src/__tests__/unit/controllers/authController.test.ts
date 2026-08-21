@@ -8,6 +8,11 @@ jest.mock('../../../services/authService.js', () => ({
   requestPasswordReset: jest.fn(),
   resetPasswordWithToken: jest.fn(),
   signAccessToken: jest.fn(),
+  withSessionExpiry: jest.fn((profile) => ({
+    ...profile,
+    sessionExpiresAt: '2026-01-01T00:15:00.000Z',
+  })),
+  extendAccessSession: jest.fn(),
   verifyEmailWithToken: jest.fn(),
   resendVerificationEmail: jest.fn(),
 }));
@@ -16,6 +21,7 @@ import { JWT_COOKIE_NAME } from '../../../constants.js';
 import {
   changePassword,
   deleteAccount,
+  extendSession,
   forgotPassword,
   getMe,
   googleLogin,
@@ -29,6 +35,7 @@ import {
 import {
   changeUserPassword,
   deleteUserAccount,
+  extendAccessSession,
   getUserById,
   loginUser,
   loginWithGoogleIdToken,
@@ -37,6 +44,7 @@ import {
   resendVerificationEmail,
   resetPasswordWithToken,
   signAccessToken,
+  withSessionExpiry,
   verifyEmailWithToken,
 } from '../../../services/authService.js';
 import { asResponse, createMockRequest, createMockResponse } from './httpMocks.js';
@@ -47,9 +55,11 @@ const mockedGoogle = loginWithGoogleIdToken as jest.MockedFunction<typeof loginW
 const mockedGetUser = getUserById as jest.MockedFunction<typeof getUserById>;
 const mockedChangePassword = changeUserPassword as jest.MockedFunction<typeof changeUserPassword>;
 const mockedDelete = deleteUserAccount as jest.MockedFunction<typeof deleteUserAccount>;
+const mockedExtend = extendAccessSession as jest.MockedFunction<typeof extendAccessSession>;
 const mockedForgot = requestPasswordReset as jest.MockedFunction<typeof requestPasswordReset>;
 const mockedReset = resetPasswordWithToken as jest.MockedFunction<typeof resetPasswordWithToken>;
 const mockedSign = signAccessToken as jest.MockedFunction<typeof signAccessToken>;
+const mockedWithSessionExpiry = withSessionExpiry as jest.MockedFunction<typeof withSessionExpiry>;
 const mockedVerifyEmail = verifyEmailWithToken as jest.MockedFunction<typeof verifyEmailWithToken>;
 const mockedResend = resendVerificationEmail as jest.MockedFunction<typeof resendVerificationEmail>;
 
@@ -62,10 +72,19 @@ const user = {
   hasGoogle: false,
 };
 
+const userWithSession = {
+  ...user,
+  sessionExpiresAt: '2026-01-01T00:15:00.000Z',
+};
+
 describe('authController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSign.mockReturnValue('jwt-token');
+    mockedWithSessionExpiry.mockImplementation((profile) => ({
+      ...profile,
+      sessionExpiresAt: '2026-01-01T00:15:00.000Z',
+    }));
   });
 
   it('registers with a 201 payload', async () => {
@@ -103,7 +122,8 @@ describe('authController', () => {
       'jwt-token',
       expect.objectContaining({ httpOnly: true, sameSite: 'strict' })
     );
-    expect(res.json).toHaveBeenCalledWith({ success: true, data: user });
+    expect(mockedWithSessionExpiry).toHaveBeenCalledWith(user, 'jwt-token');
+    expect(res.json).toHaveBeenCalledWith({ success: true, data: userWithSession });
   });
 
   it('rejects login without credentials', async () => {
@@ -159,9 +179,20 @@ describe('authController', () => {
     mockedGetUser.mockResolvedValue(user);
     const res = createMockResponse();
 
-    await getMe(createMockRequest(), asResponse(res));
+    await getMe(createMockRequest({ accessToken: 'jwt-token' }), asResponse(res));
 
-    expect(res.json).toHaveBeenCalledWith({ success: true, data: user });
+    expect(mockedWithSessionExpiry).toHaveBeenCalledWith(user, 'jwt-token');
+    expect(res.json).toHaveBeenCalledWith({ success: true, data: userWithSession });
+  });
+
+  it('rejects getMe without an access token', async () => {
+    mockedGetUser.mockResolvedValue(user);
+
+    await expect(
+      getMe(createMockRequest({ accessToken: undefined }), asResponse(createMockResponse()))
+    ).rejects.toMatchObject({
+      statusCode: 401,
+    });
   });
 
   it('rejects getMe without a user id', async () => {
@@ -169,6 +200,45 @@ describe('authController', () => {
       getMe(createMockRequest({ userId: undefined }), asResponse(createMockResponse()))
     ).rejects.toMatchObject({
       statusCode: 401,
+    });
+  });
+
+  it('rewrites the auth cookie when the session is due for renewal', async () => {
+    mockedExtend.mockReturnValue({
+      token: 'renewed-jwt',
+      sessionExpiresAt: '2026-01-01T00:22:30.000Z',
+      renewed: true,
+    });
+    const res = createMockResponse();
+
+    await extendSession(createMockRequest({ accessToken: 'jwt-token' }), asResponse(res));
+
+    expect(mockedExtend).toHaveBeenCalledWith('user-1', 'jwt-token');
+    expect(res.cookie).toHaveBeenCalledWith(
+      JWT_COOKIE_NAME,
+      'renewed-jwt',
+      expect.objectContaining({ httpOnly: true, sameSite: 'strict' })
+    );
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: { sessionExpiresAt: '2026-01-01T00:22:30.000Z', renewed: true },
+    });
+  });
+
+  it('returns the current expiry without rewriting the cookie when renewal is not due', async () => {
+    mockedExtend.mockReturnValue({
+      token: 'jwt-token',
+      sessionExpiresAt: '2026-01-01T00:15:00.000Z',
+      renewed: false,
+    });
+    const res = createMockResponse();
+
+    await extendSession(createMockRequest({ accessToken: 'jwt-token' }), asResponse(res));
+
+    expect(res.cookie).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: { sessionExpiresAt: '2026-01-01T00:15:00.000Z', renewed: false },
     });
   });
 

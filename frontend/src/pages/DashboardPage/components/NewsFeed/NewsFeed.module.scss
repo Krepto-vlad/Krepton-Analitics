@@ -12,7 +12,9 @@ $news-ticker-column-width: 12.5rem;
 }
 
 .cardCompact {
-  max-height: 520px;
+  min-height: var(--dashboard-panel-height);
+  height: var(--dashboard-panel-height);
+  max-height: var(--dashboard-panel-height);
 }
 
 .cardFull {

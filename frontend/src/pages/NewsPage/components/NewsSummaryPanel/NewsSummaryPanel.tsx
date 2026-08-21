@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CircleHelp, ExternalLink, Loader2, Sparkles } from 'lucide-react';
+import { CircleHelp, ExternalLink, Sparkles } from 'lucide-react';
 import {
   AiGeneratedNotice,
+  Button,
   ContentSkeleton,
   Skeleton,
   TickerAvatar,
@@ -35,6 +36,7 @@ import styles from './NewsSummaryPanel.module.scss';
 interface NewsSummaryPanelProps {
   holdings: PortfolioPosition[];
   holdingsKey: string;
+  isHoldingsLoading?: boolean;
 }
 
 function formatQuotaReset(resetsAt: string): string {
@@ -87,7 +89,11 @@ function getChangeClassName(changePercent: number | null): string {
   return changePercent > 0 ? styles.changePositive : styles.changeNegative;
 }
 
-export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProps) {
+export function NewsSummaryPanel({
+  holdings,
+  holdingsKey,
+  isHoldingsLoading = false,
+}: NewsSummaryPanelProps) {
   const availableTickers = useMemo(
     () => [
       ...new Map(holdings.map((position) => [position.ticker.toUpperCase(), position])).values(),
@@ -287,6 +293,18 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
     !isGenerating &&
     (quota === null || quota.remaining > 0);
 
+  if (isHoldingsLoading) {
+    return (
+      <section
+        className={styles.panel}
+        aria-busy="true"
+        aria-label={LOADING_MESSAGES.PORTFOLIO_HOLDINGS}
+      >
+        <ContentSkeleton preset="stats" label={LOADING_MESSAGES.PORTFOLIO_HOLDINGS} />
+      </section>
+    );
+  }
+
   if (availableTickers.length === 0) {
     return (
       <section className={styles.panel}>
@@ -380,24 +398,16 @@ export function NewsSummaryPanel({ holdings, holdingsKey }: NewsSummaryPanelProp
       </div>
 
       <div className={styles.actionsRow}>
-        <button
+        <Button
           type="button"
-          className={styles.generateButton}
-          onClick={() => void handleGenerateSummary()}
+          variant="primary"
+          leftIcon={<Sparkles size={16} />}
+          loading={isGenerating}
           disabled={!canGenerate}
+          onClick={() => void handleGenerateSummary()}
         >
-          {isGenerating ? (
-            <>
-              <Loader2 size={16} className={styles.spinner} />
-              {LOADING_MESSAGES.AI_NEWS_BRIEFING}
-            </>
-          ) : (
-            <>
-              <Sparkles size={16} />
-              Generate today&apos;s briefing
-            </>
-          )}
-        </button>
+          {isGenerating ? LOADING_MESSAGES.AI_NEWS_BRIEFING : "Generate today's briefing"}
+        </Button>
 
         {quota && quota.remaining === 0 && (
           <p className={styles.limitHint}>

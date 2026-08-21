@@ -23,11 +23,22 @@
   --color-primary-glow: rgba(16, 185, 129, 0.35);
   --color-primary-border: rgba(16, 185, 129, 0.35);
   --color-on-primary: #ffffff;
+  // Solid fills for primary buttons — white text needs ≥4.5:1 (emerald-500 fails).
+  --color-primary-solid: #047857;
+  --color-primary-solid-hover: #065f46;
+  // Text/icons on primary-muted chips (nav pills).
+  --color-primary-on-muted: #10b981;
+  // Long-term bonds swatch/text — indigo-400 so 40% labels pass AA on dark surfaces.
+  --color-rebalancing-lt-bonds: #818cf8;
+  --color-indigo: #818cf8;
+  --color-indigo-solid: #4338ca;
 
   --color-danger: #f87171;
   --color-danger-hover: #fca5a5;
   --color-danger-muted: rgba(248, 113, 113, 0.14);
   --color-danger-border: rgba(248, 113, 113, 0.35);
+  // Text on danger-muted surfaces — WCAG AA on both themes.
+  --color-danger-on-muted: #fca5a5;
   // Vivid red for high portfolio drift (not soft coral / terracotta).
   --color-health-high: #ef4444;
   --color-warning: #f59e0b;
@@ -72,11 +83,18 @@ $color-primary-muted: var(--color-primary-muted);
 $color-primary-glow: var(--color-primary-glow);
 $color-primary-border: var(--color-primary-border);
 $color-on-primary: var(--color-on-primary);
+$color-primary-solid: var(--color-primary-solid);
+$color-primary-solid-hover: var(--color-primary-solid-hover);
+$color-primary-on-muted: var(--color-primary-on-muted);
+$color-rebalancing-lt-bonds: var(--color-rebalancing-lt-bonds);
+$color-indigo: var(--color-indigo);
+$color-indigo-solid: var(--color-indigo-solid);
 
 $color-danger: var(--color-danger);
 $color-danger-hover: var(--color-danger-hover);
 $color-danger-muted: var(--color-danger-muted);
 $color-danger-border: var(--color-danger-border);
+$color-danger-on-muted: var(--color-danger-on-muted);
 $color-health-high: var(--color-health-high);
 $color-warning: var(--color-warning);
 $color-success: var(--color-success);
@@ -101,6 +119,7 @@ $color-gauge-track: var(--color-gauge-track);
 
 $font-family:
   'Inter',
+  'Inter Fallback',
   -apple-system,
   BlinkMacSystemFont,
   'Segoe UI',

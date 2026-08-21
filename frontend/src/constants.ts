@@ -1,6 +1,34 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL as string;
 export const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) ?? '';
 
+/** Clear the SPA session slightly before JWT exp so in-flight calls do not race 401. */
+export const SESSION_EXPIRY_SKEW_MS = 2_000;
+/** Keep in sync with backend JWT_COOKIE_MAX_AGE_MS. */
+export const SESSION_TTL_MS = 15 * 60 * 1000;
+/** Keep in sync with backend JWT_SLIDING_RENEW_REMAINING_MS. */
+export const SESSION_RENEW_REMAINING_MS = SESSION_TTL_MS / 2;
+export const SESSION_ACTIVITY_THROTTLE_MS = 30_000;
+export const SESSION_ACTIVITY_EVENTS = ['pointerdown', 'keydown'] as const;
+export const HTTP_UNAUTHORIZED_STATUS = 401;
+
+/** Axios 401 on these /api/auth paths is a failed login, not an expired session. */
+export const PUBLIC_AUTH_API_PATH_MARKERS = [
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/google',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/auth/verify-email',
+  '/api/auth/resend-verification',
+] as const;
+
+/** 401 bodies that mean the HttpOnly JWT is missing/expired — not a failed step-up password. */
+export const SESSION_EXPIRED_API_MESSAGES = [
+  'Unauthorized',
+  'Invalid or expired token',
+  'User not found',
+] as const;
+
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
@@ -224,6 +252,15 @@ export const PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD = 60;
 
 export const DASHBOARD_NEWS_INITIAL_VISIBLE = 6;
 export const DASHBOARD_NEWS_LOAD_MORE_STEP = 6;
+/** Locked dashboard panel height so load does not push sibling rows (CLS). */
+export const DASHBOARD_PANEL_HEIGHT_PX = 520;
+/** Placeholder sector rows while alignment data hydrates — matches All-Weather buckets. */
+export const DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT = 5;
+export const TICKER_AVATAR_SIZE_PX = {
+  xs: 18,
+  sm: 24,
+  md: 30,
+} as const;
 export const NEWS_PAGE_INITIAL_VISIBLE = 12;
 export const NEWS_PAGE_LOAD_MORE_STEP = 10;
 
@@ -250,6 +287,8 @@ export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
 export const STOCK_SEARCH_DEBOUNCE_MS = 350;
 export const HEADER_TICKER_SEARCH_MAX_RESULTS = 8;
+export const HEADER_TICKER_SEARCH_INPUT_ID = 'header-ticker-search';
+export const HEADER_TICKER_SEARCH_INPUT_NAME = 'ticker';
 export const STOCK_SEARCH_DROPDOWN_LIMIT = 8;
 export const MARKET_MOVERS_COUNT = 10;
 
@@ -286,6 +325,8 @@ export const ERROR_MESSAGES = {
   AUTH_LOGIN_FAILED: 'Unable to sign in. Please check your credentials and try again.',
   AUTH_REGISTER_FAILED: 'Unable to create your account. Please try again.',
   AUTH_GOOGLE_LOGIN_FAILED: 'Unable to sign in with Google. Please try again.',
+  AUTH_GOOGLE_REQUIRES_TERMS:
+    'Agree to the Terms of Service and Privacy Policy to continue with Google.',
   AUTH_VERIFY_EMAIL_FAILED: 'Unable to verify your email. The link may be invalid or expired.',
   AUTH_RESEND_VERIFICATION_FAILED: 'Unable to resend verification email. Please try again.',
   AUTH_CHANGE_PASSWORD_FAILED: 'Unable to change password. Please try again.',
@@ -355,3 +396,12 @@ export const REBALANCING_ASSET_CLASS_COLORS = {
   gold: '#f59e0b',
   commodities: '#f97316',
 } as const;
+
+const REBALANCING_DISPLAY_COLOR_BY_HEX: Record<string, string> = {
+  [REBALANCING_ASSET_CLASS_COLORS.lt_bonds]: 'var(--color-rebalancing-lt-bonds)',
+};
+
+/** Maps API bucket hex to a theme token when contrast needs a per-theme tweak. */
+export function resolveRebalancingDisplayColor(hexColor: string): string {
+  return REBALANCING_DISPLAY_COLOR_BY_HEX[hexColor.trim().toLowerCase()] ?? hexColor;
+}

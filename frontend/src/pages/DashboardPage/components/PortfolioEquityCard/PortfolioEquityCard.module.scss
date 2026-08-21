@@ -36,6 +36,13 @@
   flex-shrink: 0;
 }
 
+.periodSelectorSlot {
+  min-height: 1.75rem;
+  min-width: 11.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .periodSelector {
   display: flex;
   gap: 2px;
@@ -43,6 +50,10 @@
   border: 1px solid $color-border;
   border-radius: $radius-sm;
   padding: 2px;
+
+  &[data-ready='false'] {
+    visibility: hidden;
+  }
 }
 
 .periodButton {
@@ -58,8 +69,12 @@
     color $transition-fast,
     background $transition-fast;
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: $color-foreground;
+  }
+
+  &:disabled {
+    cursor: default;
   }
 }
 
@@ -73,6 +88,7 @@
   display: flex;
   align-items: baseline;
   gap: $space-3;
+  min-height: 2.5rem;
 }
 
 .totalValue {
@@ -81,6 +97,8 @@
   color: $color-foreground;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
+  min-height: 2rem;
 }
 
 .totalPnlPercent {
@@ -92,6 +110,7 @@
   display: flex;
   gap: $space-5;
   flex-wrap: wrap;
+  min-height: 2.5rem;
 }
 
 .statItem {
@@ -119,8 +138,8 @@
   min-height: 130px;
   max-height: 450px;
 
-  &[hidden] {
-    display: none;
+  &[data-chart-ready='false'] {
+    visibility: hidden;
   }
 
   // Hide TradingView attribution logo injected by lightweight-charts v5

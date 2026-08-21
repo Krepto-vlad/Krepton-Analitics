@@ -22,6 +22,7 @@ describe('authMiddleware', () => {
     authMiddleware(req, asResponse(createMockResponse()), next);
 
     expect(req.userId).toBe('user-1');
+    expect(req.accessToken).toBe('jwt-token');
     expect(next).toHaveBeenCalledWith();
   });
 

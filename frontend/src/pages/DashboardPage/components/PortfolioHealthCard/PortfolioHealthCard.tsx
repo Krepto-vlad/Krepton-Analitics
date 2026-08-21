@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Minus, ShieldAlert } from 'lucide-react';
 import {
+  DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT,
   LOADING_MESSAGES,
   PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
   PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
@@ -12,9 +13,15 @@ import {
   dismissStrategyDriftAlert,
   isStrategyDriftAlertDismissed,
 } from '../../../../utils/strategyDriftAlertStorage';
+import { Skeleton } from '../../../../components/ui';
 import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import styles from './PortfolioHealthCard.module.scss';
+
+const HEALTH_SECTOR_PLACEHOLDER_KEYS = Array.from(
+  { length: DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT },
+  (_, index) => `health-sector-placeholder-${index}`
+);
 
 interface PortfolioHealthCardProps {
   alignmentScore: number | null;
@@ -113,26 +120,30 @@ export function PortfolioHealthCard({
         <div className={styles.titleRow}>
           <div className={styles.titleGroup}>
             <span className={styles.cardTitle}>Strategy Alignment</span>
-            {hasScore && strategyName && (
-              <span className={styles.strategyName}>{strategyName}</span>
-            )}
-          </div>
-          {!isLoading && healthLevel && healthLabel && (
-            <span className={`${styles.riskBadge} ${styles[`risk${healthLevel}`]}`}>
-              {healthLabel}
+            <span className={styles.strategyName}>
+              {hasScore && strategyName ? strategyName : '\u00a0'}
             </span>
-          )}
+          </div>
+          <span className={styles.riskBadgeSlot}>
+            {!isLoading && healthLevel && healthLabel ? (
+              <span className={`${styles.riskBadge} ${styles[`risk${healthLevel}`]}`}>
+                {healthLabel}
+              </span>
+            ) : null}
+          </span>
         </div>
-        {hasScore && (
-          <Link to={ROUTES.REBALANCING} className={styles.rebalancingLink}>
-            Open rebalancing engine
-          </Link>
-        )}
+        <div className={styles.rebalancingLinkSlot}>
+          {hasScore ? (
+            <Link to={ROUTES.REBALANCING} className={styles.rebalancingLink}>
+              Open rebalancing engine
+            </Link>
+          ) : null}
+        </div>
       </div>
 
-      {isLoading || showEmptyState ? (
+      {showEmptyState ? (
         <DashboardPanelEmptyState
-          isLoading={isLoading}
+          isLoading={false}
           loadingPreset="stats"
           loadingMessage={LOADING_MESSAGES.PORTFOLIO_ALIGNMENT}
           icon={<ShieldAlert size={24} />}
@@ -147,7 +158,12 @@ export function PortfolioHealthCard({
             <svg
               viewBox="0 0 200 125"
               className={styles.gaugeSvg}
-              aria-label={`Strategy alignment score: ${alignmentScore} out of 100`}
+              aria-busy={isLoading}
+              aria-label={
+                hasScore
+                  ? `Strategy alignment score: ${alignmentScore} out of 100`
+                  : 'Loading strategy alignment score'
+              }
             >
               <path d={bgArcPath} className={styles.gaugeTrack} />
               {healthLevel && progressArcPath && (
@@ -162,7 +178,7 @@ export function PortfolioHealthCard({
                 textAnchor="middle"
                 className={`${styles.gaugeScore}${healthLevel ? ` ${styles[`gaugeScore${healthLevel}`]}` : ''}`}
               >
-                {alignmentScore}
+                {hasScore ? alignmentScore : '\u2014'}
               </text>
               <text
                 x={GAUGE_CX}
@@ -174,58 +190,77 @@ export function PortfolioHealthCard({
               </text>
             </svg>
 
-            {showDriftAlert && topDeviation && (
-              <div className={styles.alertBanner}>
-                <AlertTriangle size={13} className={styles.alertIcon} />
-                <span className={styles.alertContent}>
-                  <span className={styles.alertHighlight}>Strategy drift detected</span>
-                  <span className={styles.alertBody}>
-                    {' '}
-                    {topDeviation.label} is{' '}
-                    {topDeviation.status === 'overweight' ? 'over-weight' : 'under-weight'} by{' '}
-                    {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
+            <div className={styles.alertSlot}>
+              {showDriftAlert && topDeviation ? (
+                <div className={styles.alertBanner}>
+                  <AlertTriangle size={13} className={styles.alertIcon} />
+                  <span className={styles.alertContent}>
+                    <span className={styles.alertHighlight}>Strategy drift detected</span>
+                    <span className={styles.alertBody}>
+                      {' '}
+                      {topDeviation.label} is{' '}
+                      {topDeviation.status === 'overweight' ? 'over-weight' : 'under-weight'} by{' '}
+                      {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
+                    </span>
                   </span>
-                </span>
-                <button
-                  type="button"
-                  className={styles.alertDismissButton}
-                  onClick={handleDismissDriftAlert}
-                  aria-label="Dismiss strategy drift alert"
-                  title="Dismiss"
-                >
-                  <Minus size={14} />
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    className={styles.alertDismissButton}
+                    onClick={handleDismissDriftAlert}
+                    aria-label="Dismiss strategy drift alert"
+                    title="Dismiss"
+                  >
+                    <Minus size={14} />
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <div className={styles.sectors}>
-            {deviations.map((deviation) => (
-              <div key={deviation.bucketId} className={styles.sectorRow}>
-                <div className={styles.sectorRowHeader}>
-                  <div className={styles.sectorNameGroup}>
-                    <span
-                      className={styles.sectorIcon}
-                      style={toCssCustomProperties({ '--swatch-color': deviation.color })}
-                      aria-hidden="true"
-                    />
-                    <span className={styles.sectorName}>{deviation.label}</span>
+            {isLoading
+              ? HEALTH_SECTOR_PLACEHOLDER_KEYS.map((placeholderKey) => (
+                  <div key={placeholderKey} className={styles.sectorRow}>
+                    <div className={styles.sectorRowHeader}>
+                      <div className={styles.sectorNameGroup}>
+                        <span className={styles.sectorIconPlaceholder} aria-hidden="true" />
+                        <span className={styles.sectorNameSkeleton}>
+                          <Skeleton />
+                        </span>
+                      </div>
+                      <span className={styles.sectorPercentSkeleton}>
+                        <Skeleton />
+                      </span>
+                    </div>
+                    <div className={styles.barTrack} />
                   </div>
-                  <span className={styles.sectorPercent}>
-                    {formatAllocationPair(deviation.currentPercent, deviation.targetPercent)}
-                  </span>
-                </div>
-                <div className={styles.barTrack}>
-                  <div
-                    className={styles.barFill}
-                    style={toCssCustomProperties({
-                      '--fill-percent': `${Math.max(deviation.currentPercent, 0)}%`,
-                      '--swatch-color': deviation.color,
-                    })}
-                  />
-                </div>
-              </div>
-            ))}
+                ))
+              : deviations.map((deviation) => (
+                  <div key={deviation.bucketId} className={styles.sectorRow}>
+                    <div className={styles.sectorRowHeader}>
+                      <div className={styles.sectorNameGroup}>
+                        <span
+                          className={styles.sectorIcon}
+                          style={toCssCustomProperties({ '--swatch-color': deviation.color })}
+                          aria-hidden="true"
+                        />
+                        <span className={styles.sectorName}>{deviation.label}</span>
+                      </div>
+                      <span className={styles.sectorPercent}>
+                        {formatAllocationPair(deviation.currentPercent, deviation.targetPercent)}
+                      </span>
+                    </div>
+                    <div className={styles.barTrack}>
+                      <div
+                        className={styles.barFill}
+                        style={toCssCustomProperties({
+                          '--fill-percent': `${Math.max(deviation.currentPercent, 0)}%`,
+                          '--swatch-color': deviation.color,
+                        })}
+                      />
+                    </div>
+                  </div>
+                ))}
           </div>
         </>
       )}

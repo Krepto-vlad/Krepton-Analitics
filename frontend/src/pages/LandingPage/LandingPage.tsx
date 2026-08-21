@@ -368,164 +368,166 @@ export function LandingPage() {
     <div className={styles.page}>
       <Navbar activeRoute="home" />
 
-      {/* ── Hero ── */}
-      <section className={styles.hero}>
-        <div className={styles.heroGlow} />
-        <div className={styles.heroGrid} />
+      <main>
+        {/* ── Hero ── */}
+        <section className={styles.hero}>
+          <div className={styles.heroGlow} />
+          <div className={styles.heroGrid} />
 
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            Advanced Analytics for Your{' '}
-            <span className={styles.heroTitleAccent}>Global Portfolio.</span> 100% Anonymously.
-          </h1>
+          <div className={styles.heroContent}>
+            <h1 className={styles.heroTitle}>
+              Advanced Analytics for Your{' '}
+              <span className={styles.heroTitleAccent}>Global Portfolio.</span> 100% Anonymously.
+            </h1>
 
-          <p className={styles.heroSubtitle}>
-            Track multi-broker assets, automate rebalancing, and monitor dividends.{' '}
-            <strong>No real names. No bank connections. Pure math.</strong>
-          </p>
-
-          <div className={styles.heroCtas}>
-            <button className={styles.btnHeroPrimary} onClick={handleRegister}>
-              Analyze Your Portfolio Free
-              <ArrowRight size={16} />
-            </button>
-            <button className={styles.btnHeroOutline} onClick={handleLogin}>
-              Sign In
-            </button>
-          </div>
-
-          <div className={styles.heroTrust}>
-            {['No credit card required', 'No KYC verification', 'Zero personal data'].map(
-              (text) => (
-                <div key={text} className={styles.heroTrustItem}>
-                  <Check size={12} className={styles.accentIcon} />
-                  {text}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-
-        <div className={styles.previewWrapper}>
-          <DashboardPreview />
-        </div>
-      </section>
-
-      {/* ── Ticker tape — DOM rotation, 3 copies to fill any screen initially ── */}
-      <div className={styles.ticker}>
-        <div ref={tickerTrackRef} className={styles.tickerTrack}>
-          {[...tickerItems, ...tickerItems, ...tickerItems].map((item, i) => (
-            <div key={i} className={styles.tickerItem}>
-              <span className={styles.tickerSymbol}>${item.symbol}</span>
-              <span className={styles.tickerPrice}>{item.price}</span>
-              <span
-                className={`${styles.tickerChange} ${
-                  item.positive ? styles.positive : styles.negative
-                }`}
-              >
-                {item.change}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Stats ── */}
-      <section className={styles.stats}>
-        <div className={styles.statsGrid}>
-          {STATS.map((stat) => (
-            <div key={stat.label} className={styles.statItem}>
-              <div className={styles.statValue}>
-                {stat.value}
-                {stat.suffix}
-              </div>
-              <div className={styles.statLabel}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section id="features" className={styles.features}>
-        <div className={styles.sectionInner}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionBadge}>
-              <Zap size={12} className={styles.accentIcon} />
-              Platform Features
-            </div>
-            <h2 className={styles.sectionTitle}>
-              Everything you need for <span>professional portfolio management</span>
-            </h2>
-            <p className={styles.sectionSubtitle}>
-              Built for independent investors who demand institutional-grade tools without
-              institutional overhead.
+            <p className={styles.heroSubtitle}>
+              Track multi-broker assets, automate rebalancing, and monitor dividends.{' '}
+              <strong>No real names. No bank connections. Pure math.</strong>
             </p>
+
+            <div className={styles.heroCtas}>
+              <button className={styles.btnHeroPrimary} onClick={handleRegister}>
+                Analyze Your Portfolio Free
+                <ArrowRight size={16} />
+              </button>
+              <button className={styles.btnHeroOutline} onClick={handleLogin}>
+                Sign In
+              </button>
+            </div>
+
+            <div className={styles.heroTrust}>
+              {['No credit card required', 'No KYC verification', 'Zero personal data'].map(
+                (text) => (
+                  <div key={text} className={styles.heroTrustItem}>
+                    <Check size={12} className={styles.accentIcon} />
+                    {text}
+                  </div>
+                )
+              )}
+            </div>
           </div>
 
-          <div className={styles.featuresGrid}>
-            {FEATURES.map((feat) => {
-              const Icon = feat.icon;
-              return (
-                <div
-                  key={feat.title}
-                  className={joinClassNames(
-                    styles.featureCard,
-                    LANDING_ACCENT_CLASS_NAME[feat.accent]
-                  )}
+          <div className={styles.previewWrapper}>
+            <DashboardPreview />
+          </div>
+        </section>
+
+        {/* ── Ticker tape — DOM rotation, 3 copies to fill any screen initially ── */}
+        <div className={styles.ticker}>
+          <div ref={tickerTrackRef} className={styles.tickerTrack}>
+            {[...tickerItems, ...tickerItems, ...tickerItems].map((item, i) => (
+              <div key={i} className={styles.tickerItem}>
+                <span className={styles.tickerSymbol}>${item.symbol}</span>
+                <span className={styles.tickerPrice}>{item.price}</span>
+                <span
+                  className={`${styles.tickerChange} ${
+                    item.positive ? styles.positive : styles.negative
+                  }`}
                 >
-                  <div className={styles.featureIconWrap}>
-                    <Icon size={17} />
-                  </div>
-                  <div>
-                    <h3 className={styles.featureTitle}>{feat.title}</h3>
-                    <p className={styles.featureDesc}>{feat.description}</p>
-                  </div>
-                  <div className={styles.featureTags}>
-                    {feat.tags.map((tag) => (
-                      <span key={tag} className={styles.featureTag}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                  {item.change}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* ── Privacy banner ── */}
-      <section className={styles.privacy}>
-        <div className={styles.privacyCard}>
-          <div className={styles.privacyGlow} />
-          <div className={styles.privacyIconWrap}>
-            <Shield size={26} />
-          </div>
-          <div className={styles.privacyBody}>
-            <div className={styles.privacyTitleRow}>
-              <h3 className={styles.privacyTitle}>Zero Personal Data Tracked</h3>
-              <span className={styles.privacyCertBadge}>CERTIFIED</span>
-            </div>
-            <p className={styles.privacyText}>
-              We separate your financial records from your identity using cryptographic
-              architecture. No real names, no phone numbers, no bank connections.{' '}
-              <strong>Your assets remain your business.</strong>
-            </p>
-            <div className={styles.privacyFeatures}>
-              {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
-                <div key={label} className={styles.privacyFeatureItem}>
-                  <Icon size={12} className={styles.accentIcon} />
-                  {label}
+        {/* ── Stats ── */}
+        <section className={styles.stats}>
+          <div className={styles.statsGrid}>
+            {STATS.map((stat) => (
+              <div key={stat.label} className={styles.statItem}>
+                <div className={styles.statValue}>
+                  {stat.value}
+                  {stat.suffix}
                 </div>
-              ))}
+                <div className={styles.statLabel}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Features ── */}
+        <section id="features" className={styles.features}>
+          <div className={styles.sectionInner}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionBadge}>
+                <Zap size={12} className={styles.accentIcon} />
+                Platform Features
+              </div>
+              <h2 className={styles.sectionTitle}>
+                Everything you need for <span>professional portfolio management</span>
+              </h2>
+              <p className={styles.sectionSubtitle}>
+                Built for independent investors who demand institutional-grade tools without
+                institutional overhead.
+              </p>
+            </div>
+
+            <div className={styles.featuresGrid}>
+              {FEATURES.map((feat) => {
+                const Icon = feat.icon;
+                return (
+                  <div
+                    key={feat.title}
+                    className={joinClassNames(
+                      styles.featureCard,
+                      LANDING_ACCENT_CLASS_NAME[feat.accent]
+                    )}
+                  >
+                    <div className={styles.featureIconWrap}>
+                      <Icon size={17} />
+                    </div>
+                    <div>
+                      <h3 className={styles.featureTitle}>{feat.title}</h3>
+                      <p className={styles.featureDesc}>{feat.description}</p>
+                    </div>
+                    <div className={styles.featureTags}>
+                      {feat.tags.map((tag) => (
+                        <span key={tag} className={styles.featureTag}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <button className={styles.btnPrivacyCta} onClick={handleRegister}>
-            Start Anonymously
-            <ChevronRight size={14} />
-          </button>
-        </div>
-      </section>
+        </section>
+
+        {/* ── Privacy banner ── */}
+        <section className={styles.privacy}>
+          <div className={styles.privacyCard}>
+            <div className={styles.privacyGlow} />
+            <div className={styles.privacyIconWrap}>
+              <Shield size={26} />
+            </div>
+            <div className={styles.privacyBody}>
+              <div className={styles.privacyTitleRow}>
+                <h3 className={styles.privacyTitle}>Zero Personal Data Tracked</h3>
+                <span className={styles.privacyCertBadge}>CERTIFIED</span>
+              </div>
+              <p className={styles.privacyText}>
+                We separate your financial records from your identity using cryptographic
+                architecture. No real names, no phone numbers, no bank connections.{' '}
+                <strong>Your assets remain your business.</strong>
+              </p>
+              <div className={styles.privacyFeatures}>
+                {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
+                  <div key={label} className={styles.privacyFeatureItem}>
+                    <Icon size={12} className={styles.accentIcon} />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button className={styles.btnPrivacyCta} onClick={handleRegister}>
+              Start Anonymously
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </section>
+      </main>
 
       <Footer />
     </div>

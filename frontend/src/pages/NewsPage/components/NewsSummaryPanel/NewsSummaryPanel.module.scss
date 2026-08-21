@@ -99,29 +99,6 @@
   flex-wrap: wrap;
 }
 
-.generateButton {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-4;
-  border: none;
-  border-radius: $radius-md;
-  background: $color-primary;
-  color: #041410;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-}
-
-.spinner {
-  animation: spin 0.8s linear infinite;
-}
-
 .limitHint {
   margin: 0;
   font-size: $font-size-xs;
@@ -468,14 +445,4 @@
   margin: 0;
   font-size: $font-size-xs;
   color: $color-foreground-subtle;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
 }

@@ -41,24 +41,30 @@ export function PortfolioEquityCard({
           <TrendingUp size={13} className={styles.cardLabelIcon} />
           <span className={styles.cardLabel}>PORTFOLIO EQUITY</span>
         </div>
-        {!isLoading && hasPortfolioData && (
-          <div className={styles.periodSelector}>
+        <div className={styles.periodSelectorSlot}>
+          <div
+            className={styles.periodSelector}
+            data-ready={hasPortfolioData && !isLoading ? 'true' : 'false'}
+            aria-hidden={isLoading || !hasPortfolioData}
+          >
             {EQUITY_PERIODS.map((period) => (
               <button
                 key={period.value}
+                type="button"
                 className={`${styles.periodButton} ${selectedPeriod === period.value ? styles.activePeriod : ''}`}
                 onClick={() => setSelectedPeriod(period.value as EquityPeriod)}
+                disabled={isLoading || !hasPortfolioData}
               >
                 {period.label}
               </button>
             ))}
           </div>
-        )}
+        </div>
       </div>
 
-      {showLoadingState || showEmptyState ? (
+      {showEmptyState ? (
         <DashboardPanelEmptyState
-          isLoading={showLoadingState}
+          isLoading={false}
           loadingPreset="chart"
           loadingMessage={LOADING_MESSAGES.PORTFOLIO_EQUITY}
           icon={<TrendingUp size={24} />}
@@ -71,17 +77,20 @@ export function PortfolioEquityCard({
         <>
           <div className={styles.valueRow}>
             <span className={styles.totalValue}>
-              {formatMoney(stats.totalValue, currency, {
-                compact: true,
-                maximumFractionDigits: 1,
-                minimumFractionDigits: 1,
-              })}
+              {showLoadingState
+                ? '\u00a0'
+                : formatMoney(stats.totalValue, currency, {
+                    compact: true,
+                    maximumFractionDigits: 1,
+                    minimumFractionDigits: 1,
+                  })}
             </span>
             <span
-              className={`${styles.totalPnlPercent} ${isPnlPositive ? styles.positive : styles.negative}`}
+              className={`${styles.totalPnlPercent} ${showLoadingState ? '' : isPnlPositive ? styles.positive : styles.negative}`}
             >
-              {isPnlPositive ? '+' : ''}
-              {stats.totalPnlPercent.toFixed(1)}% YoY
+              {showLoadingState
+                ? '\u00a0'
+                : `${isPnlPositive ? '+' : ''}${stats.totalPnlPercent.toFixed(1)}% YoY`}
             </span>
           </div>
 
@@ -89,33 +98,35 @@ export function PortfolioEquityCard({
             <div className={styles.statItem}>
               <span className={styles.statLabel}>Total P&L</span>
               <span
-                className={`${styles.statValue} ${isPnlPositive ? styles.positive : styles.negative}`}
+                className={`${styles.statValue} ${showLoadingState ? '' : isPnlPositive ? styles.positive : styles.negative}`}
               >
-                {formatSignedMoney(stats.totalPnl, currency, true)}
+                {showLoadingState ? '\u00a0' : formatSignedMoney(stats.totalPnl, currency, true)}
               </span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statLabel}>Unrealized</span>
               <span
-                className={`${styles.statValue} ${stats.unrealizedPnl >= 0 ? styles.positive : styles.negative}`}
+                className={`${styles.statValue} ${showLoadingState ? '' : stats.unrealizedPnl >= 0 ? styles.positive : styles.negative}`}
               >
-                {formatSignedMoney(stats.unrealizedPnl, currency, true)}
+                {showLoadingState
+                  ? '\u00a0'
+                  : formatSignedMoney(stats.unrealizedPnl, currency, true)}
               </span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statLabel}>Realized</span>
               <span
-                className={`${styles.statValue} ${stats.realizedPnl >= 0 ? styles.positive : styles.negative}`}
+                className={`${styles.statValue} ${showLoadingState ? '' : stats.realizedPnl >= 0 ? styles.positive : styles.negative}`}
               >
-                {formatSignedMoney(stats.realizedPnl, currency, true)}
+                {showLoadingState ? '\u00a0' : formatSignedMoney(stats.realizedPnl, currency, true)}
               </span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statLabel}>Day P&L</span>
               <span
-                className={`${styles.statValue} ${isDayPnlPositive ? styles.positive : styles.negative}`}
+                className={`${styles.statValue} ${showLoadingState ? '' : isDayPnlPositive ? styles.positive : styles.negative}`}
               >
-                {formatSignedMoney(stats.dayPnl, currency, true)}
+                {showLoadingState ? '\u00a0' : formatSignedMoney(stats.dayPnl, currency, true)}
               </span>
             </div>
           </div>
@@ -125,8 +136,8 @@ export function PortfolioEquityCard({
       <div
         ref={containerRef}
         className={styles.chartContainer}
-        hidden={!hasPortfolioData}
-        aria-hidden={!hasPortfolioData}
+        data-chart-ready={hasPortfolioData && !isLoading ? 'true' : 'false'}
+        aria-hidden={isLoading || !hasPortfolioData}
       />
     </div>
   );

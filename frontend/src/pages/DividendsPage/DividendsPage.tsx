@@ -3,7 +3,9 @@ import { CalendarRange } from 'lucide-react';
 import { ERROR_MESSAGES, LOADING_MESSAGES, type Currency } from '../../constants';
 import { fetchPortfolioDividends } from '../../api/portfolioApi';
 import { getRejectedMessage } from '../../utils/apiError';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
+import { fetchPortfolioSummaryThunk } from '../../features/portfolio/portfolioSlice';
 import { ErrorBanner, ContentSkeleton } from '../../components/ui';
 import type { DividendCalendarResponse } from '../../types/dividend.types';
 import { buildLogoByTicker } from '../../utils/tickerLogos';
@@ -13,8 +15,10 @@ import { UpcomingPaymentsList } from './components/UpcomingPaymentsList/Upcoming
 import styles from './DividendsPage.module.scss';
 
 export function DividendsPage() {
+  const dispatch = useAppDispatch();
   const displayCurrency = useAppSelector((state) => state.ui.currency);
   const summaryPositions = useAppSelector((state) => state.portfolio.summaryPositions);
+  const hasHydratedSummary = useAppSelector((state) => state.portfolio.hasHydratedSummary);
   const logoByTicker = useMemo(() => buildLogoByTicker(summaryPositions), [summaryPositions]);
   const [calendarData, setCalendarData] = useState<DividendCalendarResponse | null>(null);
   const [loadedForCurrency, setLoadedForCurrency] = useState<Currency | null>(null);
@@ -22,6 +26,14 @@ export function DividendsPage() {
 
   const isLoading = loadedForCurrency !== displayCurrency;
   const showContent = calendarData !== null && loadedForCurrency === displayCurrency;
+
+  useEffect(() => {
+    if (hasHydratedSummary) {
+      return;
+    }
+
+    void dispatch(fetchPortfolioSummaryThunk());
+  }, [dispatch, hasHydratedSummary]);
 
   useEffect(() => {
     let cancelled = false;

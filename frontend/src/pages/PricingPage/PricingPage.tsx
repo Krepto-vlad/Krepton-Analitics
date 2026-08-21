@@ -76,7 +76,7 @@ export function PricingPage() {
           </div>
           <div className={styles.privacyBody}>
             <div className={styles.privacyTitleRow}>
-              <h3 className={styles.privacyTitle}>Zero Personal Data Tracked</h3>
+              <h2 className={styles.privacyTitle}>Zero Personal Data Tracked</h2>
               <span className={styles.privacyCertBadge}>CERTIFIED</span>
             </div>
             <p className={styles.privacyText}>

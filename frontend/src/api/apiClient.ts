@@ -1,7 +1,8 @@
 import axios, { type AxiosInstance } from 'axios';
-import { ERROR_MESSAGES } from '../constants';
+import { ERROR_MESSAGES, HTTP_UNAUTHORIZED_STATUS } from '../constants';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
 import { ApiRequestError, toApiRequestError } from '../utils/apiError';
+import { isExpiredSessionUnauthorized, notifyUnauthorized } from './unauthorizedSession';
 
 export function createApiClient(baseURL: string): AxiosInstance {
   const client = axios.create({
@@ -11,7 +12,15 @@ export function createApiClient(baseURL: string): AxiosInstance {
 
   client.interceptors.response.use(
     (response) => response,
-    (error) => Promise.reject(toApiRequestError(error))
+    (error) => {
+      if (axios.isAxiosError(error) && error.response?.status === HTTP_UNAUTHORIZED_STATUS) {
+        if (isExpiredSessionUnauthorized(error)) {
+          notifyUnauthorized();
+        }
+      }
+
+      return Promise.reject(toApiRequestError(error));
+    }
   );
 
   return client;

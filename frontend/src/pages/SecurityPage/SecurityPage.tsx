@@ -179,7 +179,7 @@ export function SecurityPage() {
     <div className={styles.page}>
       <Navbar activeRoute="security" />
 
-      <div className={styles.body}>
+      <main className={styles.body}>
         {/* ── Hero ── */}
         <section className={styles.hero}>
           <div className={styles.heroGlow} />
@@ -311,7 +311,7 @@ export function SecurityPage() {
             <div className={styles.faqGrid}>
               {FAQ_ITEMS.map((item) => (
                 <div key={item.question} className={styles.faqCard}>
-                  <h4 className={styles.faqQuestion}>{item.question}</h4>
+                  <h3 className={styles.faqQuestion}>{item.question}</h3>
                   <p className={styles.faqAnswer}>{item.answer}</p>
                 </div>
               ))}
@@ -339,9 +339,9 @@ export function SecurityPage() {
             </div>
           </div>
         </section>
+      </main>
 
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }

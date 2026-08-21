@@ -15,7 +15,13 @@ import {
 import { fetchStockQuotesBatch } from '../../api/stockApi';
 import { ERROR_MESSAGES } from '../../constants';
 import { getRejectedMessage } from '../../utils/apiError';
-import { googleLoginThunk, loginThunk, logoutThunk, verifyEmailThunk } from '../auth/authSlice';
+import {
+  expireSession,
+  googleLoginThunk,
+  loginThunk,
+  logoutThunk,
+  verifyEmailThunk,
+} from '../auth/authSlice';
 
 function mapQuoteToWatchlistItem(
   item: StoredWatchlistItem,
@@ -179,7 +185,9 @@ const watchlistSlice = createSlice({
       })
       .addMatcher(
         isAnyOf(
+          expireSession,
           logoutThunk.fulfilled,
+          logoutThunk.rejected,
           loginThunk.fulfilled,
           googleLoginThunk.fulfilled,
           verifyEmailThunk.fulfilled

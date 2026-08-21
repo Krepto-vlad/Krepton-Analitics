@@ -57,12 +57,10 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
           <span className={styles.cardLabel}>ACTIVE POSITIONS</span>
           <span className={styles.cardTitle}>Transactions &amp; P&amp;L Matrix</span>
         </div>
-        {!isEmpty && (
-          <Link to={`${ROUTES.PORTFOLIO}?section=positions`} className={styles.portfolioLink}>
-            View Portfolio
-            <ChevronRight size={14} />
-          </Link>
-        )}
+        <Link to={`${ROUTES.PORTFOLIO}?section=positions`} className={styles.portfolioLink}>
+          View Portfolio
+          <ChevronRight size={14} />
+        </Link>
       </div>
 
       {isLoading || isEmpty ? (

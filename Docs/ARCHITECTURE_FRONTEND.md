@@ -268,7 +268,7 @@ Content-Type: application/json
 
 Response also includes `Set-Cookie` (HttpOnly, not readable from JS).
 
-**Session restore** on SPA boot (`fetchCurrentUserThunk`):
+**Session restore** on protected routes only (`RequireAuth` → `fetchCurrentUserThunk`). Public pages (landing, login, register) do not probe `/me`.
 
 ```http
 GET /api/auth/me

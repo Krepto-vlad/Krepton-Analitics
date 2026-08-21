@@ -38,7 +38,13 @@ import {
   getTodayIsoDate,
   resolveEquityHistoryForDisplay,
 } from '../../utils/moneyDisplay';
-import { googleLoginThunk, loginThunk, logoutThunk, verifyEmailThunk } from '../auth/authSlice';
+import {
+  expireSession,
+  googleLoginThunk,
+  loginThunk,
+  logoutThunk,
+  verifyEmailThunk,
+} from '../auth/authSlice';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -583,7 +589,9 @@ const portfolioSlice = createSlice({
       })
       .addMatcher(
         isAnyOf(
+          expireSession,
           logoutThunk.fulfilled,
+          logoutThunk.rejected,
           loginThunk.fulfilled,
           googleLoginThunk.fulfilled,
           verifyEmailThunk.fulfilled

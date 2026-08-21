@@ -147,6 +147,10 @@
   color: $color-foreground-subtle;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+
+  &:is(label) {
+    cursor: pointer;
+  }
 }
 
 .tickerArea {

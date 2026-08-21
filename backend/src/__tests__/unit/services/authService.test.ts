@@ -1,5 +1,7 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { ACCOUNT_DELETE_CONFIRMATION, PASSWORD_MIN_LENGTH } from '../../../constants.js';
+import { env } from '../../../config/env.js';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashed-password'),
@@ -65,6 +67,9 @@ import {
   resendVerificationEmail,
   signAccessToken,
   verifyAccessToken,
+  withSessionExpiry,
+  shouldRenewAccessToken,
+  extendAccessSession,
   verifyEmailWithToken,
   verifySensitiveAction,
 } from '../../../services/authService.js';
@@ -365,6 +370,43 @@ describe('authService', () => {
       expect(() => verifyAccessToken('not-a-jwt')).toThrow(
         expect.objectContaining({ statusCode: 401 })
       );
+    });
+
+    it('attaches sessionExpiresAt from the access token exp', () => {
+      const token = signAccessToken('user-1');
+      const profile = {
+        id: 'user-1',
+        email: 'investor@example.com',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        emailVerified: true,
+        hasPassword: true,
+        hasGoogle: false,
+      };
+      const payload = verifyAccessToken(token) as unknown as { exp: number };
+
+      expect(withSessionExpiry(profile, token).sessionExpiresAt).toBe(
+        new Date(payload.exp * 1000).toISOString()
+      );
+    });
+
+    it('does not renew a freshly issued full-lifetime token', () => {
+      expect(shouldRenewAccessToken(signAccessToken('user-1'))).toBe(false);
+    });
+
+    it('renews when remaining lifetime is at most half of the access TTL', () => {
+      const shortLivedToken = jwt.sign({ userId: 'user-1' }, env.jwtSecret, { expiresIn: '1m' });
+      expect(shouldRenewAccessToken(shortLivedToken)).toBe(true);
+    });
+
+    it('issues a new cookie token only when renewal is due', () => {
+      const freshToken = signAccessToken('user-1');
+      expect(extendAccessSession('user-1', freshToken).renewed).toBe(false);
+
+      const shortLivedToken = jwt.sign({ userId: 'user-1' }, env.jwtSecret, { expiresIn: '1m' });
+      const extension = extendAccessSession('user-1', shortLivedToken);
+      expect(extension.renewed).toBe(true);
+      expect(extension.token).not.toBe(shortLivedToken);
+      expect(shouldRenewAccessToken(extension.token)).toBe(false);
     });
   });
 });

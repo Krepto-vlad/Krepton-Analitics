@@ -3,9 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LOADING_MESSAGES, ROUTES } from '../../constants';
+import { apiGetMe } from '../../api/authApi';
 import { authReducer } from '../../features/auth/authSlice';
 import type { AuthState, AuthUser } from '../../types/auth.types';
 import { RequireAuth } from '../RequireAuth';
+
+jest.mock('../../api/authApi', () => ({
+  ...jest.requireActual('../../api/authApi'),
+  apiGetMe: jest.fn(() => new Promise(() => undefined)),
+}));
 
 const testUser: AuthUser = {
   id: 'user-1',
@@ -14,6 +20,7 @@ const testUser: AuthUser = {
   emailVerified: true,
   hasPassword: true,
   hasGoogle: false,
+  sessionExpiresAt: '2026-01-01T00:15:00.000Z',
 };
 
 const idleAuthState: AuthState = {
@@ -51,9 +58,14 @@ function renderGuard(authState: AuthState) {
 }
 
 describe('RequireAuth', () => {
-  it('shows a session loader before auth has been resolved', () => {
+  beforeEach(() => {
+    jest.mocked(apiGetMe).mockClear();
+  });
+
+  it('shows a session loader and restores the session on protected routes', () => {
     renderGuard(idleAuthState);
 
+    expect(apiGetMe).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('status', { name: LOADING_MESSAGES.SESSION })).toBeInTheDocument();
     expect(screen.queryByText('Protected dashboard')).not.toBeInTheDocument();
     expect(screen.queryByText('Login page')).not.toBeInTheDocument();
@@ -62,6 +74,7 @@ describe('RequireAuth', () => {
   it('redirects anonymous users to login', () => {
     renderGuard({ ...idleAuthState, isInitialized: true });
 
+    expect(apiGetMe).not.toHaveBeenCalled();
     expect(screen.getByText('Login page')).toBeInTheDocument();
     expect(screen.queryByText('Protected dashboard')).not.toBeInTheDocument();
   });
@@ -69,6 +82,7 @@ describe('RequireAuth', () => {
   it('renders protected content for an authenticated user', () => {
     renderGuard({ ...idleAuthState, isInitialized: true, user: testUser });
 
+    expect(apiGetMe).not.toHaveBeenCalled();
     expect(screen.getByText('Protected dashboard')).toBeInTheDocument();
     expect(screen.queryByText('Login page')).not.toBeInTheDocument();
   });

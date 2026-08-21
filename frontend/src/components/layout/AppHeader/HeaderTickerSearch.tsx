@@ -4,6 +4,8 @@ import { Loader2, Search } from 'lucide-react';
 import { fetchStockSearch } from '../../../api/stockApi';
 import { TickerAvatar } from '../../ui';
 import {
+  HEADER_TICKER_SEARCH_INPUT_ID,
+  HEADER_TICKER_SEARCH_INPUT_NAME,
   HEADER_TICKER_SEARCH_MAX_RESULTS,
   STOCK_SEARCH_DEBOUNCE_MS,
   TICKER_FORMAT_PATTERN,
@@ -139,6 +141,8 @@ export function HeaderTickerSearch() {
       <div className={styles.searchWrapper}>
         <Search size={14} className={styles.searchIcon} aria-hidden />
         <input
+          id={HEADER_TICKER_SEARCH_INPUT_ID}
+          name={HEADER_TICKER_SEARCH_INPUT_NAME}
           type="search"
           className={styles.searchInput}
           placeholder="Search ticker…"

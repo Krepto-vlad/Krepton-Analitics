@@ -248,6 +248,24 @@ paths:
         '401':
           $ref: '#/components/responses/Error'
 
+  /api/auth/extend:
+    post:
+      tags: [Auth]
+      summary: Sliding session — re-issue the HttpOnly JWT when remaining TTL is at most half
+      responses:
+        '200':
+          description: Returns the current or renewed session expiry. Cookie is rewritten only when renewed.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionExtensionSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+
   /api/auth/password:
     put:
       tags: [Auth]
@@ -913,6 +931,8 @@ components:
           type: string
     AuthUser:
       type: object
+      required:
+        [id, email, createdAt, emailVerified, hasPassword, hasGoogle, sessionExpiresAt]
       properties:
         id:
           type: string
@@ -928,6 +948,28 @@ components:
           type: boolean
         hasGoogle:
           type: boolean
+        sessionExpiresAt:
+          type: string
+          format: date-time
+          description: ISO timestamp of the HttpOnly JWT exp. Not stored in the anonymous user table.
+    SessionExtension:
+      type: object
+      required: [sessionExpiresAt, renewed]
+      properties:
+        sessionExpiresAt:
+          type: string
+          format: date-time
+        renewed:
+          type: boolean
+    SessionExtensionSuccess:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/SessionExtension'
     AuthSuccess:
       type: object
       required: [success, data]

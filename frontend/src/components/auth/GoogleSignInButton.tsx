@@ -1,4 +1,4 @@
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
+import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google';
 import { GOOGLE_CLIENT_ID } from '../../constants';
 import { useTheme } from '../../hooks/useTheme';
 import styles from './GoogleSignInButton.module.scss';
@@ -6,6 +6,7 @@ import styles from './GoogleSignInButton.module.scss';
 interface GoogleSignInButtonProps {
   onCredential: (idToken: string) => void;
   onError?: () => void;
+  onDisabledClick?: () => void;
   disabled?: boolean;
   text?: 'signin_with' | 'signup_with' | 'continue_with';
 }
@@ -13,6 +14,7 @@ interface GoogleSignInButtonProps {
 export function GoogleSignInButton({
   onCredential,
   onError,
+  onDisabledClick,
   disabled = false,
   text = 'continue_with',
 }: GoogleSignInButtonProps) {
@@ -34,18 +36,27 @@ export function GoogleSignInButton({
   }
 
   return (
-    <div className={`${styles.wrap} ${disabled ? styles.disabled : ''}`}>
-      <GoogleLogin
-        key={theme}
-        onSuccess={handleSuccess}
-        onError={() => onError?.()}
-        useOneTap={false}
-        theme={theme === 'light' ? 'outline' : 'filled_black'}
-        size="large"
-        shape="rectangular"
-        text={text}
-        width="100%"
-      />
-    </div>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <div className={styles.wrap}>
+        {disabled && (
+          <button
+            type="button"
+            className={styles.blocker}
+            onClick={() => onDisabledClick?.()}
+            aria-label="Google sign-in is currently unavailable"
+          />
+        )}
+        <GoogleLogin
+          key={theme}
+          onSuccess={handleSuccess}
+          onError={() => onError?.()}
+          useOneTap={false}
+          theme="filled_black"
+          size="large"
+          shape="rectangular"
+          text={text}
+        />
+      </div>
+    </GoogleOAuthProvider>
   );
 }

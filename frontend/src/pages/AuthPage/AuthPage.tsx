@@ -125,11 +125,11 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const isSubmitDisabled = isLoading || (mode === 'register' && !isRegisterReady);
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <div className={styles.glow} />
       <div className={styles.grid} />
 
-      <button className={styles.backButton} onClick={() => navigate(ROUTES.HOME)}>
+      <button type="button" className={styles.backButton} onClick={() => navigate(ROUTES.HOME)}>
         <ArrowLeft size={15} />
         Back to home
       </button>
@@ -157,6 +157,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         {/* ── Mode tabs ── */}
         <div className={styles.modeTabs}>
           <button
+            type="button"
             className={`${styles.modeTab} ${mode === 'register' ? styles.active : ''}`}
             onClick={() => {
               if (mode !== 'register') {
@@ -167,6 +168,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
             Sign Up
           </button>
           <button
+            type="button"
             className={`${styles.modeTab} ${mode === 'login' ? styles.active : ''}`}
             onClick={() => {
               if (mode !== 'login') {
@@ -231,6 +233,11 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               disabled={isLoading || (mode === 'register' && !agreed)}
               onCredential={(idToken) => void handleGoogleCredential(idToken)}
               onError={() => setGoogleError(ERROR_MESSAGES.AUTH_GOOGLE_LOGIN_FAILED)}
+              onDisabledClick={() => {
+                if (mode === 'register' && !agreed) {
+                  setGoogleError(ERROR_MESSAGES.AUTH_GOOGLE_REQUIRES_TERMS);
+                }
+              }}
             />
             <div className={styles.authDivider}>
               <span>or</span>
@@ -483,6 +490,6 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }
