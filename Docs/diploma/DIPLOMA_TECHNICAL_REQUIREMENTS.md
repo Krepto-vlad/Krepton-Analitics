@@ -59,7 +59,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | --- | ---------------------------------- | -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | Business Analysis                  | required       | plan   | Есть: GDPR (`Docs/GDPR_ITD.md`, Privacy/Terms PDF), архитектура (`ARCHITECTURE_*.md`, mermaid в `AI_INTEGRATION.md`), эпики в `ВозможныеФичи.md`. Нет BA-пакета: vision, stakeholders, use case diagram, in/out of scope, NFR.              |
 | 2   | Backend                            | required       | plan   | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist/AI cache+quota), **OpenAPI**, **pino** + `x-request-id`, Jest **≥70%** + CI artifact. Нет: public deploy. HMAC portfolio ещё raw SQL (ADR). Max-цель **7–8**: CD+Azure logs+alert+correlation ID; skip Kafka/Redis/микросервисы/Grafana/Sonar. |
-| 3   | Frontend                           | required       | plan   | React SPA, Vite, RTK, 15+ lazy routes, SCSS, forms/tables/search, Error Boundary, skeletons, RTL. Дыры min: Playwright e2e, скрины tablet, mermaid демо-флоу. Max-цель **7–8**: lazy+RTK+charts уже в коде; + Lighthouse walkthrough (landing+dashboard, prod build) + a11y check. Skip FSD/Next/Figma/Sentry/PWA. i18n — после восьмёрки. |
+| 3   | Frontend                           | required       | plan   | React SPA, Vite, RTK, 15+ lazy routes, SCSS, forms/tables/search, Error Boundary, skeletons, RTL, **Playwright e2e**. Дыры min: скрины tablet, mermaid демо-флоу. Max-цель **7–8**: lazy+RTK+charts уже в коде; + Lighthouse walkthrough (landing+dashboard, prod build) + a11y check. Skip FSD/Next/Figma/Sentry/PWA. i18n — после восьмёрки. |
 | 4   | Database                           | data           | plan   | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE/**CHECK**, транзакции, bcrypt, HMAC `owner_token`, роли `app_`*, `seed:demo`, dictionary/ER. Max-цель **7–8**: migrations+indexes+HMAC уже в коде; дыры: `\du` + `app_write` на staging + `EXPLAIN` appendix. Skip Timescale/триггеры/views/шарды. |
 | 5   | Real-time Analytics                | data           | —      | **Не брать.** Котировки — polling ~30 с (TTL кэша). `useStockWebSocket.ts` не подключён, WS-сервера на бэке нет. Рубрика явно не считает delay > 10 с / cron.                                                                               |
 | 6   | ML Model                           | data           | —      | **Не брать.** Gemini — LLM API, не своё обучение.                                                                                                                                                                                           |
@@ -72,7 +72,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | 13  | Containerization                   | infrastructure | —      | **Не заявляем.** Файлы min почти готовы (Dockerfile ×2, compose, non-root, healthcheck, CI `docker build`). Дыра для заявки: живой `compose up` + размеры образов. Можно 9-м после доказательства. |
 | 14  | Microservices                      | infrastructure | —      | **Не брать.** Монолит FE+BE+Postgres не считается.                                                                                                                                                                                          |
 | 15  | API Documentation                  | processes      | —      | Текстовые эндпоинты AI в `AI_INTEGRATION.md` ≠ OpenAPI-портал. Для Backend min хватит текста/Swagger; как отдельный критерий — нет.                                                                                                         |
-| 16  | Automated tests 70%+               | processes      | plan   | Backend Jest **≥70%** + HTTP supertest + RTL. Max-цель **7–8**: gate 70% + критичные unit уже есть. Дыры min: API+Postgres, Playwright, скрин зелёного CI. Skip mutation/Pact/k6/FE-70%/branches-70%. Qual testing не берём. |
+| 16  | Automated tests 70%+               | processes      | plan   | Backend Jest **≥70%** + HTTP supertest + RTL + **Playwright e2e с реальным Postgres в CI**. Max-цель **7–8**: gate 70% + критичные unit + полная пирамида уже есть. Дыра min: скрин зелёного CI. Skip mutation/Pact/k6/FE-70%/branches-70%. Qual testing не берём. |
 | 17  | Qualitative / quantitative testing | processes      | —      | Нет тест-плана, ручных кейсов, JMeter/Postman-коллекции как артефакта защиты.                                                                                                                                                               |
 
 
@@ -219,7 +219,7 @@ Node.js / Express подходит как «modern framework».
 Тесты:
 
 - [x] Unit: минимум 3 ключевых компонента/сервиса — RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel; unit: `moneyDisplay`, `rebalancingAllocations`
-- [ ] **+ продукт** Integration/e2e: 1–2 теста Playwright (login → dashboard smoke). RTL на компоненты уже есть; без e2e min формально дырявый
+- [x] **+ продукт** Integration/e2e: 2 теста Playwright (route guard redirect + login → dashboard smoke, seeded holdings) — `frontend/e2e/login.spec.ts`, гоняется локально и в CI (job `e2e`)
 
 Запрещено: inline-styles без архитектуры CSS · один компонент на весь проект · токены в коде · необработанные API-ошибки · `any` без причины · «SPA» из статичного HTML.
 
@@ -640,10 +640,10 @@ Coverage < 70%: −2. Тесты без логики (`expect(true)`, пусты
 
 - [x] Coverage **≥ 70%** инструментом + отчёт — Istanbul/Jest, порог statements/lines/functions в `backend/jest.config.js`; HTML/lcov artifact `backend-coverage`. **Branches не гейтим** (~50%)
 - [x] Unit FIRST + edge cases — parsers, FX, tickerChatScope, password reset, quota, errorHandler, …
-- [x] HTTP integration (supertest) — `httpApi.test.ts`: `/health`, 401 portfolio (нет cookie / мусорный JWT), 400 search без `q`. **Живой Postgres в CI нет** — это не «API+БД»
-- [ ] **+ продукт** Один сценарий с тестовой БД: CI `services: postgres` (или staging smoke) — register/login cookie → `GET /api/portfolio` 200. Yahoo/Gemini по-прежнему мокаем
+- [x] HTTP integration (supertest) — `httpApi.test.ts`: `/health`, 401 portfolio (нет cookie / мусорный JWT), 400 search без `q` (DB мокаем)
+- [x] **+ продукт** Один сценарий с тестовой БД: CI job `e2e` — `services: postgres` + `migrate:up` + `seed:demo`, Playwright логинится и получает `GET /api/portfolio` 200 через реальный HttpOnly cookie. Yahoo/Gemini по-прежнему мокаем/выключены
 - [x] FE component tests — RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel, Skeleton; unit: `moneyDisplay`, `rebalancingAllocations`
-- [ ] **+ продукт** Playwright e2e: login → dashboard smoke (тот же пункт, что Frontend min). Cypress не берём
+- [x] **+ продукт** Playwright e2e: login → dashboard smoke (тот же пункт, что Frontend min). Cypress не берём — `frontend/e2e/login.spec.ts`
 - [x] Тесты в CI — backend `test:coverage` + frontend `npm test` в `.github/workflows/ci.yml`; Husky pre-push = локальный крючок, не evidence эксперту
 - [ ] **+ диплом** Скрин зелёного Actions-прогона + таблица coverage % в appendix (artifact есть, картинки в zip нет)
 - [x] Стратегия в отчёте — `criteria/automated-tests.md`: что мокаем (Yahoo/Gemini/DB unit), как гонять локально
@@ -657,7 +657,7 @@ Coverage < 70%: −2. Тесты без логики (`expect(true)`, пусты
 
 - [x] **+ продукт** Quality gate: CI падает, если backend coverage < 70% (statements/lines/functions)
 - [x] **+ продукт** Критичные зоны в unit: auth 401, validation 400, tickerChatScope jailbreak, HMAC/privacy, import parsers
-- [ ] **+ продукт** Пирамида: unit (есть) + HTTP (есть) + RTL (есть) + **один** e2e Playwright + **один** API+Postgres. Это закрывает «полная пирамида» тонко, не Cypress+Pact
+- [x] **+ продукт** Пирамида: unit (есть) + HTTP (есть) + RTL (есть) + **один** e2e Playwright + **один** API+Postgres — обе последние закрыты одной CI job `e2e`. Это закрывает «полная пирамида» тонко, не Cypress+Pact
 - [ ] **+ диплом** В thesis: «как тесты ловили баги» — 3–5 реальных регрессий (scope gate, CHECK, cookie 401) + план: не гнать 80% пустышками
 - [ ] **+ диплом** Required check на PR (GitHub) когда репо не personal-only — иначе скрин зелёного `main` достаточен
 
@@ -727,12 +727,12 @@ Coverage < 70%: −2. Тесты без логики (`expect(true)`, пусты
 | -------------------- | -------------- | ------------------------------------------------------------------------------- |
 | Business Analysis    | required       | комиссия; пакет после апрува темы                                               |
 | Backend              | required       | Express + слои; добить ORM, OpenAPI, логи, deploy, 70%                          |
-| Frontend             | required       | SPA + Redux + Vite; min: Playwright + tablet; max evidence: Lighthouse walkthrough + a11y check; i18n после восьмёрки; не PWA/Sentry |
+| Frontend             | required       | SPA + Redux + Vite + **Playwright**; min: скрины tablet; max evidence: Lighthouse walkthrough + a11y check; i18n после восьмёрки; не PWA/Sentry |
 | Database             | data           | OLTP min почти закрыт; max = migrations + indexes + HMAC; `\du`/`EXPLAIN` на стенде; не Timescale/триггеры |
 | AI Assistant         | technical      | min почти закрыт; max = guardrails + quota/cache; скрин + staging p95; не RAG/MCP/две модели |
 | Cloud                | infrastructure | Azure + managed Postgres + public URL (фаза D4)                                 |
 | CI/CD                | infrastructure | GitHub Actions; CD можно manual trigger                                         |
-| Automated tests 70%+ | processes      | 70% gate + unit + HTTP + RTL; добить Postgres-сценарий + Playwright; не mutation/k6 |
+| Automated tests 70%+ | processes      | 70% gate + unit + HTTP + RTL + Playwright (реальный Postgres в CI); добить скрин зелёного Actions; не mutation/k6 |
 
 
 Не берём: Real-time, ML, Cryptography, Microservices, API Docs *как критерий*, Qual testing. Containerization — файлы min почти готовы, заявка нет (нет `compose up`). Adaptive UI / Refined UX — запас.

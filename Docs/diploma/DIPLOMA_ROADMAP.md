@@ -41,12 +41,12 @@
 | ---------- | ------------------------------------------------------ | ---------------------------------------------------- |
 | BA         | GDPR, архитектура, эпики                               | Пакет vision / stakeholders / use cases — **D1**     |
 | Backend    | Слои, Drizzle (users/watchlist/AI), pino, OpenAPI, 70% | Public URL — **D4**; Spectral sync — D2              |
-| Frontend   | SPA, RTK, lazy, RTL, charts/theme                      | Playwright, скрины tablet, mermaid демо-флоу — D2/D3 |
+| Frontend   | SPA, RTK, lazy, RTL, charts/theme, Playwright          | Скрины tablet, mermaid демо-флоу — D2/D3             |
 | Database   | OLTP, CHECK, роли, seed, HMAC, dictionary/ER           | `\du` + `app_write` на staging — **D4**              |
 | AI         | Guardrails, quota, кэш, 14 диалогов, lab p95           | Скрин чата — D2; staging p95 — D4                    |
 | Cloud      | Документ-черновик                                      | Весь стенд — **D4**                                  |
-| CI/CD      | Actions: lint/build/Jest/audit/`docker build`          | CD + логические среды — **D4**                       |
-| Auto tests | 70% gate, HTTP supertest, RTL                          | API+Postgres, Playwright, скрин зелёного CI — D3     |
+| CI/CD      | Actions: lint/build/Jest/audit/`docker build`/`e2e`    | CD + логические среды — **D4**                       |
+| Auto tests | 70% gate, HTTP supertest, RTL, API+Postgres, Playwright | Скрин зелёного CI — D3                              |
 
 
 Max **уже в коде** (не ждать D4): Frontend lazy+RTK+charts · Database migrations+indexes+HMAC · AI guardrails+quota/cache · Tests quality gate 70%. Backend max = ops на Azure (CD, log stream, один alert).
@@ -107,7 +107,7 @@ Max **уже в коде** (не ждать D4): Frontend lazy+RTK+charts · Dat
 | **OpenAPI**                                     | Backend min     | файл есть  | `openapi.yaml` в Git. D2: Spectral + не разъезжается с роутами. Отдельный критерий API Docs **не берём**.  |
 | **DB roles** `app_read` / `app_write` / `admin` | Database min    | код есть   | Роли в миграции. Staging API = `app_write` (D4). Скрин `\du`.                                              |
 | **CHECK / dictionary / ER / seed / 3NF**        | Database min    | есть       | Appendix `db-schema.md` + `seed:demo`.                                                                     |
-| **Error Boundary + RTL ≥ 3**                    | Frontend min    | есть       | Boundary + ErrorBanner, RequireAuth, AsyncStatePanel, Skeleton. Playwright — дыра (D2/D3, **один** smoke). |
+| **Error Boundary + RTL ≥ 3**                    | Frontend min    | есть       | Boundary + ErrorBanner, RequireAuth, AsyncStatePanel, Skeleton + Playwright smoke (`frontend/e2e/login.spec.ts`). |
 | **User flows / FE architecture diagram**        | Frontend min    | черновик   | Mermaid роуты/Redux в D0. Демо-флоу register→…→delete — D2.                                                |
 | **≥10 диалогов + user guide + lab p95**         | AI min          | есть       | Appendix + user guide + lab 2026-08-19. Скрин чата и staging p95 — ещё.                                    |
 | **npm audit в пайплайне**                       | Backend + CI/CD | есть       | Job + `NPM_AUDIT_BACKEND.md` (xlsx high accepted).                                                         |
@@ -129,7 +129,7 @@ Max **уже в коде** (не ждать D4): Frontend lazy+RTK+charts · Dat
 | **D0** | Рубрика в коде: ORM, логи, тесты, CI, OpenAPI, Dockerfiles                | Сейчас, до семестра                          | ✅ дыры min в коде        | ✅ качество       |
 | **D1** | BA-пакет + скелет thesis (EN)                                             | Сразу после апрува темы (weeks 1–3)          | ✅ комиссия BA            | 🟡 product story |
 | **D2** | Картинки эксперту: OpenAPI, flows, Lighthouse/a11y, `\du` текст, скрин AI | Weeks 4–9, параллельно фичам                 | ✅ эксперты BE/FE/DB/AI   | 🟡 docs          |
-| **D3** | Пирамида тонко: Postgres-сценарий + Playwright + скрин coverage           | Weeks 7–15, не в конце                       | ✅ Backend + Auto tests   | ✅ регрессия      |
+| **D3** | Пирамида тонко: Postgres-сценарий + Playwright (готово) + скрин coverage  | Weeks 7–15, не в конце                       | ✅ Backend + Auto tests   | ✅ регрессия      |
 | **D4** | Azure + CD + секреты + **стендовые** `\du` / latency / HTTPS Lighthouse   | Поздно и дёшево, **до** предзащиты (week 19) | ✅ Cloud + Backend deploy | ✅ friend URL     |
 | **D5** | Thesis EN, видео, слоты, appendix                                         | Weeks 16–22                                  | ✅ допуск                 | —                |
 
@@ -241,7 +241,7 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 - [x] Architecture diagram + обоснование стека (React/Vite/RTK vs Next) — thesis `criteria/frontend.md`.
 - [ ] **+ диплом** User flow демо-сценария (register → import → rebalance → AI → export/delete).
-- [ ] **+ продукт** Playwright: 1–2 сценария (login → dashboard smoke). **Тот же smoke, что D3 Auto tests**, не второй набор e2e.
+- [x] **+ продукт** Playwright: 2 сценария (route guard redirect + login → dashboard smoke). **Тот же smoke, что D3 Auto tests**, не второй набор e2e.
 - [ ] **+ диплом** Скрины desktop / tablet / mobile до предзащиты.
 - [ ] **+ диплом** Vite bundle visualizer; отчёт в appendix.
 - [x] **+ диплом** Lighthouse walkthrough (2026-08-21, `vite preview`, не `npm run dev`):
@@ -285,9 +285,9 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 - [x] Unit FIRST: auth, rebalancing math, FX, parsers, tickerChatScope, quote cache.
 - [x] HTTP integration без БД: health / 401 / 400 (`httpApi.test.ts`).
-- [ ] **+ продукт** Один API + Postgres в CI (`services: postgres`) или staging smoke с cookie.
+- [x] **+ продукт** Один API + Postgres в CI (`services: postgres`, job `e2e`) — migrate + `seed:demo` + Playwright login → `GET /api/portfolio`.
 - [x] FE RTL (ErrorBanner, boundary, RequireAuth, AsyncStatePanel, Skeleton).
-- [ ] **+ продукт** Playwright: login → dashboard (staging или локальный API). **Тот же smoke, что D2 Frontend.**
+- [x] **+ продукт** Playwright: login → dashboard (CI job `e2e`, локальный API — см. `frontend/e2e/README.md`). **Тот же smoke, что D2 Frontend.**
 - [x] Coverage **≥ 70%** Istanbul/Jest, HTML/lcov в CI artifact.
 - [ ] **+ диплом** Скрин зелёного Actions + % coverage в appendix.
 - [ ] **+ диплом** Абзац «как тесты находили баги» + план не гнать 80% пустышками.
@@ -348,7 +348,7 @@ Husky остаётся локальным крючком. Для эксперт�
 
 - BA сдан комиссии (D1).
 - Backend/Frontend/Database/AI: пункты min в `DIPLOMA_TECHNICAL_REQUIREMENTS.md` **с артефактом** (не только код).
-- Playwright smoke + один API+Postgres (или staging cookie-smoke).
+- [x] Playwright smoke + один API+Postgres — CI job `e2e`.
 - Jest coverage ≥70% + скрин зелёного Actions.
 - Публичный Azure URL + managed DB (EU) + CD хотя бы `workflow_dispatch`.
 - Staging: `\du` / `app_write`, AI p95, Lighthouse не с Vite HMR.

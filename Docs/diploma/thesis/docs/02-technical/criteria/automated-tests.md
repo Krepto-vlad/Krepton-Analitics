@@ -4,9 +4,9 @@
 
 ### Status
 
-**Status:** In progress (backend unit 70% in CI; FE RTL min done; e2e still thin)
+**Status:** In progress (backend unit 70% in CI; FE RTL min done; Playwright e2e added, runs in CI against a real Postgres service)
 
-**Date:** 2026-08-18
+**Date:** 2026-08-25
 
 ### Context
 
@@ -29,9 +29,9 @@ Istanbul gate in `backend/jest.config.js`: statements, lines, and functions **�
 
 ### Consequences
 
-**Positive:** One coverage number serves Backend min. Quality gate is real (CI fails under 70%).  
-**Negative:** HTTP integration does not hit Postgres; Playwright e2e still extra.  
-**Neutral:** Mutation, Pact, k6, and FE coverage 70% are Auto tests **max** and **not claimed**. Target is 7–8 via gate + critical unit + thin pyramid (one DB test + one Playwright). Qualitative/JMeter is a different criterion.
+**Positive:** One coverage number serves Backend min. Quality gate is real (CI fails under 70%). The Playwright job also doubles as the "one DB test" — it runs migrations + `seed:demo` against a real `services: postgres` container, so login → dashboard is exercised against actual Postgres, not mocks.  
+**Negative:** The Jest HTTP integration suite (`httpApi.test.ts`) itself still does not hit Postgres — that gap is now covered by the Playwright job instead of a supertest test.  
+**Neutral:** Mutation, Pact, k6, and FE coverage 70% are Auto tests **max** and **not claimed**. Target is 7–8 via gate + critical unit + thin pyramid (one DB-backed e2e + Playwright, same job). Qualitative/JMeter is a different criterion.
 
 ## How to run
 
@@ -51,10 +51,10 @@ cd frontend && npm test
 | 1 | Documented strategy | ✅ | This ADR |
 | 2 | Coverage ≥ 70% + report | ✅ | Jest threshold; CI artifact `backend-coverage` (screenshot TBD) |
 | 3 | Unit tests + edge cases | ✅ | Auth, portfolio, import, AI quota/chat, controllers |
-| 4 | Integration (API, auth, DB) | ⚠️ | HTTP: `/health`, 401 portfolio, 400 search. **No live Postgres in CI** |
-| 5 | FE component and/or e2e | ⚠️ | RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel, Skeleton; Playwright extra |
-| 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` |
-| 7 | Naming / folders | ✅ | `*.test.ts` / `__tests__` |
+| 4 | Integration (API, auth, DB) | ✅ | Jest HTTP: `/health`, 401 portfolio, 400 search (mocked). Playwright CI job: migrate + `seed:demo` + login → dashboard against a **real Postgres service container** |
+| 5 | FE component and/or e2e | ✅ | RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel, Skeleton; Playwright: `frontend/e2e/login.spec.ts` (route guard + login → dashboard smoke) |
+| 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` — `backend`, `frontend`, and `e2e` jobs |
+| 7 | Naming / folders | ✅ | `*.test.ts` / `__tests__`; e2e in `frontend/e2e/*.spec.ts` |
 | 8 | How to run locally | ✅ | Commands above |
 | 9 | Max: coverage quality gate | ✅ | statements/lines/functions ≥ 70%; branches not gated |
 | 10 | Max: screenshot green CI + coverage % | ❌ | Appendix |
@@ -66,8 +66,7 @@ cd frontend && npm test
 |------------|--------|------|
 | Yahoo/Gemini mocked in unit tests | Not a live-market integration | Staging smoke later; keep mocks in CI |
 | FE coverage not gated | Honest: RTL min, not 70% SPA | Do not gate |
-| No test DB in CI | Auth/API integration does not hit Postgres | `services: postgres` or staging cookie smoke |
-| No Playwright | Frontend min e2e + Auto tests pyramid | login → dashboard |
+| Jest HTTP suite still mocks the DB | `httpApi.test.ts` alone is not "API+Postgres" | Covered instead by the Playwright `e2e` CI job (real `services: postgres`) |
 | Branches ~50% | Not the diploma counter | Leave ungated |
 
 ## References

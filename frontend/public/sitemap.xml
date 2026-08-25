@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Update the domain below once the production origin is finalized (see SITE_URL in src/constants/seo.ts). -->
+<!-- Domain: kreptonanalytics.com (see SITE_URL in src/constants/seo.ts). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://krepton-analytics.com/</loc>
+    <loc>https://kreptonanalytics.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://krepton-analytics.com/pricing</loc>
+    <loc>https://kreptonanalytics.com/pricing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://krepton-analytics.com/security</loc>
+    <loc>https://kreptonanalytics.com/security</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://krepton-analytics.com/login</loc>
+    <loc>https://kreptonanalytics.com/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://krepton-analytics.com/register</loc>
+    <loc>https://kreptonanalytics.com/register</loc>
     <changefreq>yearly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://krepton-analytics.com/legal</loc>
+    <loc>https://kreptonanalytics.com/legal</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://krepton-analytics.com/legal/privacy-policy</loc>
+    <loc>https://kreptonanalytics.com/legal/privacy-policy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://krepton-analytics.com/legal/terms-of-service</loc>
+    <loc>https://kreptonanalytics.com/legal/terms-of-service</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

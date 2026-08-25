@@ -21,6 +21,9 @@ out/
 
 # Test & coverage
 coverage/
+playwright-report/
+test-results/
+blob-report/
 .nyc_output/
 jest-cache/
 

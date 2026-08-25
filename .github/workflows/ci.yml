@@ -110,6 +110,100 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-bookworm
+        env:
+          POSTGRES_USER: krepton
+          POSTGRES_PASSWORD: krepton
+          POSTGRES_DB: krepton_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U krepton"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://krepton:krepton@localhost:5432/krepton_e2e
+      JWT_SECRET: ci-jwt-secret-not-for-production
+      PORTFOLIO_SECRET: ci-portfolio-secret-not-for-production
+      FRONTEND_URL: http://localhost:5173
+      VITE_API_URL: http://localhost:3001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run database migrations
+        working-directory: backend
+        run: npm run migrate:up
+
+      - name: Seed demo user (login → dashboard fixture)
+        working-directory: backend
+        run: npm run seed:demo
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Start backend API
+        working-directory: backend
+        run: nohup node dist/index.js > ../backend.log 2>&1 &
+
+      - name: Wait for backend health check
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3001/health > /dev/null; then
+              echo "Backend is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become healthy in time" >&2
+          cat backend.log
+          exit 1
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright e2e tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Show backend logs
+        if: failure()
+        run: cat backend.log
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
   audit:
     name: npm audit
     runs-on: ubuntu-latest

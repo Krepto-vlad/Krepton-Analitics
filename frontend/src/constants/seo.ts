@@ -3,10 +3,10 @@ import { ROUTES } from '../constants';
 export const SITE_NAME = 'Krepton Analytics';
 
 /**
- * Update to the real production origin once the app is deployed on its final domain
- * (used only for JSON-LD `url`/`logo`; canonical links are derived from `window.location`).
+ * Production origin (domain registered; used only for JSON-LD `url`/`logo` —
+ * canonical links are derived from `window.location`).
  */
-export const SITE_URL = 'https://krepton-analytics.com';
+export const SITE_URL = 'https://kreptonanalytics.com';
 
 /** Kept at or under 160 characters so it renders in full in search results. */
 export const SITE_DEFAULT_DESCRIPTION =
