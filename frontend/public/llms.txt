@@ -1,0 +1,11 @@
+# Krepton Analytics
+
+> Portfolio analytics workspace for live quotes, strategy alignment, rebalancing, and backtesting. Educational software, not investment advice.
+
+## Product
+
+- [Home](/): Product overview and demo of the analytics workspace
+- [Pricing](/pricing): Subscription plans
+- [Security](/security): Privacy model, JWT cookies, and data handling
+- [Terms of Service](/legal/terms-of-service): Terms of use
+- [Privacy Policy](/legal/privacy-policy): Privacy policy

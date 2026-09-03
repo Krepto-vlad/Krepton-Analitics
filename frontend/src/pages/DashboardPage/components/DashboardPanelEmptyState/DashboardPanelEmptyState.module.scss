@@ -1,0 +1,74 @@
+@use '../../../../styles/variables' as *;
+
+.panelBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.loadingState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: $space-4 $space-5 $space-6;
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-4;
+  padding: $space-8 $space-5;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-xl;
+  background: $color-overlay;
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-foreground-subtle;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 320px;
+  font-size: $font-size-sm;
+  line-height: 1.6;
+  color: $color-foreground-muted;
+}
+
+.emptyAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: $space-1;
+  padding: $space-2 $space-4;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: #fff;
+  text-decoration: none;
+  background: $color-primary;
+  border-radius: $radius-md;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}

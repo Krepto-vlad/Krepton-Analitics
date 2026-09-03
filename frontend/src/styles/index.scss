@@ -1,6 +1,68 @@
 @use 'reset';
 @use 'variables' as *;
 
+// ─── Light theme overrides ────────────────────────────────────────────────────
+// Higher specificity than :root so late-injected module :root dark tokens cannot win.
+// Applied when <html data-theme="light"> is set by ThemeSync / FOUC script.
+// Primary text green (#047857) ≈ 5.9:1 on white — WCAG 2.1 AA for normal text.
+
+html[data-theme='light'] {
+  --color-background: #eef0f4;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #eef0f4;
+  --color-sidebar: #f7f8fa;
+  --color-header: #ffffff;
+  // Stronger separators so tables/charts don't dissolve into white.
+  --color-border: rgba(15, 23, 42, 0.14);
+  --color-border-strong: rgba(15, 23, 42, 0.22);
+  --color-foreground: #111113;
+  --color-foreground-muted: #52525e;
+  --color-foreground-subtle: #5c5c6b;
+
+  --color-primary: #047857;
+  --color-primary-hover: #065f46;
+  --color-primary-muted: rgba(4, 120, 87, 0.12);
+  --color-primary-glow: rgba(4, 120, 87, 0.28);
+  --color-primary-border: rgba(4, 120, 87, 0.4);
+  --color-on-primary: #ffffff;
+  --color-primary-solid: #047857;
+  --color-primary-solid-hover: #065f46;
+  --color-primary-on-muted: #065f46;
+  --color-rebalancing-lt-bonds: #6366f1;
+  --color-indigo: #3730a3;
+  --color-indigo-solid: #3730a3;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-muted: rgba(220, 38, 38, 0.1);
+  --color-danger-border: rgba(220, 38, 38, 0.28);
+  --color-danger-on-muted: #9f1239;
+  --color-health-high: #e11d48;
+  // Amber (not muddy brown) — readable on white for badges / gauge.
+  --color-warning: #d97706;
+  --color-success: #047857;
+  --color-chart-up: #115e59;
+  --color-chart-down: #b91c1c;
+  --color-chart-grid: rgba(15, 23, 42, 0.16);
+  --color-benchmark: #0284c7;
+  --color-benchmark-muted: rgba(2, 132, 199, 0.1);
+  --color-benchmark-border: rgba(2, 132, 199, 0.4);
+
+  --color-overlay: rgba(15, 23, 42, 0.05);
+  --color-overlay-hover: rgba(15, 23, 42, 0.08);
+  --color-overlay-strong: rgba(15, 23, 42, 0.1);
+  --color-scrollbar: rgba(15, 23, 42, 0.38);
+  --color-scrollbar-hover: rgba(15, 23, 42, 0.52);
+  --color-divider: rgba(15, 23, 42, 0.1);
+  --color-row-hover: rgba(15, 23, 42, 0.04);
+  --color-gauge-track: rgba(15, 23, 42, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-glow-primary: 0 0 12px rgba(4, 120, 87, 0.18);
+}
+
 // ─── Scrollbar global ────────────────────────────────────────────────────────
 
 ::-webkit-scrollbar {
@@ -11,10 +73,10 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: $color-scrollbar;
   border-radius: $radius-full;
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: $color-scrollbar-hover;
   }
 }
 
@@ -27,9 +89,16 @@
 
 // ─── App shell ───────────────────────────────────────────────────────────────
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 #root {
-  display: flex;
   height: 100dvh;
-  width: 100vw;
-  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  // overflow: hidden is NOT set here — AppShell's .shell handles containment.
+  // Removing it allows marketing/auth pages to scroll normally.
 }

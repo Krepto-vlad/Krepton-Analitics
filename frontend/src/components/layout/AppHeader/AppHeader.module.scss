@@ -1,0 +1,201 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.header {
+  position: fixed;
+  top: 0;
+  left: $sidebar-width-collapsed;
+  right: 0;
+  height: 60px;
+  background: $color-header;
+  border-bottom: 1px solid $color-border;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: $space-3;
+  padding: 0 $space-4;
+  z-index: $z-sticky - 1;
+  transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @include header-compact {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 0 $space-3;
+  }
+
+  @include tablet {
+    padding: 0 $space-3;
+  }
+
+  &.sidebarExpanded {
+    left: $sidebar-width-expanded;
+  }
+}
+
+// ─── Left ─────────────────────────────────────────────────────────────────────
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  min-width: 0;
+  justify-self: start;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.pageTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  letter-spacing: -0.02em;
+  margin: 0;
+  @include truncate;
+}
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: $color-primary-muted;
+  border: 1px solid $color-primary-border;
+  color: $color-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+
+  @include header-compact {
+    display: none;
+  }
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: $radius-full;
+    background: $color-primary;
+    margin-right: $space-1;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+// ─── Right ────────────────────────────────────────────────────────────────────
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-3;
+  min-width: 0;
+  justify-self: end;
+}
+
+.currencySwitcher {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  background: $color-overlay;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  padding: 2px;
+  gap: 2px;
+}
+
+.currencyButton {
+  padding: $space-1 $space-2;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    color: $color-foreground;
+    background: $color-overlay-hover;
+  }
+
+  &.activeCurrency {
+    background: $color-surface;
+    color: $color-foreground;
+    border-color: $color-border-strong;
+    box-shadow: $shadow-sm;
+  }
+}
+
+.iconButton {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-foreground-muted;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    color: $color-foreground;
+    border-color: $color-border-strong;
+    background: $color-overlay-strong;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.notificationDot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: $radius-full;
+  background: $color-danger;
+  border: 1px solid $color-header;
+}
+
+.dateLabel {
+  font-size: $font-size-sm;
+  color: $color-foreground;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+
+  @include header-compact {
+    display: none;
+  }
+}

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback, type MouseEvent } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
   Shield,
@@ -13,12 +13,15 @@ import {
   Zap,
   BarChart3,
   Check,
-  Menu,
-  X,
 } from 'lucide-react';
-import { ROUTES } from '../../constants';
+import { ROUTES, TICKER_CACHE_TTL_MS } from '../../constants';
+import { LANDING_STRUCTURED_DATA, PAGE_SEO_METADATA } from '../../constants/seo';
 import { fetchTickerTape } from '../../api/stockApi';
 import type { StockQuote } from '../../types/stock.types';
+import { Navbar, Footer } from '../../components/layout';
+import { joinClassNames } from '../../utils/classNames';
+import { toCssCustomProperties } from '../../utils/cssCustomProperties';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './LandingPage.module.scss';
 
 // ─── Ticker data ──────────────────────────────────────────────────────────────
@@ -41,10 +44,11 @@ const TICKER_FALLBACK: TickerItem[] = [
   { symbol: 'VOO', price: '504.80', change: '+0.91%', positive: true },
 ];
 
-// Module-level cache — 1 request instead of 8, survives navigation
-const TICKER_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min (server already caches 2 min)
-let cachedTickerItems: TickerItem[] | null = null;
-let cacheTimestamp = 0;
+// In-memory fallback cache — primary caching is HTTP Cache-Control (1h) set by the server.
+// This module-level cache prevents duplicate fetches within a single SPA session
+// (e.g. navigating away and back before the HTTP cache is populated).
+let inMemoryCachedItems: TickerItem[] | null = null;
+let inMemoryCacheTimestamp = 0;
 
 function quoteToTickerItem(quote: StockQuote, fallback: TickerItem): TickerItem {
   if (quote.price === 0) return fallback; // backend returned a zero-value fallback
@@ -59,39 +63,50 @@ function quoteToTickerItem(quote: StockQuote, fallback: TickerItem): TickerItem 
 }
 
 async function loadTickerData(): Promise<TickerItem[]> {
-  const now = Date.now();
-  if (cachedTickerItems && now - cacheTimestamp < TICKER_CACHE_TTL_MS) {
-    return cachedTickerItems;
+  if (inMemoryCachedItems && Date.now() - inMemoryCacheTimestamp < TICKER_CACHE_TTL_MS) {
+    return inMemoryCachedItems;
   }
 
-  // Single request — backend fetches all symbols in parallel and caches server-side
   const quotes = await fetchTickerTape();
-
   const items = quotes.map((quote, i) =>
     quoteToTickerItem(quote, TICKER_FALLBACK[i] ?? TICKER_FALLBACK[0])
   );
 
-  cachedTickerItems = items;
-  cacheTimestamp = now;
+  inMemoryCachedItems = items;
+  inMemoryCacheTimestamp = Date.now();
   return items;
 }
 
 // ─── Static page data ─────────────────────────────────────────────────────────
 
-const FEATURES = [
+type LandingAccentTone = 'primary' | 'indigo' | 'warning' | 'blue' | 'pink';
+
+const LANDING_ACCENT_CLASS_NAME: Record<LandingAccentTone, string> = {
+  primary: styles.accentPrimary,
+  indigo: styles.accentIndigo,
+  warning: styles.accentWarning,
+  blue: styles.accentBlue,
+  pink: styles.accentPink,
+};
+
+const FEATURES: Array<{
+  icon: typeof Upload;
+  accent: LandingAccentTone;
+  title: string;
+  description: string;
+  tags: string[];
+}> = [
   {
     icon: Upload,
-    color: '#10B981',
-    bg: 'rgba(16,185,129,0.10)',
-    title: 'Multi-Broker Import',
+    accent: 'primary',
+    title: 'Universal Broker Import',
     description:
-      'Seamlessly import portfolio statements from Interactive Brokers, Revolut, Charles Schwab, Fidelity and more via CSV or XLSX.',
-    tags: ['IB', 'Revolut', 'Schwab', 'Fidelity'],
+      'Upload a CSV or XLSX trade history from any broker — Interactive Brokers, Revolut, Schwab, and more. Smart column detection maps your file automatically, no fixed template required.',
+    tags: ['Any Broker', 'CSV/XLSX', 'Auto-Detect'],
   },
   {
     icon: Sparkles,
-    color: '#6366F1',
-    bg: 'rgba(99,102,241,0.10)',
+    accent: 'indigo',
     title: 'AI Insights',
     description:
       'Automated portfolio health audits, allocation deviation warnings, and rebalancing recommendations powered by AI analysis.',
@@ -99,8 +114,7 @@ const FEATURES = [
   },
   {
     icon: Calendar,
-    color: '#F59E0B',
-    bg: 'rgba(245,158,11,0.10)',
+    accent: 'warning',
     title: 'Dividend Calendar',
     description:
       '12-month passive income forecasting based on historical ex-dividend dates. Track coupons, dividends and total yield in one view.',
@@ -108,38 +122,35 @@ const FEATURES = [
   },
   {
     icon: BarChart3,
-    color: '#3B82F6',
-    bg: 'rgba(59,130,246,0.10)',
+    accent: 'blue',
     title: 'Stock Screener',
     description:
-      'Side-by-side fundamental comparison with P/E, ROE, Debt/Equity, Dividend Yield. Superior metrics automatically highlighted.',
+      'Side-by-side comparison across 20+ fundamentals — P/E, ROE, margins, growth, leverage, and dividend yield. Best-in-class metrics highlighted automatically.',
     tags: ['P/E Ratio', 'ROE', 'Multi-ticker'],
   },
   {
     icon: Zap,
-    color: '#EC4899',
-    bg: 'rgba(236,72,153,0.10)',
+    accent: 'pink',
     title: 'Auto Rebalancing',
     description:
-      'Strategy-driven rebalancing engine. Pre-built Ray Dalio, Buffett 90/10, and custom allocation targets with exact trade instructions.',
+      'Four pre-built strategies — Ray Dalio All-Weather, Buffett 90/10, Bogleheads, and Permanent Portfolio — plus fully custom targets with exact trade instructions.',
     tags: ['All-Weather', 'Buffett', 'Custom'],
   },
   {
     icon: Lock,
-    color: '#10B981',
-    bg: 'rgba(16,185,129,0.10)',
+    accent: 'primary',
     title: 'Zero-Identity Architecture',
     description:
-      'No KYC. No real names. No bank linking. Cryptographic separation of financial records from personal identity by design.',
+      'No KYC. No real names. No bank linking. Your portfolio is addressed by a one-way cryptographic token, never by your email or identity.',
     tags: ['No KYC', 'Encrypted', 'Anonymous'],
   },
 ];
 
 const STATS = [
-  { value: '0', suffix: '', label: 'Personal data collected' },
-  { value: '6', suffix: '+', label: 'Supported brokers' },
-  { value: '12', suffix: '-mo', label: 'Month income forecast' },
-  { value: '99.9', suffix: '%', label: 'Platform uptime' },
+  { value: '0', suffix: '', label: 'Real names required' },
+  { value: '4', suffix: '', label: 'Prebuilt strategies' },
+  { value: '20', suffix: '+', label: 'Fundamentals compared' },
+  { value: '12', suffix: '-mo', label: 'Income forecast horizon' },
 ];
 
 const MINI_CHART_HEIGHTS = [40, 55, 48, 62, 58, 72, 65, 80, 70, 88, 82, 95];
@@ -164,7 +175,7 @@ const TICKER_PX_PER_SEC = 55;
 function DashboardPreview() {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
     const el = wrapperRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -191,9 +202,9 @@ function DashboardPreview() {
     >
       <div className={styles.previewHeader}>
         <div className={styles.previewDots}>
-          <div className={styles.previewDot} style={{ background: '#EF4444' }} />
-          <div className={styles.previewDot} style={{ background: '#F59E0B' }} />
-          <div className={styles.previewDot} style={{ background: '#10B981' }} />
+          <div className={`${styles.previewDot} ${styles.previewDotRed}`} />
+          <div className={`${styles.previewDot} ${styles.previewDotAmber}`} />
+          <div className={`${styles.previewDot} ${styles.previewDotGreen}`} />
         </div>
         <span className={styles.previewTitle}>Krepton Analytics</span>
         <div className={styles.previewLive}>
@@ -215,13 +226,13 @@ function DashboardPreview() {
           <div className={styles.previewStats}>
             <div>
               <div className={styles.previewStatLabel}>Risk Score</div>
-              <div className={styles.previewStatValue} style={{ color: '#EF4444' }}>
+              <div className={`${styles.previewStatValue} ${styles.previewStatValueDanger}`}>
                 67/100
               </div>
             </div>
             <div>
               <div className={styles.previewStatLabel}>Div. Yield</div>
-              <div className={styles.previewStatValue} style={{ color: '#10B981' }}>
+              <div className={`${styles.previewStatValue} ${styles.previewStatValueSuccess}`}>
                 4.8%
               </div>
             </div>
@@ -229,14 +240,17 @@ function DashboardPreview() {
         </div>
 
         <div className={styles.previewBars}>
-          {MINI_CHART_HEIGHTS.map((h, i) => (
+          {MINI_CHART_HEIGHTS.map((heightPercent, barIndex) => (
             <div
-              key={i}
-              className={styles.previewBar}
-              style={{
-                height: `${h}%`,
-                background: i === 11 ? '#10B981' : `rgba(16,185,129,${0.2 + i * 0.04})`,
-              }}
+              key={barIndex}
+              className={joinClassNames(
+                styles.previewBar,
+                barIndex === MINI_CHART_HEIGHTS.length - 1 && styles.previewBarPeak
+              )}
+              style={toCssCustomProperties({
+                '--bar-height': `${heightPercent}%`,
+                '--bar-opacity': 0.2 + barIndex * 0.04,
+              })}
             />
           ))}
         </div>
@@ -244,7 +258,7 @@ function DashboardPreview() {
         <div className={styles.previewAiCard}>
           <div className={styles.previewAiHeader}>
             <div className={styles.previewAiIcon}>
-              <Sparkles size={8} color="#fff" />
+              <Sparkles size={8} />
             </div>
             <span className={styles.previewAiLabel}>AI Insights</span>
           </div>
@@ -274,11 +288,35 @@ function DashboardPreview() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+interface LandingLocationState {
+  scrollToFeatures?: boolean;
+}
+
 export function LandingPage() {
-  const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
   const [tickerItems, setTickerItems] = useState<TickerItem[]>(TICKER_FALLBACK);
   const tickerTrackRef = useRef<HTMLDivElement>(null);
+
+  usePageSeo({ ...PAGE_SEO_METADATA[ROUTES.HOME], structuredData: LANDING_STRUCTURED_DATA });
+
+  // Reset scroll on entry; Features nav passes location.state (avoids keeping prior page scroll).
+  useEffect(() => {
+    const shouldScrollToFeatures = Boolean(
+      (location.state as LandingLocationState | null)?.scrollToFeatures
+    );
+
+    if (shouldScrollToFeatures) {
+      const timeoutId = window.setTimeout(() => {
+        document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    return undefined;
+    // location.key identifies each navigation; state is read from that entry.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [location.key]);
 
   // Fetch real quotes once on mount (cached across navigation)
   useEffect(() => {
@@ -326,297 +364,172 @@ export function LandingPage() {
     return () => cancelAnimationFrame(rafId);
   }, [tickerItems]);
 
-  const handleLogin = () => navigate(ROUTES.LOGIN);
-  const handleRegister = () => navigate(ROUTES.REGISTER);
-  const handlePricing = () => navigate(ROUTES.PRICING);
-  const handleSecurity = () => navigate(ROUTES.SECURITY);
-
-  const scrollToFeatures = () =>
-    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-
   return (
     <div className={styles.page}>
-      {/* ── Navbar — always dark ── */}
-      <nav className={styles.navbar}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}>
-            <TrendingUp size={14} color="#fff" />
-          </div>
-          <span className={styles.logoText}>
-            Krepton <span>Analytics</span>
-          </span>
-        </div>
+      <Navbar activeRoute="home" />
 
-        <div className={styles.navLinks}>
-          <button className={styles.navLink} onClick={scrollToFeatures}>
-            Features
-          </button>
-          <button className={styles.navLink} onClick={handlePricing}>
-            Pricing
-          </button>
-          <button className={styles.navLink} onClick={handleSecurity}>
-            Security
-          </button>
-        </div>
+      <main>
+        {/* ── Hero ── */}
+        <section className={styles.hero}>
+          <div className={styles.heroGlow} />
+          <div className={styles.heroGrid} />
 
-        <div className={styles.navActions}>
-          <button className={styles.btnOutline} onClick={handleLogin}>
-            Log In
-          </button>
-          <button className={styles.btnPrimary} onClick={handleRegister}>
-            Get Started
-          </button>
-        </div>
+          <div className={styles.heroContent}>
+            <h1 className={styles.heroTitle}>
+              Advanced Analytics for Your{' '}
+              <span className={styles.heroTitleAccent}>Global Portfolio.</span> 100% Anonymously.
+            </h1>
 
-        <button
-          className={styles.hamburger}
-          onClick={() => setMobileMenuOpen((v) => !v)}
-          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-        >
-          {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
-      </nav>
-
-      {/* ── Mobile menu ── */}
-      {mobileMenuOpen && (
-        <div className={styles.mobileMenu}>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              scrollToFeatures();
-            }}
-          >
-            Features
-          </button>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handlePricing();
-            }}
-          >
-            Pricing
-          </button>
-          <button
-            className={styles.mobileNavLink}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handleSecurity();
-            }}
-          >
-            Security
-          </button>
-          <div className={styles.mobileDivider} />
-          <button
-            className={styles.mobileBtnOutline}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handleLogin();
-            }}
-          >
-            Log In
-          </button>
-          <button
-            className={styles.mobileBtnPrimary}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              handleRegister();
-            }}
-          >
-            Get Started Free
-          </button>
-        </div>
-      )}
-
-      {/* ── Hero ── */}
-      <section className={styles.hero}>
-        <div className={styles.heroGlow} />
-        <div className={styles.heroGrid} />
-
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            Advanced Analytics for Your{' '}
-            <span className={styles.heroTitleAccent}>Global Portfolio.</span> 100% Anonymously.
-          </h1>
-
-          <p className={styles.heroSubtitle}>
-            Track multi-broker assets, automate rebalancing, and monitor dividends.{' '}
-            <strong>No real names. No bank connections. Pure math.</strong>
-          </p>
-
-          <div className={styles.heroCtas}>
-            <button className={styles.btnHeroPrimary} onClick={handleRegister}>
-              Analyze Your Portfolio Free
-              <ArrowRight size={16} />
-            </button>
-            <button className={styles.btnHeroOutline} onClick={handleLogin}>
-              Sign In
-            </button>
-          </div>
-
-          <div className={styles.heroTrust}>
-            {['No credit card required', 'No KYC verification', 'Zero personal data'].map(
-              (text) => (
-                <div key={text} className={styles.heroTrustItem}>
-                  <Check size={12} color="#10B981" />
-                  {text}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-
-        <div className={styles.previewWrapper}>
-          <DashboardPreview />
-        </div>
-      </section>
-
-      {/* ── Ticker tape — DOM rotation, 3 copies to fill any screen initially ── */}
-      <div className={styles.ticker}>
-        <div ref={tickerTrackRef} className={styles.tickerTrack}>
-          {[...tickerItems, ...tickerItems, ...tickerItems].map((item, i) => (
-            <div key={i} className={styles.tickerItem}>
-              <span className={styles.tickerSymbol}>${item.symbol}</span>
-              <span className={styles.tickerPrice}>{item.price}</span>
-              <span
-                className={`${styles.tickerChange} ${
-                  item.positive ? styles.positive : styles.negative
-                }`}
-              >
-                {item.change}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Stats ── */}
-      <section className={styles.stats}>
-        <div className={styles.statsGrid}>
-          {STATS.map((stat) => (
-            <div key={stat.label} className={styles.statItem}>
-              <div className={styles.statValue}>
-                {stat.value}
-                {stat.suffix}
-              </div>
-              <div className={styles.statLabel}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section id="features" className={styles.features}>
-        <div className={styles.sectionInner}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionBadge}>
-              <Zap size={12} color="#10B981" />
-              Platform Features
-            </div>
-            <h2 className={styles.sectionTitle}>
-              Everything you need for <span>professional portfolio management</span>
-            </h2>
-            <p className={styles.sectionSubtitle}>
-              Built for independent investors who demand institutional-grade tools without
-              institutional overhead.
+            <p className={styles.heroSubtitle}>
+              Track multi-broker assets, automate rebalancing, and monitor dividends.{' '}
+              <strong>No real names. No bank connections. Pure math.</strong>
             </p>
+
+            <div className={styles.heroCtas}>
+              <Link to={ROUTES.REGISTER} className={styles.btnHeroPrimary}>
+                Analyze Your Portfolio Free
+                <ArrowRight size={16} />
+              </Link>
+              <Link to={ROUTES.LOGIN} className={styles.btnHeroOutline}>
+                Sign In
+              </Link>
+            </div>
+
+            <div className={styles.heroTrust}>
+              {['No credit card required', 'No KYC verification', 'Zero personal data'].map(
+                (text) => (
+                  <div key={text} className={styles.heroTrustItem}>
+                    <Check size={12} className={styles.accentIcon} />
+                    {text}
+                  </div>
+                )
+              )}
+            </div>
           </div>
 
-          <div className={styles.featuresGrid}>
-            {FEATURES.map((feat) => {
-              const Icon = feat.icon;
-              return (
-                <div
-                  key={feat.title}
-                  className={styles.featureCard}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = `${feat.color}40`;
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor =
-                      'rgba(255,255,255,0.07)';
-                  }}
+          <div className={styles.previewWrapper}>
+            <DashboardPreview />
+          </div>
+        </section>
+
+        {/* ── Ticker tape — DOM rotation, 3 copies to fill any screen initially ── */}
+        <div className={styles.ticker}>
+          <div ref={tickerTrackRef} className={styles.tickerTrack}>
+            {[...tickerItems, ...tickerItems, ...tickerItems].map((item, i) => (
+              <div key={i} className={styles.tickerItem}>
+                <span className={styles.tickerSymbol}>${item.symbol}</span>
+                <span className={styles.tickerPrice}>{item.price}</span>
+                <span
+                  className={`${styles.tickerChange} ${
+                    item.positive ? styles.positive : styles.negative
+                  }`}
                 >
-                  <div className={styles.featureIconWrap} style={{ background: feat.bg }}>
-                    <Icon size={17} color={feat.color} />
-                  </div>
-                  <div>
-                    <h3 className={styles.featureTitle}>{feat.title}</h3>
-                    <p className={styles.featureDesc}>{feat.description}</p>
-                  </div>
-                  <div className={styles.featureTags}>
-                    {feat.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className={styles.featureTag}
-                        style={{
-                          background: `${feat.color}14`,
-                          color: feat.color,
-                          border: `1px solid ${feat.color}25`,
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                  {item.change}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* ── Privacy banner ── */}
-      <section className={styles.privacy}>
-        <div className={styles.privacyCard}>
-          <div className={styles.privacyGlow} />
-          <div className={styles.privacyIconWrap}>
-            <Shield size={26} color="#10B981" />
-          </div>
-          <div className={styles.privacyBody}>
-            <div className={styles.privacyTitleRow}>
-              <h3 className={styles.privacyTitle}>Zero Personal Data Tracked</h3>
-              <span className={styles.privacyCertBadge}>CERTIFIED</span>
-            </div>
-            <p className={styles.privacyText}>
-              We separate your financial records from your identity using cryptographic
-              architecture. No real names, no phone numbers, no bank connections.{' '}
-              <strong>Your assets remain your business.</strong>
-            </p>
-            <div className={styles.privacyFeatures}>
-              {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
-                <div key={label} className={styles.privacyFeatureItem}>
-                  <Icon size={12} color="#10B981" />
-                  {label}
+        {/* ── Stats ── */}
+        <section className={styles.stats}>
+          <div className={styles.statsGrid}>
+            {STATS.map((stat) => (
+              <div key={stat.label} className={styles.statItem}>
+                <div className={styles.statValue}>
+                  {stat.value}
+                  {stat.suffix}
                 </div>
-              ))}
-            </div>
+                <div className={styles.statLabel}>{stat.label}</div>
+              </div>
+            ))}
           </div>
-          <button className={styles.btnPrivacyCta} onClick={handleRegister}>
-            Start Anonymously
-            <ChevronRight size={14} />
-          </button>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Footer ── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrand}>
-            <div className={styles.footerBrandIcon}>
-              <TrendingUp size={10} color="#fff" />
+        {/* ── Features ── */}
+        <section id="features" className={styles.features}>
+          <div className={styles.sectionInner}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionBadge}>
+                <Zap size={12} className={styles.accentIcon} />
+                Platform Features
+              </div>
+              <h2 className={styles.sectionTitle}>
+                Everything you need for <span>professional portfolio management</span>
+              </h2>
+              <p className={styles.sectionSubtitle}>
+                Built for independent investors who demand institutional-grade tools without
+                institutional overhead.
+              </p>
             </div>
-            <span className={styles.footerBrandText}>
-              Krepton Analytics — Privacy-first portfolio intelligence
-            </span>
+
+            <div className={styles.featuresGrid}>
+              {FEATURES.map((feat) => {
+                const Icon = feat.icon;
+                return (
+                  <div
+                    key={feat.title}
+                    className={joinClassNames(
+                      styles.featureCard,
+                      LANDING_ACCENT_CLASS_NAME[feat.accent]
+                    )}
+                  >
+                    <div className={styles.featureIconWrap}>
+                      <Icon size={17} />
+                    </div>
+                    <div>
+                      <h3 className={styles.featureTitle}>{feat.title}</h3>
+                      <p className={styles.featureDesc}>{feat.description}</p>
+                    </div>
+                    <div className={styles.featureTags}>
+                      {feat.tags.map((tag) => (
+                        <span key={tag} className={styles.featureTag}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className={styles.footerDisclaimer}>
-            <Lock size={11} color="#10B981" />
-            Not financial advice. For educational purposes only.
+        </section>
+
+        {/* ── Privacy banner ── */}
+        <section className={styles.privacy}>
+          <div className={styles.privacyCard}>
+            <div className={styles.privacyGlow} />
+            <div className={styles.privacyIconWrap}>
+              <Shield size={26} />
+            </div>
+            <div className={styles.privacyBody}>
+              <div className={styles.privacyTitleRow}>
+                <h3 className={styles.privacyTitle}>Zero Personal Data Tracked</h3>
+                <span className={styles.privacyCertBadge}>CERTIFIED</span>
+              </div>
+              <p className={styles.privacyText}>
+                We separate your financial records from your identity using cryptographic
+                architecture. No real names, no phone numbers, no bank connections.{' '}
+                <strong>Your assets remain your business.</strong>
+              </p>
+              <div className={styles.privacyFeatures}>
+                {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
+                  <div key={label} className={styles.privacyFeatureItem}>
+                    <Icon size={12} className={styles.accentIcon} />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Link to={ROUTES.REGISTER} className={styles.btnPrivacyCta}>
+              Start Anonymously
+              <ChevronRight size={14} />
+            </Link>
           </div>
-        </div>
-      </footer>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 }

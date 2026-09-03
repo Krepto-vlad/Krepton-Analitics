@@ -1,0 +1,157 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cardHeader {
+  @include flex-between;
+  align-items: flex-start;
+  gap: $space-3;
+}
+
+.cardLabelRow {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  color: $color-foreground-subtle;
+}
+
+.cardLabelIcon {
+  flex-shrink: 0;
+}
+
+.cardLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.periodSelectorSlot {
+  min-height: 1.75rem;
+  min-width: 11.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.periodSelector {
+  display: flex;
+  gap: 2px;
+  background: $color-overlay;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  padding: 2px;
+
+  &[data-ready='false'] {
+    visibility: hidden;
+  }
+}
+
+.periodButton {
+  padding: 3px $space-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-muted;
+  background: transparent;
+  border: none;
+  border-radius: calc($radius-sm - 2px);
+  cursor: pointer;
+  transition:
+    color $transition-fast,
+    background $transition-fast;
+
+  &:hover:not(:disabled) {
+    color: $color-foreground;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.activePeriod {
+  background: $color-surface;
+  color: $color-foreground;
+  box-shadow: $shadow-sm;
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-3;
+  min-height: 2.5rem;
+}
+
+.totalValue {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  min-height: 2rem;
+}
+
+.totalPnlPercent {
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+}
+
+.statsRow {
+  display: flex;
+  gap: $space-5;
+  flex-wrap: wrap;
+  min-height: 2.5rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statValue {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+}
+
+.chartContainer {
+  flex: 1;
+  height: 0;
+  min-height: 130px;
+  max-height: 450px;
+
+  &[data-chart-ready='false'] {
+    visibility: hidden;
+  }
+
+  // Hide TradingView attribution logo injected by lightweight-charts v5
+  :global(a) {
+    display: none !important;
+  }
+}
+
+.positive {
+  color: $color-chart-up;
+}
+
+.negative {
+  color: $color-chart-down;
+}

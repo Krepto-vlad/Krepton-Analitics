@@ -1,0 +1,244 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: $z-sticky;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $space-10;
+  height: $header-height;
+  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid $color-divider;
+
+  @include mobile {
+    padding: 0 $space-4;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-md;
+  background: $color-primary;
+  color: $color-on-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-weight: $font-weight-bold;
+  font-size: $font-size-base;
+  letter-spacing: -0.02em;
+  color: $color-foreground;
+  font-family: $font-family;
+
+  span {
+    color: $color-primary;
+  }
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: $space-6;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.navLink {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: $font-family;
+  transition: color $transition-fast;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-foreground;
+  }
+
+  &.active {
+    color: $color-foreground;
+  }
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  color: $color-foreground-muted;
+  cursor: pointer;
+  transition:
+    color $transition-fast,
+    border-color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    color: $color-foreground;
+    border-color: $color-border-strong;
+    background: $color-surface-elevated;
+  }
+}
+
+.btnSignIn {
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  border: 1px solid $color-border-strong;
+  color: $color-foreground;
+  background: transparent;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-family: $font-family;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: $color-foreground-subtle;
+  }
+}
+
+.btnGetStarted {
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  background: $color-primary-solid;
+  color: $color-on-primary;
+  border: none;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-primary-solid-hover;
+  }
+}
+
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  background: $color-overlay;
+  border: none;
+  cursor: pointer;
+  color: $color-foreground;
+
+  @include mobile {
+    display: flex;
+  }
+}
+
+.mobileMenu {
+  position: fixed;
+  top: $header-height;
+  left: 0;
+  right: 0;
+  z-index: $z-dropdown;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-4;
+  background: color-mix(in srgb, var(--color-surface) 97%, transparent);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid $color-border;
+}
+
+.mobileNavLink {
+  display: block;
+  font-size: 0.9rem;
+  color: $color-foreground-muted;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  padding: $space-2 $space-1;
+  font-family: $font-family;
+}
+
+.mobileDivider {
+  height: 1px;
+  background: $color-divider;
+  margin: $space-1 0;
+}
+
+.mobileThemeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-2 $space-1;
+  color: $color-foreground-muted;
+  font-size: 0.9rem;
+  font-family: $font-family;
+}
+
+.mobileBtnSignIn {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: $font-weight-medium;
+  color: $color-foreground;
+  background: $color-overlay;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  padding: $space-2 $space-4;
+  cursor: pointer;
+  font-family: $font-family;
+  text-align: center;
+  text-decoration: none;
+}
+
+.mobileBtnGetStarted {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: $font-weight-bold;
+  color: $color-on-primary;
+  background: $color-primary-solid;
+  border: none;
+  border-radius: $radius-md;
+  padding: $space-2 $space-4;
+  cursor: pointer;
+  font-family: $font-family;
+  text-align: center;
+  text-decoration: none;
+}

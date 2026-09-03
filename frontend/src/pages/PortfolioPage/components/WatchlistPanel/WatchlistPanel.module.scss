@@ -1,0 +1,381 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding: $space-5;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+}
+
+.headerIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  background: $color-primary-muted;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  margin: 3px 0 0;
+  line-height: 1.5;
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-3;
+  padding: $space-10 $space-5;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+}
+
+.actionSpinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorText {
+  color: $color-danger;
+  margin: 0;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-4;
+  padding: $space-10 $space-5;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: $radius-xl;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-foreground-subtle;
+}
+
+.emptyTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  margin: 0;
+}
+
+.emptyText {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  max-width: 360px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: $space-3;
+  color: $color-foreground-subtle;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  min-width: 200px;
+  max-width: 320px;
+  background: $color-surface;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  color: $color-foreground;
+  font-size: $font-size-sm;
+  padding: $space-2 $space-3 $space-2 calc(#{$space-3} + 14px + #{$space-2});
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px $color-primary-glow;
+  }
+}
+
+.countLabel {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.tableWrapper {
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-lg;
+  overflow-x: auto;
+  background: $color-surface;
+  min-height: var(--table-min-height);
+  @include custom-scrollbar;
+}
+
+.table {
+  width: 100%;
+  min-width: 820px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+}
+
+.filterEmptyRow td {
+  padding: 0;
+  border-bottom: none;
+  vertical-align: middle;
+}
+
+.filterEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  min-height: 180px;
+  padding: $space-8 $space-4;
+  text-align: center;
+}
+
+.filterEmptyTitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.filterEmptyText {
+  margin: 0;
+  max-width: 320px;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  line-height: 1.5;
+}
+
+.colTicker {
+  width: 120px;
+}
+
+.colName {
+  width: auto;
+}
+
+.colPrice {
+  width: 100px;
+}
+
+.colWeekHigh {
+  width: 100px;
+}
+
+.colWeekLow {
+  width: 100px;
+}
+
+.colChange {
+  width: 88px;
+}
+
+.colAction {
+  width: 52px;
+}
+
+.thTicker,
+.thName,
+.thNum,
+.thAction {
+  padding: $space-3 $space-4;
+  text-align: left;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.06em;
+  background: $color-overlay;
+  border-bottom: 1px solid $color-border-strong;
+  white-space: nowrap;
+}
+
+.thNum {
+  text-align: right;
+}
+
+.thAction {
+  text-align: center;
+}
+
+.tdTicker,
+.tdName,
+.tdNum,
+.tdAction {
+  padding: $space-3 $space-4;
+  border-bottom: 1px solid $color-divider;
+  vertical-align: middle;
+}
+
+.tdNum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: $font-weight-medium;
+  color: $color-foreground;
+  white-space: nowrap;
+}
+
+.tdAction {
+  text-align: center;
+}
+
+tbody tr:last-child {
+  .tdTicker,
+  .tdName,
+  .tdNum,
+  .tdAction {
+    border-bottom: none;
+  }
+}
+
+tbody tr:hover {
+  background: $color-row-hover;
+}
+
+.tdTicker {
+  white-space: nowrap;
+}
+
+.tdName {
+  color: $color-foreground-muted;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tickerLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .tickerSymbol {
+    color: $color-primary;
+  }
+}
+
+.tickerCell {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.tickerBadge {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-sm;
+  background: $color-surface-elevated;
+  border: 1px solid $color-border;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: $color-foreground-muted;
+  flex-shrink: 0;
+}
+
+.tickerSymbol {
+  color: $color-foreground;
+  font-weight: $font-weight-semibold;
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-danger;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.positive {
+  color: $color-chart-up;
+}
+
+.negative {
+  color: $color-chart-down;
+}
+
+.inlineError {
+  font-size: $font-size-sm;
+  color: $color-danger;
+  margin: 0;
+}

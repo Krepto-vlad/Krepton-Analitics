@@ -1,0 +1,10 @@
+@use '../styles/variables' as *;
+
+.loader {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: $space-8 $space-5;
+  background: $color-background;
+}

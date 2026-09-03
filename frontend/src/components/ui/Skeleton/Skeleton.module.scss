@@ -1,0 +1,167 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+// Placeholder geometry lives here so components stay free of inline styles.
+$skeleton-line-height: 0.75rem;
+$skeleton-title-height: 1.75rem;
+$skeleton-chart-height: 11.25rem;
+$skeleton-avatar-size: 2rem;
+$skeleton-pulse-duration: 1.4s;
+$skeleton-pulse-min-opacity: 0.42;
+
+.bone {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+  height: $skeleton-line-height;
+  background: $color-overlay-strong;
+  animation: skeleton-pulse $skeleton-pulse-duration ease-in-out infinite;
+}
+
+.radiusSm {
+  border-radius: $radius-sm;
+}
+
+.radiusMd {
+  border-radius: $radius-md;
+}
+
+.radiusLg {
+  border-radius: $radius-lg;
+}
+
+.radiusFull {
+  border-radius: $radius-full;
+}
+
+// ─── Width scale (declared after .bone so modifiers win) ─────────────────────
+
+.lineWide {
+  width: 72%;
+}
+
+.lineMedium {
+  width: 48%;
+}
+
+.lineNarrow {
+  width: 28%;
+}
+
+// ─── Shapes ──────────────────────────────────────────────────────────────────
+
+.avatar {
+  width: $skeleton-avatar-size;
+  height: $skeleton-avatar-size;
+}
+
+.title {
+  height: $skeleton-title-height;
+}
+
+.chart {
+  height: $skeleton-chart-height;
+}
+
+// ─── Layout ──────────────────────────────────────────────────────────────────
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  width: 100%;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  width: 100%;
+}
+
+.cardsRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-4;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  @include card($space-4);
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.listItem,
+.newsItem,
+.statRow,
+.tableRow {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+}
+
+.listText,
+.newsText {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.tableRow {
+  gap: $space-2;
+}
+
+.tableCell {
+  flex: 1;
+  min-width: 0;
+}
+
+.moversGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space-4;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.moversColumn {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.compareHeader,
+.compareRow {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.2fr) repeat(3, minmax(0, 1fr));
+  gap: $space-3;
+  align-items: center;
+  width: 100%;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: $skeleton-pulse-min-opacity;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bone {
+    animation: none;
+  }
+}

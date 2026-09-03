@@ -1,6 +1,13 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ROUTES } from '../constants';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { PORTFOLIO_WATCHLIST_PATH, ROUTE_CATCH_ALL_PATH, ROUTES } from '../constants';
+import { useWatchlistPolling } from '../hooks/useWatchlistPolling';
+import { useHoldingsPolling } from '../hooks/useHoldingsPolling';
+import { useSessionExpiry } from '../hooks/useSessionExpiry';
+import { useSessionRenewal } from '../hooks/useSessionRenewal';
+import { AppShell } from '../components/layout';
+import { PageLoader } from './PageLoader';
+import { RequireAuth } from './RequireAuth';
 
 const LandingPage = lazy(() =>
   import('../pages/LandingPage/LandingPage').then((m) => ({ default: m.LandingPage }))
@@ -10,6 +17,12 @@ const PricingPage = lazy(() =>
 );
 const SecurityPage = lazy(() =>
   import('../pages/SecurityPage/SecurityPage').then((m) => ({ default: m.SecurityPage }))
+);
+const LegalDocumentsPage = lazy(() =>
+  import('../pages/LegalPage/LegalDocumentsPage').then((m) => ({ default: m.LegalDocumentsPage }))
+);
+const LegalPdfViewerPage = lazy(() =>
+  import('../pages/LegalPage/LegalPdfViewerPage').then((m) => ({ default: m.LegalPdfViewerPage }))
 );
 const LoginPage = lazy(() =>
   import('../pages/AuthPage/AuthPage').then((m) => ({
@@ -22,46 +35,137 @@ const RegisterPage = lazy(() =>
   }))
 );
 
-// Protected app pages — stubs until implemented
-const DashboardPage = () => <div style={{ color: '#fff', padding: 40 }}>Dashboard — TODO</div>;
-const RebalancingPage = () => <div style={{ color: '#fff', padding: 40 }}>Rebalancing — TODO</div>;
-const ScreenerPage = () => <div style={{ color: '#fff', padding: 40 }}>Screener — TODO</div>;
-const BacktestingPage = () => <div style={{ color: '#fff', padding: 40 }}>Backtesting — TODO</div>;
-const WatchlistPage = () => <div style={{ color: '#fff', padding: 40 }}>Watchlist — TODO</div>;
-const NotFoundPage = () => <div style={{ color: '#fff', padding: 40 }}>404 — Not Found</div>;
+const DashboardPage = lazy(() =>
+  import('../pages/DashboardPage/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const PortfolioPage = lazy(() =>
+  import('../pages/PortfolioPage/PortfolioPage').then((m) => ({ default: m.PortfolioPage }))
+);
+const RebalancingPage = lazy(() =>
+  import('../pages/RebalancingPage/RebalancingPage').then((m) => ({ default: m.RebalancingPage }))
+);
+const ScreenerPage = lazy(() =>
+  import('../pages/ScreenerPage/ScreenerPage').then((m) => ({ default: m.ScreenerPage }))
+);
+const BacktestingPage = lazy(() =>
+  import('../pages/BacktestingPage/BacktestingPage').then((m) => ({ default: m.BacktestingPage }))
+);
+const DividendsPage = lazy(() =>
+  import('../pages/DividendsPage/DividendsPage').then((m) => ({ default: m.DividendsPage }))
+);
+const NewsPage = lazy(() =>
+  import('../pages/NewsPage/NewsPage').then((m) => ({ default: m.NewsPage }))
+);
+const TickerDetailPage = lazy(() =>
+  import('../pages/TickerDetailPage/TickerDetailPage').then((m) => ({
+    default: m.TickerDetailPage,
+  }))
+);
+const ProfilePage = lazy(() =>
+  import('../pages/ProfilePage/ProfilePage').then((m) => ({ default: m.ProfilePage }))
+);
+const SubscriptionPage = lazy(() =>
+  import('../pages/SubscriptionPage/SubscriptionPage').then((m) => ({
+    default: m.SubscriptionPage,
+  }))
+);
+const VerifyEmailPage = lazy(() =>
+  import('../pages/VerifyEmailPage/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
+);
+const ForgotPasswordPage = lazy(() =>
+  import('../pages/ForgotPasswordPage/ForgotPasswordPage').then((m) => ({
+    default: m.ForgotPasswordPage,
+  }))
+);
+const ResetPasswordPage = lazy(() =>
+  import('../pages/ResetPasswordPage/ResetPasswordPage').then((m) => ({
+    default: m.ResetPasswordPage,
+  }))
+);
+const NotFoundPage = lazy(() =>
+  import('../pages/NotFoundPage/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
+);
 
-function PageLoader() {
+function AuthenticatedShell() {
+  useWatchlistPolling();
+  useHoldingsPolling();
+  useSessionExpiry();
+  useSessionRenewal();
+
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#09090b',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    />
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}
+
+function ProtectedLayout() {
+  return (
+    <RequireAuth>
+      <AuthenticatedShell />
+    </RequireAuth>
+  );
+}
+
+/** Scroll to top on route change. Landing handles its own scroll (Features deep-link). */
+function ScrollToTopOnNavigate() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (pathname === ROUTES.HOME) {
+      return;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
+}
+
+function AppRoutes() {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <ScrollToTopOnNavigate />
+      <Routes>
+        {/* Public marketing pages */}
+        <Route path={ROUTES.HOME} element={<LandingPage />} />
+        <Route path={ROUTES.PRICING} element={<PricingPage />} />
+        <Route path={ROUTES.SECURITY} element={<SecurityPage />} />
+        <Route path={ROUTES.LEGAL} element={<LegalDocumentsPage />} />
+        <Route path={ROUTES.LEGAL_DOCUMENT} element={<LegalPdfViewerPage />} />
+        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+        <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+
+        {/* Protected app — single AppShell, only content changes on navigation */}
+        <Route element={<ProtectedLayout />}>
+          <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+          <Route path={ROUTES.PORTFOLIO} element={<PortfolioPage />} />
+          <Route path={ROUTES.REBALANCING} element={<RebalancingPage />} />
+          <Route path={ROUTES.SCREENER} element={<ScreenerPage />} />
+          <Route path={ROUTES.BACKTESTING} element={<BacktestingPage />} />
+          <Route path={ROUTES.DIVIDENDS} element={<DividendsPage />} />
+          <Route path={ROUTES.NEWS} element={<NewsPage />} />
+          <Route path={ROUTES.TICKER} element={<TickerDetailPage />} />
+          <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+          <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
+          <Route
+            path={ROUTES.WATCHLIST}
+            element={<Navigate to={PORTFOLIO_WATCHLIST_PATH} replace />}
+          />
+        </Route>
+
+        <Route path={ROUTE_CATCH_ALL_PATH} element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   );
 }
 
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path={ROUTES.HOME} element={<LandingPage />} />
-          <Route path={ROUTES.PRICING} element={<PricingPage />} />
-          <Route path={ROUTES.SECURITY} element={<SecurityPage />} />
-          <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-          <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
-          <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-          <Route path={ROUTES.REBALANCING} element={<RebalancingPage />} />
-          <Route path={ROUTES.SCREENER} element={<ScreenerPage />} />
-          <Route path={ROUTES.BACKTESTING} element={<BacktestingPage />} />
-          <Route path={ROUTES.WATCHLIST} element={<WatchlistPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

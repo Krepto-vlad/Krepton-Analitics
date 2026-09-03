@@ -1,0 +1,45 @@
+@use '../../../styles/variables' as *;
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.iconWrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-danger-muted;
+  color: $color-danger-on-muted;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $color-foreground;
+}
+
+.message {
+  margin: 0;
+  max-width: 420px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: $color-foreground-muted;
+}
+
+.actions {
+  margin-top: 4px;
+}
+
+.compact {
+  padding: 20px 16px;
+}

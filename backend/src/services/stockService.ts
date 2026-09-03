@@ -1,13 +1,32 @@
 import axios from 'axios';
+import YahooFinance from 'yahoo-finance2';
+
+const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 import {
   StockQuote,
   OhlcvCandle,
   StockHistoryResponse,
   StockSearchResult,
+  StockCompareItem,
+  StockCompareResponse,
 } from '../types/stock.types.js';
-import { SEARCH_RESULTS_LIMIT } from '../constants.js';
+import {
+  SEARCH_RESULTS_LIMIT,
+  STOCK_COMPARE_CACHE_TTL_MS,
+  STOCK_HISTORY_CACHE_TTL_MS,
+} from '../constants.js';
+import { AppError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
+import { getCachedStockQuote, getCachedStockQuotes } from './quoteCacheService.js';
+import { buildEmptyStockQuote } from '../utils/stockQuoteDefaults.js';
 
 const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com';
+
+const stockHistoryCache = new Map<string, { response: StockHistoryResponse; expiresAt: number }>();
+
+function buildStockHistoryCacheKey(ticker: string, period: string, interval: string): string {
+  return `${ticker.toUpperCase()}|${period}|${interval}`;
+}
 
 const yahooClient = axios.create({
   baseURL: YAHOO_BASE_URL,
@@ -17,27 +36,6 @@ const yahooClient = axios.create({
   },
   timeout: 10000,
 });
-
-interface YahooQuoteResult {
-  symbol: string;
-  longName?: string;
-  shortName?: string;
-  regularMarketPrice?: number;
-  regularMarketChange?: number;
-  regularMarketChangePercent?: number;
-  regularMarketVolume?: number;
-  marketCap?: number;
-  currency?: string;
-}
-
-interface YahooChartQuote {
-  date: number;
-  open: number | null;
-  high: number | null;
-  low: number | null;
-  close: number | null;
-  volume: number | null;
-}
 
 interface YahooSearchQuote {
   symbol: string;
@@ -49,23 +47,35 @@ interface YahooSearchQuote {
 }
 
 export async function getStockQuote(ticker: string): Promise<StockQuote> {
-  const { data } = await yahooClient.get('/v8/finance/chart/' + ticker, {
-    params: { interval: '1d', range: '1d', includePrePost: false },
-  });
+  const quote = await getCachedStockQuote(ticker.toUpperCase());
+  if (quote.price <= 0) {
+    throw new AppError(404, `No data found for ticker: ${ticker}`);
+  }
+  return quote;
+}
 
-  const meta = data?.chart?.result?.[0]?.meta as YahooQuoteResult;
-  if (!meta) throw new Error(`No data found for ticker: ${ticker}`);
+export async function getStockQuotes(tickers: string[]): Promise<StockQuote[]> {
+  return getCachedStockQuotes(tickers.map((ticker) => ticker.toUpperCase()));
+}
 
-  return {
-    ticker: meta.symbol ?? ticker,
-    name: meta.longName ?? meta.shortName ?? ticker,
-    price: meta.regularMarketPrice ?? 0,
-    change: meta.regularMarketChange ?? 0,
-    changePercent: meta.regularMarketChangePercent ?? 0,
-    volume: meta.regularMarketVolume ?? 0,
-    marketCap: meta.marketCap ?? null,
-    currency: meta.currency ?? 'USD',
+/**
+ * Converts a Yahoo Finance "range" string (e.g. '6mo', '1y') into a Date
+ * representing the start of that window relative to now.
+ */
+function periodToStartDate(period: string): Date {
+  const periodDays: Record<string, number> = {
+    '7d': 7,
+    '1mo': 30,
+    '3mo': 90,
+    '6mo': 180,
+    '1y': 365,
+    '2y': 730,
+    '3y': 1095,
+    '5y': 1825,
+    '10y': 3650,
   };
+  const days = periodDays[period] ?? 365;
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 }
 
 export async function getStockHistory(
@@ -73,54 +83,45 @@ export async function getStockHistory(
   period: string,
   interval: string
 ): Promise<StockHistoryResponse> {
-  const { data } = await yahooClient.get('/v8/finance/chart/' + ticker, {
-    params: {
-      interval,
-      range: period,
-      includePrePost: false,
-      events: 'div,split',
-    },
+  const upperTicker = ticker.toUpperCase();
+  const cacheKey = buildStockHistoryCacheKey(upperTicker, period, interval);
+  const cached = stockHistoryCache.get(cacheKey);
+
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.response;
+  }
+
+  const period1 = periodToStartDate(period);
+  const period2 = new Date();
+
+  const rows = await yahooFinance.historical(upperTicker, {
+    period1: period1.toISOString().slice(0, 10),
+    period2: period2.toISOString().slice(0, 10),
+    interval: interval as '1d' | '1wk' | '1mo',
   });
 
-  const result = data?.chart?.result?.[0];
-  if (!result) throw new Error(`No history found for ticker: ${ticker}`);
+  if (!rows || rows.length === 0) {
+    throw new Error(`No history found for ticker: ${upperTicker}`);
+  }
 
-  const timestamps: number[] = result.timestamp ?? [];
-  const ohlcv = result.indicators?.quote?.[0] ?? {};
-
-  const opens: (number | null)[] = ohlcv.open ?? [];
-  const highs: (number | null)[] = ohlcv.high ?? [];
-  const lows: (number | null)[] = ohlcv.low ?? [];
-  const closes: (number | null)[] = ohlcv.close ?? [];
-  const volumes: (number | null)[] = ohlcv.volume ?? [];
-
-  const candles: OhlcvCandle[] = timestamps
-    .map(
-      (timestamp, index): YahooChartQuote => ({
-        date: timestamp,
-        open: opens[index] ?? null,
-        high: highs[index] ?? null,
-        low: lows[index] ?? null,
-        close: closes[index] ?? null,
-        volume: volumes[index] ?? null,
-      })
-    )
-    .filter(
-      (
-        quote
-      ): quote is YahooChartQuote & { open: number; high: number; low: number; close: number } =>
-        quote.open !== null && quote.high !== null && quote.low !== null && quote.close !== null
-    )
-    .map((quote) => ({
-      time: quote.date,
-      open: quote.open,
-      high: quote.high,
-      low: quote.low,
-      close: quote.close,
-      volume: quote.volume ?? 0,
+  const candles: OhlcvCandle[] = rows
+    .filter((row) => row.close != null)
+    .map((row) => ({
+      time: Math.floor(new Date(row.date).getTime() / 1000),
+      open: row.open ?? row.close,
+      high: row.high ?? row.close,
+      low: row.low ?? row.close,
+      close: row.close,
+      volume: row.volume ?? 0,
     }));
 
-  return { ticker, interval, candles };
+  const response: StockHistoryResponse = { ticker: upperTicker, interval, candles };
+  stockHistoryCache.set(cacheKey, {
+    response,
+    expiresAt: Date.now() + STOCK_HISTORY_CACHE_TTL_MS,
+  });
+
+  return response;
 }
 
 // ─── Ticker tape ─────────────────────────────────────────────────────────────
@@ -131,38 +132,25 @@ import { TICKER_TAPE_REFRESH_INTERVAL_MS } from '../constants.js';
 
 const TICKER_TAPE_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'TLT', 'GLD', 'VOO'];
 
-function buildFallbackQuote(symbol: string): StockQuote {
-  return {
-    ticker: symbol,
-    name: symbol,
-    price: 0,
-    change: 0,
-    changePercent: 0,
-    volume: 0,
-    marketCap: null,
-    currency: 'USD',
-  };
-}
-
 // Starts as fallback data so the endpoint never returns empty
-let tickerTapeData: StockQuote[] = TICKER_TAPE_SYMBOLS.map(buildFallbackQuote);
+let tickerTapeData: StockQuote[] = TICKER_TAPE_SYMBOLS.map(buildEmptyStockQuote);
 
 async function refreshTickerTape(): Promise<void> {
-  const results = await Promise.allSettled(
-    TICKER_TAPE_SYMBOLS.map((symbol) => getStockQuote(symbol))
-  );
+  try {
+    const fresh = await getCachedStockQuotes(TICKER_TAPE_SYMBOLS);
+    const successCount = fresh.filter((quote) => quote.price > 0).length;
 
-  const fresh: StockQuote[] = results.map((result, index) =>
-    result.status === 'fulfilled' ? result.value : buildFallbackQuote(TICKER_TAPE_SYMBOLS[index])
-  );
-
-  // Only replace cache if at least one symbol fetched successfully
-  const successCount = results.filter((r) => r.status === 'fulfilled').length;
-  if (successCount > 0) {
-    tickerTapeData = fresh;
-    console.log(`[TickerTape] Refreshed ${successCount}/${TICKER_TAPE_SYMBOLS.length} symbols`);
-  } else {
-    console.warn('[TickerTape] All fetches failed — keeping previous data');
+    if (successCount > 0) {
+      tickerTapeData = fresh;
+      logger.info(
+        { successCount, totalCount: TICKER_TAPE_SYMBOLS.length },
+        'Ticker tape refreshed'
+      );
+    } else {
+      logger.warn('Ticker tape refresh returned no live quotes — keeping previous data');
+    }
+  } catch (error) {
+    logger.warn({ err: error }, 'Ticker tape refresh failed — keeping previous data');
   }
 }
 
@@ -173,11 +161,11 @@ async function refreshTickerTape(): Promise<void> {
  */
 export function initializeTickerTapeScheduler(): ReturnType<typeof setInterval> {
   // Kick off first fetch without blocking startup
-  refreshTickerTape().catch((err) => console.error('[TickerTape] Initial fetch failed:', err));
+  refreshTickerTape().catch((err) => logger.error({ err }, 'Ticker tape initial fetch failed'));
 
   return setInterval(() => {
     refreshTickerTape().catch((err) =>
-      console.error('[TickerTape] Scheduled refresh failed:', err)
+      logger.error({ err }, 'Ticker tape scheduled refresh failed')
     );
   }, TICKER_TAPE_REFRESH_INTERVAL_MS);
 }
@@ -185,6 +173,203 @@ export function initializeTickerTapeScheduler(): ReturnType<typeof setInterval> 
 /** Returns current in-memory cache — always instant, never calls Yahoo Finance. */
 export function getTickerTapeQuotes(): StockQuote[] {
   return tickerTapeData;
+}
+
+/**
+ * Returns sector and industry for a given ticker using Yahoo Finance assetProfile module.
+ * Returns a fallback { sector: 'Other', industry: '' } when the data is unavailable
+ * (e.g. ETFs, indices, or Yahoo API hiccups) — never throws.
+ */
+/**
+ * Returns sector and industry for a given ticker using yahoo-finance2 which
+ * handles Yahoo Finance auth (crumb + cookies) automatically.
+ * Falls back to { sector: 'Other', industry: '' } for ETFs / indices / errors.
+ */
+export async function getStockSector(
+  ticker: string
+): Promise<{ sector: string; industry: string }> {
+  try {
+    const result = (await yahooFinance.quoteSummary(ticker, {
+      modules: ['assetProfile'],
+    })) as { assetProfile?: { sector?: string; industry?: string } };
+
+    const profile = result.assetProfile;
+    const sector = typeof profile?.sector === 'string' && profile.sector ? profile.sector : 'Other';
+    const industry = typeof profile?.industry === 'string' ? profile.industry : '';
+
+    logger.debug({ ticker, sector, industry }, 'Sector resolved');
+    return { sector, industry };
+  } catch (err) {
+    logger.warn({ ticker, err }, 'Sector fetch failed — fallback Other');
+    return { sector: 'Other', industry: '' };
+  }
+}
+
+interface YahooCompareSummary {
+  assetProfile?: { sector?: string; industry?: string };
+  summaryDetail?: {
+    trailingPE?: number;
+    forwardPE?: number;
+    pegRatio?: number;
+    dividendYield?: number;
+    payoutRatio?: number;
+    marketCap?: number;
+    enterpriseValue?: number;
+    priceToBook?: number;
+    priceToSalesTrailing12Months?: number;
+    enterpriseToEbitda?: number;
+    beta?: number;
+    profitMargins?: number;
+    operatingMargins?: number;
+  };
+  financialData?: {
+    returnOnEquity?: number;
+    returnOnAssets?: number;
+    profitMargins?: number;
+    operatingMargins?: number;
+    revenueGrowth?: number;
+    earningsGrowth?: number;
+    debtToEquity?: number;
+    currentRatio?: number;
+    currentPrice?: number;
+  };
+  defaultKeyStatistics?: {
+    trailingPE?: number;
+    forwardPE?: number;
+    pegRatio?: number;
+    priceToBook?: number;
+    priceToSalesTrailing12Months?: number;
+    enterpriseToEbitda?: number;
+    enterpriseValue?: number;
+    trailingEps?: number;
+    beta?: number;
+    profitMargins?: number;
+    payoutRatio?: number;
+  };
+}
+
+const stockCompareCache = new Map<string, { item: StockCompareItem; expiresAt: number }>();
+
+function toPercentValue(...values: Array<number | undefined | null>): number | null {
+  for (const value of values) {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(value)) {
+      continue;
+    }
+    const normalized = Math.abs(value) <= 1 ? value * 100 : value;
+    return normalized;
+  }
+  return null;
+}
+
+function pickFirstPositiveNumber(...values: Array<number | undefined | null>): number | null {
+  for (const value of values) {
+    if (value != null && Number.isFinite(value) && value > 0) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function pickFirstFiniteNumber(...values: Array<number | undefined | null>): number | null {
+  for (const value of values) {
+    if (value != null && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
+
+async function fetchStockCompareItem(ticker: string): Promise<StockCompareItem> {
+  const upperTicker = ticker.toUpperCase();
+  const cached = stockCompareCache.get(upperTicker);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.item;
+  }
+
+  const [quote, summaryResult] = await Promise.all([
+    getCachedStockQuote(upperTicker).catch(() => null),
+    yahooFinance
+      .quoteSummary(upperTicker, {
+        modules: ['assetProfile', 'summaryDetail', 'financialData', 'defaultKeyStatistics'],
+      })
+      .catch(() => null),
+  ]);
+
+  const summary = (summaryResult ?? {}) as YahooCompareSummary;
+  const profile = summary.assetProfile;
+  const summaryDetail = summary.summaryDetail;
+  const financialData = summary.financialData;
+  const keyStats = summary.defaultKeyStatistics;
+
+  const item: StockCompareItem = {
+    ticker: upperTicker,
+    name: quote?.name ?? upperTicker,
+    currency: quote?.currency ?? 'USD',
+    price: quote?.price ?? financialData?.currentPrice ?? null,
+    sector: profile?.sector ?? null,
+    industry: profile?.industry ?? null,
+    marketCap: quote?.marketCap ?? summaryDetail?.marketCap ?? null,
+    enterpriseValue: pickFirstPositiveNumber(
+      keyStats?.enterpriseValue,
+      summaryDetail?.enterpriseValue
+    ),
+    trailingEps: pickFirstFiniteNumber(keyStats?.trailingEps),
+    peRatio: pickFirstPositiveNumber(
+      summaryDetail?.trailingPE,
+      keyStats?.trailingPE,
+      summaryDetail?.forwardPE
+    ),
+    forwardPeRatio: pickFirstPositiveNumber(summaryDetail?.forwardPE, keyStats?.forwardPE),
+    pegRatio: pickFirstPositiveNumber(keyStats?.pegRatio, summaryDetail?.pegRatio),
+    psRatio: pickFirstPositiveNumber(
+      keyStats?.priceToSalesTrailing12Months,
+      summaryDetail?.priceToSalesTrailing12Months
+    ),
+    priceToBook: pickFirstPositiveNumber(keyStats?.priceToBook, summaryDetail?.priceToBook),
+    evToEbitda: pickFirstPositiveNumber(
+      keyStats?.enterpriseToEbitda,
+      summaryDetail?.enterpriseToEbitda
+    ),
+    roe: toPercentValue(financialData?.returnOnEquity),
+    roa: toPercentValue(financialData?.returnOnAssets),
+    profitMargin: toPercentValue(
+      financialData?.profitMargins,
+      keyStats?.profitMargins,
+      summaryDetail?.profitMargins
+    ),
+    operatingMargin: toPercentValue(
+      financialData?.operatingMargins,
+      summaryDetail?.operatingMargins
+    ),
+    revenueGrowth: toPercentValue(financialData?.revenueGrowth),
+    earningsGrowth: toPercentValue(financialData?.earningsGrowth),
+    debtToEquity: pickFirstFiniteNumber(financialData?.debtToEquity),
+    currentRatio: pickFirstPositiveNumber(financialData?.currentRatio),
+    dividendYield: toPercentValue(summaryDetail?.dividendYield),
+    payoutRatio: toPercentValue(keyStats?.payoutRatio, summaryDetail?.payoutRatio),
+    beta: pickFirstFiniteNumber(keyStats?.beta, summaryDetail?.beta),
+  };
+
+  stockCompareCache.set(upperTicker, {
+    item,
+    expiresAt: Date.now() + STOCK_COMPARE_CACHE_TTL_MS,
+  });
+
+  return item;
+}
+
+export async function getStockFundamentals(ticker: string): Promise<StockCompareItem> {
+  return fetchStockCompareItem(ticker);
+}
+
+export async function getStockCompare(tickers: string[]): Promise<StockCompareResponse> {
+  const normalizedTickers = [...new Set(tickers.map((ticker) => ticker.toUpperCase()))];
+  const items = await Promise.all(normalizedTickers.map((ticker) => fetchStockCompareItem(ticker)));
+
+  return {
+    tickers: normalizedTickers,
+    items,
+  };
 }
 
 export async function searchStocks(query: string): Promise<StockSearchResult[]> {

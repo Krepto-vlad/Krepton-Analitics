@@ -1,0 +1,175 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.titleIcon {
+  color: $color-primary;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-foreground-subtle;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legendSwatchDividend {
+  background: $color-success;
+}
+
+.legendSwatchCoupon {
+  background: $color-benchmark;
+}
+
+.plotWrapper {
+  position: relative;
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0 0 28px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.gridLine {
+  border-top: 1px dashed $color-chart-grid;
+}
+
+.plot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-2;
+  min-height: 220px;
+  padding: $space-2 $space-1 0;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  flex: 1;
+  min-width: 0;
+}
+
+.barTrack {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 160px;
+}
+
+.stackedBar {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 28px;
+  min-height: 4px;
+  height: var(--bar-height);
+  border-radius: $radius-sm $radius-sm 2px 2px;
+  overflow: hidden;
+}
+
+.historical {
+  opacity: 0.45;
+}
+
+.projected {
+  opacity: 1;
+}
+
+.couponSegment {
+  width: 100%;
+  min-height: 2px;
+  height: var(--coupon-share);
+  background: $color-benchmark;
+}
+
+.dividendSegment {
+  width: 100%;
+  min-height: 2px;
+  flex: 1;
+  background: $color-success;
+}
+
+.barLabel {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+}
+
+.currentDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $color-primary;
+}
+
+.barValue {
+  font-size: 0.625rem;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+  color: $color-foreground-subtle;
+  text-align: center;
+  @include truncate;
+  max-width: 100%;
+}
+
+.hint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}

@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+*.md
+src/__tests__
+**/*.test.ts
+**/*.spec.ts
+.husky
+.vscode
+.idea
+Dockerfile
+.dockerignore

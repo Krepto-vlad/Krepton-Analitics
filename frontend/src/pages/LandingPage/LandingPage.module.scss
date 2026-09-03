@@ -1,5 +1,33 @@
-@use '../../styles/variables' as *;
+﻿@use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
+
+$landing-blue: #3b82f6;
+$landing-pink: #ec4899;
+
+.accentPrimary {
+  --feature-accent: #{$color-primary};
+  --feature-bg: #{$color-primary-muted};
+}
+
+.accentIndigo {
+  --feature-accent: #{$color-indigo};
+  --feature-bg: color-mix(in srgb, var(--color-indigo) 10%, transparent);
+}
+
+.accentWarning {
+  --feature-accent: #{$color-warning};
+  --feature-bg: rgb(245 158 11 / 10%);
+}
+
+.accentBlue {
+  --feature-accent: #{$landing-blue};
+  --feature-bg: rgb(59 130 246 / 10%);
+}
+
+.accentPink {
+  --feature-accent: #{$landing-pink};
+  --feature-bg: rgb(236 72 153 / 10%);
+}
 
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
@@ -7,213 +35,15 @@
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
-  background: #09090b;
+  background: $color-background;
   color: $color-foreground;
   font-family: $font-family;
-}
-
-// ─── Navbar ──────────────────────────────────────────────────────────────────
-
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: $z-sticky;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 $space-10;
-  height: $header-height;
-  background: rgba(9, 9, 11, 0.95);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-
-  @include mobile {
-    padding: 0 $space-4;
-  }
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  text-decoration: none;
-}
-
-.logoIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: $radius-md;
-  background: $color-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.logoText {
-  font-weight: $font-weight-bold;
-  font-size: $font-size-base;
-  letter-spacing: -0.02em;
-  color: $color-foreground;
-
-  span {
-    color: $color-primary;
-  }
-}
-
-.navLinks {
-  display: flex;
-  align-items: center;
-  gap: $space-6;
-
-  @include mobile {
-    display: none;
-  }
-}
-
-.navLink {
-  font-size: $font-size-sm;
-  color: rgba(255, 255, 255, 0.55);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-family: $font-family;
-  transition: color $transition-fast;
-  text-decoration: none;
-
-  &:hover {
-    color: $color-foreground;
-  }
-}
-
-.navActions {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-
-  @include mobile {
-    display: none;
-  }
-}
-
-.btnOutline {
-  padding: $space-2 $space-4;
-  border-radius: $radius-md;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: $color-foreground;
-  background: transparent;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  font-family: $font-family;
-  cursor: pointer;
-  transition: border-color $transition-fast;
-
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-}
-
-.btnPrimary {
-  padding: $space-2 $space-4;
-  border-radius: $radius-md;
-  background: $color-primary;
-  color: #fff;
-  border: none;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  font-family: $font-family;
-  cursor: pointer;
-  transition: background $transition-fast;
-
-  &:hover {
-    background: $color-primary-hover;
-  }
-}
-
-.hamburger {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.06);
-  border: none;
-  cursor: pointer;
-  color: $color-foreground;
-
-  @include mobile {
-    display: flex;
-  }
-}
-
-// ─── Mobile menu ─────────────────────────────────────────────────────────────
-
-.mobileMenu {
-  position: fixed;
-  top: $header-height;
-  left: 0;
-  right: 0;
-  z-index: $z-dropdown;
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-  padding: $space-4;
-  background: rgba(17, 17, 19, 0.97);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.mobileNavLink {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  padding: $space-2 $space-1;
-  font-family: $font-family;
-}
-
-.mobileDivider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.07);
-  margin: $space-1 0;
-}
-
-.mobileBtnOutline {
-  font-size: 0.9rem;
-  font-weight: $font-weight-medium;
-  color: $color-foreground;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: $radius-md;
-  padding: $space-2 $space-4;
-  cursor: pointer;
-  font-family: $font-family;
-  text-align: center;
-}
-
-.mobileBtnPrimary {
-  font-size: 0.9rem;
-  font-weight: $font-weight-bold;
-  color: #fff;
-  background: $color-primary;
-  border: none;
-  border-radius: $radius-md;
-  padding: $space-2 $space-4;
-  cursor: pointer;
-  font-family: $font-family;
-  text-align: center;
 }
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 .hero {
-  position: relative;
+  @include section-clips-fixed-grid;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -227,23 +57,17 @@
 .heroGlow {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   background: radial-gradient(
     ellipse 80% 50% at 50% -10%,
-    rgba(16, 185, 129, 0.12) 0%,
+    $color-primary-muted 0%,
     transparent 70%
   );
 }
 
 .heroGrid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.2;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
+  @include fixed-viewport-cell-grid;
 }
 
 .heroContent {
@@ -257,21 +81,6 @@
   width: 100%;
 }
 
-.heroBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-2;
-  padding: 6px $space-3;
-  border-radius: $radius-full;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.08);
-  font-family: $font-mono;
-  font-size: $font-size-xs;
-  color: $color-primary;
-  font-weight: $font-weight-semibold;
-  letter-spacing: 0.06em;
-}
-
 .heroTitle {
   font-size: clamp(2.2rem, 5vw, 3.8rem);
   font-weight: 900;
@@ -280,21 +89,28 @@
   line-height: 1.1;
 
   &Accent {
+    // Dark: bright mint wash. Light: deep teal → slate (avoids neon mint on white).
     background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+
+    :global(html[data-theme='light']) & {
+      background: linear-gradient(90deg, #065f46 0%, #0f766e 55%, #475569 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
   }
 }
 
 .heroSubtitle {
   font-size: clamp(0.9rem, 2vw, 1.1rem);
-  color: rgba(255, 255, 255, 0.5);
+  color: $color-foreground-muted;
   line-height: 1.7;
   max-width: 600px;
 
   strong {
-    color: rgba(255, 255, 255, 0.75);
+    color: $color-foreground;
   }
 }
 
@@ -312,21 +128,22 @@
   gap: $space-2;
   padding: 14px $space-6;
   border-radius: $radius-lg;
-  background: $color-primary;
-  color: #fff;
+  background: $color-primary-solid;
+  color: $color-on-primary;
   border: none;
   font-family: $font-family;
   font-weight: $font-weight-bold;
   font-size: 0.95rem;
+  text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 0 32px rgba(16, 185, 129, 0.35);
+  box-shadow: $shadow-glow-primary;
   transition:
     background $transition-fast,
     box-shadow $transition-fast;
 
   &:hover {
-    background: $color-primary-hover;
-    box-shadow: 0 0 48px rgba(16, 185, 129, 0.5);
+    background: $color-primary-solid-hover;
+    box-shadow: 0 0 48px var(--color-primary-glow);
   }
 }
 
@@ -336,19 +153,20 @@
   gap: $space-2;
   padding: 14px $space-6;
   border-radius: $radius-lg;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid $color-border-strong;
+  color: $color-foreground-muted;
   background: transparent;
   font-family: $font-family;
   font-weight: $font-weight-medium;
   font-size: 0.95rem;
+  text-decoration: none;
   cursor: pointer;
   transition:
     border-color $transition-fast,
     color $transition-fast;
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: $color-foreground-subtle;
     color: $color-foreground;
   }
 }
@@ -365,8 +183,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
+}
+
+.accentIcon {
+  color: $color-primary-on-muted;
 }
 
 // ─── Dashboard preview ────────────────────────────────────────────────────────
@@ -388,13 +210,12 @@
   width: 100%;
   border-radius: $radius-xl;
   overflow: hidden;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  // Glow lives on the card itself so it follows the 3D tilt
+  background: $color-surface;
+  border: 1px solid $color-border;
   box-shadow:
-    0 0 60px rgba(16, 185, 129, 0.18),
-    0 40px 80px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(16, 185, 129, 0.1);
+    $shadow-glow-primary,
+    $shadow-lg,
+    0 0 0 1px $color-primary-border;
   transform: perspective(1000px) rotateX(4deg) rotateY(-2deg);
   transform-origin: center top;
   transition:
@@ -405,9 +226,9 @@
 
   &:hover {
     box-shadow:
-      0 0 90px rgba(16, 185, 129, 0.28),
-      0 40px 80px rgba(0, 0, 0, 0.6),
-      0 0 0 1px rgba(16, 185, 129, 0.2);
+      0 0 90px var(--color-primary-glow),
+      $shadow-lg,
+      0 0 0 1px $color-primary-border;
   }
 }
 
@@ -416,8 +237,8 @@
   align-items: center;
   justify-content: space-between;
   padding: $space-3 $space-4;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid $color-divider;
+  background: $color-overlay;
 }
 
 .previewDots {
@@ -430,12 +251,24 @@
   width: 8px;
   height: 8px;
   border-radius: $radius-full;
+
+  &Red {
+    background: #ef4444;
+  }
+
+  &Amber {
+    background: #f59e0b;
+  }
+
+  &Green {
+    background: #10b981;
+  }
 }
 
 .previewTitle {
   font-family: $font-mono;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
   letter-spacing: 0.06em;
 }
 
@@ -444,15 +277,15 @@
   align-items: center;
   gap: 6px;
   font-family: $font-mono;
-  font-size: 0.6rem;
-  color: $color-primary;
+  font-size: 0.8125rem;
+  color: $color-primary-on-muted;
 
   &Dot {
     width: 6px;
     height: 6px;
     border-radius: $radius-full;
     background: $color-primary;
-    box-shadow: 0 0 4px rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 4px var(--color-primary-glow);
   }
 }
 
@@ -471,8 +304,8 @@
 
 .previewLabel {
   font-family: $font-mono;
-  font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 2px;
@@ -493,8 +326,8 @@
   gap: $space-1;
   margin-top: $space-1;
   font-family: $font-mono;
-  font-size: 0.65rem;
-  color: $color-primary;
+  font-size: 0.8125rem;
+  color: $color-primary-on-muted;
   font-weight: $font-weight-semibold;
 }
 
@@ -507,18 +340,24 @@
 
 .previewStatLabel {
   font-family: $font-mono;
-  font-size: 0.55rem;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
   text-transform: uppercase;
 }
 
 .previewStatValue {
   font-family: $font-mono;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-bold;
-}
 
-// ─── Mini chart bars ──────────────────────────────────────────────────────────
+  &Danger {
+    color: $color-danger;
+  }
+
+  &Success {
+    color: $color-success;
+  }
+}
 
 .previewBars {
   display: flex;
@@ -529,16 +368,24 @@
 
 .previewBar {
   flex: 1;
+  height: var(--bar-height);
   border-radius: 2px;
-}
+  background: color-mix(
+    in srgb,
+    var(--color-primary) calc(var(--bar-opacity, 0.4) * 100%),
+    transparent
+  );
 
-// ─── Gemini AI card ───────────────────────────────────────────────────────────
+  &Peak {
+    background: $color-primary;
+  }
+}
 
 .previewAiCard {
   border-radius: $radius-md;
   padding: $space-3;
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: color-mix(in srgb, var(--color-indigo) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-indigo) 32%, transparent);
 }
 
 .previewAiHeader {
@@ -552,7 +399,8 @@
   width: 14px;
   height: 14px;
   border-radius: $radius-sm;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: $color-indigo-solid;
+  color: $color-on-primary;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -560,20 +408,18 @@
 
 .previewAiLabel {
   font-family: $font-mono;
-  font-size: 0.55rem;
-  color: #a5b4fc;
+  font-size: 0.8125rem;
+  color: $color-indigo;
   font-weight: $font-weight-semibold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .previewAiText {
-  font-size: 0.62rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.8125rem;
+  color: $color-foreground;
   line-height: 1.5;
 }
-
-// ─── Preview positions ────────────────────────────────────────────────────────
 
 .previewPositions {
   display: flex;
@@ -589,20 +435,20 @@
 
 .previewPosTicker {
   font-family: $font-mono;
-  font-size: 0.65rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-bold;
   color: $color-foreground;
 }
 
 .previewPosPrice {
   font-family: $font-mono;
-  font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
 }
 
 .previewPosGain {
   font-family: $font-mono;
-  font-size: 0.65rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-semibold;
 
   &.positive {
@@ -613,16 +459,14 @@
   }
 }
 
-// previewFade removed — it caused a visible black stripe when the card tilted in 3D
-
 // ─── Ticker tape ─────────────────────────────────────────────────────────────
 
 .ticker {
   overflow: hidden;
   padding: $space-3 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid $color-divider;
+  border-bottom: 1px solid $color-divider;
+  background: $color-overlay;
 }
 
 .tickerTrack {
@@ -630,7 +474,7 @@
   gap: $space-8;
   white-space: nowrap;
   width: max-content;
-  will-change: transform; // hint browser to promote to GPU layer
+  will-change: transform;
 }
 
 .tickerItem {
@@ -642,20 +486,20 @@
 
 .tickerSymbol {
   font-family: $font-mono;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-bold;
   color: $color-foreground;
 }
 
 .tickerPrice {
   font-family: $font-mono;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
 }
 
 .tickerChange {
   font-family: $font-mono;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-semibold;
 
   &.positive {
@@ -701,11 +545,17 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+
+  :global(html[data-theme='light']) & {
+    background: linear-gradient(135deg, #065f46 0%, #0f766e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
 }
 
 .statLabel {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
 }
 
 // ─── Features ─────────────────────────────────────────────────────────────────
@@ -730,12 +580,12 @@
   gap: $space-2;
   padding: 6px $space-3;
   border-radius: $radius-full;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid $color-border;
+  background: $color-overlay;
   margin-bottom: $space-4;
   font-family: $font-mono;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8125rem;
+  color: $color-foreground-muted;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -748,13 +598,13 @@
   line-height: 1.2;
 
   span {
-    color: $color-primary;
+    color: $color-primary-on-muted;
   }
 }
 
 .sectionSubtitle {
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: $color-foreground-subtle;
   margin-top: $space-3;
   max-width: 480px;
   margin-left: auto;
@@ -768,19 +618,23 @@
 }
 
 .featureCard {
+  --feature-accent: var(--color-primary);
+  --feature-bg: var(--color-primary-muted);
+
   display: flex;
   flex-direction: column;
   gap: $space-3;
   padding: $space-5;
   border-radius: $radius-lg;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: $color-surface;
+  border: 1px solid $color-border;
   transition:
     border-color $transition-base,
     background $transition-base;
 
   &:hover {
-    background: #1c1c1f;
+    background: $color-surface-elevated;
+    border-color: color-mix(in srgb, var(--feature-accent) 40%, transparent);
   }
 }
 
@@ -792,6 +646,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: var(--feature-bg);
+  color: var(--feature-accent);
 }
 
 .featureTitle {
@@ -802,8 +658,8 @@
 }
 
 .featureDesc {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.8125rem;
+  color: $color-foreground-muted;
   line-height: 1.6;
 }
 
@@ -818,8 +674,11 @@
   padding: 2px $space-2;
   border-radius: $radius-sm;
   font-family: $font-mono;
-  font-size: 0.62rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-semibold;
+  color: var(--feature-accent);
+  background: color-mix(in srgb, var(--feature-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--feature-accent) 15%, transparent);
 }
 
 // ─── Privacy banner ───────────────────────────────────────────────────────────
@@ -839,12 +698,22 @@
   padding: $space-8;
   border-radius: $radius-xl;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: linear-gradient(
+    135deg,
+    $color-primary-muted 0%,
+    color-mix(in srgb, var(--color-primary) 3%, transparent) 100%
+  );
+  border: 1px solid $color-primary-border;
 
   @include mobile {
     flex-direction: column;
     text-align: center;
+  }
+
+  :global(html[data-theme='light']) & {
+    background: $color-surface;
+    border-color: $color-border;
+    box-shadow: $shadow-sm;
   }
 }
 
@@ -855,16 +724,22 @@
   width: 192px;
   height: 192px;
   border-radius: $radius-full;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--color-primary-glow) 0%, transparent 70%);
   pointer-events: none;
+
+  :global(html[data-theme='light']) & {
+    // Soft mint wash — primary-glow reads as a muddy blotch on white.
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+  }
 }
 
 .privacyIconWrap {
   width: 56px;
   height: 56px;
   border-radius: $radius-lg;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: $color-primary-muted;
+  border: 1px solid $color-primary-border;
+  color: $color-primary-on-muted;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -900,22 +775,22 @@
 .privacyCertBadge {
   padding: 2px $space-2;
   border-radius: $radius-full;
-  background: rgba(16, 185, 129, 0.15);
-  color: $color-primary;
+  background: $color-primary-muted;
+  color: $color-primary-on-muted;
   font-family: $font-mono;
-  font-size: 0.6rem;
+  font-size: 0.8125rem;
   font-weight: $font-weight-bold;
   letter-spacing: 0.06em;
 }
 
 .privacyText {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: $color-foreground-muted;
   line-height: 1.7;
   max-width: 600px;
 
   strong {
-    color: rgba(255, 255, 255, 0.75);
+    color: $color-foreground;
   }
 }
 
@@ -934,8 +809,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.8125rem;
+  color: $color-foreground-muted;
 }
 
 .btnPrivacyCta {
@@ -944,70 +819,18 @@
   gap: $space-2;
   padding: $space-3 $space-5;
   border-radius: $radius-lg;
-  background: $color-primary;
-  color: #fff;
+  background: $color-primary-solid;
+  color: $color-on-primary;
   border: none;
   font-family: $font-family;
   font-weight: $font-weight-semibold;
   font-size: 0.82rem;
+  text-decoration: none;
   cursor: pointer;
   flex-shrink: 0;
   transition: background $transition-fast;
 
   &:hover {
-    background: $color-primary-hover;
+    background: $color-primary-solid-hover;
   }
-}
-
-// ─── Footer ───────────────────────────────────────────────────────────────────
-
-.footer {
-  padding: $space-8 $space-6;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.footerInner {
-  max-width: 980px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: $space-4;
-
-  @include mobile {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-.footerBrand {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-}
-
-.footerBrandIcon {
-  width: 20px;
-  height: 20px;
-  border-radius: $radius-sm;
-  background: $color-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.footerBrandText {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: $font-weight-medium;
-}
-
-.footerDisclaimer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: $font-mono;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
 }

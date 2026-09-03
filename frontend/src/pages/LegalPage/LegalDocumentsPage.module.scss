@@ -1,0 +1,75 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  min-height: 100vh;
+  width: 100%;
+  background: $color-background;
+  color: $color-foreground;
+  font-family: $font-family;
+}
+
+.body {
+  padding-top: $header-height;
+}
+
+.inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: $space-10 $space-6 $space-8;
+}
+
+.title {
+  margin: 0 0 $space-3;
+  text-align: center;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: $font-weight-bold;
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  margin: 0 auto $space-8;
+  max-width: 420px;
+  text-align: center;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-foreground-muted;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid $color-divider;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-4 0;
+  border-bottom: 1px solid $color-divider;
+  color: $color-foreground;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  color: $color-foreground-muted;
+}
+
+.rowTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.rowChevron {
+  flex-shrink: 0;
+  color: $color-foreground-subtle;
+}

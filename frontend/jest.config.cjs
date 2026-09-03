@@ -2,6 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jest-environment-jsdom',
+  setupFiles: ['<rootDir>/jest.polyfills.cjs'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
@@ -9,7 +10,7 @@ module.exports = {
     '\\.(png|jpg|jpeg|gif|svg|webp)$': '<rootDir>/src/utils/fileMock.ts',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: './tsconfig.jest.json' }],
+    '^.+\\.(ts|tsx)$': '<rootDir>/jest-ts-transformer.cjs',
   },
   testMatch: ['**/__tests__/**/*.test.(ts|tsx)'],
   collectCoverageFrom: [

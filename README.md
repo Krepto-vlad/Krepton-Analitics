@@ -54,9 +54,19 @@ POC/
 
 ## Запуск
 
-### Требования
-- Node.js 18+
+Два режима:
+
+| Режим | Когда | Команда |
+|---|---|---|
+| **Local inner loop** | Ежедневная разработка (рекомендуется) | `npm run dev` в `backend/` и `frontend/` |
+| **Compose (deploy contract)** | CI / Azure / воспроизводимый стек | `docker compose up --build` |
+
+Локально Docker не обязателен. Образы проверяет GitHub Actions (`Docker images`).
+
+### Требования (без Docker)
+- Node.js 20+
 - npm 9+
+- PostgreSQL
 
 ### Backend
 
@@ -78,11 +88,32 @@ npm run dev
 # Приложение: http://localhost:5173
 ```
 
+### Docker Compose (CI / Azure contract)
+
+Не заменяет `npm run dev`. Нужен Docker Engine. Секреты не в образе — только в `.env`.
+
+```bash
+cp .env.example .env
+# set JWT_SECRET and PORTFOLIO_SECRET to long random strings
+docker compose up --build
+# SPA: http://localhost:8080
+# API: http://localhost:3001/health
+```
+
+| Сервис | Образ | Порт | Назначение |
+|---|---|---|---|
+| `web` | `frontend/Dockerfile` (nginx-unprivileged) | 8080 | SPA |
+| `api` | `backend/Dockerfile` (Node 22, non-root) | 3001 | Express + migrate on start |
+| `postgres` | `postgres:16-bookworm` | 5432 | Данные в volume `postgres_data` |
+
+Брокерские файлы в RAM, volume для upload нет. Минимум: ~2 GB RAM, 2 CPU. После смены `VITE_*` пересоберите `web`.
+
 ## API Endpoints
 
 | Метод | URL | Описание |
 |---|---|---|
 | GET | `/health` | Health check |
+| GET | `/api/docs/openapi.yaml` | OpenAPI 3 spec (Backend min) |
 | GET | `/api/stocks/quote/:ticker` | Текущая цена акции |
 | GET | `/api/stocks/history/:ticker?period=1y&interval=1d` | OHLCV история для графика |
 | GET | `/api/stocks/search?q=Apple` | Поиск тикеров |

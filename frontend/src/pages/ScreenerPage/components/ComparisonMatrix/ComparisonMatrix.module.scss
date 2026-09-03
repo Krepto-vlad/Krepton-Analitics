@@ -1,0 +1,174 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  @include custom-scrollbar;
+}
+
+.table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.metricHeader,
+.tickerHeader {
+  padding: $space-3 $space-4;
+  text-align: center;
+  border-bottom: 1px solid $color-border-strong;
+}
+
+.metricHeader {
+  width: 220px;
+  text-align: left;
+}
+
+.tickerHeader {
+  min-width: 140px;
+}
+
+.tickerHeaderLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .tickerSymbol {
+    text-decoration: underline;
+  }
+}
+
+.tickerHeaderContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  max-width: 160px;
+  margin: 0 auto;
+}
+
+.tickerSymbol {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  text-align: center;
+}
+
+.tickerName {
+  display: block;
+  width: 100%;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  text-align: center;
+  @include truncate;
+}
+
+.metricCell {
+  padding: $space-4;
+  vertical-align: middle;
+  border-bottom: 1px solid $color-divider;
+}
+
+.metricLabel {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.metricSublabel {
+  display: block;
+  margin-top: 2px;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.valueCell {
+  padding: $space-4;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid $color-divider;
+  transition: background $transition-fast;
+}
+
+.valueContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.valuePrimary {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-foreground;
+  font-variant-numeric: tabular-nums;
+}
+
+.valueSecondary {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  @include truncate;
+  max-width: 160px;
+}
+
+.bestCell {
+  background: $color-primary-muted;
+
+  .valuePrimary {
+    color: $color-primary;
+    font-weight: $font-weight-bold;
+  }
+}
+
+.bestBadge {
+  font-size: 0.625rem;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.08em;
+  color: $color-primary;
+}
+
+.legend {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  line-height: 1.5;
+}
+
+.legendAccent {
+  color: $color-primary;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: $space-10 $space-4;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 420px;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  line-height: 1.6;
+}

@@ -1,0 +1,459 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// ─── Page Layout ─────────────────────────────────────────────────────────────
+
+.page {
+  flex: 1;
+  display: flex;
+  height: 0; // flex: 1 + height: 0 = fills parent without overflow
+  overflow: hidden;
+}
+
+// ─── Sub-Sidebar ─────────────────────────────────────────────────────────────
+
+.subSidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: $color-sidebar;
+  border-right: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  @include custom-scrollbar;
+}
+
+.subSidebarHeader {
+  padding: $space-5 $space-4 $space-4;
+  border-bottom: 1px solid $color-border;
+}
+
+.subSidebarTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  line-height: 1.3;
+}
+
+.subSidebarSubtitle {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  margin-top: 3px;
+}
+
+// ─── Sub-Nav ─────────────────────────────────────────────────────────────────
+
+.subNav {
+  list-style: none;
+  padding: $space-2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.subNavItem {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  width: 100%;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  border: none;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: $color-foreground;
+  }
+}
+
+.subNavItemActive {
+  background: $color-primary-muted;
+  color: $color-primary-on-muted;
+
+  .subNavIcon {
+    color: $color-primary-on-muted;
+  }
+
+  &:hover {
+    background: $color-primary-muted;
+    color: $color-primary-on-muted;
+  }
+}
+
+.subNavIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: $color-foreground-subtle;
+  transition: color $transition-fast;
+}
+
+.subNavLabel {
+  @include truncate;
+}
+
+// ─── Main Content ─────────────────────────────────────────────────────────────
+
+.mainContent {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  @include custom-scrollbar;
+}
+
+.contentWrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.scrollToTopButton {
+  position: fixed;
+  right: $space-6;
+  bottom: $space-6;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid $color-border-strong;
+  background: $color-surface-elevated;
+  color: $color-foreground;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition:
+    opacity $transition-base,
+    visibility $transition-base,
+    transform $transition-base,
+    background $transition-fast,
+    border-color $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background: $color-primary-muted;
+    border-color: $color-primary-border;
+    color: $color-primary-on-muted;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.96);
+  }
+}
+
+.scrollToTopButtonVisible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+// ─── Panel Content (shared by all sections) ───────────────────────────────────
+
+.panelContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  padding: $space-5;
+  height: 100%;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+}
+
+.panelHeaderIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  background: $color-primary-muted;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary-on-muted;
+  flex-shrink: 0;
+}
+
+.panelTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.panelSubtitle {
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.panelHeaderActions {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+// ─── Drop Zone ────────────────────────────────────────────────────────────────
+
+.dropZone {
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-lg;
+  padding: $space-10 $space-6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-surface;
+  transition:
+    border-color $transition-base,
+    background $transition-base;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $color-primary-border;
+    background: $color-primary-muted;
+  }
+}
+
+.dropZoneActive {
+  border-color: $color-primary;
+  background: $color-primary-muted;
+  box-shadow: 0 0 0 3px $color-primary-glow;
+}
+
+.dropZoneFilled {
+  border-style: solid;
+  border-color: $color-primary-border;
+  background: $color-surface;
+  cursor: default;
+
+  &:hover {
+    border-color: $color-primary-border;
+    background: $color-surface;
+  }
+}
+
+.fileInput {
+  display: none;
+}
+
+.dropZoneContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-3;
+  text-align: center;
+}
+
+.dropZoneIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-lg;
+  background: $color-overlay;
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-foreground-subtle;
+}
+
+.dropZoneText {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+.browseLink {
+  color: $color-primary-on-muted;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dropZoneHint {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.uploadedFile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  text-align: center;
+}
+
+.uploadedFileIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-lg;
+  background: $color-primary-muted;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary-on-muted;
+}
+
+.uploadedFileName {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-foreground;
+}
+
+.uploadedFileSize {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.uploadedFileActions {
+  display: flex;
+  gap: $space-2;
+  margin-top: $space-1;
+}
+
+// ─── Supported Brokers ────────────────────────────────────────────────────────
+
+.supportedBrokers {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding-top: $space-2;
+  border-top: 1px solid $color-border;
+}
+
+.supportedBrokersLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-foreground-subtle;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.brokersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.brokerBadge {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.02);
+  font: inherit;
+  color: inherit;
+  transition: border-color $transition-fast;
+
+  &:hover:not(:disabled) {
+    border-color: $color-border-strong;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.brokerShort {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: $color-foreground-muted;
+  font-family: $font-mono;
+  letter-spacing: 0.03em;
+}
+
+.brokerName {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+// ─── Empty State ─────────────────────────────────────────────────────────────
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-4;
+  padding: $space-10 $space-5;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: $radius-xl;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-foreground-subtle;
+}
+
+.emptyTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  letter-spacing: -0.01em;
+}
+
+.emptyText {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  max-width: 360px;
+  line-height: 1.65;
+}
+
+.emptyActions {
+  display: flex;
+  gap: $space-3;
+  align-items: center;
+  margin-top: $space-1;
+}
+
+// ─── Icon button (Watchlist hide/show) ───────────────────────────────────────
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: transparent;
+  color: $color-foreground-muted;
+  cursor: pointer;
+  transition:
+    border-color $transition-fast,
+    color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    border-color: $color-border-strong;
+    color: $color-foreground;
+    background: rgba(255, 255, 255, 0.04);
+  }
+}

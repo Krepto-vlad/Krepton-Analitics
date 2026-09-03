@@ -1,50 +1,45 @@
 import 'dotenv/config';
 import http from 'http';
-import express from 'express';
-import cors from 'cors';
 import { env } from './config/env.js';
-import { requestLogger } from './middleware/requestLogger.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import stockRoutes from './routes/stockRoutes.js';
-import { API_ROUTES } from './constants.js';
+import { logger } from './utils/logger.js';
+import { LOG_EVENT } from './constants.js';
+import { createApp } from './app.js';
 import { initializeTickerTapeScheduler } from './services/stockService.js';
+import { checkDatabaseConnection } from './config/db.js';
 
-const app = express();
-
-app.use(cors({ origin: env.frontendUrl, credentials: true }));
-app.use(express.json());
-app.use(requestLogger);
-
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-app.use(API_ROUTES.STOCKS, stockRoutes);
-app.use(errorHandler);
-
+const app = createApp();
 const server = http.createServer(app);
 
 let tickerTapeTimer: ReturnType<typeof setInterval> | null = null;
 
 server.listen(env.port, () => {
-  console.log(`[Server] HTTP on http://localhost:${env.port}`);
-  console.log(`[Server] Frontend: ${env.frontendUrl}`);
+  logger.info(
+    {
+      event: LOG_EVENT.SERVER_STARTED,
+      port: env.port,
+      frontendUrl: env.frontendUrl,
+      nodeEnv: env.nodeEnv,
+    },
+    'HTTP server listening'
+  );
 
-  // Store the timer so it can be cancelled on graceful shutdown
+  checkDatabaseConnection().catch((err) => {
+    logger.error({ event: LOG_EVENT.DB_CONNECTION_FAILED, err }, 'Database connection failed');
+  });
+
   tickerTapeTimer = initializeTickerTapeScheduler();
 });
 
 function shutdown(signal: string): void {
-  console.log(`[Server] ${signal} received — shutting down gracefully`);
+  logger.info({ event: LOG_EVENT.SERVER_SHUTDOWN, signal }, 'Shutting down gracefully');
 
   if (tickerTapeTimer !== null) {
     clearInterval(tickerTapeTimer);
     tickerTapeTimer = null;
-    console.log('[Server] Ticker tape scheduler stopped');
   }
 
   server.close(() => {
-    console.log('[Server] HTTP server closed');
+    logger.info({ event: LOG_EVENT.HTTP_SERVER_CLOSED }, 'HTTP server closed');
     process.exit(0);
   });
 }

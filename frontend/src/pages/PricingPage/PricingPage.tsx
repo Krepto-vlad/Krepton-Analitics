@@ -1,69 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Star, Check, Shield, Lock, Globe, ChevronRight } from 'lucide-react';
+import { Star, Check, Shield, Lock, Globe, ChevronRight } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { PAGE_SEO_METADATA } from '../../constants/seo';
+import {
+  MARKETING_PLAN_CALL_TO_ACTIONS,
+  PRICING_PLAN_DEFINITIONS,
+} from '../../constants/pricingPlans';
+import { Navbar, Footer } from '../../components/layout';
+import { usePageSeo } from '../../hooks/usePageSeo';
 import styles from './PricingPage.module.scss';
-
-interface PricingPlan {
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  cta: string;
-  highlighted: boolean;
-  badge?: string;
-}
-
-const PRICING_PLANS: PricingPlan[] = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/forever',
-    description: 'For individual investors getting started',
-    features: [
-      'Up to 15 positions',
-      '1 broker import/month',
-      'Basic P&L tracking',
-      'Dividend calendar',
-      'Community support',
-    ],
-    cta: 'Get Started Free',
-    highlighted: false,
-  },
-  {
-    name: 'Pro',
-    price: '$12',
-    period: '/month',
-    description: 'For active portfolio managers',
-    features: [
-      'Unlimited positions',
-      'Unlimited broker imports',
-      'Gemini AI Insights (50/mo)',
-      'Advanced backtesting',
-      'Stock screener',
-      'Priority support',
-    ],
-    cta: 'Start Pro Trial',
-    highlighted: true,
-    badge: 'Most Popular',
-  },
-  {
-    name: 'Institutional',
-    price: '$49',
-    period: '/month',
-    description: 'For advisors managing multiple portfolios',
-    features: [
-      'Everything in Pro',
-      'Unlimited AI requests',
-      'Multi-portfolio management',
-      'API access',
-      'White-label reports',
-      'Dedicated support',
-    ],
-    cta: 'Contact Sales',
-    highlighted: false,
-  },
-];
 
 const PRIVACY_FEATURES = [
   { icon: Lock, label: 'End-to-End Encrypted' },
@@ -74,67 +19,15 @@ const PRIVACY_FEATURES = [
 export function PricingPage() {
   const navigate = useNavigate();
 
+  usePageSeo(PAGE_SEO_METADATA[ROUTES.PRICING]);
+
   const handleRegister = () => navigate(ROUTES.REGISTER);
-  const handleLogin = () => navigate(ROUTES.LOGIN);
-  const handleHome = () => navigate(ROUTES.HOME);
-  const handlePricing = () => navigate(ROUTES.PRICING);
-  const handleFeatures = () => {
-    navigate(ROUTES.HOME);
-    setTimeout(() => {
-      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-  const handleSecurity = () => {
-    navigate(ROUTES.HOME);
-    setTimeout(() => {
-      document.getElementById('security')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
 
   return (
     <div className={styles.page}>
       <div className={styles.glow} />
+      <Navbar activeRoute="pricing" />
 
-      {/* ── Navbar ── */}
-      <nav className={styles.navbar}>
-        <div
-          className={styles.logo}
-          onClick={handleHome}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleHome()}
-        >
-          <div className={styles.logoIcon}>
-            <TrendingUp size={14} color="#fff" />
-          </div>
-          <span className={styles.logoText}>
-            Krepton <span>Analytics</span>
-          </span>
-        </div>
-
-        <div className={styles.navLinks}>
-          <button className={styles.navLink} onClick={handleFeatures}>
-            Features
-          </button>
-          <button className={`${styles.navLink} ${styles.active}`} onClick={handlePricing}>
-            Pricing
-          </button>
-          <button className={styles.navLink} onClick={handleSecurity}>
-            Security
-          </button>
-        </div>
-
-        <div className={styles.navActions}>
-          <button className={styles.btnOutline} onClick={handleLogin}>
-            Log In
-          </button>
-          <button className={styles.btnPrimary} onClick={handleRegister}>
-            Get Started
-          </button>
-        </div>
-      </nav>
-
-      {/* ── Content ── */}
       <main className={styles.content}>
         <div className={styles.header}>
           <div className={styles.badge}>
@@ -144,11 +37,10 @@ export function PricingPage() {
           <h1 className={styles.title}>Transparent, no-surprise pricing</h1>
         </div>
 
-        {/* ── Plans ── */}
         <div className={styles.plansGrid}>
-          {PRICING_PLANS.map((plan) => (
+          {PRICING_PLAN_DEFINITIONS.map((plan) => (
             <div
-              key={plan.name}
+              key={plan.id}
               className={`${styles.planCard} ${plan.highlighted ? styles.highlighted : ''}`}
             >
               {plan.badge && <div className={styles.planBadge}>{plan.badge}</div>}
@@ -165,7 +57,7 @@ export function PricingPage() {
               <div className={styles.planFeatures}>
                 {plan.features.map((feature) => (
                   <div key={feature} className={styles.planFeatureItem}>
-                    <Check size={13} color="#10B981" style={{ flexShrink: 0, marginTop: 1 }} />
+                    <Check size={13} className={styles.planFeatureIcon} />
                     {feature}
                   </div>
                 ))}
@@ -175,21 +67,20 @@ export function PricingPage() {
                 onClick={handleRegister}
                 className={plan.highlighted ? styles.btnPlanHighlighted : styles.btnPlanDefault}
               >
-                {plan.cta}
+                {MARKETING_PLAN_CALL_TO_ACTIONS[plan.id]}
               </button>
             </div>
           ))}
         </div>
 
-        {/* ── Privacy banner ── */}
         <div className={styles.privacyCard}>
           <div className={styles.privacyGlow} />
           <div className={styles.privacyIconWrap}>
-            <Shield size={26} color="#10B981" />
+            <Shield size={26} />
           </div>
           <div className={styles.privacyBody}>
             <div className={styles.privacyTitleRow}>
-              <h3 className={styles.privacyTitle}>Zero Personal Data Tracked</h3>
+              <h2 className={styles.privacyTitle}>Zero Personal Data Tracked</h2>
               <span className={styles.privacyCertBadge}>CERTIFIED</span>
             </div>
             <p className={styles.privacyText}>
@@ -200,7 +91,7 @@ export function PricingPage() {
             <div className={styles.privacyFeatures}>
               {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
                 <div key={label} className={styles.privacyFeatureItem}>
-                  <Icon size={12} color="#10B981" />
+                  <Icon size={12} className={styles.accentIcon} />
                   {label}
                 </div>
               ))}
@@ -213,21 +104,7 @@ export function PricingPage() {
         </div>
       </main>
 
-      {/* ── Footer ── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrand}>
-            <div className={styles.footerBrandIcon}>
-              <TrendingUp size={10} color="#fff" />
-            </div>
-            Krepton Analytics — Privacy-first portfolio intelligence
-          </div>
-          <div className={styles.footerDisclaimer}>
-            <Lock size={11} color="#10B981" />
-            Not financial advice. For educational purposes only.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -1,0 +1,997 @@
+openapi: 3.0.3
+info:
+  title: Krepton Analytics API
+  version: 0.1.0
+  description: |
+    REST API for Krepton Analytics (diploma POC). JSON envelope:
+    `{ "success": true, "data": ... }` or `{ "success": false, "error": "..." }`.
+    Session auth uses an HttpOnly cookie (`accessToken`), never LocalStorage.
+    This file is a living spec — source of truth for request/response shapes is TypeScript in `backend/src/types/`.
+  contact:
+    email: kreptonanalytics@gmail.com
+servers:
+  - url: http://localhost:3001
+    description: Local development
+tags:
+  - name: Health
+  - name: Auth
+  - name: Stocks
+  - name: FX
+  - name: Portfolio
+  - name: Watchlist
+  - name: Import
+  - name: AI
+  - name: Docs
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      security: []
+      responses:
+        '200':
+          description: Process is up
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, timestamp]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/docs/openapi.yaml:
+    get:
+      tags: [Docs]
+      summary: This OpenAPI document
+      security: []
+      responses:
+        '200':
+          description: YAML specification
+          content:
+            application/yaml:
+              schema:
+                type: string
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBody'
+      responses:
+        '201':
+          description: Verification email queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: Sets HttpOnly accessToken cookie
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/google:
+    post:
+      tags: [Auth]
+      summary: Login or register with Google ID token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken:
+                  type: string
+      responses:
+        '200':
+          description: Sets HttpOnly accessToken cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Confirm email with one-time token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Email verified; cookie may be set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/resend-verification:
+    post:
+      tags: [Auth]
+      summary: Resend verification email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '429':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset (generic response)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Set a new password using reset token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 10
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Clear access token cookie
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/extend:
+    post:
+      tags: [Auth]
+      summary: Sliding session — re-issue the HttpOnly JWT when remaining TTL is at most half
+      responses:
+        '200':
+          description: Returns the current or renewed session expiry. Cookie is rewritten only when renewed.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionExtensionSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/password:
+    put:
+      tags: [Auth]
+      summary: Change password (step-up)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                googleIdToken:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 10
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/account:
+    delete:
+      tags: [Auth]
+      summary: Hard-delete account (GDPR erasure)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirm]
+              properties:
+                confirm:
+                  type: string
+                  example: DELETE ACCOUNT
+                password:
+                  type: string
+                googleIdToken:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+
+  /api/stocks/ticker-tape:
+    get:
+      tags: [Stocks]
+      summary: Cached market tape (no per-request Yahoo call)
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/search:
+    get:
+      tags: [Stocks]
+      summary: Search tickers
+      security: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+
+  /api/stocks/quotes:
+    get:
+      tags: [Stocks]
+      summary: Batch quotes from server cache
+      security: []
+      parameters:
+        - in: query
+          name: tickers
+          required: true
+          schema:
+            type: string
+          description: Comma-separated symbols
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/movers:
+    get:
+      tags: [Stocks]
+      summary: Day gainers and losers
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/compare:
+    get:
+      tags: [Stocks]
+      summary: Compare fundamentals
+      security: []
+      parameters:
+        - in: query
+          name: tickers
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/backtest:
+    get:
+      tags: [Stocks]
+      summary: Light buy-and-hold backtest vs SPY
+      security: []
+      parameters:
+        - in: query
+          name: tickers
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: period
+          schema:
+            type: string
+            enum: [1y, 3y, 5y, 10y]
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/quote/{ticker}:
+    get:
+      tags: [Stocks]
+      summary: Single quote
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/Error'
+
+  /api/stocks/sector/{ticker}:
+    get:
+      tags: [Stocks]
+      summary: Sector and industry
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/fundamentals/{ticker}:
+    get:
+      tags: [Stocks]
+      summary: Ticker fundamentals
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/news/{ticker}:
+    get:
+      tags: [Stocks]
+      summary: Yahoo headlines for a ticker
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/stocks/history/{ticker}:
+    get:
+      tags: [Stocks]
+      summary: OHLCV history
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+        - in: query
+          name: period
+          schema:
+            type: string
+            example: 1y
+        - in: query
+          name: interval
+          schema:
+            type: string
+            enum: [1d, 1wk, 1mo]
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/fx/rate:
+    get:
+      tags: [FX]
+      summary: FX rate for a date
+      security: []
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            example: USD
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            example: EUR
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/fx/rates:
+    get:
+      tags: [FX]
+      summary: FX rates over a date range
+      security: []
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: start
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: end
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio:
+    get:
+      tags: [Portfolio]
+      summary: Current positions
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Portfolio]
+      summary: Add or increase a position
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ticker, shares, price]
+              properties:
+                ticker:
+                  type: string
+                companyName:
+                  type: string
+                shares:
+                  type: number
+                price:
+                  type: number
+                currency:
+                  type: string
+                  enum: [USD, EUR]
+                entryDate:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/{positionId}:
+    patch:
+      tags: [Portfolio]
+      summary: Update a position
+      parameters:
+        - $ref: '#/components/parameters/PositionIdPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+    delete:
+      tags: [Portfolio]
+      summary: Delete a position
+      parameters:
+        - $ref: '#/components/parameters/PositionIdPath'
+      responses:
+        '204':
+          description: Deleted
+
+  /api/portfolio/{positionId}/close:
+    post:
+      tags: [Portfolio]
+      summary: Close (sell) a position
+      parameters:
+        - $ref: '#/components/parameters/PositionIdPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/transactions:
+    get:
+      tags: [Portfolio]
+      summary: Transaction history
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/equity-history:
+    get:
+      tags: [Portfolio]
+      summary: Historical equity curve
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/investment-summary:
+    get:
+      tags: [Portfolio]
+      summary: Allocation and P&L summary
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/news:
+    get:
+      tags: [Portfolio]
+      summary: News for holdings
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/news/summary/quota:
+    get:
+      tags: [AI]
+      summary: Daily news-briefing quota
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/news/summary:
+    post:
+      tags: [AI]
+      summary: Generate news briefing (Gemini)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tickers]
+              properties:
+                tickers:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  maxItems: 5
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '429':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/dividends:
+    get:
+      tags: [Portfolio]
+      summary: Dividend calendar for holdings
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/rebalancing:
+    get:
+      tags: [Portfolio]
+      summary: Strategy drift vs target weights
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/rebalancing/strategies:
+    get:
+      tags: [Portfolio]
+      summary: Available rebalancing presets
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/rebalancing/strategy:
+    put:
+      tags: [Portfolio]
+      summary: Update target strategy
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/rebalancing/explain/quota:
+    get:
+      tags: [AI]
+      summary: Explain-alignment quota
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/rebalancing/explain:
+    post:
+      tags: [AI]
+      summary: AI explanation of alignment (not advice)
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/ticker-chat/quota:
+    get:
+      tags: [AI]
+      summary: Ticker chat quota
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/ticker-chat:
+    post:
+      tags: [AI]
+      summary: Scoped ticker chat (Gemini + guardrails)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ticker, message]
+              properties:
+                ticker:
+                  type: string
+                message:
+                  type: string
+                  maxLength: 1000
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant]
+                      content:
+                        type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/import/preview:
+    post:
+      tags: [Import]
+      summary: Parse broker CSV/XLSX in memory (no disk)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/import/confirm:
+    post:
+      tags: [Import]
+      summary: Commit a previously previewed import
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/watchlist:
+    get:
+      tags: [Watchlist]
+      summary: Watchlist items
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+    post:
+      tags: [Watchlist]
+      summary: Add ticker to watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ticker]
+              properties:
+                ticker:
+                  type: string
+                companyName:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/watchlist/{itemId}:
+    delete:
+      tags: [Watchlist]
+      summary: Remove watchlist item
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Deleted
+
+  /api/portfolio/buys/{ticker}:
+    get:
+      tags: [Portfolio]
+      summary: Buy lots for a ticker
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/trades/{ticker}:
+    get:
+      tags: [Portfolio]
+      summary: Trades for a ticker
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/transactions/{transactionId}:
+    delete:
+      tags: [Portfolio]
+      summary: Delete a transaction
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Deleted
+
+  /api/portfolio/data:
+    delete:
+      tags: [Portfolio]
+      summary: Wipe portfolio data (keep account)
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /api/portfolio/export:
+    post:
+      tags: [Portfolio]
+      summary: Export portfolio (GDPR portability, step-up)
+      responses:
+        '200':
+          description: JSON or XLSX attachment
+        '401':
+          $ref: '#/components/responses/Error'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: JWT access token in HttpOnly cookie. Sent automatically by the browser when credentials are included.
+  parameters:
+    TickerPath:
+      in: path
+      name: ticker
+      required: true
+      schema:
+        type: string
+        maxLength: 10
+    PositionIdPath:
+      in: path
+      name: positionId
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    ErrorBody:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          type: string
+    SuccessEnvelope:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data: {}
+    RegisterBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 10
+    LoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    AuthUser:
+      type: object
+      required:
+        [id, email, createdAt, emailVerified, hasPassword, hasGoogle, sessionExpiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        emailVerified:
+          type: boolean
+        hasPassword:
+          type: boolean
+        hasGoogle:
+          type: boolean
+        sessionExpiresAt:
+          type: string
+          format: date-time
+          description: ISO timestamp of the HttpOnly JWT exp. Not stored in the anonymous user table.
+    SessionExtension:
+      type: object
+      required: [sessionExpiresAt, renewed]
+      properties:
+        sessionExpiresAt:
+          type: string
+          format: date-time
+        renewed:
+          type: boolean
+    SessionExtensionSuccess:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/SessionExtension'
+    AuthSuccess:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/AuthUser'
+  responses:
+    Success:
+      description: Successful JSON envelope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessEnvelope'
+    Error:
+      description: Error JSON envelope (4xx/5xx, never a silent 200)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+
+security:
+  - cookieAuth: []

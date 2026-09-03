@@ -1,0 +1,345 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.cardLabelRow {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  color: $color-foreground-subtle;
+}
+
+.cardLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.titleRow {
+  @include flex-between;
+  align-items: flex-start;
+  gap: $space-3;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.strategyName {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 1.125rem;
+}
+
+.rebalancingLinkSlot {
+  min-height: 1.125rem;
+}
+
+.rebalancingLink {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.riskBadgeSlot {
+  min-width: 5.5rem;
+  min-height: 1.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.riskBadge {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  border: 1px solid currentColor;
+  letter-spacing: 0.02em;
+}
+
+.riskLow {
+  color: $color-primary;
+}
+
+.riskMedium {
+  color: $color-warning;
+}
+
+.riskHigh {
+  color: $color-health-high;
+}
+
+.gaugeProgress {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.gaugeProgressLow {
+  stroke: $color-primary;
+}
+
+.gaugeProgressMedium {
+  stroke: $color-warning;
+}
+
+.gaugeProgressHigh {
+  stroke: $color-health-high;
+}
+
+.gaugeScore {
+  font-size: 34px;
+  font-weight: 700;
+  font-family: $font-family;
+}
+
+.gaugeScoreSuffix {
+  fill: $color-foreground-muted;
+  font-size: 13px;
+  font-family: $font-family;
+}
+
+.gaugeTrack {
+  fill: none;
+  stroke: $color-gauge-track;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.gaugeScoreLow {
+  fill: $color-primary;
+}
+
+.gaugeScoreMedium {
+  fill: $color-warning;
+}
+
+.gaugeScoreHigh {
+  fill: $color-health-high;
+}
+
+// ─── Gauge section (centered vertically) ─────────────────────────────────────
+
+.gaugeSection {
+  flex: 1;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: $space-3;
+  overflow: hidden;
+}
+
+.gaugeSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 200 / 125;
+  max-height: 170px;
+  margin: 0 auto;
+}
+
+// ─── Alert banner ────────────────────────────────────────────────────────────
+
+.alertSlot {
+  flex-shrink: 0;
+  height: 3.75rem;
+  overflow: hidden;
+}
+
+.alertBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  height: 100%;
+  padding: $space-2 $space-3;
+  background: $color-danger-muted;
+  border: 1px solid $color-danger-border;
+  border-radius: $radius-md;
+  color: $color-danger-on-muted;
+  font-size: $font-size-xs;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+.alertIcon {
+  color: $color-danger-on-muted;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.alertContent {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.alertHighlight {
+  color: $color-danger-on-muted;
+  font-weight: $font-weight-bold;
+}
+
+.alertBody {
+  color: $color-foreground-muted;
+}
+
+.alertDismissButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: -2px -4px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-danger-on-muted;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-danger-border;
+    color: $color-danger-hover;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-danger-on-muted;
+    outline-offset: 1px;
+  }
+}
+
+// ─── Sector bars ─────────────────────────────────────────────────────────────
+
+.sectors {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  overflow-y: auto;
+  @include custom-scrollbar;
+  margin-top: $space-4;
+  padding-top: $space-4;
+  border-top: 1px solid $color-divider;
+}
+
+// Each sector: [name + %] on top, full-width bar below
+.sectorRow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 1.75rem;
+}
+
+.sectorRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.sectorNameGroup {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.sectorIcon,
+.sectorIconPlaceholder {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.sectorIcon {
+  background: var(--swatch-color);
+}
+
+.sectorIconPlaceholder {
+  background: $color-overlay-strong;
+}
+
+.sectorNameSkeleton,
+.sectorPercentSkeleton {
+  display: block;
+  flex-shrink: 0;
+}
+
+.sectorNameSkeleton {
+  width: 7.5rem;
+  max-width: 40%;
+}
+
+.sectorPercentSkeleton {
+  width: 4.75rem;
+  max-width: 30%;
+}
+
+.sectorName {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  white-space: nowrap;
+}
+
+.barTrack {
+  width: 100%;
+  height: 4px;
+  background: $color-gauge-track;
+  border-radius: $radius-full;
+  overflow: hidden;
+}
+
+.barFill {
+  width: var(--fill-percent);
+  height: 100%;
+  border-radius: $radius-full;
+  background: var(--swatch-color);
+  transition: width $transition-slow;
+}
+
+.sectorPercent {
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}

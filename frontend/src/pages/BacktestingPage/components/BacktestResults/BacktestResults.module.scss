@@ -1,0 +1,199 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.intro {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  line-height: 1.6;
+}
+
+.introAmount,
+.introTicker {
+  color: $color-foreground;
+  font-weight: $font-weight-semibold;
+}
+
+.introTicker {
+  color: $color-primary;
+}
+
+.portfolioHero {
+  padding: $space-4 0;
+}
+
+.portfolioValueRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.portfolioValue {
+  font-size: 2rem;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.portfolioChange {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.holdingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.holdingsTitle {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.holdingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.holdingWeight {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+}
+
+.holdingAllocated {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.holdingContribution {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+  font-variant-numeric: tabular-nums;
+}
+
+.resultsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: $space-3;
+}
+
+.resultCard {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-4;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.resultTickerRow {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.resultTicker {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.resultName {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  @include truncate;
+}
+
+.resultValueRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.resultValue {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.resultChange {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.positive {
+  color: $color-chart-up;
+}
+
+.negative {
+  color: $color-chart-down;
+}
+
+.benchmarkBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  align-self: flex-start;
+  padding: $space-2 $space-3;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+  background: $color-benchmark-muted;
+  border: 1px solid $color-benchmark-border;
+  border-radius: $radius-md;
+}
+
+.benchmarkValue {
+  color: $color-benchmark;
+  font-weight: $font-weight-semibold;
+}
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-4;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chartCard {
+  @include card($space-4);
+  min-height: 260px;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  line-height: 1.5;
+}

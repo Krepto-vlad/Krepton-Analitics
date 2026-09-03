@@ -1,0 +1,174 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  height: 100%;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: $space-4;
+  flex: 1;
+  min-height: 180px;
+  padding: $space-2 $space-1 0;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  flex: 1;
+  max-width: 88px;
+  min-width: 0;
+}
+
+.barTrack {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 140px;
+}
+
+.bar {
+  width: 100%;
+  max-width: 48px;
+  min-height: 4px;
+  height: var(--bar-height);
+  border-radius: $radius-sm $radius-sm 2px 2px;
+  background: var(--bar-color);
+  transition: height $transition-fast;
+}
+
+.barLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+  text-align: center;
+  @include truncate;
+  max-width: 100%;
+}
+
+.barValue {
+  font-size: 0.6875rem;
+  font-weight: $font-weight-bold;
+  font-variant-numeric: tabular-nums;
+  color: $color-foreground-subtle;
+}
+
+.yAxis {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+}
+
+.plotWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0 0 28px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.gridLine {
+  border-top: 1px dashed $color-chart-grid;
+}
+
+.gridLabel {
+  position: absolute;
+  left: 0;
+  font-size: 0.625rem;
+  color: $color-foreground-subtle;
+  transform: translateY(-50%);
+}
+
+.groupedPlot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: $space-5;
+  flex: 1;
+  min-height: 180px;
+  padding-top: $space-2;
+}
+
+.periodGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  flex: 1;
+  min-width: 0;
+}
+
+.periodBars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  height: 140px;
+  width: 100%;
+}
+
+.periodBar {
+  flex: 1;
+  max-width: 18px;
+  min-height: 4px;
+  height: var(--bar-height);
+  border-radius: 2px 2px 0 0;
+  background: var(--bar-color);
+}
+
+.periodLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: $space-3;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--bar-color);
+}

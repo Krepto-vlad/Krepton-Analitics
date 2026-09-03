@@ -1,0 +1,25 @@
+@use '../../styles/variables' as *;
+
+.wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.blocker {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.unavailableHint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  text-align: center;
+}

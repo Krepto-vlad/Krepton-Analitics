@@ -1,0 +1,448 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.panel {
+  @include card($space-5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.headerIcon {
+  color: $color-primary;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.headerText {
+  flex: 1;
+  min-width: 220px;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+}
+
+.subtitle {
+  margin: $space-1 0 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+.quotaBadge {
+  margin-left: auto;
+  padding: $space-1 $space-3;
+  border-radius: $radius-full;
+  background: rgba($color-primary, 0.12);
+  color: $color-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.quotaSkeleton {
+  width: 5.5rem;
+  height: 1.375rem;
+}
+
+.tickerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.tickerChip {
+  padding: $space-2 $space-3;
+  border-radius: $radius-full;
+  border: 1px solid $color-border;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: rgba($color-primary, 0.45);
+    color: $color-foreground;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.tickerChipSelected {
+  border-color: rgba($color-primary, 0.55);
+  background: rgba($color-primary, 0.12);
+  color: $color-primary;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.limitHint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}
+
+.error {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-danger;
+}
+
+.summaryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding-top: $space-2;
+  border-top: 1px solid $color-border;
+}
+
+.summaryMeta {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cacheBadge {
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-foreground-muted;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.groundingBadge {
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: rgba($color-primary, 0.12);
+  color: $color-primary;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.contextToggleRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.contextToggle {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: $color-foreground;
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    accent-color: $color-primary;
+  }
+}
+
+.contextToggleHelpWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover .contextToggleTooltip,
+  &:focus-within .contextToggleTooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.contextToggleHelpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-1;
+  border: none;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $color-foreground-muted;
+  cursor: help;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-primary;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba($color-primary, 0.25);
+  }
+}
+
+.contextToggleTooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + $space-2);
+  z-index: 20;
+  width: min(320px, 80vw);
+  padding: $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface-elevated;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  line-height: 1.5;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease,
+    transform 0.15s ease;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.benchmarkBadge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: $space-2;
+  padding: $space-1 $space-3;
+  border-radius: $radius-full;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+}
+
+.benchmarkLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.benchmarkPrice {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.insightsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: $space-3;
+}
+
+.insightCard {
+  padding: $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border-strong;
+  background: $color-surface;
+}
+
+.insightHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  margin-bottom: $space-2;
+}
+
+.insightIdentity {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.insightTicker {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-foreground;
+}
+
+.insightCompany {
+  margin: 2px 0 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: $space-2;
+  margin-bottom: $space-2;
+}
+
+.priceValue {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.changePositive {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.changeNegative {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-danger;
+}
+
+.changeNeutral {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+}
+
+.positionMeta {
+  margin: 0 0 $space-2;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.summaryText {
+  margin: 0 0 $space-2;
+  font-size: $font-size-sm;
+  line-height: 1.55;
+  color: $color-foreground;
+}
+
+.driversList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.driverCard {
+  padding: $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.driverTitle {
+  margin: 0 0 $space-1;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.driverText {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-foreground-muted;
+}
+
+.sourcesList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.sentiment {
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.sentiment_bullish {
+  background: rgba($color-primary, 0.15);
+  color: $color-primary;
+}
+
+.sentiment_neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: $color-foreground-muted;
+}
+
+.sentiment_bearish {
+  background: rgba($color-danger, 0.15);
+  color: $color-danger;
+}
+
+.highlightsList {
+  margin: 0;
+  padding-left: $space-4;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  line-height: 1.45;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}

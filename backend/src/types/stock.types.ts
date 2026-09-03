@@ -1,3 +1,13 @@
+/** Yahoo marketState values (exchange-aware: US vs Europe hours). */
+export type StockMarketState =
+  | 'PRE'
+  | 'REGULAR'
+  | 'POST'
+  | 'CLOSED'
+  | 'PREPRE'
+  | 'POSTPOST'
+  | string;
+
 export interface StockQuote {
   ticker: string;
   name: string;
@@ -7,6 +17,18 @@ export interface StockQuote {
   volume: number;
   marketCap: number | null;
   currency: string;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
+  /** Yahoo CDN logo URL when available; null for ETFs/futures/etc. */
+  logoUrl: string | null;
+  marketState: StockMarketState | null;
+  exchange: string | null;
+  preMarketPrice: number | null;
+  preMarketChange: number | null;
+  preMarketChangePercent: number | null;
+  postMarketPrice: number | null;
+  postMarketChange: number | null;
+  postMarketChangePercent: number | null;
 }
 
 export interface OhlcvCandle {
@@ -29,6 +51,104 @@ export interface StockSearchResult {
   name: string;
   exchange: string;
   type: string;
+}
+
+export interface StockSector {
+  sector: string;
+  industry: string;
+}
+
+export interface StockCompareItem {
+  ticker: string;
+  name: string;
+  currency: string;
+  price: number | null;
+  sector: string | null;
+  industry: string | null;
+  marketCap: number | null;
+  enterpriseValue: number | null;
+  trailingEps: number | null;
+  peRatio: number | null;
+  forwardPeRatio: number | null;
+  pegRatio: number | null;
+  psRatio: number | null;
+  priceToBook: number | null;
+  evToEbitda: number | null;
+  roe: number | null;
+  roa: number | null;
+  profitMargin: number | null;
+  operatingMargin: number | null;
+  revenueGrowth: number | null;
+  earningsGrowth: number | null;
+  debtToEquity: number | null;
+  currentRatio: number | null;
+  dividendYield: number | null;
+  payoutRatio: number | null;
+  beta: number | null;
+}
+
+export interface StockCompareResponse {
+  tickers: string[];
+  items: StockCompareItem[];
+}
+
+export interface MarketMoverItem {
+  ticker: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  marketCap: number | null;
+  currency: string;
+}
+
+export interface MarketMoversResponse {
+  gainers: MarketMoverItem[];
+  losers: MarketMoverItem[];
+  fetchedAt: string;
+}
+
+export interface StockBacktestHoldingResult {
+  ticker: string;
+  name: string;
+  currency: string;
+  weightPercent: number;
+  allocatedAmount: number;
+  returnPercent: number;
+  contributionValue: number;
+}
+
+export interface StockBacktestPortfolioResult {
+  returnPercent: number;
+  finalValue: number;
+  currency: string;
+}
+
+export interface StockBacktestBenchmarkResult {
+  label: string;
+  ticker: string;
+  returnPercent: number;
+  finalValue: number;
+  currency: string;
+}
+
+export interface StockBacktestPeriodBreakdown {
+  period: string;
+  label: string;
+  portfolioReturnPercent: number;
+  benchmarkReturnPercent: number;
+}
+
+export interface StockBacktestResponse {
+  amount: number;
+  displayCurrency: string;
+  period: string;
+  periodLabel: string;
+  portfolio: StockBacktestPortfolioResult;
+  holdings: StockBacktestHoldingResult[];
+  benchmark: StockBacktestBenchmarkResult;
+  periodBreakdown: StockBacktestPeriodBreakdown[];
 }
 
 export interface ApiSuccessResponse<T> {

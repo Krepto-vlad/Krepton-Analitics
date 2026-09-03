@@ -21,6 +21,9 @@ out/
 
 # Test & coverage
 coverage/
+playwright-report/
+test-results/
+blob-report/
 .nyc_output/
 jest-cache/
 
@@ -58,3 +61,8 @@ Design/
 # Temporary
 tmp/
 temp/
+
+# Internal docs (not for public repo)
+Docs/SECURITY.md
+Docs/statements
+Docs/diploma/course-diploma-projects-docs-main

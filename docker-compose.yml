@@ -1,0 +1,100 @@
+# Krepton Analytics — deploy contract (CI / Azure). Local inner loop stays `npm run dev`.
+# Copy `.env.example` to `.env` before `docker compose up --build`.
+# Broker files stay in RAM (Multer memoryStorage); there is no upload volume on purpose.
+
+name: krepton-analytics
+
+services:
+  postgres:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-krepton_analytics}
+      POSTGRES_USER: ${POSTGRES_USER:-krepton}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_compose_only}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-krepton} -d ${POSTGRES_DB:-krepton_analytics}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - krepton
+    mem_limit: 512m
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: krepton-analytics-api:local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-krepton}:${POSTGRES_PASSWORD:-local_compose_only}@postgres:5432/${POSTGRES_DB:-krepton_analytics}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-compose}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      PORTFOLIO_SECRET: ${PORTFOLIO_SECRET:-change-me-in-compose-portfolio}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_GROUNDING_ENABLED: ${GEMINI_GROUNDING_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-Krepton Analytics <noreply@krepton.local>}
+    ports:
+      - "${API_HOST_PORT:-3001}:3001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      start_period: 40s
+      retries: 5
+    networks:
+      - krepton
+    mem_limit: 512m
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    image: krepton-analytics-web:local
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_HOST_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - krepton
+    mem_limit: 128m
+
+volumes:
+  postgres_data:
+
+networks:
+  krepton:
+    driver: bridge

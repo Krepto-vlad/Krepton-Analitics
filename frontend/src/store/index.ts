@@ -1,11 +1,19 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { authReducer } from '../features/auth/authSlice';
+import { portfolioReducer } from '../features/portfolio/portfolioSlice';
+import { watchlistReducer } from '../features/watchlist/watchlistSlice';
+import { livePollingReducer } from '../features/livePolling/livePollingSlice';
+import { tickerReducer } from '../features/ticker/tickerSlice';
+import { uiReducer } from '../features/ui/uiSlice';
 
 export const store = configureStore({
   reducer: {
-    // feature slices added here as they are implemented:
-    // stock: stockReducer,
-    // auth: authReducer,
-    // rebalancing: rebalancingReducer,
+    auth: authReducer,
+    portfolio: portfolioReducer,
+    watchlist: watchlistReducer,
+    livePolling: livePollingReducer,
+    ticker: tickerReducer,
+    ui: uiReducer,
   },
 });
 

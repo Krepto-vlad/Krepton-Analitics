@@ -1,0 +1,70 @@
+﻿@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  color: $color-foreground-muted;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: 10px $space-3;
+  border-radius: $radius-md;
+  background: $color-surface-elevated;
+  border: 1px solid $color-border-strong;
+  transition: border-color $transition-fast;
+
+  &:focus-within {
+    border-color: $color-primary-border;
+  }
+
+  &.error {
+    border-color: $color-danger-border;
+  }
+
+  &.success {
+    border-color: $color-primary-border;
+  }
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: $color-foreground;
+  font-family: $font-family;
+  font-size: $font-size-base;
+
+  &::placeholder {
+    color: $color-foreground-subtle;
+  }
+
+  @include suppress-autofill-highlight(var(--color-surface-elevated), var(--color-foreground));
+}
+
+.hint {
+  font-size: 0.8125rem;
+  color: $color-foreground-subtle;
+}
+
+.errorText {
+  font-size: 0.8125rem;
+  color: $color-danger;
+}
+
+.successText {
+  font-size: 0.8125rem;
+  color: $color-primary;
+}
