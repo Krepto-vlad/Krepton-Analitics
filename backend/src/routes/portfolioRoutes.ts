@@ -37,6 +37,8 @@ import { brokerImportUploadMiddleware } from '../middleware/brokerImportUpload.j
 import rateLimit from 'express-rate-limit';
 import type { Request } from 'express';
 import {
+  PORTFOLIO_READ_RATE_LIMIT_WINDOW_MS,
+  PORTFOLIO_READ_RATE_LIMIT_MAX_REQUESTS,
   PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS,
   PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS,
   PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW_MS,
@@ -50,6 +52,17 @@ import {
   AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS,
   AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS,
 } from '../constants.js';
+
+// Blanket circuit breaker on every GET below — see PORTFOLIO_READ_RATE_LIMIT_* for rationale.
+const portfolioReadLimiter = rateLimit({
+  windowMs: PORTFOLIO_READ_RATE_LIMIT_WINDOW_MS,
+  max: PORTFOLIO_READ_RATE_LIMIT_MAX_REQUESTS,
+  message: { success: false, error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => `portfolio-read:${req.userId ?? 'anonymous'}`,
+  validate: { keyGeneratorIpFallback: false },
+});
 
 // Apply rate limiting only to write operations to prevent abuse
 const portfolioWriteLimiter = rateLimit({
@@ -106,6 +119,9 @@ const router = Router();
 
 // All portfolio routes require a valid JWT HttpOnly cookie
 router.use(authMiddleware);
+// Blanket cap on every route below (reads and writes); the stricter write-specific
+// limiters further down stack on top of this for sensitive/expensive write endpoints.
+router.use(portfolioReadLimiter);
 
 router.get('/', asyncHandler(getPositions));
 router.get('/transactions', asyncHandler(getTransactions));
