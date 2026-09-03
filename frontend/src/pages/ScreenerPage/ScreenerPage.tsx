@@ -20,7 +20,7 @@ import styles from './ScreenerPage.module.scss';
 export function ScreenerPage() {
   const dispatch = useAppDispatch();
   const watchlistItems = useAppSelector((state) => state.watchlist.items);
-  const isWatchlistLoading = useAppSelector((state) => state.watchlist.isLoading);
+  const hasHydratedWatchlist = useAppSelector((state) => state.watchlist.hasHydrated);
   const displayCurrency = useAppSelector((state) => state.ui.currency);
 
   const [selectedTickers, setSelectedTickers] = useState<SelectedCompareTicker[]>([]);
@@ -29,11 +29,14 @@ export function ScreenerPage() {
   const [compareError, setCompareError] = useState<string | null>(null);
   const canAddTickers = selectedTickers.length < STOCK_COMPARE_MAX_TICKERS;
 
+  // Fetch exactly once per session using the hydration flag (not items.length): for
+  // accounts with a genuinely empty watchlist, items.length stays 0 forever, which
+  // previously caused this effect to refire and re-fetch in an infinite loop.
   useEffect(() => {
-    if (watchlistItems.length === 0 && !isWatchlistLoading) {
+    if (!hasHydratedWatchlist) {
       dispatch(fetchWatchlistThunk());
     }
-  }, [dispatch, watchlistItems.length, isWatchlistLoading]);
+  }, [dispatch, hasHydratedWatchlist]);
 
   const refreshComparison = useCallback(async (tickers: SelectedCompareTicker[]) => {
     if (tickers.length < STOCK_COMPARE_MIN_TICKERS) {
