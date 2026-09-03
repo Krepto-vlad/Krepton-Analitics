@@ -114,6 +114,13 @@ export const PORTFOLIO_EXPORT_RATE_LIMIT_MAX_REQUESTS = 5;
 export const PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS = 60;
 
+// Blanket circuit breaker on all portfolio GET endpoints: normal usage (page loads,
+// 30s live-polling scopes) stays well under this. Exists to cap runaway client-side
+// loops (e.g. a buggy useEffect re-fetching on every render) and read scraping/abuse,
+// which the write-only limiter above does not cover.
+export const PORTFOLIO_READ_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+export const PORTFOLIO_READ_RATE_LIMIT_MAX_REQUESTS = 120;
+
 // Portfolio input validation limits
 export const TICKER_MAX_LENGTH = 10;
 export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
