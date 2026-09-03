@@ -198,8 +198,8 @@ export function SecurityPage() {
             </h1>
             <p className={styles.heroSubtitle}>
               Krepton was built with privacy as a core constraint, not an afterthought. No real
-              names. No bank connections. No identity linking. We designed the architecture so
-              that your trades can never be traced back to who you are.
+              names. No bank connections. No identity linking. We designed the architecture so that
+              your trades can never be traced back to who you are.
             </p>
             <button className={styles.heroCta} onClick={handleRegister}>
               Start Anonymously

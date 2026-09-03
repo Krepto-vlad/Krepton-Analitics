@@ -12,7 +12,13 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { ERROR_MESSAGES, LEGAL_NOT_INVESTMENT_ADVICE, ROUTES } from '../../constants';
+import {
+  API_BASE_URL,
+  BACKEND_HEALTH_CHECK_PATH,
+  ERROR_MESSAGES,
+  LEGAL_NOT_INVESTMENT_ADVICE,
+  ROUTES,
+} from '../../constants';
 import { PAGE_SEO_METADATA } from '../../constants/seo';
 import { Button, ErrorBanner } from '../../components/ui';
 import { Input } from '../../components/ui';
@@ -79,6 +85,15 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     dispatch(clearAuthError());
     dispatch(clearAuthInfoMessage());
   }, [mode, dispatch]);
+
+  useEffect(() => {
+    // Fire-and-forget: pre-warms a scale-to-zero backend container while the
+    // user is still typing credentials, so the real login/register request
+    // does not pay the full cold-start latency.
+    fetch(`${API_BASE_URL}${BACKEND_HEALTH_CHECK_PATH}`, { method: 'GET' }).catch(() => {
+      // Ignored — this is a best-effort warm-up, not a health indicator for the UI.
+    });
+  }, []);
 
   const passwordStrength = calculatePasswordStrength(password);
   const allRulesPassed = passwordStrength === PASSWORD_RULES.length;

@@ -1,5 +1,7 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL as string;
 export const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) ?? '';
+/** Matches backend HEALTH_CHECK_PATH — used to pre-warm a scaled-to-zero API container. */
+export const BACKEND_HEALTH_CHECK_PATH = '/health';
 
 /** Clear the SPA session slightly before JWT exp so in-flight calls do not race 401. */
 export const SESSION_EXPIRY_SKEW_MS = 2_000;
