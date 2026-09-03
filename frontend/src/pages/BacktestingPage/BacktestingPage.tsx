@@ -31,9 +31,9 @@ import styles from './BacktestingPage.module.scss';
 export function BacktestingPage() {
   const dispatch = useAppDispatch();
   const watchlistItems = useAppSelector((state) => state.watchlist.items);
-  const isWatchlistLoading = useAppSelector((state) => state.watchlist.isLoading);
+  const hasHydratedWatchlist = useAppSelector((state) => state.watchlist.hasHydrated);
   const summaryPositions = useAppSelector((state) => state.portfolio.summaryPositions);
-  const isPortfolioLoading = useAppSelector((state) => state.portfolio.isLoading);
+  const hasHydratedSummary = useAppSelector((state) => state.portfolio.hasHydratedSummary);
   const displayCurrency = useAppSelector((state) => state.ui.currency);
 
   const [selectedTickers, setSelectedTickers] = useState<BacktestAllocationTicker[]>([]);
@@ -43,17 +43,20 @@ export function BacktestingPage() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch exactly once per session using the hydration flags (not items.length): for
+  // accounts with a genuinely empty watchlist/portfolio, length stays 0 forever, which
+  // previously caused these effects to refire and re-fetch in an infinite loop.
   useEffect(() => {
-    if (watchlistItems.length === 0 && !isWatchlistLoading) {
+    if (!hasHydratedWatchlist) {
       dispatch(fetchWatchlistThunk());
     }
-  }, [dispatch, watchlistItems.length, isWatchlistLoading]);
+  }, [dispatch, hasHydratedWatchlist]);
 
   useEffect(() => {
-    if (summaryPositions.length === 0 && !isPortfolioLoading) {
+    if (!hasHydratedSummary) {
       dispatch(fetchPortfolioSummaryThunk());
     }
-  }, [dispatch, summaryPositions.length, isPortfolioLoading]);
+  }, [dispatch, hasHydratedSummary]);
 
   const runBacktest = useCallback(async () => {
     if (selectedTickers.length === 0) {
