@@ -1,9 +1,13 @@
 name: Deploy (Azure)
 
-# Manual-trigger CD. Kept separate from ci.yml on purpose: deploys should be an
-# explicit human decision, not "every push to main", while cost stays ~$0 when idle
-# (Container Apps scale-to-zero + Static Web Apps free tier).
+# Auto-deploys on every push to main (both jobs run in full). workflow_dispatch is kept
+# for redeploys with no new commit (e.g. after a manual Azure Portal fix) and for
+# deploying just one side via the checkboxes. Cost stays ~$0 when idle either way
+# (Container Apps scale-to-zero + Static Web Apps free tier) — deploying more often
+# does not change the idle bill, it only spends GitHub Actions minutes.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       deploy_backend:
@@ -31,7 +35,8 @@ env:
 jobs:
   deploy-backend:
     name: Build + deploy API (Container Apps)
-    if: ${{ inputs.deploy_backend }}
+    # inputs.* only exists for workflow_dispatch — a plain push always deploys both sides.
+    if: ${{ github.event_name == 'push' || inputs.deploy_backend }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -83,7 +88,8 @@ jobs:
 
   deploy-frontend:
     name: Build + deploy SPA (Static Web Apps)
-    if: ${{ inputs.deploy_frontend }}
+    # inputs.* only exists for workflow_dispatch — a plain push always deploys both sides.
+    if: ${{ github.event_name == 'push' || inputs.deploy_frontend }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
