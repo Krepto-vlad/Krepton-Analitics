@@ -3,10 +3,11 @@ import { ROUTES } from '../constants';
 export const SITE_NAME = 'Krepton Analytics';
 
 /**
- * Production origin (domain registered; used only for JSON-LD `url`/`logo` —
- * canonical links are derived from `window.location`).
+ * Production origin (used only for JSON-LD `url`/`logo` — canonical links are derived
+ * from `window.location`). Must be `www` — the apex domain (no `www`) has no DNS record
+ * pointing at Azure Static Web Apps and does not resolve; see `robots.txt` / `sitemap.xml`.
  */
-export const SITE_URL = 'https://kreptonanalytics.com';
+export const SITE_URL = 'https://www.kreptonanalytics.com';
 
 /** Kept at or under 160 characters so it renders in full in search results. */
 export const SITE_DEFAULT_DESCRIPTION =

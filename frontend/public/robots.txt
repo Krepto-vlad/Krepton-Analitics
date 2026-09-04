@@ -13,4 +13,4 @@ Disallow: /profile
 Disallow: /subscription
 Disallow: /watchlist
 
-Sitemap: https://kreptonanalytics.com/sitemap.xml
+Sitemap: https://www.kreptonanalytics.com/sitemap.xml
