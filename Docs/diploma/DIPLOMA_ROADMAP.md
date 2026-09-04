@@ -6,7 +6,7 @@
 
 Связанный док по продукту: `Docs/STARTUP_ROADMAP.md`. Этот файл — про **сдачу**, тот — про **запуск**. Где работа совпадает (тесты, Azure, GDPR), делаем один раз.
 
-Ревью рубрик: **2026-08-19…20**. Код min по Backend/Frontend/Database/AI/тестам почти есть; пятёрки режет **стенд + картинки для эксперта**.
+Ревью рубрик: **2026-08-19…20**. Стенд поднят **2026-09-02** (Azure: Static Web Apps + Container Apps + PostgreSQL Flexible Server, кастомные домены, CD автодеплой). Код min по всем 8 критериям есть; что осталось — **evidence-проход**: собрать скрины (Log stream, Lighthouse HTTPS, зелёный CD, `EXPLAIN`) в appendix перед защитой.
 
 ---
 
@@ -44,8 +44,8 @@
 | Frontend   | SPA, RTK, lazy, RTL, charts/theme, Playwright          | Скрины tablet, mermaid демо-флоу — D2/D3             |
 | Database   | OLTP, CHECK, роли, seed, HMAC, dictionary/ER           | `\du` + `app_write` на staging — **D4**              |
 | AI         | Guardrails, quota, кэш, 14 диалогов, lab p95           | Скрин чата — D2; staging p95 — D4                    |
-| Cloud      | Документ-черновик                                      | Весь стенд — **D4**                                  |
-| CI/CD      | Actions: lint/build/Jest/audit/`docker build`/`e2e`    | CD + логические среды — **D4**                       |
+| Cloud      | **Живой стенд**: SWA + Container Apps + Azure Postgres, кастомные домены + SSL | Скрин Log stream / alert — evidence-проход |
+| CI/CD      | Actions: lint/build/Jest/audit/`docker build`/`e2e` + **CD автодеплой на push в `main`** | Скрин зелёного CD-прогона в appendix         |
 | Auto tests | 70% gate, HTTP supertest, RTL, API+Postgres, Playwright | Скрин зелёного CI — D3                              |
 
 
@@ -298,45 +298,59 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 ---
 
-## Phase D4 — Cloud + CI/CD (поздно, до предзащиты)
+## Phase D4 — Cloud + CI/CD (готово, evidence добираем)
 
-Согласовано со `STARTUP_ROADMAP` Phase 4: не жечь ~€10/мес с августа. **Дедлайн курса:** live URL до предзащиты (week 19). Эксперта Cloud лучше звать, когда URL уже живой.
+Согласовано со `STARTUP_ROADMAP` Phase 4: не жечь ~€10/мес с августа. Стенд поднят **2026-09-02** через ручной Azure Portal (осознанно, не CLI/IaC — для учебного опыта). Эксперта Cloud уже можно звать.
 
 ### Cloud min
 
-- [ ] Публичный URL (FE + API).
-- [ ] Managed PostgreSQL (EU region — то же, что пишем в Privacy).
-- [ ] Секреты: Azure App Settings / Key Vault, не Git.
-- [ ] Документ деплоя: шаги, ресурсы, firewall, как воспроизвести.
-- [ ] Скрины портала (секреты замазаны). Сервис не падает после restart.
-- [ ] Нет лишних VM «на всякий случай».
-- [ ] **+ диплом (текст + скрин D4, не код)** Log stream / Log Analytics: pino JSON уже в stdout; в Portal снять Log stream. Не ставить ELK.
-- [ ] **+ диплом (Backend max)** Один alert на 5xx / restart.
+- [x] Публичный URL (FE + API) — `https://www.kreptonanalytics.com`, `https://api.kreptonanalytics.com`.
+- [x] Managed PostgreSQL (EU region) — Azure Database for PostgreSQL Flexible Server, North Europe.
+- [x] Секреты: Container App environment variables (backend) + GitHub Secrets (build-time FE vars, Azure service principal), не Git.
+- [x] Документ деплоя: шаги, ресурсы, firewall, как воспроизвести — `deployment.md` + `cicd.md` + `cloud.md`.
+- [ ] Скрины портала (секреты замазаны) — evidence-проход, ещё не собраны в appendix.
+- [x] Нет лишних VM «на всякий случай» — Container Apps (scale-to-zero) + Static Web Apps (free tier) + одна маленькая Postgres SKU.
+- [ ] **+ диплом (текст + скрин D4, не код)** Log stream / Log Analytics: pino JSON уже в stdout; Log stream доступен в Portal живьём, скрин для appendix ещё не снят.
+- [ ] **+ диплом (Backend max)** Один alert на 5xx / restart — не настроен.
 
 ### CI/CD min
 
 Пайплайн из D0 + **CD**:
 
 - [x] Диаграмма: lint → test → build → artifact → deploy.
-- [ ] Среды: `ci` (Actions) / `staging` (= prod для POC, честно написать).
-- [x] Trigger: push + PR. CD можно **workflow_dispatch** (рубрика это разрешает). — CD ещё нет.
-- [x] Артефакт: `dist` и/или image в ACR. — `frontend-dist`, `backend-dist`, coverage в Actions.
+- [x] Среды: `ci` (Actions) / `staging` = `production` для POC (честно так и написано в `deployment.md`).
+- [x] Trigger: push + PR (CI) и push в `main` + `workflow_dispatch` (CD, `.github/workflows/deploy.yml`) — **CD теперь автоматический**, не только manual.
+- [x] Артефакт: `dist` и/или image. — `frontend-dist`, `backend-dist`, coverage в Actions CI; API-образ в GHCR через CD.
 - [x] Секреты только в GitHub Secrets / OIDC в Azure.
 - [x] `npm audit` job.
-- [ ] **+ продукт (Backend max)** CD не деплоит, если lint/test/build красные.
-- [ ] **− skip** Blue/green, canary, K8s, Sonar, Grafana в пайплайне — min = Actions + manual CD.
+- [ ] **+ продукт (Backend max)** CD не деплоит, если lint/test/build красные — сейчас CD — отдельный workflow, не зависит от результата `ci.yml` (задокументировано как known limitation в `cicd.md`).
+- [ ] **− skip** Blue/green, canary, K8s, Sonar, Grafana в пайплайне — min = Actions + auto CD.
 
 Husky остаётся локальным крючком. Для эксперта CI/CD = GitHub Actions, не Husky.
 
 ### На живом стенде закрываем и другие критерии
 
-Не отдельная фаза: пока URL живой, снимаем то, чему нужен Azure, не localhost.
+Не отдельная фаза: URL живой, часть пунктов уже снята, остальное — evidence-проход перед защитой.
 
-- [ ] **Database:** API `DATABASE_URL` = `app_write`; migrate = owner; скрин `\du`; по желанию `EXPLAIN` на `owner_token` / `email`.
-- [ ] **AI:** `npm run ai:lab-latency` на staging (lab 2026-08-19 не SLA).
-- [ ] **Frontend:** Lighthouse на HTTPS staging (landing + dashboard), не `npm run dev`.
-- [ ] **Auto tests / Frontend:** Playwright против staging, если локальный API неудобен.
+- [x] **Database:** API `DATABASE_URL` = `app_write`; migrate = owner; скрин `\du` — `Docs/diploma/thesis/docs/assets/screenshots/db-du-roles.png`.
+- [ ] **Database (max):** `EXPLAIN` на `owner_token` / `email` — appendix, ещё не собран.
+- [ ] **AI:** `npm run ai:lab-latency` на staging (lab 2026-08-19 не SLA) — ещё не перезапущено против прод-URL.
+- [ ] **Frontend:** Lighthouse на HTTPS staging (landing + dashboard), не `npm run dev` — ещё не перезапущено на prod-домене.
+- [ ] **Auto tests / Frontend:** Playwright против staging, если локальный API неудобен — не переключали, локальный API работает.
 - [ ] **Backend max (не код):** скрин Log stream для pino + один alert 5xx (пункты Cloud min выше).
+
+### Что уже нашли и исправили на живом стенде
+
+Деплой на реальный Azure сразу окупился — вскрылись баги, которых не было видно на localhost:
+
+- GHCR требует lowercase image repo name (`IMAGE_NAME` хардкоднут в `deploy.yml`, т.к. GitHub owner mixed-case).
+- Container App не подтягивал private-образ из GHCR без registry credentials (GitHub PAT `read:packages`).
+- Health probes указывали на порт `80` вместо реального `3001` → контейнер падал по `SIGTERM` сразу после старта.
+- Azure Static Web Apps без `staticwebapp.config.json` не умеет SPA fallback → 404 на прямых ссылках (email verify).
+- Google OAuth `origin_mismatch` на проде — прод-домен не был в Authorized JavaScript origins.
+- **Критический баг:** бесконечный polling-луп на `ScreenerPage` и `BacktestingPage` для новых аккаунтов с пустым watchlist/портфелем (135 запросов/сек) — нашли только на реальном новом аккаунте на проде, не в dev с seed-данными. Пофикшено (`hasHydrated`-флаг вместо `items.length === 0`) + добавлен defense-in-depth rate limiter на все `GET /portfolio/*` (120 req/min).
+
+Эта секция — хороший материал для главы «retrospective»/«known limitations»: реальный деплой ловит баги, которых не видно локально.
 
 ---
 
@@ -350,14 +364,15 @@ Husky остаётся локальным крючком. Для эксперт�
 - Backend/Frontend/Database/AI: пункты min в `DIPLOMA_TECHNICAL_REQUIREMENTS.md` **с артефактом** (не только код).
 - [x] Playwright smoke + один API+Postgres — CI job `e2e`.
 - Jest coverage ≥70% + скрин зелёного Actions.
-- Публичный Azure URL + managed DB (EU) + CD хотя бы `workflow_dispatch`.
-- Staging: `\du` / `app_write`, AI p95, Lighthouse не с Vite HMR.
+- [x] Публичный Azure URL + managed DB (EU) + CD автодеплой на push в `main`.
+- [x] Staging: `\du` / `app_write` — скрин снят и вставлен в `database.md`.
+- [ ] AI p95 на staging, Lighthouse на HTTPS (не Vite HMR) — evidence-проход, ещё не собрано.
 - Thesis EN содержит все 8 + known limitations (что skip и почему).
 
 ### Diploma-comfortable (запас 7–8, не 10)
 
 - Backend: CD только с зелёного CI + скрин Log stream + один alert; в главе `x-request-id` назван tracing (код уже есть).
-- Frontend: Lighthouse walkthrough + a11y check **закрыты в коде** (2026-08-21 preview); Performance 90 на dashboard **не** обещаем; HTTPS staging — D4.
+- Frontend: Lighthouse walkthrough + a11y check **закрыты в коде** (2026-08-21 preview); Performance 90 на dashboard **не** обещаем; HTTPS-стенд живой, повторный прогон Lighthouse — evidence-проход перед защитой.
 - Database: migrations + indexes + HMAC в главе; без Timescale/триггеров.
 - AI: guardrails + quota/cache в главе; grounding ≠ RAG; без MCP/второй модели.
 - Tests: тонкая пирамида (unit + HTTP + RTL + 1 e2e + 1 DB); без mutation/k6.

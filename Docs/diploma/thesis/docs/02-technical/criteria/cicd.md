@@ -4,9 +4,9 @@
 
 ### Status
 
-**Status:** Accepted (CI on GitHub Actions; CD after Azure)
+**Status:** Accepted (CI + CD both live on GitHub Actions)
 
-**Date:** 2026-08-18
+**Date:** 2026-08-18 (CI) → 2026-09-04 (CD auto-deploy on push)
 
 ### Context
 
@@ -25,7 +25,14 @@ Triggers: `push` to `main` / `master` / `develop`, and every `pull_request`. npm
 
 Local push: Husky `pre-push` also runs lint, format check, and `backend` `test:coverage` so a red coverage number never reaches GitHub.
 
-CD (`workflow_dispatch` → Azure) waits for phase D4. That is the remaining CI/CD **min** hole.
+CD is a separate workflow, `.github/workflows/deploy.yml`:
+
+- **deploy-backend:** builds + pushes the API image to GHCR, then `az containerapp update` rolls it out to Azure Container Apps.
+- **deploy-frontend:** builds the SPA (with the production `VITE_API_URL`), then deploys the static build to Azure Static Web Apps.
+- Triggers: automatically on every `push` to `main` (both jobs run in full), and via `workflow_dispatch` with per-side checkboxes for a manual redeploy with no new commit (e.g. after a Portal-side fix) or a one-side-only rollout.
+- Azure auth: a service-principal JSON in the `AZURE_CREDENTIALS` GitHub Secret (`az ad sp create-for-rbac --sdk-auth`, scoped to the resource group).
+
+This closes the CI/CD **min** hole that used to require phase D4.
 
 ### Alternatives Considered
 
@@ -38,8 +45,8 @@ CD (`workflow_dispatch` → Azure) waits for phase D4. That is the remaining CI/
 
 ### Consequences
 
-**Positive:** Same pipeline serves Backend coverage + Auto tests logs.  
-**Negative:** `pre-push` is slower (~20 s Jest). Frontend coverage is not gated.
+**Positive:** Same CI pipeline serves Backend coverage + Auto tests logs; CD is a separate workflow so a red CI does not block iterating on the deploy YAML itself, and pushing to `main` now ships to production with zero manual steps.  
+**Negative:** `pre-push` is slower (~20 s Jest). Frontend coverage is not gated. CD does not (yet) hard-block on CI's own green status — see Known Limitations.
 
 ## Pipeline
 
@@ -51,6 +58,10 @@ flowchart LR
   test --> cov[Backend coverage ≥ 70%]
   cov --> art[Artifacts: HTML coverage, audit JSON]
   push --> docker[Compose config + docker build]
+  pushmain[push to main] --> img[Build + push API image to GHCR]
+  img --> aca[az containerapp update]
+  pushmain --> spa[Build SPA]
+  spa --> swa[Deploy to Static Web Apps]
 ```
 
 ## Requirements Checklist
@@ -60,22 +71,24 @@ flowchart LR
 | 1 | Pipeline diagram | ✅ | Mermaid above; [deployment.md](../deployment.md) |
 | 2 | Tool described | ✅ | GitHub Actions |
 | 3 | CI ≥ 3 stages (lint, build, test) | ✅ | `.github/workflows/ci.yml` |
-| 4 | Some CD (even manual trigger) | ❌ | After Azure exists |
+| 4 | Some CD (even manual trigger) | ✅ | `.github/workflows/deploy.yml` — auto on push to `main`, plus `workflow_dispatch` |
 | 5 | Auto on push/PR + dependency cache | ✅ | `on.push` / `on.pull_request`; `cache: npm` |
 | 6 | Artifacts | ✅ | `backend-coverage`, `npm-audit-*`, `*-dist` |
 | 7 | Fail on error | ✅ | Non-zero Jest/lint/build/docker build fails the job |
-| 8 | Secrets store, not YAML | ⚠️ | No secrets in YAML; Actions secrets when CD exists |
+| 8 | Secrets store, not YAML | ✅ | `AZURE_CREDENTIALS`, `AZURE_STATIC_WEB_APPS_API_TOKEN`, `VITE_GOOGLE_CLIENT_ID` in GitHub Secrets |
 | 9 | Security scan (`npm audit`) | ✅ | `audit` job + working note |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| No CD job | CI/CD min incomplete | Phase D4 |
+| CD does not gate on the separate CI workflow's result | A push with failing lint/tests still deploys if the deploy job itself succeeds | Backend **max** item: make `deploy.yml` depend on `ci.yml` passing (`workflow_run` / required status check) |
+| No blue/green or rollback step | A bad image replaces the previous revision directly | Container Apps keeps prior revisions; manual rollback via Portal is documented, automated rollback is CI/CD **max**, not claimed |
 
 ## References
 
 - `.github/workflows/ci.yml`
+- `.github/workflows/deploy.yml`
 - `.husky/pre-push`
 - [deployment.md](../deployment.md)
 - [automated-tests.md](automated-tests.md)

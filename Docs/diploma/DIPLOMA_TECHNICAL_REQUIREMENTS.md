@@ -50,7 +50,7 @@ BA защищается **отдельной комиссией**, не у ин�
 
 Статус: `—` не выбран · `plan` выбран · `min` закрыт на 5 · `max` закрыт на 10.
 
-Ревью кода/доков: **2026-08-18**. Галочки ниже — только там, где артефакт уже есть. **Ни один критерий не закрыт на** `min`**:** кода много, но рубрика требует пакет документов, деплой, coverage-отчёт, Figma и т.д.
+Ревью кода/доков: **2026-08-18**, стенд поднят **2026-09-02**. Галочки ниже — только там, где артефакт уже есть. Backend/Frontend/Database/AI/Cloud/CI-CD/Auto tests имеют деплой-зависимые пункты закрытыми (публичный URL живой); BA всё ещё не закрыт даже на `min` — нужен отдельный BA-пакет для комиссии.
 
 **Официальный набор (8, решение 2026-08-18):** BA + Backend + Frontend + Database + AI Assistant + Cloud + CI/CD + Automated tests. См. `Docs/diploma/DIPLOMA_ROADMAP.md`. Containerization — файлы для деплоя, критерий не заявляем (нет локального Docker). Adaptive UI / Refined UX — запас, не основной набор.
 
@@ -58,17 +58,17 @@ BA защищается **отдельной комиссией**, не у ин�
 | #   | Критерий                           | Категория      | Статус | Артефакты / дыры                                                                                                                                                                                                                            |
 | --- | ---------------------------------- | -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | Business Analysis                  | required       | plan   | Есть: GDPR (`Docs/GDPR_ITD.md`, Privacy/Terms PDF), архитектура (`ARCHITECTURE_*.md`, mermaid в `AI_INTEGRATION.md`), эпики в `ВозможныеФичи.md`. Нет BA-пакета: vision, stakeholders, use case diagram, in/out of scope, NFR.              |
-| 2   | Backend                            | required       | plan   | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist/AI cache+quota), **OpenAPI**, **pino** + `x-request-id`, Jest **≥70%** + CI artifact. Нет: public deploy. HMAC portfolio ещё raw SQL (ADR). Max-цель **7–8**: CD+Azure logs+alert+correlation ID; skip Kafka/Redis/микросервисы/Grafana/Sonar. |
-| 3   | Frontend                           | required       | plan   | React SPA, Vite, RTK, 15+ lazy routes, SCSS, forms/tables/search, Error Boundary, skeletons, RTL, **Playwright e2e**. Дыры min: скрины tablet, mermaid демо-флоу. Max-цель **7–8**: lazy+RTK+charts уже в коде; + Lighthouse walkthrough (landing+dashboard, prod build) + a11y check. Skip FSD/Next/Figma/Sentry/PWA. i18n — после восьмёрки. |
-| 4   | Database                           | data           | plan   | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE/**CHECK**, транзакции, bcrypt, HMAC `owner_token`, роли `app_`*, `seed:demo`, dictionary/ER. Max-цель **7–8**: migrations+indexes+HMAC уже в коде; дыры: `\du` + `app_write` на staging + `EXPLAIN` appendix. Skip Timescale/триггеры/views/шарды. |
+| 2   | Backend                            | required       | min    | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist/AI cache+quota), **OpenAPI**, **pino** + `x-request-id`, Jest **≥70%** + CI artifact, **public deploy** (`api.kreptonanalytics.com`, Azure Container Apps). HMAC portfolio ещё raw SQL (ADR). Max-цель **7–8**: CD есть (автодеплой на push); дыры — Azure logs screenshot + alert + CD-gate-on-CI; skip Kafka/Redis/микросервисы/Grafana/Sonar. |
+| 3   | Frontend                           | required       | min    | React SPA, Vite, RTK, 15+ lazy routes, SCSS, forms/tables/search, Error Boundary, skeletons, RTL, **Playwright e2e**, живой публичный URL. Дыры min: скрины tablet, mermaid демо-флоу. Max-цель **7–8**: lazy+RTK+charts уже в коде; + Lighthouse walkthrough (landing+dashboard, prod build) + a11y check. Дыра: повтор Lighthouse на HTTPS prod-домене (пока только `vite preview`). Skip FSD/Next/Figma/Sentry/PWA. i18n — после восьмёрки. |
+| 4   | Database                           | data           | min    | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE/**CHECK**, транзакции, bcrypt, HMAC `owner_token`, роли `app_`*, `seed:demo`, dictionary/ER, **`\du` + `app_write` на живом Azure** (скрин: `Docs/diploma/thesis/docs/assets/screenshots/db-du-roles.png`). Max-цель **7–8**: migrations+indexes+HMAC+`\du` на стенде уже закрыты; дыра: `EXPLAIN` appendix. Skip Timescale/триггеры/views/шарды. |
 | 5   | Real-time Analytics                | data           | —      | **Не брать.** Котировки — polling ~30 с (TTL кэша). `useStockWebSocket.ts` не подключён, WS-сервера на бэке нет. Рубрика явно не считает delay > 10 с / cron.                                                                               |
 | 6   | ML Model                           | data           | —      | **Не брать.** Gemini — LLM API, не своё обучение.                                                                                                                                                                                           |
 | 7   | Adaptive UI                        | technical      | —      | Запас, не в восьмёрке. Код: mixins, rem, theme. Критерий упирается в Figma на 3 форм-фактора.                                                                                                                                               |
 | 8   | Refined UX                         | technical      | —      | Запас, не в восьмёрке. Код: стиль, ошибки, empty states. Нет UX spec / персон.                                                                                                                                                              |
 | 9   | AI Assistant / Chatbot             | technical      | plan   | Сильнейший technical: 4 поверхности, guardrails, quota, кэш briefing, 14 диалогов, user guide, lab p95. Max-цель **7–8**: guardrails+quota/cache уже в коде. Дыры: скрин чата, staging latency. Skip RAG/MCP/2 модели/стриминг/чат в БД. Grounding — после billing, ≠ RAG. |
 | 10  | Cryptography                       | technical      | —      | **Не брать.** bcrypt/JWT/HMAC сами по себе критерий не закрывают. HMAC `owner_token` — плюс к Database/GDPR, не отдельная криптозадача.                                                                                                     |
-| 11  | Cloud                              | infrastructure | plan   | Берём обязательно. Нет Azure/публичного URL/managed DB. Фаза D4 в `Docs/diploma/DIPLOMA_ROADMAP.md`.                                                                                                                                        |
-| 12  | CI/CD                              | infrastructure | plan   | GitHub Actions: lint, build, Jest, coverage artifact, `npm audit`, `docker build` + `compose config`. Husky pre-push с coverage. Нет CD/Azure.                                                                                              |
+| 11  | Cloud                              | infrastructure | min    | Azure живой: Static Web Apps (FE) + Container Apps (API, scale-to-zero) + PostgreSQL Flexible Server (managed DB, North Europe), кастомные домены + SSL. Дыры max: Log stream / alert screenshot, IaC (не заявляем). `Docs/diploma/DIPLOMA_ROADMAP.md` Phase D4.                                       |
+| 12  | CI/CD                              | infrastructure | min    | GitHub Actions: lint, build, Jest, coverage artifact, `npm audit`, `docker build` + `compose config`. **CD**: `.github/workflows/deploy.yml` — auto-deploy на push в `main` (GHCR image + Container Apps rollout + Static Web Apps). Husky pre-push с coverage. Дыра max: CD не gate-ится на CI.        |
 | 13  | Containerization                   | infrastructure | —      | **Не заявляем.** Файлы min почти готовы (Dockerfile ×2, compose, non-root, healthcheck, CI `docker build`). Дыра для заявки: живой `compose up` + размеры образов. Можно 9-м после доказательства. |
 | 14  | Microservices                      | infrastructure | —      | **Не брать.** Монолит FE+BE+Postgres не считается.                                                                                                                                                                                          |
 | 15  | API Documentation                  | processes      | —      | Текстовые эндпоинты AI в `AI_INTEGRATION.md` ≠ OpenAPI-портал. Для Backend min хватит текста/Swagger; как отдельный критерий — нет.                                                                                                         |
@@ -129,7 +129,7 @@ Node.js / Express подходит как «modern framework».
 - [ ] **+ диплом** OpenAPI валиден (Spectral в CI) и не разъезжается с роутами
 - [x] Централизованный error handling — `backend/src/middleware/errorHandler.ts` + `AppError`
 - [x] Структурированные логи ключевых событий и ошибок — `pino` JSON + `x-request-id` (ELK не нужен для min)
-- [ ] **+ продукт** Production deploy, доступный внешним пользователям — Azure, фаза D4 (без URL нет min)
+- [x] **+ продукт** Production deploy, доступный внешним пользователям — `https://api.kreptonanalytics.com` на Azure Container Apps
 - [x] Unit-тесты бизнес-логики, **coverage ≥ 70%**, отчёт coverage-инструментом — Jest `coverageThreshold`; HTML/lcov в CI artifact `backend-coverage`
 
 **Обязательные ограничения:**
@@ -150,11 +150,11 @@ Node.js / Express подходит как «modern framework».
 
 **Делаем**
 
-- [ ] **+ продукт** CI/CD: image → registry → auto-deploy, секреты через env — фаза D4; тот же пайплайн закрывает критерии Cloud и CI/CD
-- [ ] **+ диплом (текст + скрин D4, не код)** Централизованные логи: `pino` JSON уже в stdout; в главе = Azure Log stream / Log Analytics, не свой ELK
-- [ ] **+ диплом (текст, не код)** Tracing: `x-request-id` уже есть (middleware + ALS + pino); в thesis назвать correlation ID. OpenTelemetry/App Insights не делаем, пока не останется час на D4
-- [ ] **+ диплом** Alerting: один Azure alert на 5xx / restart
-- [ ] **+ продукт** Quality gate: деплой только с зелёного CI (lint + test + build). Coverage остаётся **70%** живыми тестами
+- [x] **+ продукт** CI/CD: image → GHCR → auto-deploy на push в `main`, секреты через Container App env vars / GitHub Secrets — тот же пайплайн закрывает критерии Cloud и CI/CD
+- [ ] **+ диплом (текст + скрин D4, не код)** Централизованные логи: `pino` JSON уже в stdout; Azure Log stream живой в Portal, скрин для appendix ещё не снят
+- [x] **+ диплом (текст, не код)** Tracing: `x-request-id` уже есть (middleware + ALS + pino); в thesis назвать correlation ID. OpenTelemetry/App Insights не делаем
+- [ ] **+ диплом** Alerting: один Azure alert на 5xx / restart — ещё не настроен
+- [ ] **+ продукт** Quality gate: деплой только с зелёного CI (lint + test + build) — сейчас CD не зависит от результата `ci.yml` (known limitation, `criteria/cicd.md`). Coverage остаётся **70%** живыми тестами
 
 **Скип** (в записке *why not*, не обещать эксперту)
 
@@ -232,7 +232,7 @@ Node.js / Express подходит как «modern framework».
 - [x] **+ продукт** Advanced architecture: lazy routes (`AppRouter.tsx`)
 - [x] **+ продукт** Advanced state: RTK slices + async thunks (auth, portfolio, ticker, watchlist, …)
 - [x] **+ продукт** Advanced UI/UX: графики (`lightweight-charts`), dark/light, skeleton/ARIA на async
-- [ ] **+ диплом** Performance: Vite bundle visualizer в appendix. Lighthouse **walkthrough закрыт** 2026-08-21 (`vite preview`): landing/auth/pricing/security + app screens; contrast/landmarks/labels/headings/`/me`. Не обещать Performance ≥ 90 на dashboard с чартами. HTTPS staging recapture — D4. Lab baseline 2026-08-19 dashboard **dev**: P 45 / A 96 / BP 58 / SEO 82
+- [ ] **+ диплом** Performance: Vite bundle visualizer в appendix. Lighthouse **walkthrough закрыт** 2026-08-21 (`vite preview`): landing/auth/pricing/security + app screens; contrast/landmarks/labels/headings/`/me`. Не обещать Performance ≥ 90 на dashboard с чартами. HTTPS-стенд живой (`www.kreptonanalytics.com`) — повторный прогон Lighthouse на прод-домене ещё не сделан. Lab baseline 2026-08-19 dashboard **dev**: P 45 / A 96 / BP 58 / SEO 82
 - [x] **+ диплом** Accessibility check: Lighthouse a11y walkthrough (light/dark) на landing + marketing + auth + ключевых app-экранах. Это не заявка Adaptive UI / полной WCAG-спеки. Keyboard/axe — appendix по запросу
 - [ ] **+ диплом** В thesis явно: max = lazy + RTK + charts/theme; Lighthouse — разбор отчёта, не погоня за 90
 
@@ -267,7 +267,7 @@ Node.js / Express подходит как «modern framework».
 - [x] PK / FK, NOT NULL, UNIQUE, CHECK, осмысленные типы — `1751370012000_add-data-integrity-checks.js`
 - [x] Тестовые данные + скрипты справочников — `npm run seed:demo`
 - [x] Роли: минимум app_read / app_write / admin; приложение **не под superuser** — роли в миграции (`DATABASE_ROLES.md`); локально owner OK
-- [ ] **+ диплом** Скрин `\du` + staging `DATABASE_URL` = `app_write` (migrate = owner). Код ролей есть; эксперту нужен артефакт на стенде
+- [x] **+ диплом** Скрин `\du` + staging `DATABASE_URL` = `app_write` (migrate = owner) — `Docs/diploma/thesis/docs/assets/screenshots/db-du-roles.png`, снят на живом Azure PostgreSQL
 - [x] Пароли только хэш (не MD5/SHA-1) — bcrypt
 - [x] Целостность через constraints + transactions — FK CASCADE, unique, CHECK, `BEGIN`/`COMMIT`/`ROLLBACK`
 
@@ -282,7 +282,7 @@ Node.js / Express подходит как «modern framework».
 - [x] **+ продукт** Версионирование схемы — `node-pg-migrate` в `backend/src/migrations/`
 - [x] **+ продукт** Индексы с обоснованием — `users.email`, `portfolio_accounts.owner_token`, `positions.portfolio_id`, `transactions (portfolio_id, ticker)`, `ai_usage_events` quota (таблица в `db-schema.md`)
 - [x] **+ продукт** Маскирование/анонимизация — HMAC-SHA256 `owner_token`, портфель **без** FK на `users`; в `users` только email + bcrypt (или Google sub)
-- [ ] **+ диплом** Скрин `\du` + на staging API ходит как `app_write`, migrate как owner (`DATABASE_ROLES.md`). Это ещё и min evidence
+- [x] **+ диплом** Скрин `\du` + на staging API ходит как `app_write`, migrate как owner (`DATABASE_ROLES.md`). Это ещё и min evidence
 - [ ] **+ диплом** Appendix: `EXPLAIN` (или query plan) на lookup `owner_token` / `email` — одна страница, не pgAdmin-шоу
 - [ ] **+ диплом** В thesis явно: Database max = migrations + indexes + HMAC; Azure PITR / managed backups = критерий Cloud, не «своя вторая СУБД»
 
@@ -425,7 +425,7 @@ Node.js / Express подходит как «modern framework».
 - [x] Ключи в env, базовая защита от prompt injection, rate limit — `GEMINI_API_KEY`, input gate + output guardrails
 - [x] ≥ 10 примерных диалогов + некорректные запросы — appendix + `tickerChatScope.test.ts`
 - [x] Ответ < 10 с, ≥ 10 concurrent users, история в рамках сессии — lab 2026-08-19 p95 **947 ms** / 10 parallel Gemini **870 ms** wall; история ephemeral в drawer
-- [ ] **+ диплом** Повторить `npm run ai:lab-latency` на staging после D4; lab ≠ prod SLA
+- [ ] **+ диплом** Повторить `npm run ai:lab-latency` на живом `api.kreptonanalytics.com` (стенд готов, прогон ещё не сделан); lab ≠ prod SLA
 
 Запрещено: сырой прокси · нет system prompt · захардкоженные ответы · ключи в коде.
 
@@ -478,24 +478,24 @@ HMAC-SHA256 `owner_token` (`portfolioOwnerToken.ts`) — рабочая крип
 
 ### Minimum (5)
 
-- [ ] Деплой хотя бы одного компонента в cloud (Azure / AWS / GCP / Render / Fly.io / …)
-- [ ] Публичный URL/IP для проверяющих
-- [ ] Документ: шаги деплоя, воспроизводимость
-- [ ] Хотя бы **один managed-сервис** (managed DB, object storage, queue, serverless)
-- [ ] Секреты в cloud-native storage, не в Git
-- [ ] Описание архитектуры и ресурсов
-- [ ] Сервис стабильно доступен, firewall/security groups настроены
-- [ ] Нет лишних платных ресурсов «на всякий случай»
+- [x] Деплой хотя бы одного компонента в cloud — оба компонента: Azure Static Web Apps (FE) + Container Apps (API)
+- [x] Публичный URL/IP для проверяющих — `www.kreptonanalytics.com`, `api.kreptonanalytics.com`
+- [x] Документ: шаги деплоя, воспроизводимость — `Docs/diploma/thesis/docs/02-technical/deployment.md`, `criteria/cloud.md`
+- [x] Хотя бы **один managed-сервис** — Azure Database for PostgreSQL Flexible Server
+- [x] Секреты в cloud-native storage, не в Git — Container App env vars + GitHub Secrets
+- [x] Описание архитектуры и ресурсов — диаграмма в `deployment.md`
+- [x] Сервис стабильно доступен, firewall/security groups настроены — custom domains + SSL, Postgres firewall
+- [x] Нет лишних платных ресурсов «на всякий случай» — scale-to-zero Container Apps, free-tier Static Web Apps, smallest Postgres SKU
 
 ### Maximum (10)
 
-- [ ] Весь стек в контейнерах/оркестрации + CI/CD
-- [ ] ≥ 2 разных managed-сервиса
-- [ ] IaC (Terraform / Bicep / Ansible / …)
-- [ ] Monitoring + logging + restart/autoscale + базовый fault-tolerance тест
-- [ ] IAM least privilege + cost notes
-- [ ] Скриншоты среды (секреты замазаны)
-- [ ] Скрипты полного воспроизведения
+- [ ] Весь стек в контейнерах/оркестрации + CI/CD — API в контейнере на Container Apps; frontend — статика, не контейнер (by design)
+- [ ] ≥ 2 разных managed-сервиса — сейчас один (Postgres); второй (напр. Key Vault) не берём, не в наборе max
+- [ ] IaC (Terraform / Bicep / Ansible / …) — сознательно skip, деплой руками через Portal (учебная ценность)
+- [x] Monitoring + logging — Azure Log stream доступен (pino JSON); restart/autoscale — Container Apps default; alert не настроен
+- [ ] IAM least privilege + cost notes — частично (env vars не в Git); формальных cost notes в доке нет
+- [ ] Скриншоты среды (секреты замазаны) — evidence-проход, не собраны
+- [ ] Скрипты полного воспроизведения — только текстовые шаги, не скрипт
 
 Недоступный URL: −2. Секреты в репо: −2. Нет managed-сервиса: −1.
 
@@ -521,7 +521,7 @@ CI ≥ 3 стадий:
 
 Плюс:
 
-- [ ] Хоть один CD: Docker / cloud / SSH / GitHub Pages / Compose
+- [x] Хоть один CD: `.github/workflows/deploy.yml` — GHCR image + Azure Container Apps + Static Web Apps, авто на push в `main`
 - [x] Триггер на push и/или PR
 - [x] Кэш зависимостей
 - [x] Артефакт (dist / image / zip)
@@ -725,13 +725,13 @@ Coverage < 70%: −2. Тесты без логики (`expect(true)`, пусты
 
 | Критерий             | Категория      | Комментарий                                                                     |
 | -------------------- | -------------- | ------------------------------------------------------------------------------- |
-| Business Analysis    | required       | комиссия; пакет после апрува темы                                               |
-| Backend              | required       | Express + слои; добить ORM, OpenAPI, логи, deploy, 70%                          |
-| Frontend             | required       | SPA + Redux + Vite + **Playwright**; min: скрины tablet; max evidence: Lighthouse walkthrough + a11y check; i18n после восьмёрки; не PWA/Sentry |
-| Database             | data           | OLTP min почти закрыт; max = migrations + indexes + HMAC; `\du`/`EXPLAIN` на стенде; не Timescale/триггеры |
-| AI Assistant         | technical      | min почти закрыт; max = guardrails + quota/cache; скрин + staging p95; не RAG/MCP/две модели |
-| Cloud                | infrastructure | Azure + managed Postgres + public URL (фаза D4)                                 |
-| CI/CD                | infrastructure | GitHub Actions; CD можно manual trigger                                         |
+| Business Analysis    | required       | комиссия; пакет после апрува темы — **единственный критерий без min**           |
+| Backend              | required       | Express + слои + ORM + OpenAPI + логи + **живой deploy** + 70% — min закрыт     |
+| Frontend             | required       | SPA + Redux + Vite + **Playwright** + живой URL; дыра min: скрины tablet; max evidence: Lighthouse walkthrough + a11y check закрыты в коде, повтор на HTTPS prod — evidence-проход; i18n после восьмёрки; не PWA/Sentry |
+| Database             | data           | OLTP min закрыт, включая `\du`+`app_write` на живом Azure; max: migrations+indexes+HMAC+`\du`; дыра max: `EXPLAIN`; не Timescale/триггеры |
+| AI Assistant         | technical      | min почти закрыт; max = guardrails + quota/cache; скрин + staging p95 (стенд готов, прогон предстоит); не RAG/MCP/две модели |
+| Cloud                | infrastructure | **Живой** Azure: Static Web Apps + Container Apps + managed Postgres, custom domains — min закрыт |
+| CI/CD                | infrastructure | GitHub Actions CI + **CD автодеплой на push в `main`** — min закрыт             |
 | Automated tests 70%+ | processes      | 70% gate + unit + HTTP + RTL + Playwright (реальный Postgres в CI); добить скрин зелёного Actions; не mutation/k6 |
 
 

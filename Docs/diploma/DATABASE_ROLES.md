@@ -27,7 +27,7 @@ Demo login (not production): `demo@krepton.local` / `DemoPassw0rd!` unless `SEED
 3. Point the App Service `DATABASE_URL` at `app_write`.
 4. Leave migrate on the owner URL (`DATABASE_MIGRATE_URL` in `.env.example`).
 
-Screenshot for the expert: `psql` → `\du` showing `app_read`, `app_write`, `app_admin`.
+Screenshot for the expert: `psql` → `\du` showing `app_read`, `app_write`, `app_admin` — captured on the live Azure PostgreSQL Flexible Server: `Docs/diploma/thesis/docs/assets/screenshots/db-du-roles.png`.
 
 ## What we deliberately skip
 

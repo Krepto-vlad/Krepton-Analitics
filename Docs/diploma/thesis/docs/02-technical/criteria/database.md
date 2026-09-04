@@ -4,9 +4,9 @@
 
 ### Status
 
-**Status:** Accepted (PostgreSQL OLTP)
+**Status:** Accepted (PostgreSQL OLTP, deployed and role-verified on Azure)
 
-**Date:** 2026-08-18
+**Date:** 2026-08-18 (design) → 2026-09-02 (staging roles confirmed)
 
 ### Context
 
@@ -55,12 +55,12 @@ See [Database schema appendix](../../appendices/db-schema.md).
 | 5 | Modern RDBMS + 3NF | ✅ | PostgreSQL; 3NF table in appendix |
 | 6 | Keys, types, constraints | ✅ | PK/FK/UNIQUE/CHECK |
 | 7 | Test / seed data | ✅ | `npm run seed:demo` |
-| 8 | DB roles, not superuser | ✅ | `app_read` / `app_write` / `app_admin`; `\du` screenshot on the stand |
+| 8 | DB roles, not superuser | ✅ | `app_read` / `app_write` / `app_admin`; [`\du` screenshot](../../assets/screenshots/db-du-roles.png) on Azure PostgreSQL Flexible Server |
 | 9 | Password hashing | ✅ | bcrypt, not plaintext |
 | 10 | Indexes justified | ✅ | appendix “Indexes (why)” |
 | 11 | Max: schema migrations | ✅ | `node-pg-migrate` |
 | 12 | Max: PII masking | ✅ | HMAC `owner_token`, no portfolio→users FK |
-| 13 | Max: `\du` + `app_write` on staging | ❌ | Capture on the defense DB (D4) |
+| 13 | Max: `\du` + `app_write` on staging | ✅ | [`\du` screenshot](../../assets/screenshots/db-du-roles.png) on Azure; API `DATABASE_URL` = `app_write`, `npm run migrate:up` run as the Postgres admin |
 | 14 | Max: EXPLAIN appendix | ❌ | `owner_token` / `email` lookup |
 | 15 | Max skip | — | No Timescale/ClickHouse, DWH, triggers, matviews, shards, Redis-as-DB |
 
@@ -68,8 +68,8 @@ See [Database schema appendix](../../appendices/db-schema.md).
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| Local still uses owner URL | Fine for inner loop | Staging `DATABASE_URL` = `app_write` |
-| `\du` screenshot not in zip yet | Expert evidence | Capture on the defense DB |
+| Local still uses owner URL | Fine for inner loop | Staging `DATABASE_URL` = `app_write` (done) |
+| No `EXPLAIN` appendix yet | Max evidence gap, not a functionality gap | Capture before the defense (D4 evidence pass) |
 | No second DBMS / no triggers / no views | Expert may ask the max list | ADR: Yahoo+TTL, GDPR deletes transactions, aggregations need live prices |
 
 ## References
@@ -77,3 +77,4 @@ See [Database schema appendix](../../appendices/db-schema.md).
 - `backend/src/migrations/`
 - `backend/src/db/schema.ts`
 - `Docs/diploma/DATABASE_ROLES.md` (working note, not in the final zip)
+- [`\du` screenshot](../../assets/screenshots/db-du-roles.png)

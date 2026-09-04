@@ -24,7 +24,7 @@
 | **1** | Product features (AI, theme, polish) | ✅ демо / новизна   | 🟡 ценность                | Сейчас → ближайшие недели              |
 | **2** | Full EU / GDPR pass                  | ✅ глава / защита   | ✅ запуск в EU              | После основного feature-freeze диплома |
 | **3** | Testing & security                   | ✅ качество         | ✅ не стыдно отдавать людям | Перекрывается с концом 1–2             |
-| **4** | Soft deploy + friend beta            | 🟡 «живой» продукт | ✅ первые юзеры             | Через несколько месяцев (экономия)     |
+| **4** | Soft deploy + friend beta            | ✅ «живой» продукт (2026-09-02) | 🟡 friend beta — следующий шаг | Готово                     |
 | **5** | Startup hardening (после защиты)     | —                  | ✅ платежи, SMTP, retention | После диплома / soft launch            |
 
 
@@ -181,32 +181,42 @@
 
 ---
 
-## Phase 4 — Deploy (поздно и дёшево) + friend beta
+## Phase 4 — Deploy (готово) + friend beta
 
-### 4.1 Когда деплоить
+### 4.1 Когда деплоили
 
-Согласен с тобой: **не жечь €10/мес сейчас**. Деплой ближе к концу / soft launch.
+**Сделано 2026-09-02.** Домен `kreptonanalytics.com` куплен, деплой поднят руками через Azure Portal (осознанно, не CLI/IaC — для практики). Автодеплой на push в `main` настроен.
 
-До Azure можно:
+- [x] Домен куплен и настроен через Cloudflare DNS
+- [x] Azure resource group + Postgres Flexible Server + Container Apps + Static Web Apps
+- [x] Кастомные домены + SSL: `www.kreptonanalytics.com`, `api.kreptonanalytics.com`
+- [x] SMTP (Resend) — verification email доставляется
+- [x] Google OAuth настроен на прод-домене
+- [x] CD: GitHub Actions автодеплой на push в `main` (build → GHCR → Container Apps + Static Web Apps)
+- [x] Rate limiting (defense-in-depth) на все `GET /portfolio/*` — 120 req/min на пользователя
 
-- локальные демо знакомым
-- при необходимости — временный free sandbox (с пониманием лимитов)
+### 4.2 Cost-aware Azure — что взяли фактически
 
-### 4.2 Cost-aware Azure target (черновик)
+Цель была **~€10/мес или меньше**; итоговый выбор:
 
-Цель: **~€10/мес или меньше** на старте.
+| Компонент     | Что взяли                                                                             |
+| ------------- | -------------------------------------------------------------------------------------- |
+| App (API)     | Azure Container Apps, scale-to-zero (North Europe) — не платим, когда никто не заходит |
+| DB            | Azure Database for PostgreSQL Flexible Server, smallest Burstable SKU (North Europe)   |
+| Static FE     | Azure Static Web Apps, free tier (East US 2 — единственный вариант free-плана)         |
+| SMTP          | Resend free tier + свой домен                                                          |
+| Observability | Azure Log stream (pino JSON stdout) + Container Apps Portal metrics                    |
 
+Пауза/экономия: см. [Cost & Idle Runbook в deployment.md](diploma/thesis/docs/02-technical/deployment.md#cost--idle-runbook) — останавливать нужно только Postgres Flexible Server, Container Apps и Static Web Apps уже ничего не стоят в простое.
 
-| Компонент     | Идея экономии                                                                        |
-| ------------- | ------------------------------------------------------------------------------------ |
-| App           | один маленький App Service / Container Apps / дешёвый VM                             |
-| DB            | Azure PostgreSQL flexible smallest / или managed EU Postgres вне Azure, если дешевле |
-| Static FE     | Static Web Apps / CDN                                                                |
-| SMTP          | Brevo/Resend free tier + свой домен (не Gmail)                                       |
-| Observability | минимум: logs + uptime ping                                                          |
+### 4.3 Что нашли на живом стенде (не видно было на localhost)
 
+Прямая польза от раннего деплоя — реальные баги, а не только рубрика:
 
-### 4.3 Friend beta (параллельно с деплоем)
+- GHCR требует lowercase repo name; health probes указывали на порт 80 вместо 3001; SWA без `staticwebapp.config.json` 404-ит на прямых ссылках; Google OAuth `origin_mismatch` без прод-домена в Authorized origins.
+- **Критичный:** бесконечный polling-луп на Screener и Backtesting для новых аккаунтов с пустым watchlist/портфелем (135 req/sec) — нашли только на реальном новом аккаунте в проде. Пофикшено + добавлен rate limiter как защита на будущее.
+
+### 4.4 Friend beta (следующий шаг)
 
 - [ ] 3–10 знакомых инвесторов / «почти инвесторов»
 - [ ] Короткий бриф: что продукт **не** брокер и **не** советник

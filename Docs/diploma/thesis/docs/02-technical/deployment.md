@@ -4,21 +4,30 @@
 
 ## Infrastructure
 
-Target (phase D4 — not live yet):
+Live since 2026-09-02 (phase D4 done):
 
 ```
-                    Internet
-                        │
-                        ▼
-              ┌─────────────────┐
-              │ Azure (EU)      │
-              │  Frontend host  │
-              │  API host       │
-              │  Postgres       │  ← managed service (Cloud min)
-              └─────────────────┘
+                          Internet
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                                ▼
+   www.kreptonanalytics.com          api.kreptonanalytics.com
+              │                                │
+              ▼                                ▼
+   ┌─────────────────────┐        ┌─────────────────────────┐
+   │ Azure Static Web App │        │ Azure Container App      │
+   │ (East US 2)           │        │ (North Europe)           │
+   │ SPA, free tier        │        │ scale-to-zero, GHCR image│
+   └─────────────────────┘        └────────────┬─────────────┘
+                                                 ▼
+                                   ┌─────────────────────────┐
+                                   │ Azure Database for       │
+                                   │ PostgreSQL Flexible      │
+                                   │ Server (North Europe)    │  ← managed service (Cloud min)
+                                   └─────────────────────────┘
 ```
 
-Until D4, reviewers run the stack locally. **Containerization is not a declared criterion.** Dockerfiles exist as the CI/Azure deploy contract; the daily loop is still `npm run dev`.
+Reviewers open the public URL directly — no local setup needed. Static Web Apps only has non-EU regions available on the free tier and serves no personal data (pure static assets), so it stays outside the GDPR EU-residency scope; the API and the database — where personal data actually lives — are both in North Europe (EU). **Containerization is not a declared criterion**, but the backend image is the real CI/Azure deploy contract now (Container Apps pulls it from GHCR on every `main` push); the daily dev loop is still `npm run dev`, not `docker compose up`.
 
 ### Environments
 
@@ -26,7 +35,7 @@ Until D4, reviewers run the stack locally. **Containerization is not a declared 
 |-------------|-----|--------|
 | **Development** | `localhost:5173` (FE), `localhost:3001` (API) | feature branches |
 | **CI** | GitHub Actions | push / PR |
-| **Production** | [Azure URL TBD] | `main` |
+| **Production** | `https://www.kreptonanalytics.com` (FE), `https://api.kreptonanalytics.com` (API) | `main` |
 
 ## CI/CD Pipeline
 
@@ -36,7 +45,13 @@ Live CI: `.github/workflows/ci.yml` (see [CI/CD criterion](criteria/cicd.md)).
 push/PR → lint + format check → build FE/BE → Jest (backend coverage ≥ 70%) → artifacts
          → npm audit (fail on critical)
          → docker compose config + docker build (API + web, no registry push)
-CD (manual/workflow_dispatch to Azure) is phase D4.
+```
+
+Live CD: `.github/workflows/deploy.yml`, triggered automatically on every `push` to `main`, plus `workflow_dispatch` for a redeploy with no new commit or a one-side-only rollout.
+
+```
+push to main → build + push API image to GHCR → az containerapp update (Container Apps rollout)
+             → build SPA (VITE_API_URL=api.kreptonanalytics.com) → deploy to Static Web Apps
 ```
 
 Local `git push` also runs Husky: lint, Prettier, backend coverage.
@@ -56,7 +71,7 @@ Secrets stay in GitHub Secrets / Azure settings, never in YAML.
 | `GOOGLE_CLIENT_ID` | OAuth | Optional login |
 | `NODE_ENV` | `development` / `production` | Yes |
 
-Copy from `.env.example` at the repo root (Compose) and from `backend/.env.example` / `frontend/.env.example` (inner loop). Never commit `.env`.
+Copy from `.env.example` at the repo root (Compose) and from `backend/.env.example` / `frontend/.env.example` (inner loop). Never commit `.env`. In production, backend variables (`DATABASE_URL`, `JWT_SECRET`, `PORTFOLIO_SECRET`, `GOOGLE_CLIENT_ID`, SMTP) live in the Container App's environment variables blade; `VITE_API_URL` / `VITE_GOOGLE_CLIENT_ID` are baked in at build time by `deploy.yml` from GitHub Secrets.
 
 ## How to Run Locally
 
@@ -120,6 +135,10 @@ Minimum resources for Compose: ~2 GB RAM, 2 CPU. Rebuild `web` after changing `V
 
 | Aspect | Tool |
 |--------|------|
-| **Application logs** | pino JSON on stdout; Azure Log stream after D4 |
+| **Application logs** | pino JSON on stdout; visible live in the Container App's Log stream (Azure Portal) |
 | **Correlation** | `x-request-id` |
 | **ELK / Prometheus** | Not in scope (Backend max) |
+
+## Cost & Idle Runbook
+
+Container Apps scale to zero after inactivity and Static Web Apps free tier does not bill by traffic, so the idle bill is dominated by the smallest PostgreSQL Flexible Server SKU (Burstable, EU region). To pause spend for an extended break: stop the Postgres Flexible Server in the Azure Portal (Overview → Stop); the Container App and Static Web App cost nothing extra while idle. Restart the Postgres server before demoing — the Container App will reconnect on its next request (retry/backoff already in `index.ts`).
