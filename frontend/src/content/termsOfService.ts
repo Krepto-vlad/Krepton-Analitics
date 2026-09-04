@@ -4,7 +4,7 @@ import type { LegalDocumentContent } from './legal.types';
 export const TERMS_OF_SERVICE_CONTENT: LegalDocumentContent = {
   title: 'Terms of Service',
   intro:
-    'These terms govern use of Krepton Analytics. The product is a diploma proof-of-concept offered as educational software, not a licensed financial service.',
+    'These terms govern use of Krepton Analytics at www.kreptonanalytics.com. The product is educational software, not a licensed financial service.',
   sections: [
     {
       id: 'not-advice',

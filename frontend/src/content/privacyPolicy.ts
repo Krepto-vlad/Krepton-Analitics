@@ -8,7 +8,7 @@ import type { LegalDocumentContent } from './legal.types';
 export const PRIVACY_POLICY_CONTENT: LegalDocumentContent = {
   title: 'Privacy Policy',
   intro:
-    'This policy describes how Krepton Analytics processes personal data for the diploma proof-of-concept. It is an honest product description, not a lawyer-reviewed legal opinion.',
+    'This policy describes how Krepton Analytics processes personal data. It is an honest product description, not a lawyer-reviewed legal opinion.',
   sections: [
     {
       id: 'controller',
@@ -61,17 +61,21 @@ export const PRIVACY_POLICY_CONTENT: LegalDocumentContent = {
     },
     {
       id: 'processors',
-      title: '7. Processors and transfers (Gemini)',
+      title: '7. Processors and transfers',
       paragraphs: [
+        'We use subprocessors only to run the product. We do not sell personal data.',
         'Optional AI features send prompts and truncated, anonymised samples to Google Gemini. That processing can occur in the United States. Google participates in the EU–US Data Privacy Framework; we use Gemini only for generating informational text, not to store your full broker statements.',
-        'Market quotes and news may be fetched from public market-data providers (for example Yahoo Finance) so the product can display prices. Those requests are not used to sell advertising about you.',
+        'If you sign in with Google, Google Identity receives the OAuth handshake. Transactional mail (email verification, password reset) is sent through Resend. Market quotes and news may be fetched from public market-data providers (for example Yahoo Finance) so the product can display prices. Those quote requests are not used to sell advertising about you.',
+        'DNS and the redirect from kreptonanalytics.com to www are handled by Cloudflare. Cloudflare may process connection metadata (such as IP address) as any HTTPS reverse proxy does. The live site itself is served from Microsoft Azure, as described in Hosting.',
       ],
     },
     {
       id: 'hosting',
       title: '8. Hosting',
       paragraphs: [
-        'The current diploma build may run locally or on a small self-hosted instance. The intended production region is in the EEA (Azure West Europe or Sweden Central). This policy will be updated when hosting is confirmed.',
+        'Production personal data (accounts, portfolio rows, AI quota/cache) is stored in Azure Database for PostgreSQL Flexible Server in North Europe (Ireland, EEA). The API runs on Azure Container Apps in the same region.',
+        'The public website (HTML, CSS, JavaScript, and legal PDFs) is hosted on Azure Static Web Apps. That free-tier region is East US 2. The SPA bundle does not contain your email or holdings; those stay in the EU database and are loaded only after you sign in via the EU API.',
+        'Container images for the API are stored in GitHub Container Registry. Image storage is not a copy of user accounts.',
       ],
     },
     {

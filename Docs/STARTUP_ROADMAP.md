@@ -132,11 +132,11 @@
 
 ### 2.1 GDPR checklist
 
-- [ ] Privacy Policy: что храним (email, hash, сделки, IP/logs), где (желательно EU region), зачем
-- [ ] Право на доступ / экспорт данных (у вас export уже есть — оформить как GDPR data export)
-- [ ] Право на забвение: delete account + подтверждение
-- [ ] Передача в США (Gemini): EU–US DPF / оговорка в Privacy
-- [ ] Минимизация логов (не логировать PII / verification links / токены)
+- [x] Privacy Policy: что храним (email, hash, сделки, IP/logs), где (API+DB North Europe; SWA East US 2 = статика), зачем — `frontend/src/content/privacyPolicy.ts`, PDF от 4 Sep 2026
+- [x] Право на доступ / экспорт данных — Profile export
+- [x] Право на забвение: delete account + подтверждение
+- [x] Передача в США (Gemini + SWA статика): EU–US DPF / оговорка в Privacy
+- [ ] Минимизация логов (не логировать PII / verification links / токены) — код-проход ещё не закрыт как отдельный аудит
 
 ### 2.2 MiFID II / «не советник»
 
@@ -152,7 +152,7 @@
 
 ### 2.4 Hosting note (для текста диплома / Privacy)
 
-Пока локально — ок. В Privacy заранее заложить целевой EU region (Azure West Europe / Sweden Central / Hetzner EU и т.д.).
+- [x] Прод: Azure Postgres + Container Apps в **North Europe**; Static Web Apps **East US 2** (нет пользовательской БД); Cloudflare DNS; описано в Privacy §8.
 
 ---
 
