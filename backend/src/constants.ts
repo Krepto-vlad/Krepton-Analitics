@@ -223,6 +223,7 @@ export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1400;
 export const AI_TICKER_CHAT_FREE_DAILY_LIMIT = 20;
 export const AI_TICKER_CHAT_DISCLAIMER =
   'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
+export const AI_EMPTY_REPLY_ERROR_MESSAGE = 'AI returned an empty response. Please try again.';
 export const AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS = 30;
 export const AI_TICKER_CHAT_MAX_OUTPUT_TOKENS = 1024;
@@ -234,6 +235,14 @@ export const AI_TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS = 4000;
 /** Total history char budget sent to the model; oldest messages are dropped first. */
 export const AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 12000;
 export const AI_TICKER_CHAT_MAX_HISTORY_MESSAGES = 12;
+export const AI_CHAT_TICKER_TYPO_MAX_DISTANCE = 2;
+export const AI_CHAT_TICKER_TYPO_MIN_TICKER_LENGTH = 3;
+/** Relative error vs Krepton quote before a stated price is treated as a hallucination. */
+export const AI_CHAT_FACT_CHECK_PRICE_RELATIVE_TOLERANCE = 0.05;
+export const AI_CHAT_FACT_CHECK_SHARES_ABS_TOLERANCE = 0.0001;
+export const GEMINI_GROUNDING_MAX_SOURCES = 8;
+export const AI_CHAT_FACT_CHECK_MARKER_EN = 'Krepton fact-check:';
+export const AI_CHAT_FACT_CHECK_MARKER_RU = 'Проверка Krepton:';
 
 export const AI_BRIEFING_MACRO_TICKERS = [
   { ticker: 'SPY', label: 'S&P 500' },

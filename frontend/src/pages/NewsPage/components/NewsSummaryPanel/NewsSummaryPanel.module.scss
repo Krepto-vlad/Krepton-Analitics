@@ -386,28 +386,6 @@
   color: $color-foreground-muted;
 }
 
-.sourcesList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-}
-
-.sourceLink {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-1;
-  font-size: $font-size-sm;
-  color: $color-primary;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .sentiment {
   padding: 2px $space-2;
   border-radius: $radius-full;

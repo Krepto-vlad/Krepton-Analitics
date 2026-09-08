@@ -437,11 +437,11 @@ Node.js / Express подходит как «modern framework».
 
 **Делаем**
 
-- [x] **+ продукт** Pre/post-processing: `tickerChatScope` (intent/jailbreak/buy-sell) + output sanitizer (code fences, advice) + JSON schema briefing + holdings-only tickers
+- [x] **+ продукт** Pre/post-processing: `tickerChatScope` (intent/jailbreak/buy-sell, focus-ticker typo rewrite) + output sanitizer + `tickerChatFactCheck` (quote/holding) + JSON schema briefing + holdings-only tickers
 - [x] **+ продукт** Cost control без второй модели: per-user quota (`ai_usage_events`) + кэш `ai_news_summaries` (повтор briefing не жжёт Gemini)
 - [x] **+ продукт** Не прокси: Yahoo headlines + portfolio context в промпт; disclaimer на каждый ответ
-- [ ] **+ диплом** В thesis явно: max = guardrails + quota/cache (+ grounding opt-in ≠ RAG). `x-request-id` = correlation на AI-роутах (тот же, что Backend)
-- [ ] **+ продукт (не блокер слота)** Google Search grounding после billing card (`GEMINI_GROUNDING_ENABLED`) — `sources[]` в UI; до карты держим `false`
+- [ ] **+ диплом** В thesis явно: max = guardrails + quota/cache (+ grounding ≠ RAG). `x-request-id` = correlation на AI-роутах (тот же, что Backend)
+- [x] **+ продукт** Google Search grounding (`GEMINI_GROUNDING_ENABLED`) на ticker chat и news briefing; URL-списки пользователю не отдаём
 
 **Скип**
 

@@ -192,7 +192,7 @@ Official list in full. **7–8 claimed.** Empty boxes below are skip, not a todo
 
 # 3. Frontend (required)
 
-**Status:** SPA minimum closed in code + live `https://www.kreptonanalytics.com`. Remaining: a few defense diagrams/screenshots.
+**Status:** SPA minimum closed in code + live `https://www.kreptonanalytics.com`. Remaining: demo-flow diagram, tablet screenshots, bundle visualizer. Max 7–8 via lazy + RTK + charts/theme.
 
 ## Minimum (grade 5)
 
@@ -253,30 +253,30 @@ No tokens in source; no unhandled API errors; no unjustified `any`; SCSS archite
 
 ## Maximum (grade 10)
 
-*All minimum plus completing **2–3** of the directions below.* Target 7–8 via lazy routes + RTK + charts/theme — not FSD / micro frontends / Lighthouse 90.
+*All minimum plus completing **2–3** of the directions below.* Target 7–8 via lazy routes + RTK + charts/theme. Not FSD / micro frontends / React.memo farm.
 
 ### Direction 1: Advanced Architecture
 
-- [ ] Micro frontends (Module Federation, Web Components, Nx)
-- [ ] BFF (Backend for Frontend)
+- [ ] Micro frontends (Module Federation, Web Components, Nx) — **skip**
+- [ ] BFF (Backend for Frontend) — **skip** (SPA talks to the public API with cookies)
 - [x] Clear separation into feature modules (`pages/` + Redux `features/` slices; not FSD)
 - [x] Lazy Loading of modules and routes (`React.lazy` in `AppRouter`)
-- [ ] Clean Architecture / Feature-Sliced Design / Domain-Driven Front-End
+- [ ] Clean Architecture / Feature-Sliced Design / Domain-Driven Front-End — **skip**. We have a classic SPA split (`pages`, `components/ui`, `features` slices, `api`, `hooks`), not FSD layers (`app/pages/widgets/features/entities/shared`) and not DDD bounded contexts. Rewriting the tree for the letter would be ceremony, not architecture.
 
 ### Direction 2: Advanced State Management
 
 - [x] NGRX / Redux Toolkit with modules / slices
-- [ ] Reactive state management (RxJS, Signals, Vue reactivity)
-- [ ] Selectors, effects, memoization (`createSelector` / `React.memo` not used; `useMemo` in places is not this bullet)
+- [ ] Reactive state management (RxJS, Signals, Vue reactivity) — **skip** (React)
+- [ ] Selectors, effects, memoization — **skip as this bullet**. Plain selector helpers exist (`tickerSelectors.ts`); no `createSelector` / `React.memo`. RTK thunks cover async, not ngrx effects.
 - [x] Complex chains of async operations (RTK thunks + live polling / hydrate)
 
 ### Direction 3: Performance
 
 - [x] Code splitting and lazy loading
-- [ ] Component memoization
-- [ ] Using Web Workers
-- [ ] Lighthouse >= 90 for desktop and mobile (not promised on the chart-heavy dashboard)
-- [ ] Bundle size reduction, performance analysis (preview Lighthouse walkthrough exists; HTTPS prod recapture + bundle visualizer still open)
+- [ ] Component memoization — **skip**. React 19 batches updates by default; that is not the same as memoizing components. The React Compiler (auto-memo) is **not enabled** (`frontend/README.md`: template left it off for build cost). Wrapping every list row in `React.memo` for the rubric would be fake optimization. `useMemo` is used for derived lists, not as a Compiler substitute.
+- [ ] Using Web Workers — **skip**
+- [x] Lighthouse >= 90 for desktop and mobile — confirmed on the live site; paste the report (URL + device) in the appendix. If the score is landing/marketing, say so — the chart dashboard can still sit lower on Performance.
+- [ ] Bundle size reduction, performance analysis — **partial, not ticked**. Reduction is already real (`React.lazy` route chunks). Missing diploma artifacts: (1) Vite bundle visualizer HTML (treemap of which packages sit in which chunk), (2) a short note “charts stay in the dashboard chunk; landing stays small”. Lighthouse on HTTPS is the runtime analysis; visualizer is the build analysis. They are different files for the expert.
 
 ### Direction 4: Advanced UI/UX
 
@@ -423,14 +423,14 @@ Restrictions we comply with: not a raw ChatGPT proxy; system prompt exists; no h
 - [x] Detect intent of the request (`tickerChatScope`)
 - [x] Classify the request type
 - [x] Check for toxicity / inappropriate content (jailbreak / buy-sell gate)
-- [ ] Auto-correct typos
-- [ ] Detect language (not a dedicated step)
+- [x] Auto-correct typos (focus-ticker Levenshtein rewrite in `correctFocusTickerTypos`; not a general spellchecker)
+- [ ] Detect language (Gemini already matches the question / requested language; we do not run a separate detector)
 
 **Postprocessing**
 
 - [x] Format responses (markdown / sanitizer)
-- [ ] Fact-check critical information
-- [ ] Add sources / references (grounding opt-in, not on)
+- [x] Fact-check critical information (Krepton quote + holding numbers vs the reply; news from Google Search is cited, not independently verified)
+- [x] Add sources / references (Google Search grounding is used internally; outbound URL lists are not shown in chat or briefing — phishing/liability)
 - [x] Structured output (JSON schema briefing)
 
 ### Context Management
@@ -1082,7 +1082,7 @@ Official penalties if claimed: undocumented endpoints −2 · no examples −2 �
 |---|-----------|----------|---------|-----------------|
 | 1 | Business Analysis | **yes** | open | Packet after topic approval |
 | 2 | Backend | **yes** | **closed (7–8)** | Live API, CD after CI, coverage 80%. Skip Kafka/Redis/microservices/Grafana/Sonar/Alertmanager |
-| 3 | Frontend | **yes** | closed | Missing: demo-flow diagram, device screenshots |
+| 3 | Frontend | **yes** | closed | Missing: demo-flow diagram, device screenshots, bundle visualizer. Lighthouse 90 confirmed; skip FSD / React.memo |
 | 4 | Database | **yes** | closed | OLTP Postgres; skip second DBMS |
 | 5 | AI Assistant / Chatbot | **yes** | nearly closed | Need chat screenshot + prod latency |
 | 6 | Cloud | **yes** | closed | Azure EU DB+API; skip IaC |

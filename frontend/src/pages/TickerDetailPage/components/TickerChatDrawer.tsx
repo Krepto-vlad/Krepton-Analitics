@@ -6,26 +6,33 @@ import {
   useState,
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactElement,
 } from 'react';
-import { Loader2, MessageSquare, SendHorizontal, X } from 'lucide-react';
+import { CircleHelp, Loader2, MessageSquare, SendHorizontal, X } from 'lucide-react';
 import { fetchTickerChatQuota, sendTickerChatMessage } from '../../../api/portfolioApi';
 import { ChatMarkdown } from '../../../components/ChatMarkdown/ChatMarkdown';
 import {
   APP_SHELL_HEADER_HEIGHT_PX,
   ERROR_MESSAGES,
   LOADING_MESSAGES,
-  TICKER_CHAT_DISCLAIMER,
   TICKER_CHAT_DRAWER_MAX_WIDTH_PX,
   TICKER_CHAT_DRAWER_MIN_WIDTH_PX,
+  TICKER_CHAT_FACT_CHECK_CORRECTED_LABEL,
+  TICKER_CHAT_INCLUDE_HOLDING_LABEL,
+  TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY,
+  TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP,
   TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS,
   TICKER_CHAT_MAX_HISTORY_MESSAGES,
   TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS,
   TICKER_CHAT_MAX_MESSAGE_CHARS,
+  TICKER_CHAT_QUOTE_CHECKED_LABEL,
   TICKER_CHAT_SUGGESTION_PROMPTS,
   TICKER_CHAT_SUGGESTIONS_MARQUEE_DURATION_SEC,
+  TICKER_CHAT_WEB_SEARCH_LABEL,
 } from '../../../constants';
 import type {
   AiQuotaStatus,
+  TickerChatFactCheck,
   TickerChatHistoryMessage,
   TickerChatUiMessage,
 } from '../../../types/ai.types';
@@ -65,6 +72,72 @@ function formatQuotaLabel(quota: AiQuotaStatus | null): string {
   }
 
   return `${quota.remaining}/${quota.limit} left today`;
+}
+
+function readIncludeHoldingContext(): boolean {
+  try {
+    return sessionStorage.getItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeIncludeHoldingContext(value: boolean): void {
+  try {
+    sessionStorage.setItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY, value ? 'true' : 'false');
+  } catch {
+    // Private-mode storage can throw; the in-memory checkbox still works.
+  }
+}
+
+function formatChatMoney(currency: string, amount: number): string {
+  return `${currency} ${amount.toFixed(2)}`;
+}
+
+function formatChatPercent(value: number): string {
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${value.toFixed(2)}%`;
+}
+
+function formatFactCheckQuote(factCheck: TickerChatFactCheck): string | null {
+  if (
+    factCheck.livePrice === null ||
+    factCheck.currency === null ||
+    factCheck.changePercent === null
+  ) {
+    return null;
+  }
+
+  const quoteLine = `${formatChatMoney(factCheck.currency, factCheck.livePrice)} (${formatChatPercent(factCheck.changePercent)})`;
+  if (factCheck.shares === null || factCheck.avgBuyPrice === null) {
+    return quoteLine;
+  }
+
+  return `${quoteLine} · ${factCheck.shares} sh @ ${formatChatMoney(factCheck.currency, factCheck.avgBuyPrice)}`;
+}
+
+function AssistantMessageMeta({ message }: { message: TickerChatUiMessage }): ReactElement | null {
+  if (message.role !== 'assistant') {
+    return null;
+  }
+
+  const quoteLabel = message.factCheck ? formatFactCheckQuote(message.factCheck) : null;
+  if (!quoteLabel) {
+    return null;
+  }
+
+  return (
+    <p className={styles.factCheckBar}>
+      <span className={styles.factCheckLabel}>{TICKER_CHAT_QUOTE_CHECKED_LABEL}</span>
+      <span>{quoteLabel}</span>
+      {message.groundingEnabled ? (
+        <span className={styles.webSearchBadge}>{TICKER_CHAT_WEB_SEARCH_LABEL}</span>
+      ) : null}
+      {message.factCheck?.corrected ? (
+        <span className={styles.factCheckCorrected}>{TICKER_CHAT_FACT_CHECK_CORRECTED_LABEL}</span>
+      ) : null}
+    </p>
+  );
 }
 
 function truncateChatText(content: string, maxChars: number): string {
@@ -148,6 +221,8 @@ export function TickerChatDrawer({
   const [quota, setQuota] = useState<AiQuotaStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [includeHoldingContext, setIncludeHoldingContext] = useState(readIncludeHoldingContext);
+  const holdingHelpTooltipId = `${titleId}-holding-help`;
   const isQuotaPending = quota === null && error === null;
 
   const suggestionPrompts = buildSuggestionPrompts(ticker);
@@ -331,6 +406,7 @@ export function TickerChatDrawer({
         ticker,
         message: trimmedMessage,
         history,
+        includeHoldingContext,
       });
 
       setMessages((current) => [
@@ -339,6 +415,8 @@ export function TickerChatDrawer({
           id: createMessageId(),
           role: 'assistant',
           content: response.reply,
+          groundingEnabled: response.groundingEnabled,
+          factCheck: response.factCheck,
         },
       ]);
       setQuota(response.quota);
@@ -522,6 +600,7 @@ export function TickerChatDrawer({
                   ) : (
                     <p className={styles.messageContent}>{message.content}</p>
                   )}
+                  <AssistantMessageMeta message={message} />
                 </div>
               ))
             )}
@@ -547,6 +626,38 @@ export function TickerChatDrawer({
           {error && <p className={styles.errorText}>{error}</p>}
 
           <form className={styles.composer} onSubmit={(event) => void handleSubmit(event)}>
+            <div className={styles.contextToggleRow}>
+              <label className={styles.contextToggle}>
+                <input
+                  type="checkbox"
+                  checked={includeHoldingContext}
+                  onChange={(event) => {
+                    const nextValue = event.target.checked;
+                    setIncludeHoldingContext(nextValue);
+                    writeIncludeHoldingContext(nextValue);
+                  }}
+                  disabled={isSending}
+                />
+                <span>{TICKER_CHAT_INCLUDE_HOLDING_LABEL}</span>
+              </label>
+              <span className={styles.contextToggleHelpWrap}>
+                <button
+                  type="button"
+                  className={styles.contextToggleHelpButton}
+                  aria-label="Position sharing help"
+                  aria-describedby={holdingHelpTooltipId}
+                >
+                  <CircleHelp size={16} />
+                </button>
+                <span
+                  id={holdingHelpTooltipId}
+                  role="tooltip"
+                  className={styles.contextToggleTooltip}
+                >
+                  {TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP}
+                </span>
+              </span>
+            </div>
             <textarea
               className={styles.input}
               value={draftMessage}
@@ -576,7 +687,6 @@ export function TickerChatDrawer({
               </button>
             </div>
             <AiGeneratedNotice />
-            <p className={styles.disclaimer}>{TICKER_CHAT_DISCLAIMER}</p>
           </form>
         </div>
       </aside>

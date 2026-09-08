@@ -1,4 +1,5 @@
 import {
+  AI_EMPTY_REPLY_ERROR_MESSAGE,
   AI_TICKER_CHAT_DISCLAIMER,
   AI_TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS,
   AI_TICKER_CHAT_MAX_HISTORY_MESSAGES,
@@ -24,7 +25,16 @@ import { assertValidTickerSymbol, TICKER_FORMAT_ERROR_MESSAGE } from '../utils/t
 import { assertAiQuotaAvailable, getAiQuotaStatus, recordAiUsage } from './aiQuotaService.js';
 import { generateTickerChatReplyWithGemini } from './geminiClient.js';
 import { getCachedStockQuote } from './quoteCacheService.js';
-import { evaluateTickerChatInputScope } from './tickerChatScope.js';
+import {
+  applyTickerChatFactCheck,
+  buildEmptyTickerChatFactCheck,
+  buildSnapshotTickerChatFactCheck,
+} from './tickerChatFactCheck.js';
+import {
+  applyTickerChatOutputGuardrails,
+  evaluateTickerChatInputScope,
+  stripTickerChatOutboundLinks,
+} from './tickerChatScope.js';
 
 const TICKER_CHAT_FEATURE = 'ticker_chat' as const;
 const HISTORY_TRUNCATION_SUFFIX = '…';
@@ -127,6 +137,7 @@ function normalizeTickerChatDto(rawBody: unknown): {
   ticker: string;
   message: string;
   history: TickerChatHistoryMessage[];
+  includeHoldingContext: boolean;
 } {
   if (!rawBody || typeof rawBody !== 'object') {
     throw new AppError(400, 'Request body is required');
@@ -145,6 +156,7 @@ function normalizeTickerChatDto(rawBody: unknown): {
     ticker,
     message: normalizeMessageContent(body.message, 'message'),
     history: normalizeHistory(body.history),
+    includeHoldingContext: body.includeHoldingContext === true,
   };
 }
 
@@ -193,7 +205,7 @@ export async function sendTickerChatMessage(
   userId: string,
   rawBody: unknown
 ): Promise<TickerChatResponse> {
-  const { ticker, message, history } = normalizeTickerChatDto(rawBody);
+  const { ticker, message, history, includeHoldingContext } = normalizeTickerChatDto(rawBody);
   const scopeDecision = evaluateTickerChatInputScope(ticker, message);
 
   if (scopeDecision.kind === 'soft_redirect') {
@@ -203,6 +215,9 @@ export async function sendTickerChatMessage(
       reply: scopeDecision.reply,
       disclaimer: AI_TICKER_CHAT_DISCLAIMER,
       quota,
+      sources: [],
+      groundingEnabled: false,
+      factCheck: buildEmptyTickerChatFactCheck(),
     };
   }
 
@@ -213,7 +228,9 @@ export async function sendTickerChatMessage(
 
   await assertAiQuotaAvailable(userId, TICKER_CHAT_FEATURE);
 
-  const holding = await resolveHoldingContext(userId, ticker, quote.price);
+  const holding = includeHoldingContext
+    ? await resolveHoldingContext(userId, ticker, quote.price)
+    : null;
 
   const promptContext: TickerChatPromptContext = {
     ticker,
@@ -224,18 +241,54 @@ export async function sendTickerChatMessage(
     marketState: quote.marketState,
     exchange: quote.exchange,
     holding,
+    includeHoldingContext,
     history,
     userMessage: scopeDecision.userMessage,
   };
 
-  const reply = await generateTickerChatReplyWithGemini(promptContext);
+  const generation = await generateTickerChatReplyWithGemini(promptContext);
+  const guardrail = applyTickerChatOutputGuardrails(
+    ticker,
+    scopeDecision.userMessage,
+    generation.reply
+  );
+
+  const blocked = guardrail.blockedReason !== 'none';
+  const factChecked = blocked
+    ? {
+        reply: guardrail.reply,
+        factCheck: buildSnapshotTickerChatFactCheck({
+          price: quote.price,
+          currency: quote.currency || 'USD',
+          changePercent: quote.changePercent,
+          holding,
+        }),
+      }
+    : applyTickerChatFactCheck({
+        ticker,
+        reply: guardrail.reply,
+        userMessage: scopeDecision.userMessage,
+        price: quote.price,
+        currency: quote.currency || 'USD',
+        changePercent: quote.changePercent,
+        holding,
+      });
+
+  const deliveredReply = stripTickerChatOutboundLinks(factChecked.reply);
+  if (deliveredReply.length === 0) {
+    throw new AppError(502, AI_EMPTY_REPLY_ERROR_MESSAGE);
+  }
+
   await recordAiUsage(userId, TICKER_CHAT_FEATURE);
   const quota = await getAiQuotaStatus(userId, TICKER_CHAT_FEATURE);
 
   return {
     ticker,
-    reply,
+    reply: deliveredReply,
     disclaimer: AI_TICKER_CHAT_DISCLAIMER,
     quota,
+    sources: [],
+    groundingEnabled: blocked ? false : generation.groundingEnabled,
+    factCheck: factChecked.factCheck,
   };
 }

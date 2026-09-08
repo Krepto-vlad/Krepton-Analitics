@@ -147,6 +147,7 @@ function chatContext(overrides: Partial<TickerChatPromptContext> = {}): TickerCh
       currency: 'USD',
       unrealizedPnlPercent: 26.6,
     },
+    includeHoldingContext: true,
     history: [{ role: 'user', content: 'What moved the price?' }],
     userMessage: 'Summarize today',
     ...overrides,
@@ -441,7 +442,11 @@ describe('geminiClient', () => {
       );
 
       await expect(generateTickerChatReplyWithGemini(chatContext())).resolves.toEqual(
-        expect.stringMatching(/Apple/i)
+        expect.objectContaining({
+          reply: expect.stringMatching(/Apple/i),
+          sources: [],
+          groundingEnabled: false,
+        })
       );
     });
 
@@ -450,7 +455,36 @@ describe('geminiClient', () => {
 
       await expect(
         generateTickerChatReplyWithGemini(chatContext({ holding: null, history: [] }))
-      ).resolves.toEqual(expect.stringMatching(/position/i));
+      ).resolves.toEqual(
+        expect.objectContaining({
+          reply: expect.stringMatching(/position/i),
+          groundingEnabled: false,
+        })
+      );
+    });
+
+    it('attaches Google Search and returns sources when grounding is on', async () => {
+      geminiConfig.grounding = true;
+      mockPost.mockResolvedValue(
+        geminiTextResponse('Apple sold off with the market. Not financial advice.', {
+          groundingMetadata: {
+            webSearchQueries: ['AAPL news today'],
+            groundingChunks: [{ web: { uri: 'https://example.com/aapl', title: 'Apple news' } }],
+          },
+        })
+      );
+
+      await expect(generateTickerChatReplyWithGemini(chatContext())).resolves.toEqual({
+        reply: expect.stringMatching(/Apple/i),
+        sources: [{ title: 'Apple news', url: 'https://example.com/aapl' }],
+        groundingEnabled: true,
+      });
+
+      expect(mockPost.mock.calls[0]?.[1]).toEqual(
+        expect.objectContaining({
+          tools: [{ google_search: {} }],
+        })
+      );
     });
   });
 });

@@ -95,6 +95,18 @@ export interface GenerateTickerChatPayload {
   ticker: string;
   message: string;
   history: TickerChatHistoryMessage[];
+  includeHoldingContext: boolean;
+}
+
+export interface TickerChatFactCheck {
+  quoteVerified: boolean;
+  holdingVerified: boolean;
+  corrected: boolean;
+  livePrice: number | null;
+  currency: string | null;
+  changePercent: number | null;
+  shares: number | null;
+  avgBuyPrice: number | null;
 }
 
 export interface TickerChatResponse {
@@ -102,10 +114,15 @@ export interface TickerChatResponse {
   reply: string;
   disclaimer: string;
   quota: AiQuotaStatus;
+  sources: NewsSummarySource[];
+  groundingEnabled: boolean;
+  factCheck: TickerChatFactCheck;
 }
 
 export interface TickerChatUiMessage {
   id: string;
   role: TickerChatRole;
   content: string;
+  groundingEnabled?: boolean;
+  factCheck?: TickerChatFactCheck;
 }

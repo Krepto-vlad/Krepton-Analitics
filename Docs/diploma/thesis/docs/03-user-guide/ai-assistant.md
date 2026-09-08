@@ -21,10 +21,10 @@ Ticker chat shows a quota badge (`remaining/limit left today`) and a processing 
 
 1. Add or import at least one position (optional for chat, required for briefing/P&amp;L context).
 2. Search a ticker and open its page.
-3. Open the AI drawer. Pick a suggestion or type a question (max 1000 characters).
-4. Read the answer **and** the disclaimer. Verify prices with the quote on the same page.
+3. Open the AI drawer. Optionally tick **Include my position** if you want the model to see shares / avg buy / P&amp;L for this ticker (off by default). Pick a suggestion or type a question (max 1000 characters).
+4. Read the answer **and** the AI notice. The **Krepton quote** strip under the reply is the live price/position we trust.
 
-Daily free limits (UTC): **20** chat turns, **5** briefings, **5** alignment explains. Repeating the same briefing the same day uses cache and does not spend another briefing unit.
+Daily free limits (UTC): **20** chat turns, **5** briefings, **5** alignment explains. Repeating the same briefing the same day uses cache and does not spend another briefing unit. If Gemini or Krepton fails (timeout / 502 / 503 / empty reply), that attempt is **not** counted. A successful answer is counted even when we sanitize the text. Retries are still capped by the HTTP rate limit (chat: 30 / 15 min).
 
 ## What it cannot do
 
@@ -47,6 +47,10 @@ Exact example dialogs: [AI dialog appendix](../appendices/ai-dialogs.md).
 | Spinner / sending | Waiting on the API (timeouts become an error, not a hang) |
 | 429 / limit reached | Wait until quota resets, or use cache briefing |
 | 503 AI not configured | Server has no `GEMINI_API_KEY` |
-| Russian questions | Supported; the assistant matches the user language |
+| Russian questions | Supported; Gemini replies in the question language (or the language you ask for) |
+| Ticker typos | Near-miss spellings of the **open** ticker (e.g. `ttwwo` → `TTWO`) are rewritten before Gemini |
+| Krepton quote strip | Live Yahoo quote (and your position if you hold it) checked against the reply |
+| Numbers aligned… | The model stated a different price/position; we appended Krepton figures |
+| Web search | Google Search may run in the background; Krepton does not show outbound source links |
 
 Screenshots (`ticker-chat.png`, `news-briefing.png`) go in `docs/assets/screenshots/` before the expert slot.

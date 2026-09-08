@@ -199,7 +199,7 @@ function buildNewsSummaryResponse(params: {
     ),
     marketDrivers: params.payload.marketDrivers ?? [],
     marketBenchmark: extractSp500Benchmark(params.macroSnapshots),
-    sources: params.payload.sources ?? [],
+    sources: [],
     disclaimer: AI_NEWS_SUMMARY_DISCLAIMER,
     fromCache: params.fromCache,
     quota: params.quota,
@@ -256,7 +256,7 @@ export async function generateUserNewsSummary(
 
   const cachePayload: CachedBriefingPayload = {
     ...generationResult.payload,
-    sources: generationResult.sources,
+    sources: [],
     groundingEnabled: generationResult.groundingEnabled,
     includePortfolioContext,
   };

@@ -1,4 +1,4 @@
-export type AiFeatureId = 'news_summary' | 'explain_alignment' | 'import_schema' | 'ticker_chat';
+export type { AiFeatureId } from '../constants.js';
 
 export type NewsSummarySentiment = 'bullish' | 'neutral' | 'bearish';
 
@@ -198,14 +198,33 @@ export interface TickerChatPromptContext {
   marketState: string | null;
   exchange: string | null;
   holding: TickerChatHoldingContext | null;
+  includeHoldingContext: boolean;
   history: TickerChatHistoryMessage[];
   userMessage: string;
+}
+
+export interface TickerChatGenerationResult {
+  reply: string;
+  sources: NewsSummarySource[];
+  groundingEnabled: boolean;
+}
+
+export interface TickerChatFactCheck {
+  quoteVerified: boolean;
+  holdingVerified: boolean;
+  corrected: boolean;
+  livePrice: number | null;
+  currency: string | null;
+  changePercent: number | null;
+  shares: number | null;
+  avgBuyPrice: number | null;
 }
 
 export interface GenerateTickerChatDto {
   ticker: string;
   message: string;
   history?: TickerChatHistoryMessage[];
+  includeHoldingContext?: boolean;
 }
 
 export interface TickerChatResponse {
@@ -213,4 +232,7 @@ export interface TickerChatResponse {
   reply: string;
   disclaimer: string;
   quota: AiQuotaStatus;
+  sources: NewsSummarySource[];
+  groundingEnabled: boolean;
+  factCheck: TickerChatFactCheck;
 }
