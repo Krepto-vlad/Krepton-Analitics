@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useRef, useState } from 'react';
 import {
   TrendingUp,
   LayoutDashboard,
@@ -42,6 +43,18 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isPointerInsideRef = useRef(false);
+  const isFocusInsideRef = useRef(false);
+
+  function setExpanded(nextExpanded: boolean): void {
+    setIsExpanded(nextExpanded);
+    onExpandedChange(nextExpanded);
+  }
+
+  function syncExpandedState(): void {
+    setExpanded(isPointerInsideRef.current || isFocusInsideRef.current);
+  }
 
   const handleLogout = () => {
     dispatch(logoutThunk()).then(() => navigate(ROUTES.LOGIN));
@@ -49,9 +62,25 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
 
   return (
     <aside
-      className={styles.sidebar}
-      onMouseEnter={() => onExpandedChange(true)}
-      onMouseLeave={() => onExpandedChange(false)}
+      className={`${styles.sidebar} ${isExpanded ? styles.expanded : ''}`}
+      onMouseEnter={() => {
+        isPointerInsideRef.current = true;
+        syncExpandedState();
+      }}
+      onMouseLeave={() => {
+        isPointerInsideRef.current = false;
+        syncExpandedState();
+      }}
+      onFocusCapture={() => {
+        isFocusInsideRef.current = true;
+        syncExpandedState();
+      }}
+      onBlurCapture={(event) => {
+        const nextFocusTarget = event.relatedTarget;
+        isFocusInsideRef.current =
+          nextFocusTarget instanceof Node && event.currentTarget.contains(nextFocusTarget);
+        syncExpandedState();
+      }}
     >
       <div className={styles.top}>
         <div
@@ -60,6 +89,7 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.DASHBOARD)}
+          aria-label="Krepton Analytics home"
         >
           <div className={styles.logoIcon}>
             <TrendingUp size={14} aria-hidden="true" />
@@ -76,9 +106,12 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
           return (
             <button
               key={item.route}
+              type="button"
               className={`${styles.navItem} ${isActive ? styles.active : ''}`}
               onClick={() => navigate(item.route)}
               title={item.label}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
             >
               <span className={styles.navIcon}>{item.icon}</span>
               <span className={styles.navLabel}>{item.label}</span>
@@ -103,6 +136,7 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
           </div>
         </button>
         <button
+          type="button"
           className={styles.logoutButton}
           onClick={handleLogout}
           title="Logout"

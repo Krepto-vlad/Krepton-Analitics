@@ -70,6 +70,12 @@ export function buildTickerDetailPath(ticker: string): string {
 /** Keep in sync with backend TICKER_FORMAT_PATTERN. */
 export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
 
+export const HTTP_STATUS_NOT_FOUND = 404;
+
+export function formatTickerNotFoundMessage(ticker: string): string {
+  return `No ticker named ${ticker.trim().toUpperCase()} was found.`;
+}
+
 /** React Router location.state flag: scroll landing page to #features after navigation. */
 export const LANDING_SCROLL_TO_FEATURES_STATE = { scrollToFeatures: true } as const;
 

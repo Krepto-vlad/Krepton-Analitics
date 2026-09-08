@@ -31,6 +31,7 @@ import type {
 } from '../../../types/ai.types';
 import { getRejectedMessage } from '../../../utils/apiError';
 import { toCssCustomProperties } from '../../../utils/cssCustomProperties';
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
 import { AiGeneratedNotice, Skeleton } from '../../../components/ui';
 import styles from './TickerChatDrawer.module.scss';
 
@@ -132,6 +133,7 @@ export function TickerChatDrawer({
   onResizingChange,
 }: TickerChatDrawerProps) {
   const titleId = useId();
+  const drawerRef = useRef<HTMLElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const suggestionsViewportRef = useRef<HTMLDivElement>(null);
   const suggestionsTrackRef = useRef<HTMLDivElement>(null);
@@ -151,24 +153,6 @@ export function TickerChatDrawer({
   const suggestionPrompts = buildSuggestionPrompts(ticker);
   /** Duplicate for a seamless CSS marquee loop. */
   const marqueePrompts = [...suggestionPrompts, ...suggestionPrompts];
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        setAreSuggestionsPaused(false);
-        onOpenChange(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onOpenChange]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -266,6 +250,13 @@ export function TickerChatDrawer({
     setError(null);
     onOpenChange(false);
   }
+
+  useFocusTrap({
+    containerRef: drawerRef,
+    isActive: isOpen,
+    onEscape: handleCloseChat,
+    lockBodyScroll: false,
+  });
 
   function handleResizePointerDown(event: ReactPointerEvent<HTMLDivElement>): void {
     if (!isOpen) {
@@ -388,7 +379,10 @@ export function TickerChatDrawer({
           onWidthChange(clampDrawerWidth(widthPx));
           onOpenChange(true);
         }}
+        tabIndex={isOpen ? -1 : undefined}
+        aria-hidden={isOpen}
         aria-label={`Open AI chat about ${ticker}`}
+        aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls={titleId}
       >
@@ -396,11 +390,16 @@ export function TickerChatDrawer({
       </button>
 
       <aside
+        ref={drawerRef}
         id={titleId}
         className={`${styles.drawer} ${isOpen ? styles.drawerOpen : ''} ${isResizing ? styles.drawerResizing : ''}`}
         style={drawerStyle}
+        role="dialog"
+        aria-modal={isOpen}
         aria-hidden={!isOpen}
         aria-labelledby={`${titleId}-label`}
+        tabIndex={-1}
+        {...(!isOpen ? { inert: true } : {})}
       >
         <div
           className={styles.resizeHandle}
@@ -474,18 +473,24 @@ export function TickerChatDrawer({
             }}
           >
             <div ref={suggestionsTrackRef} className={styles.suggestionsTrack}>
-              {marqueePrompts.map((prompt, index) => (
-                <button
-                  key={`${prompt}-${index}`}
-                  type="button"
-                  className={styles.suggestionChip}
-                  onClick={() => handleSuggestionClick(prompt)}
-                  disabled={isSending}
-                  title={prompt}
-                >
-                  {prompt}
-                </button>
-              ))}
+              {marqueePrompts.map((prompt, index) => {
+                const isDuplicateChip = index >= suggestionPrompts.length;
+
+                return (
+                  <button
+                    key={`${prompt}-${index}`}
+                    type="button"
+                    className={styles.suggestionChip}
+                    onClick={() => handleSuggestionClick(prompt)}
+                    disabled={isSending}
+                    title={prompt}
+                    tabIndex={isDuplicateChip ? -1 : undefined}
+                    aria-hidden={isDuplicateChip}
+                  >
+                    {prompt}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -550,12 +555,18 @@ export function TickerChatDrawer({
               maxLength={TICKER_CHAT_MAX_MESSAGE_CHARS}
               rows={3}
               disabled={isSending}
+              aria-label={`Message about ${ticker}`}
             />
             <div className={styles.composerFooter}>
               <span className={styles.charCount}>
                 {draftMessage.length}/{TICKER_CHAT_MAX_MESSAGE_CHARS}
               </span>
-              <button type="submit" className={styles.sendButton} disabled={!canSend}>
+              <button
+                type="submit"
+                className={styles.sendButton}
+                disabled={!canSend}
+                aria-label="Send message"
+              >
                 {isSending ? (
                   <Loader2 size={16} className={styles.spinner} />
                 ) : (

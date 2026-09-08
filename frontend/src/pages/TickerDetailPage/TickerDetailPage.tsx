@@ -440,6 +440,18 @@ export function TickerDetailPage() {
     );
   }
 
+  if (!isLoadingQuote && !quote && error) {
+    return (
+      <div className={styles.page}>
+        <Link to={ROUTES.DASHBOARD} className={styles.backLink}>
+          <ArrowLeft size={16} />
+          Back to dashboard
+        </Link>
+        <ErrorBanner message={error} />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.layout}>
       <div
@@ -724,7 +736,7 @@ export function TickerDetailPage() {
         </div>
       </div>
 
-      {!isInitialLoading && (
+      {!isInitialLoading && quote ? (
         <TickerChatDrawer
           key={ticker}
           ticker={ticker}
@@ -735,7 +747,7 @@ export function TickerDetailPage() {
           onWidthChange={handleChatWidthChange}
           onResizingChange={handleChatResizingChange}
         />
-      )}
+      ) : null}
     </div>
   );
 }

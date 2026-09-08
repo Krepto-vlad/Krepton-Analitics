@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId, useRef } from 'react';
 import { Loader } from 'lucide-react';
 import { Button, Select, ErrorBanner } from '../../../../components/ui';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
+import { useFocusTrap } from '../../../../hooks/useFocusTrap';
 import { closePositionThunk } from '../../../../features/portfolio/portfolioSlice';
 import { fetchStockQuote } from '../../../../api/stockApi';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
@@ -29,6 +30,8 @@ function ClosePositionModalForm({
   onClose: () => void;
 }) {
   const dispatch = useAppDispatch();
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const [sharesToSell, setSharesToSell] = useState(position.shares.toString());
   const [pricePerShare, setPricePerShare] = useState('');
@@ -53,13 +56,11 @@ function ClosePositionModalForm({
       .finally(() => setIsPriceLoading(false));
   }, [position.ticker, position.currentPrice]);
 
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  useFocusTrap({
+    containerRef: dialogRef,
+    isActive: true,
+    onEscape: onClose,
+  });
 
   const parsedShares = parseFloat(sharesToSell);
   const parsedPrice = parseFloat(pricePerShare);
@@ -105,11 +106,19 @@ function ClosePositionModalForm({
 
   return (
     <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Close position">
-        {/* Header */}
+      <div
+        ref={dialogRef}
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
         <div className={styles.header}>
           <div>
-            <h2 className={styles.title}>Close Position</h2>
+            <h2 id={titleId} className={styles.title}>
+              Close Position
+            </h2>
             <p className={styles.subtitle}>
               {position.ticker} · {position.companyName}
             </p>

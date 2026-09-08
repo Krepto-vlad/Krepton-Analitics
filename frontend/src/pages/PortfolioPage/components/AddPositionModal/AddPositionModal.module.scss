@@ -26,6 +26,10 @@
   max-width: 480px;
   box-shadow: 0 32px 96px rgba(0, 0, 0, 0.5);
   position: relative;
+
+  &:focus {
+    outline: none;
+  }
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────

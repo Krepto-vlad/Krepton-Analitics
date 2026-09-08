@@ -79,6 +79,22 @@
   overflow-y: auto;
 }
 
+.emptyMessage {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: $z-dropdown;
+  margin: 0;
+  padding: $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface-elevated;
+  box-shadow: $shadow-md;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+}
+
 .dropdownItem {
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
