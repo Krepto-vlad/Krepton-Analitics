@@ -15,17 +15,19 @@
 
 ---
 
+
+
 ## Фазы (обзор)
 
 
-| Фаза  | Фокус                                | Для диплома        | Для стартапа               | Когда                                  |
-| ----- | ------------------------------------ | ------------------ | -------------------------- | -------------------------------------- |
-| **0** | Legal skeleton (минимум)             | ✅ обязательно      | ✅ доверие                  | Сейчас, параллельно с фичами           |
-| **1** | Product features (AI, theme, polish) | ✅ демо / новизна   | 🟡 ценность                | Сейчас → ближайшие недели              |
-| **2** | Full EU / GDPR pass                  | ✅ глава / защита   | ✅ запуск в EU              | После основного feature-freeze диплома |
-| **3** | Testing & security                   | ✅ качество         | ✅ не стыдно отдавать людям | Перекрывается с концом 1–2             |
-| **4** | Soft deploy + friend beta            | ✅ «живой» продукт (2026-09-02) | 🟡 friend beta — следующий шаг | Готово                     |
-| **5** | Startup hardening (после защиты)     | —                  | ✅ платежи, SMTP, retention | После диплома / soft launch            |
+| Фаза  | Фокус                                | Для диплома                    | Для стартапа                   | Когда                                  |
+| ----- | ------------------------------------ | ------------------------------ | ------------------------------ | -------------------------------------- |
+| **0** | Legal skeleton (минимум)             | ✅ обязательно                  | ✅ доверие                      | Сейчас, параллельно с фичами           |
+| **1** | Product features (AI, theme, polish) | ✅ демо / новизна               | 🟡 ценность                    | Сейчас → ближайшие недели              |
+| **2** | Full EU / GDPR pass                  | ✅ глава / защита               | ✅ запуск в EU                  | После основного feature-freeze диплома |
+| **3** | Testing & security                   | ✅ качество                     | ✅ не стыдно отдавать людям     | Перекрывается с концом 1–2             |
+| **4** | Soft deploy + friend beta            | ✅ «живой» продукт (2026-09-02) | 🟡 friend beta — следующий шаг | Готово                                 |
+| **5** | Startup hardening (после защиты)     | —                              | ✅ платежи, SMTP, retention     | После диплома / soft launch            |
 
 
 ```text
@@ -45,6 +47,8 @@
 
 ---
 
+
+
 ## **Phase 0 — Legal skeleton (минимум GDPR / MiFID-safe)**
 
 **Делать коротко, не ждать конца разработки.**
@@ -59,6 +63,8 @@
 
 ---
 
+
+
 ## Phase 1 — Features (диплом + будущий продукт)
 
 Продолжаем фичи, которые **и на защите звучат сильно, и потом остаются в продукте**.
@@ -72,6 +78,8 @@
 - [x] Смена темы — Stage 5: Welcome / Landing
 - [ ] Onboarding empty-states → путь «Add position / Import report» (уже начато)
 - [x] Спокойный UX: меньше «казино», больше monthly check (allocation, drift, equity)
+
+
 
 ### 1.2 AI (только честные use-cases)
 
@@ -97,7 +105,7 @@
   - Charles Schwab / Fidelity (если удастся найти публичные/свои выгрузки)
   - eToro / другие EU-брокеры по возможности
   - «ломаные» варианты: лишние колонки, currency в price (`USD 340.61`), нет отдельной Currency, переименованные headers, дивиденды/cash rows
-- [ ] Хранить только **анонимизированные** копии (убрать account id / имя / IBAN); не коммитить PII. Идеально — `Docs/statements/` + gitignore на сырые файлы, в репо — маленькие synthetic fixtures для CI
+- [x] Хранить только **анонимизированные** копии (убрать account id / имя / IBAN); не коммитить PII. Идеально — `Docs/statements/` + gitignore на сырые файлы, в репо — маленькие synthetic fixtures для CI
 - [ ] На каждый файл зафиксировать результат в таблице (можно в issue / Notion / этот же раздел):
 
   | Файл / брокер | Формат   | Mode (heuristic / ai_schema) | Trades ok? | Проблемы | Нужен фикс? |
@@ -118,13 +126,17 @@
 1. **Deposit-based rebalancing** («куда положить $1000 без продаж») — главный retention-кандидат
 2. ~~**ETF overlap / false diversification**~~ — qualitative check inside Explain my alignment (no full ETF look-through yet)
 
+
+
 ### 1.4 Engineering hygiene (внутри фазы фич)
 
-- [ ] Юнит-тесты на новую логику сразу (auth, rebalancing math, money display, parsers)
+- [x] Юнит-тесты на новую логику сразу (auth, rebalancing math, money display, parsers)
 - [ ] Не копить magic / мёртвые mock-данные на дашборде
 - [ ] Проверка: баланс / equity / P&L согласованы (см. заметку в ВозможныеФичи)
 
 ---
+
+
 
 ## Phase 2 — Full app review под законы Европы
 
@@ -138,11 +150,15 @@
 - [x] Передача в США (Gemini + SWA статика): EU–US DPF / оговорка в Privacy
 - [ ] Минимизация логов (не логировать PII / verification links / токены) — код-проход ещё не закрыт как отдельный аудит
 
+
+
 ### 2.2 MiFID II / «не советник»
 
 - [ ] Rebalancing UI = калькулятор отклонений, без императива «купи N акций X»
 - [ ] AI copy review: убрать любые buy/sell формулировки
 - [ ] Дисклеймеры на всех чувствительных экранах
+
+
 
 ### 2.3 EU AI Act (limited risk)
 
@@ -150,13 +166,19 @@
 - [ ] Ошибка/галлюцинация disclaimer под AI-блоками
 - [ ] Quota / cache (уже есть задел) — держать предсказуемые лимиты
 
+
+
 ### 2.4 Hosting note (для текста диплома / Privacy)
 
 - [x] Прод: Azure Postgres + Container Apps в **North Europe**; Static Web Apps **East US 2** (нет пользовательской БД); Cloudflare DNS; описано в Privacy §8.
 
 ---
 
+
+
 ## Phase 3 — Testing & security
+
+
 
 ### 3.1 Unit → integration
 
@@ -164,6 +186,8 @@
 - [ ] Frontend: selectors, money display, critical reducers
 - [ ] API integration smoke (Jest / supertest там, где уже принято в репо)
 - [ ] **Import regression:** прогнать корпус из §1.2.1 (все собранные statements) + обновить таблицу результатов
+
+
 
 ### 3.2 Security pass (диплом + стартап)
 
@@ -174,6 +198,8 @@
 - [ ] Secrets: `.env` не в git, пример в `.env.example`
 - [ ] Threat model light: session fixation, IDOR по portfolio owner token, mass assignment
 
+
+
 ### 3.3 Manual / diploma demo script
 
 - [ ] Сценарий защиты: register → verify → import/add → dashboard → rebalancing → AI explain → export → delete
@@ -181,7 +207,11 @@
 
 ---
 
+
+
 ## Phase 4 — Deploy (готово) + friend beta
+
+
 
 ### 4.1 Когда деплоили
 
@@ -195,17 +225,21 @@
 - [x] CD: GitHub Actions автодеплой на push в `main` (build → GHCR → Container Apps + Static Web Apps)
 - [x] Rate limiting (defense-in-depth) на все `GET /portfolio/*` — 120 req/min на пользователя
 
+
+
 ### 4.2 Cost-aware Azure — что взяли фактически
 
 Цель была **~€10/мес или меньше**; итоговый выбор:
 
-| Компонент     | Что взяли                                                                             |
+
+| Компонент     | Что взяли                                                                              |
 | ------------- | -------------------------------------------------------------------------------------- |
 | App (API)     | Azure Container Apps, scale-to-zero (North Europe) — не платим, когда никто не заходит |
 | DB            | Azure Database for PostgreSQL Flexible Server, smallest Burstable SKU (North Europe)   |
 | Static FE     | Azure Static Web Apps, free tier (East US 2 — единственный вариант free-плана)         |
 | SMTP          | Resend free tier + свой домен                                                          |
 | Observability | Azure Log stream (pino JSON stdout) + Container Apps Portal metrics                    |
+
 
 Пауза/экономия: см. [Cost & Idle Runbook в deployment.md](diploma/thesis/docs/02-technical/deployment.md#cost--idle-runbook) — останавливать нужно только Postgres Flexible Server, Container Apps и Static Web Apps уже ничего не стоят в простое.
 
@@ -216,6 +250,8 @@
 - GHCR требует lowercase repo name; health probes указывали на порт 80 вместо 3001; SWA без `staticwebapp.config.json` 404-ит на прямых ссылках; Google OAuth `origin_mismatch` без прод-домена в Authorized origins.
 - **Критичный:** бесконечный polling-луп на Screener и Backtesting для новых аккаунтов с пустым watchlist/портфелем (135 req/sec) — нашли только на реальном новом аккаунте в проде. Пофикшено + добавлен rate limiter как защита на будущее.
 
+
+
 ### 4.4 Friend beta (следующий шаг)
 
 - [ ] 3–10 знакомых инвесторов / «почти инвесторов»
@@ -224,6 +260,8 @@
 - [ ] Завести простой feedback log (Notion / issue labels: `ux`, `bug`, `data`, `import`)
 
 ---
+
+
 
 ## Phase 5 — После защиты (настоящий soft startup)
 
@@ -237,7 +275,11 @@
 
 ---
 
+
+
 ## Definition of Done по горизонтам
+
+
 
 ### Diploma-ready
 
@@ -246,6 +288,8 @@
 - Тесты на критичную логику + security notes в Docs  
 - Честные цифры (без mock equity на пустом аккаунте)
 
+
+
 ### Soft-startup-ready (друзья)
 
 - Всё из diploma-ready  
@@ -253,6 +297,8 @@
 - Delete account работает  
 - Импорт: ≥3 разных брокера/формата из корпуса §1.2.1 проходят preview→confirm «с первого раза»  
 - Список багов от 3+ внешних юзеров и приоритеты
+
+
 
 ### Real launch-ready (позже)
 

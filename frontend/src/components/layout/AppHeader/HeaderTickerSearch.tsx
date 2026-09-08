@@ -4,18 +4,36 @@ import { Loader2, Search } from 'lucide-react';
 import { fetchStockSearch } from '../../../api/stockApi';
 import { TickerAvatar } from '../../ui';
 import {
+  ERROR_MESSAGES,
   HEADER_TICKER_SEARCH_INPUT_ID,
   HEADER_TICKER_SEARCH_INPUT_NAME,
   HEADER_TICKER_SEARCH_MAX_RESULTS,
   STOCK_SEARCH_DEBOUNCE_MS,
-  TICKER_FORMAT_PATTERN,
   buildTickerDetailPath,
+  formatTickerNotFoundMessage,
 } from '../../../constants';
 import type { StockSearchResult } from '../../../types/stock.types';
 import styles from './HeaderTickerSearch.module.scss';
 
 function normalizeTickerQuery(query: string): string {
   return query.trim().toUpperCase();
+}
+
+function pickSearchResult(
+  results: StockSearchResult[],
+  query: string
+): StockSearchResult | undefined {
+  const normalizedTicker = normalizeTickerQuery(query);
+  const exactMatch = results.find((result) => result.ticker.toUpperCase() === normalizedTicker);
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  if (results.length === 1) {
+    return results[0];
+  }
+
+  return undefined;
 }
 
 /**
@@ -32,6 +50,8 @@ export function HeaderTickerSearch() {
   const [searchResults, setSearchResults] = useState<StockSearchResult[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [hasResolvedSearch, setHasResolvedSearch] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent): void {
@@ -59,10 +79,28 @@ export function HeaderTickerSearch() {
     setSearchQuery('');
     setSearchResults([]);
     setIsDropdownOpen(false);
+    setHasResolvedSearch(false);
+    setSearchError(null);
+  }
+
+  async function searchTickers(query: string, requestId: number): Promise<StockSearchResult[]> {
+    const results = await fetchStockSearch(query);
+    if (requestId !== searchRequestIdRef.current) {
+      return [];
+    }
+
+    const limitedResults = results.slice(0, HEADER_TICKER_SEARCH_MAX_RESULTS);
+    setSearchResults(limitedResults);
+    setHasResolvedSearch(true);
+    setSearchError(null);
+    setIsDropdownOpen(true);
+    return limitedResults;
   }
 
   function handleSearchChange(query: string): void {
     setSearchQuery(query);
+    setSearchError(null);
+    setHasResolvedSearch(false);
 
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
@@ -85,21 +123,16 @@ export function HeaderTickerSearch() {
         setIsSearchLoading(true);
 
         try {
-          const results = await fetchStockSearch(queryForRequest);
-          if (requestId !== searchRequestIdRef.current) {
-            return;
-          }
-
-          const limitedResults = results.slice(0, HEADER_TICKER_SEARCH_MAX_RESULTS);
-          setSearchResults(limitedResults);
-          setIsDropdownOpen(limitedResults.length > 0);
+          await searchTickers(queryForRequest, requestId);
         } catch {
           if (requestId !== searchRequestIdRef.current) {
             return;
           }
 
           setSearchResults([]);
-          setIsDropdownOpen(false);
+          setHasResolvedSearch(true);
+          setSearchError(ERROR_MESSAGES.STOCK_SEARCH_FAILED);
+          setIsDropdownOpen(true);
         } finally {
           if (requestId === searchRequestIdRef.current) {
             setIsSearchLoading(false);
@@ -113,6 +146,53 @@ export function HeaderTickerSearch() {
     openTickerPage(result.ticker);
   }
 
+  async function submitSearchQuery(): Promise<void> {
+    const queryForRequest = searchQuery.trim();
+    if (queryForRequest.length === 0) {
+      return;
+    }
+
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    const matchedResult = pickSearchResult(searchResults, queryForRequest);
+    if (matchedResult && hasResolvedSearch && !isSearchLoading) {
+      openTickerPage(matchedResult.ticker);
+      return;
+    }
+
+    const requestId = searchRequestIdRef.current + 1;
+    searchRequestIdRef.current = requestId;
+    setIsSearchLoading(true);
+    setSearchError(null);
+
+    try {
+      const results = await searchTickers(queryForRequest, requestId);
+      if (requestId !== searchRequestIdRef.current) {
+        return;
+      }
+
+      const resultToOpen = pickSearchResult(results, queryForRequest);
+      if (resultToOpen) {
+        openTickerPage(resultToOpen.ticker);
+      }
+    } catch {
+      if (requestId !== searchRequestIdRef.current) {
+        return;
+      }
+
+      setSearchResults([]);
+      setHasResolvedSearch(true);
+      setSearchError(ERROR_MESSAGES.STOCK_SEARCH_FAILED);
+      setIsDropdownOpen(true);
+    } finally {
+      if (requestId === searchRequestIdRef.current) {
+        setIsSearchLoading(false);
+      }
+    }
+  }
+
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
     if (event.key === 'Escape') {
       setIsDropdownOpen(false);
@@ -124,17 +204,12 @@ export function HeaderTickerSearch() {
     }
 
     event.preventDefault();
-
-    if (searchResults.length > 0) {
-      openTickerPage(searchResults[0].ticker);
-      return;
-    }
-
-    const normalizedTicker = normalizeTickerQuery(searchQuery);
-    if (TICKER_FORMAT_PATTERN.test(normalizedTicker)) {
-      openTickerPage(normalizedTicker);
-    }
+    void submitSearchQuery();
   }
+
+  const emptyMessage = searchError ? searchError : formatTickerNotFoundMessage(searchQuery);
+  const showEmptyState =
+    isDropdownOpen && !isSearchLoading && hasResolvedSearch && searchResults.length === 0;
 
   return (
     <div className={styles.root} ref={rootRef}>
@@ -149,7 +224,7 @@ export function HeaderTickerSearch() {
           value={searchQuery}
           onChange={(event) => handleSearchChange(event.target.value)}
           onFocus={() => {
-            if (searchResults.length > 0) {
+            if (searchResults.length > 0 || hasResolvedSearch || searchError) {
               setIsDropdownOpen(true);
             }
           }}
@@ -184,6 +259,12 @@ export function HeaderTickerSearch() {
             </li>
           ))}
         </ul>
+      )}
+
+      {showEmptyState && (
+        <div id={listboxId} className={styles.emptyMessage} role="status" aria-live="polite">
+          {emptyMessage}
+        </div>
       )}
     </div>
   );

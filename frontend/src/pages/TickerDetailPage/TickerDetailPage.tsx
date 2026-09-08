@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Moon, Star } from 'lucide-react';
+import { ArrowLeft, Moon, Star, Sun } from 'lucide-react';
 import {
   DEFAULT_INTERVAL,
   DEFAULT_PERIOD,
@@ -37,7 +37,12 @@ import {
 } from '../../features/watchlist/watchlistSlice';
 import { AsyncStatePanel, ErrorBanner, Skeleton, TickerAvatar } from '../../components/ui';
 import { getRejectedMessage } from '../../utils/apiError';
-import { buildTickerMarketSessionView } from '../../utils/marketSession';
+import {
+  buildMarketSessionTooltip,
+  buildTickerMarketSessionView,
+  getMarketSessionBadgeStyle,
+  shouldShowMarketSessionChangeLabel,
+} from '../../utils/marketSession';
 import {
   convertAmountToDisplayCurrency,
   convertAmountWithRate,
@@ -124,6 +129,7 @@ export function TickerDetailPage() {
 
   const ticker = resolveTickerFromRouteParam(rawTicker);
   const isValidTicker = TICKER_FORMAT_PATTERN.test(ticker);
+  const sessionTooltipId = useId();
 
   const [selectedPeriod, setSelectedPeriod] = useState<StockPeriodValue>(
     DEFAULT_PERIOD as StockPeriodValue
@@ -235,6 +241,10 @@ export function TickerDetailPage() {
     () => (quote ? buildTickerMarketSessionView(quote) : null),
     [quote]
   );
+  const marketSessionBadgeStyle = marketSession
+    ? getMarketSessionBadgeStyle(marketSession.normalizedState)
+    : null;
+  const marketSessionTooltip = marketSession ? buildMarketSessionTooltip(marketSession) : '';
 
   const displayCandles = useMemo(() => {
     const chartCurrency =
@@ -440,6 +450,18 @@ export function TickerDetailPage() {
     );
   }
 
+  if (!isLoadingQuote && !quote && error) {
+    return (
+      <div className={styles.page}>
+        <Link to={ROUTES.DASHBOARD} className={styles.backLink}>
+          <ArrowLeft size={16} />
+          Back to dashboard
+        </Link>
+        <ErrorBanner message={error} />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.layout}>
       <div
@@ -502,25 +524,39 @@ export function TickerDetailPage() {
                 </div>
 
                 <div className={styles.priceBlock}>
-                  {quote && marketSession && displayPrice != null ? (
+                  {quote && marketSession && marketSessionBadgeStyle && displayPrice != null ? (
                     <>
                       <div className={styles.priceHeader}>
                         <p className={styles.price}>
                           {formatMoney(displayPrice, quoteMoneyCurrency)}
                         </p>
-                        <span
-                          className={`${styles.sessionBadge} ${
-                            marketSession.normalizedState === 'PRE' ||
-                            marketSession.normalizedState === 'POST'
-                              ? styles.sessionBadgeExtended
-                              : ''
-                          }`}
-                        >
-                          {(marketSession.normalizedState === 'PRE' ||
-                            marketSession.normalizedState === 'CLOSED') && (
-                            <Moon size={12} aria-hidden />
-                          )}
-                          {marketSession.sessionLabel}
+                        <span className={styles.sessionBadgeWrap}>
+                          <button
+                            type="button"
+                            className={`${styles.sessionBadge} ${
+                              marketSessionBadgeStyle.tone === 'open'
+                                ? styles.sessionBadgeOpen
+                                : marketSessionBadgeStyle.tone === 'extended'
+                                  ? styles.sessionBadgeExtended
+                                  : styles.sessionBadgeClosed
+                            }`}
+                            aria-describedby={sessionTooltipId}
+                          >
+                            {marketSessionBadgeStyle.iconKind === 'sun' && (
+                              <Sun size={12} aria-hidden />
+                            )}
+                            {marketSessionBadgeStyle.iconKind === 'moon' && (
+                              <Moon size={12} aria-hidden />
+                            )}
+                            {marketSession.sessionLabel}
+                          </button>
+                          <span
+                            id={sessionTooltipId}
+                            role="tooltip"
+                            className={styles.sessionTooltip}
+                          >
+                            {marketSessionTooltip}
+                          </span>
                         </span>
                       </div>
 
@@ -542,7 +578,10 @@ export function TickerDetailPage() {
                               line.changePercent,
                               quoteMoneyCurrency
                             )}
-                            <span className={styles.changeLabel}>{line.label}</span>
+                            {shouldShowMarketSessionChangeLabel(
+                              line.label,
+                              marketSession.sessionLabel
+                            ) && <span className={styles.changeLabel}>{line.label}</span>}
                           </p>
                         );
                       })}
@@ -724,7 +763,7 @@ export function TickerDetailPage() {
         </div>
       </div>
 
-      {!isInitialLoading && (
+      {!isInitialLoading && quote ? (
         <TickerChatDrawer
           key={ticker}
           ticker={ticker}
@@ -735,7 +774,7 @@ export function TickerDetailPage() {
           onWidthChange={handleChatWidthChange}
           onResizingChange={handleChatResizingChange}
         />
-      )}
+      ) : null}
     </div>
   );
 }

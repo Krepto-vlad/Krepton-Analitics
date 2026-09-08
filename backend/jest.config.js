@@ -1,5 +1,5 @@
-/** Diploma Backend min + Automated tests: Istanbul must stay at or above this percent. */
-const DIPLOMA_COVERAGE_MIN_PERCENT = 70;
+/** Backend min is 70%; Backend max quality gate and this CI threshold are 80%. */
+const DIPLOMA_COVERAGE_MIN_PERCENT = 80;
 
 /** @type {import('jest').Config} */
 module.exports = {

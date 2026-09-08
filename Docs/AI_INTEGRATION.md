@@ -135,14 +135,14 @@ GEMINI_GROUNDING_ENABLED=false
 | Режим | `GEMINI_GROUNDING_ENABLED` | Что получает пользователь |
 |---|---|---|
 | **Default (до демо)** | `false` | Котировки + macro (SPY, QQQ, CL=F, ^VIX) + Yahoo headlines → Gemini без Google Search |
-| **После billing card** | `true` | То же + live web search через `tools: [{ google_search: {} }]` и список `sources` в UI |
+| **После billing card** | `true` | То же + live web search через `tools: [{ google_search: {} }]`. URL-списки в UI не показываем |
 
 **Чеклист перед включением grounding:**
 
 1. Привязать billing card в [Google AI Studio](https://aistudio.google.com/) → Billing.
 2. Установить **Project Spend Cap** ($5–10 достаточно для дипломного POC).
 3. В `backend/.env`: `GEMINI_GROUNDING_ENABLED=true`, перезапустить backend.
-4. Один тестовый briefing на `/news` — проверить badge «Web search» и блок Sources.
+4. Один тестовый briefing на `/news` — проверить badge «Web search» (без блока Sources).
 5. Мониторить usage в AI Studio; app-level лимит 3/day/user остаётся.
 
 Без карты grounding **не включаем** — Gemini 3.x search grounding требует paid tier; free tier продолжает работать с enriched context.
@@ -431,7 +431,7 @@ newsService.getPortfolioNews(tickers)
 - Checkbox «Include my position sizes (shares, avg buy, P&L)» — off by default
 - Badge: «2 of 3 left today»
 - Кнопка Generate → loading spinner
-- Результат: grid карточек holdings (price, % change, sentiment) + секция Market drivers + Sources (если grounding)
+- Результат: grid карточек holdings (price, % change, sentiment) + секция Market drivers. Исходящие URL не показываем.
 - Badge «Cached today» если `fromCache: true`; «Web search» если `groundingEnabled: true`
 - Disclaimer внизу
 
@@ -573,6 +573,7 @@ sequenceDiagram
   participant Q as quoteCacheService
   participant AI as geminiClient
   participant OUT as output guardrails
+  participant FC as tickerChatFactCheck
 
   UI->>API: { ticker, message, history }
   API->>SVC: sendTickerChatMessage
@@ -582,13 +583,15 @@ sequenceDiagram
     SVC-->>UI: reply + quota (без Gemini, без списания)
   else allow / steered
     SVC->>QUOTA: assertAiQuotaAvailable
-    SVC->>Q: quote + optional holding
-    SVC->>AI: generateTickerChatReplyWithGemini
-    AI->>OUT: sanitizeTickerChatReply
-    OUT-->>AI: safe reply or soft replace
-    AI-->>SVC: reply
+    SVC->>Q: quote + optional holding (only if includeHoldingContext)
+    SVC->>AI: generateTickerChatReplyWithGemini (optional google_search)
+    AI-->>SVC: reply + sources
+    SVC->>OUT: applyTickerChatOutputGuardrails
+    OUT-->>SVC: safe reply or soft replace
+    SVC->>FC: applyTickerChatFactCheck (quote / holding)
+    FC-->>SVC: reply ± correction appendix
     SVC->>QUOTA: recordAiUsage
-    SVC-->>UI: reply + disclaimer + quota
+    SVC-->>UI: reply + factCheck + disclaimer + quota
   end
 ```
 
@@ -597,7 +600,7 @@ sequenceDiagram
 | Method | Path | Auth | Описание |
 |---|---|---|---|
 | `GET` | `/api/portfolio/ticker-chat/quota` | JWT cookie | `{ remaining, limit, used, resetsAt }` |
-| `POST` | `/api/portfolio/ticker-chat` | JWT cookie + rate limit | Тело: `{ ticker, message, history[] }` → `{ ticker, reply, disclaimer, quota }` |
+| `POST` | `/api/portfolio/ticker-chat` | JWT cookie + rate limit | Тело: `{ ticker, message, history[] }` → `{ ticker, reply, disclaimer, quota, sources: [], groundingEnabled, factCheck }` |
 
 Rate limit: `AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS` (30 / 15 min).  
 Daily quota: `AI_TICKER_CHAT_FREE_DAILY_LIMIT` = **20** (`AiFeatureId`: `ticker_chat`).
@@ -620,9 +623,9 @@ History на бэке: truncate per message + trim total budget (не hard-fail 
 В system instruction попадают:
 
 - ticker + company name;
-- last quote (price, change %, market state, exchange);
-- optional holding (shares, avg buy, unrealized P&L %) из портфеля пользователя;
-- IN SCOPE / OUT OF SCOPE правила (см. ниже).
+- last quote (price, change %, market state, exchange) as **ground truth**;
+- optional holding (shares, avg buy, unrealized P&L %) **only when** `includeHoldingContext: true` (opt-in checkbox; default off);
+- Google Search instructions when `GEMINI_GROUNDING_ENABLED` (news/catalysts only; quote still wins).
 
 В Gemini **не** уходят email, имена, номера счетов — только обезличенный portfolio context по тикеру.
 
@@ -635,14 +638,16 @@ History на бэке: truncate per message + trim total budget (не hard-fail 
 | **1. Product UX** | Frontend | FAB/drawer только на `/ticker/:ticker`; `key={ticker}` сбрасывает историю при смене бумаги |
 | **2. System prompt** | `geminiClient.buildTickerChatSystemInstruction` | Allowlist (цена, позиция, риски, концепты на этой бумаге) + denylist (код, general chat, buy/sell advice). Mixed request: ответить finance-intent, **не** писать код. Без preachy «as an AI» |
 | **3. Input gate** | `tickerChatScope.evaluateTickerChatInputScope` | Очевидный abuse (стихи, «ты теперь ChatGPT», jailbreak) → soft redirect **без** Gemini и **без** списания квоты. Coding-запросы → steer-суффикс («не пиши код, ответь по рынку/return») и обычный вызов модели |
-| **4. Output guardrail** | `tickerChatScope.applyTickerChatOutputGuardrails` | **После** Gemini, **до** ответа клиенту: если в тексте есть code fences / персональные buy-sell / «гарантии» результата — подмена на короткий soft redirect. Аналитический разбор рисков без указания сделки пропускается |
-| **5. Quota + rate limit** | `aiQuotaService` + Express limiter | Анти-абьюз бесплатного Gemini как «общего чата» |
+| **4. Output guardrail** | `tickerChatScope.applyTickerChatOutputGuardrails` | **После** Gemini, **до** факта-чека: если в тексте есть code fences / персональные buy-sell / «гарантии» результата — подмена на короткий soft redirect. Аналитический разбор рисков без указания сделки пропускается |
+| **5. Fact-check** | `tickerChatFactCheck.applyTickerChatFactCheck` | Сверяет заявленную live-цену и shares с Yahoo-котировкой / позицией Krepton. При противоречии — appendix с нашими цифрами. Новости из Google Search **не** верифицируются построчно |
+| **6. Quota + rate limit** | `aiQuotaService` + Express limiter | Анти-абьюз бесплатного Gemini как «общего чата» |
 
 Ключевые файлы:
 
 - `backend/src/services/tickerChatService.ts` — оркестрация
 - `backend/src/services/tickerChatScope.ts` — input/output guardrails
-- `backend/src/services/geminiClient.ts` — `generateTickerChatReplyWithGemini`
+- `backend/src/services/tickerChatFactCheck.ts` — quote/holding fact-check
+- `backend/src/services/geminiClient.ts` — `generateTickerChatReplyWithGemini` (+ optional `google_search`)
 - `backend/src/__tests__/unit/services/tickerChatScope.test.ts` — unit-тесты паттернов
 - `frontend/.../TickerChatDrawer.tsx` — UI, ephemeral history, truncate history payload
 
@@ -664,7 +669,8 @@ History на бэке: truncate per message + trim total budget (не hard-fail 
 - Header: `AI chat` · `{TICKER} · {company}` · quota badge.
 - Suggestion chips: marquee → на hover пауза + scroll с сохранением позиции; клик сразу шлёт запрос.
 - Composer: textarea 1000 chars, Send, постоянный disclaimer под Send.
-- Ответы ассистента рендерятся как Markdown (`ChatMarkdown`).
+- Ответы ассистента рендерятся как Markdown (`ChatMarkdown`), без кликабельных ссылок.
+- Под ответом: полоска **Krepton quote** (и позиция, если есть), badge **Web search** при grounding. Исходящие URL в чате не показываем.
 
 ### 18.9. Ручная проверка
 

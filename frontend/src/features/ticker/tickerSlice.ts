@@ -9,15 +9,17 @@ import {
   DEFAULT_INTERVAL,
   DEFAULT_PERIOD,
   ERROR_MESSAGES,
+  HTTP_STATUS_NOT_FOUND,
   TICKER_FUNDAMENTALS_CLIENT_CACHE_TTL_MS,
   TICKER_HISTORY_CLIENT_CACHE_TTL_MS,
   TICKER_NEWS_CLIENT_CACHE_TTL_MS,
   TICKER_QUOTE_CLIENT_CACHE_TTL_MS,
+  formatTickerNotFoundMessage,
 } from '../../constants';
 import type { RootState } from '../../store';
 import type { NewsItem } from '../../types/portfolio.types';
 import type { StockCompareItem, StockHistoryResponse, StockQuote } from '../../types/stock.types';
-import { getRejectedMessage } from '../../utils/apiError';
+import { getRejectedMessage, toApiRequestError } from '../../utils/apiError';
 
 export interface CachedTickerQuote {
   data: StockQuote;
@@ -96,7 +98,12 @@ export const fetchTickerQuoteThunk = createAsyncThunk<
   try {
     return await fetchStockQuote(normalizedTicker);
   } catch (error) {
-    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED));
+    const apiError = toApiRequestError(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED);
+    if (apiError.statusCode === HTTP_STATUS_NOT_FOUND) {
+      return rejectWithValue(formatTickerNotFoundMessage(normalizedTicker));
+    }
+
+    return rejectWithValue(apiError.message);
   }
 });
 

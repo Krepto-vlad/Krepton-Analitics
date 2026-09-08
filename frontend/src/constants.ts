@@ -70,6 +70,12 @@ export function buildTickerDetailPath(ticker: string): string {
 /** Keep in sync with backend TICKER_FORMAT_PATTERN. */
 export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
 
+export const HTTP_STATUS_NOT_FOUND = 404;
+
+export function formatTickerNotFoundMessage(ticker: string): string {
+  return `No ticker named ${ticker.trim().toUpperCase()} was found.`;
+}
+
 /** React Router location.state flag: scroll landing page to #features after navigation. */
 export const LANDING_SCROLL_TO_FEATURES_STATE = { scrollToFeatures: true } as const;
 
@@ -181,6 +187,14 @@ export const TICKER_CHAT_MAX_HISTORY_MESSAGES = 12;
 /** Keep in sync with backend AI_TICKER_CHAT_DISCLAIMER. */
 export const TICKER_CHAT_DISCLAIMER =
   'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
+export const TICKER_CHAT_QUOTE_CHECKED_LABEL = 'Krepton quote';
+export const TICKER_CHAT_FACT_CHECK_CORRECTED_LABEL = 'Numbers aligned to the Krepton quote';
+export const TICKER_CHAT_WEB_SEARCH_LABEL = 'Web search';
+export const TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY = 'krepton_ticker_chat_include_holding_v1';
+export const TICKER_CHAT_INCLUDE_HOLDING_LABEL =
+  'Include my position (shares, avg price, unrealized P/L)';
+export const TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP =
+  'Adds your position size, average buy price, and unrealized P/L for this ticker to the AI prompt. Off by default. No email, account IDs, or other personal information is sent.';
 /**
  * Suggestion chips above the chat thread. `{ticker}` is replaced at render time.
  * Keep exactly 8 for a balanced marquee loop.
@@ -211,6 +225,73 @@ export const STOCK_MARKET_SESSION_LABELS = {
   AT_CLOSE: 'At close',
   UNKNOWN: 'Market',
 } as const;
+
+export const STOCK_MARKET_SESSION_TOOLTIP_STATUS = {
+  PRE: 'Premarket trading is active.',
+  REGULAR: 'Regular session is open.',
+  POST: 'After-hours trading is active.',
+  CLOSED: 'Regular session is closed.',
+  UNKNOWN: 'Market session could not be determined.',
+} as const;
+
+export const STOCK_MARKET_SESSION_TIME_PREFIX = {
+  EXCHANGE: 'Exchange time',
+  LOCAL: 'Your time',
+} as const;
+
+/** Shown only when the listing maps to US Eastern time — not a live tape clock. */
+export const STOCK_MARKET_SESSION_US_HOURS_HINT = {
+  PRE: 'Typical premarket: 4:00 AM–9:30 AM ET.',
+  REGULAR: 'Typical regular hours: 9:30 AM–4:00 PM ET.',
+  POST: 'Typical after hours: 4:00 PM–8:00 PM ET.',
+  CLOSED: 'Typical regular hours: 9:30 AM–4:00 PM ET.',
+  UNKNOWN: null,
+} as const;
+
+export const STOCK_US_EASTERN_TIME_ZONE = 'America/New_York';
+
+/** Yahoo exchange codes / full names → IANA zone. Unknown listings fall back to local time. */
+export const STOCK_EXCHANGE_TIME_ZONES: Record<string, string> = {
+  NASDAQGS: STOCK_US_EASTERN_TIME_ZONE,
+  NASDAQGM: STOCK_US_EASTERN_TIME_ZONE,
+  NASDAQCM: STOCK_US_EASTERN_TIME_ZONE,
+  NASDAQ: STOCK_US_EASTERN_TIME_ZONE,
+  NMS: STOCK_US_EASTERN_TIME_ZONE,
+  NGSM: STOCK_US_EASTERN_TIME_ZONE,
+  NGM: STOCK_US_EASTERN_TIME_ZONE,
+  NCM: STOCK_US_EASTERN_TIME_ZONE,
+  NYSE: STOCK_US_EASTERN_TIME_ZONE,
+  NYQ: STOCK_US_EASTERN_TIME_ZONE,
+  NYSEARCA: STOCK_US_EASTERN_TIME_ZONE,
+  PCX: STOCK_US_EASTERN_TIME_ZONE,
+  NYSEAMERICAN: STOCK_US_EASTERN_TIME_ZONE,
+  ASE: STOCK_US_EASTERN_TIME_ZONE,
+  AMEX: STOCK_US_EASTERN_TIME_ZONE,
+  BATS: STOCK_US_EASTERN_TIME_ZONE,
+  BTS: STOCK_US_EASTERN_TIME_ZONE,
+  CBOEBZX: STOCK_US_EASTERN_TIME_ZONE,
+  LONDON: 'Europe/London',
+  LSE: 'Europe/London',
+  XLON: 'Europe/London',
+  XETRA: 'Europe/Berlin',
+  GER: 'Europe/Berlin',
+  FRANKFURT: 'Europe/Berlin',
+  FRA: 'Europe/Berlin',
+  PARIS: 'Europe/Paris',
+  PAR: 'Europe/Paris',
+  AMSTERDAM: 'Europe/Amsterdam',
+  AMS: 'Europe/Amsterdam',
+  TORONTO: 'America/Toronto',
+  TOR: 'America/Toronto',
+  TSE: 'America/Toronto',
+  TOKYO: 'Asia/Tokyo',
+  TYO: 'Asia/Tokyo',
+  JPX: 'Asia/Tokyo',
+  HONGKONG: 'Asia/Hong_Kong',
+  HKSE: 'Asia/Hong_Kong',
+  HKG: 'Asia/Hong_Kong',
+  ASX: 'Australia/Sydney',
+};
 
 export const WS_RECONNECT_DELAY_MS = 3000;
 
@@ -370,9 +451,6 @@ export const ERROR_MESSAGES = {
 
 export const AI_ALIGNMENT_EXPLAIN_SESSION_STORAGE_KEY = 'krepton_ai_alignment_explain_v1';
 export const STRATEGY_DRIFT_ALERT_SESSION_STORAGE_KEY = 'krepton_strategy_drift_alert_dismissed_v1';
-
-/** Allowed URL schemes for Markdown links rendered from AI chat replies. */
-export const SAFE_MARKDOWN_LINK_PROTOCOLS = ['http:', 'https:', 'mailto:'] as const;
 
 export {
   AI_GENERATED_HALLUCINATION_CAVEAT,

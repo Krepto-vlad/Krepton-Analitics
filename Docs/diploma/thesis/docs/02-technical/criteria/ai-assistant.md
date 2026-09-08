@@ -17,7 +17,7 @@ Retail users want news and ticker context without pasting holdings into a public
 Gemini only from the backend (`geminiClient.ts`). Two product surfaces:
 
 1. **News daily briefing** — cached, quota-counted, tickers must belong to the portfolio.
-2. **Ticker AI chat** — one ticker, ephemeral browser history, input scope + output sanitization, no buy/sell instructions.
+2. **Ticker AI chat** — one ticker, ephemeral browser history, input scope + output sanitization + quote/holding fact-check, optional Google Search grounding, no buy/sell instructions.
 
 System prompts, templates, and “what we cannot do” are part of the product, not hidden in the UI.
 
@@ -41,7 +41,7 @@ System prompts, templates, and “what we cannot do” are part of the product, 
 UI (NewsPage / TickerChatDrawer)
   → POST portfolio news/summary or ticker-chat
   → newsSummaryService / tickerChatService
-  → tickerChatScope + output guardrails
+  → tickerChatScope + tickerChatFactCheck + output guardrails
   → aiQuotaService + PostgreSQL cache/usage
   → geminiClient (prompts, optional grounding)
 ```
@@ -73,14 +73,14 @@ Sequence diagrams: keep the mermaid from the engineering note when shortening th
 | 10 | <10 s, ≥10 concurrent, session history | ⚠️ | [ai-lab-latency.md](../../appendices/ai-lab-latency.md) lab 2026-08-19; re-run on staging |
 | 11 | Not a dumb proxy | ✅ | Scope + sanitizer + quota + cache |
 | 12 | Screenshot chat + briefing | ❌ | Before the expert slot |
-| 13 | Max: pre/post + quota/cache | ✅ | `tickerChatScope`, `aiQuotaService`, `ai_news_summaries` |
+| 13 | Max: pre/post + quota/cache | ✅ | `tickerChatScope` + `tickerChatFactCheck`, `aiQuotaService`, `ai_news_summaries` |
 | 14 | Max skip | — | No RAG, MCP≥3, 2 models, SSE, chat-in-DB, multimodal LLM, Grafana tokens |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| Grounding off on free tier | Weaker citations | Enable when billing exists; still not RAG |
+| Grounding off on free tier | Weaker citations | Enable `GEMINI_GROUNDING_ENABLED` after billing; still not RAG |
 | Chat history not persisted | Session-only | Document as privacy choice (anonymous OLTP) |
 | No RAG / MCP / second model / SSE | Expert may ask the max list | ADR in this file: one Gemini, Yahoo context, ephemeral drawer |
 

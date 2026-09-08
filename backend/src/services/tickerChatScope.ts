@@ -1,3 +1,8 @@
+import {
+  AI_CHAT_TICKER_TYPO_MAX_DISTANCE,
+  AI_CHAT_TICKER_TYPO_MIN_TICKER_LENGTH,
+} from '../constants.js';
+
 /**
  * Soft product-scope guardrails for ticker chat.
  * Input heuristics + post-generation output checks (fintech-style)
@@ -56,6 +61,72 @@ export interface TickerChatOutputGuardrailResult {
 
 function prefersRussian(text: string): boolean {
   return /[а-яё]/i.test(text);
+}
+
+function levenshteinDistance(left: string, right: string): number {
+  if (left === right) {
+    return 0;
+  }
+
+  const rows = left.length + 1;
+  const columns = right.length + 1;
+  const distances: number[] = Array.from({ length: rows * columns }, () => 0);
+
+  for (let row = 0; row < rows; row += 1) {
+    distances[row * columns] = row;
+  }
+  for (let column = 0; column < columns; column += 1) {
+    distances[column] = column;
+  }
+
+  for (let row = 1; row < rows; row += 1) {
+    for (let column = 1; column < columns; column += 1) {
+      const substitutionCost = left[row - 1] === right[column - 1] ? 0 : 1;
+      const deletion = distances[(row - 1) * columns + column] + 1;
+      const insertion = distances[row * columns + column - 1] + 1;
+      const substitution = distances[(row - 1) * columns + column - 1] + substitutionCost;
+      distances[row * columns + column] = Math.min(deletion, insertion, substitution);
+    }
+  }
+
+  return distances[left.length * columns + right.length];
+}
+
+function normalizeTickerToken(token: string): string {
+  return token.trim().toUpperCase();
+}
+
+function shouldCorrectTickerToken(ticker: string, token: string): boolean {
+  if (ticker.length < AI_CHAT_TICKER_TYPO_MIN_TICKER_LENGTH) {
+    return false;
+  }
+
+  if (token === ticker) {
+    return false;
+  }
+
+  if (token.length < ticker.length - AI_CHAT_TICKER_TYPO_MAX_DISTANCE) {
+    return false;
+  }
+
+  const distance = levenshteinDistance(token, ticker);
+  return distance > 0 && distance <= AI_CHAT_TICKER_TYPO_MAX_DISTANCE;
+}
+
+/**
+ * Replace near-miss spellings of the focus ticker in the user message.
+ * Does not run a general spellchecker.
+ */
+export function correctFocusTickerTypos(ticker: string, message: string): string {
+  const normalizedTicker = normalizeTickerToken(ticker);
+  if (normalizedTicker.length < AI_CHAT_TICKER_TYPO_MIN_TICKER_LENGTH) {
+    return message;
+  }
+
+  return message.replace(/[A-Za-z0-9.=\-^]+/g, (token) => {
+    const normalizedToken = normalizeTickerToken(token);
+    return shouldCorrectTickerToken(normalizedTicker, normalizedToken) ? normalizedTicker : token;
+  });
 }
 
 function buildCodingRedirect(ticker: string, userMessage: string): string {
@@ -135,22 +206,23 @@ export function evaluateTickerChatInputScope(
   userMessage: string
 ): TickerChatScopeDecision {
   const normalizedMessage = userMessage.trim();
+  const correctedMessage = correctFocusTickerTypos(ticker, normalizedMessage);
 
-  if (GENERAL_ASSISTANT_ABUSE_PATTERN.test(normalizedMessage)) {
+  if (GENERAL_ASSISTANT_ABUSE_PATTERN.test(correctedMessage)) {
     return {
       kind: 'soft_redirect',
-      reply: buildGeneralAbuseRedirect(ticker, normalizedMessage),
+      reply: buildGeneralAbuseRedirect(ticker, correctedMessage),
     };
   }
 
-  if (isCodingRequest(normalizedMessage)) {
+  if (isCodingRequest(correctedMessage)) {
     return {
       kind: 'allow',
-      userMessage: buildCodingSteerMessage(ticker, normalizedMessage),
+      userMessage: buildCodingSteerMessage(ticker, correctedMessage),
     };
   }
 
-  return { kind: 'allow', userMessage: normalizedMessage };
+  return { kind: 'allow', userMessage: correctedMessage };
 }
 
 /**
@@ -188,6 +260,25 @@ export function applyTickerChatOutputGuardrails(
   };
 }
 
+const MARKDOWN_INLINE_LINK_PATTERN = /\[([^\]]+)\]\(\s*https?:\/\/[^)\s]+\s*\)/gi;
+const MARKDOWN_AUTOLINK_PATTERN = /<https?:\/\/[^>\s]+>/gi;
+const BARE_HTTP_URL_PATTERN = /https?:\/\/[^\s<>)\]"'`]+/gi;
+
+/**
+ * Drop outbound URLs so the chat UI never renders third-party links (phishing / liability).
+ * Markdown link labels are kept; bare URLs are removed.
+ */
+export function stripTickerChatOutboundLinks(reply: string): string {
+  return reply
+    .replace(MARKDOWN_INLINE_LINK_PATTERN, '$1')
+    .replace(MARKDOWN_AUTOLINK_PATTERN, '')
+    .replace(BARE_HTTP_URL_PATTERN, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /**
  * Last-line defense before returning a model reply to the client.
  */
@@ -196,5 +287,7 @@ export function sanitizeTickerChatReply(
   userMessage: string,
   reply: string
 ): string {
-  return applyTickerChatOutputGuardrails(ticker, userMessage, reply).reply;
+  return stripTickerChatOutboundLinks(
+    applyTickerChatOutputGuardrails(ticker, userMessage, reply).reply
+  );
 }

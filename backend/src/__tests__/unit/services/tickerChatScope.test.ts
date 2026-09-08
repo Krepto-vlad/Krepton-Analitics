@@ -1,7 +1,9 @@
 import {
   applyTickerChatOutputGuardrails,
+  correctFocusTickerTypos,
   evaluateTickerChatInputScope,
   sanitizeTickerChatReply,
+  stripTickerChatOutboundLinks,
 } from '../../../services/tickerChatScope.js';
 
 describe('tickerChatScope', () => {
@@ -34,6 +36,21 @@ describe('tickerChatScope', () => {
     expect(decision).toEqual({
       kind: 'allow',
       userMessage: 'какие риски у компании сейчас?',
+    });
+  });
+
+  it('corrects near-miss spellings of the focus ticker', () => {
+    expect(correctFocusTickerTypos('TTWO', 'what is ttwwo return?')).toBe('what is TTWO return?');
+    expect(correctFocusTickerTypos('AAPL', 'aaple earnings?')).toBe('AAPL earnings?');
+    expect(correctFocusTickerTypos('TTWO', 'compare with AAPL')).toBe('compare with AAPL');
+  });
+
+  it('rewrites a mistyped ticker in an allowed question', () => {
+    const decision = evaluateTickerChatInputScope('TTWO', 'какие риски у ttwwo сейчас?');
+
+    expect(decision).toEqual({
+      kind: 'allow',
+      userMessage: 'какие риски у TTWO сейчас?',
     });
   });
 
@@ -81,5 +98,13 @@ describe('tickerChatScope', () => {
     expect(result.blockedReason).toBe('none');
     expect(result.reply).toBe(analyticalReply);
     expect(sanitizeTickerChatReply('TTWO', 'что думаешь?', analyticalReply)).toBe(analyticalReply);
+  });
+
+  it('strips outbound URLs and keeps markdown link labels', () => {
+    expect(
+      stripTickerChatOutboundLinks(
+        'See [Take-Two](https://evil.example/phish) and https://evil.example/raw for context.'
+      )
+    ).toBe('See Take-Two and for context.');
   });
 });

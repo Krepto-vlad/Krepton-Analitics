@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useId } from 'react';
 import { Search, X, Check, Loader } from 'lucide-react';
 import { Button, Select, DatePicker, ErrorBanner, TickerAvatar } from '../../../../components/ui';
-import { ERROR_MESSAGES } from '../../../../constants';
+import { CURRENCY_OPTIONS, ERROR_MESSAGES } from '../../../../constants';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import { toIsoDate } from '../../../../components/ui/DatePicker/datePickerUtils';
 import { fetchStockSearch, fetchStockQuote } from '../../../../api/stockApi';
 import type { StockSearchResult } from '../../../../types/stock.types';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
+import { useFocusTrap } from '../../../../hooks/useFocusTrap';
 import { addPositionThunk } from '../../../../features/portfolio/portfolioSlice';
-import { CURRENCY_OPTIONS } from '../../../../constants';
 import styles from './AddPositionModal.module.scss';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -41,16 +41,16 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const titleId = useId();
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  useFocusTrap({
+    containerRef: dialogRef,
+    isActive: true,
+    onEscape: onClose,
+  });
 
   function handleSearchChange(query: string) {
     setSearchQuery(query);
@@ -153,10 +153,18 @@ function AddPositionModalForm({ onClose }: { onClose: () => void }) {
 
   return (
     <div className={styles.overlay} ref={overlayRef} onClick={handleOverlayClick}>
-      <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Add position">
-        {/* Header */}
+      <div
+        ref={dialogRef}
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
         <div className={styles.header}>
-          <h2 className={styles.title}>Add Position</h2>
+          <h2 id={titleId} className={styles.title}>
+            Add Position
+          </h2>
           <button className={styles.closeButton} onClick={onClose} aria-label="Close">
             <X size={18} />
           </button>

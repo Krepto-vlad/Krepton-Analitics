@@ -167,4 +167,14 @@ describe('alignmentExplainService', () => {
     expect(result.fromCache).toBe(false);
     expect(result.falseDiversification.riskLevel).toBe('low');
   });
+
+  it('does not spend daily quota when Gemini fails', async () => {
+    mockedFindCache.mockResolvedValue(null);
+    mockedGemini.mockRejectedValue({ statusCode: 503, message: 'AI service is unavailable.' });
+
+    await expect(generateAlignmentExplanation('user-1', 'USD')).rejects.toMatchObject({
+      statusCode: 503,
+    });
+    expect(mockedRecord).not.toHaveBeenCalled();
+  });
 });

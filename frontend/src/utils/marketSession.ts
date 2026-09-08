@@ -1,4 +1,11 @@
-import { STOCK_MARKET_SESSION_LABELS } from '../constants';
+import {
+  STOCK_EXCHANGE_TIME_ZONES,
+  STOCK_MARKET_SESSION_LABELS,
+  STOCK_MARKET_SESSION_TIME_PREFIX,
+  STOCK_MARKET_SESSION_TOOLTIP_STATUS,
+  STOCK_MARKET_SESSION_US_HOURS_HINT,
+  STOCK_US_EASTERN_TIME_ZONE,
+} from '../constants';
 import type { StockQuote } from '../types/stock.types';
 
 export type NormalizedMarketState = 'PRE' | 'REGULAR' | 'POST' | 'CLOSED' | 'UNKNOWN';
@@ -15,6 +22,14 @@ export interface TickerMarketSessionView {
   normalizedState: NormalizedMarketState;
   exchange: string | null;
   lines: MarketSessionChangeLine[];
+}
+
+export type MarketSessionIconKind = 'sun' | 'moon' | null;
+export type MarketSessionBadgeTone = 'open' | 'extended' | 'closed';
+
+export interface MarketSessionBadgeStyle {
+  iconKind: MarketSessionIconKind;
+  tone: MarketSessionBadgeTone;
 }
 
 function normalizeMarketState(marketState: string | null | undefined): NormalizedMarketState {
@@ -139,4 +154,82 @@ export function buildTickerMarketSessionView(quote: StockQuote): TickerMarketSes
       },
     ],
   };
+}
+
+export function getMarketSessionBadgeStyle(state: NormalizedMarketState): MarketSessionBadgeStyle {
+  if (state === 'REGULAR') {
+    return { iconKind: 'sun', tone: 'open' };
+  }
+
+  if (state === 'PRE' || state === 'POST') {
+    return { iconKind: 'moon', tone: 'extended' };
+  }
+
+  if (state === 'CLOSED') {
+    return { iconKind: 'moon', tone: 'closed' };
+  }
+
+  return { iconKind: null, tone: 'closed' };
+}
+
+export function shouldShowMarketSessionChangeLabel(
+  lineLabel: string,
+  sessionLabel: string
+): boolean {
+  return lineLabel !== sessionLabel;
+}
+
+function normalizeExchangeKey(exchange: string): string {
+  return exchange
+    .trim()
+    .toUpperCase()
+    .replace(/[\s.-]/g, '');
+}
+
+export function resolveExchangeTimeZone(exchange: string | null): string | null {
+  if (!exchange) {
+    return null;
+  }
+
+  return STOCK_EXCHANGE_TIME_ZONES[normalizeExchangeKey(exchange)] ?? null;
+}
+
+function formatSessionClock(now: Date, timeZone: string | null): string {
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  };
+
+  if (timeZone) {
+    options.timeZone = timeZone;
+  }
+
+  return new Intl.DateTimeFormat('en-US', options).format(now);
+}
+
+export function buildMarketSessionTooltip(
+  session: Pick<TickerMarketSessionView, 'normalizedState' | 'exchange'>,
+  now: Date = new Date()
+): string {
+  const status = STOCK_MARKET_SESSION_TOOLTIP_STATUS[session.normalizedState];
+  const exchangeTimeZone = resolveExchangeTimeZone(session.exchange);
+  const clock = formatSessionClock(now, exchangeTimeZone);
+  const timePrefix = exchangeTimeZone
+    ? STOCK_MARKET_SESSION_TIME_PREFIX.EXCHANGE
+    : STOCK_MARKET_SESSION_TIME_PREFIX.LOCAL;
+  const exchangeSuffix = session.exchange ? ` (${session.exchange})` : '';
+  const lines = [status, `${timePrefix}: ${clock}${exchangeSuffix}.`];
+
+  const hoursHint =
+    exchangeTimeZone === STOCK_US_EASTERN_TIME_ZONE
+      ? STOCK_MARKET_SESSION_US_HOURS_HINT[session.normalizedState]
+      : null;
+
+  if (hoursHint) {
+    lines.push(hoursHint);
+  }
+
+  return lines.join('\n');
 }

@@ -227,6 +227,17 @@ describe('newsSummaryService', () => {
     expect(mockedSaveCache).toHaveBeenCalled();
     expect(mockedRecord).toHaveBeenCalledWith('user-1', 'news_summary');
     expect(result.fromCache).toBe(false);
-    expect(result.sources).toHaveLength(1);
+    expect(result.sources).toEqual([]);
+  });
+
+  it('does not spend daily quota when Gemini fails', async () => {
+    mockedFindCache.mockResolvedValue(null);
+    mockedGemini.mockRejectedValue({ statusCode: 503, message: 'AI service is unavailable.' });
+
+    await expect(generateUserNewsSummary('user-1', { tickers: ['AAPL'] })).rejects.toMatchObject({
+      statusCode: 503,
+    });
+    expect(mockedRecord).not.toHaveBeenCalled();
+    expect(mockedSaveCache).not.toHaveBeenCalled();
   });
 });

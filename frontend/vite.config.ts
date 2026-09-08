@@ -33,7 +33,8 @@ function buildFrontendContentSecurityPolicy(apiBaseUrl: string): string {
       GOOGLE_FONTS_STYLE_ORIGIN,
       GOOGLE_FONTS_FILE_ORIGIN,
     ].join(' '),
-    `frame-src ${GOOGLE_ACCOUNTS_ORIGIN}`,
+    // 'self' is required to embed /legal/*.pdf in LegalPdfViewerPage; Google Identity uses accounts.google.com.
+    `frame-src 'self' ${GOOGLE_ACCOUNTS_ORIGIN}`,
     "worker-src 'self' blob:",
   ].join('; ');
 }

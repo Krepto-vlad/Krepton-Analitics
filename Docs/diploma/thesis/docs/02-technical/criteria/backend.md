@@ -29,7 +29,7 @@ Node.js + Express + TypeScript. Routes → middleware → controllers → servic
 
 **Positive:** Expert can open folders and follow one request.  
 **Negative:** Two data-access styles by design: Drizzle for identity/AI/watchlist; raw SQL for HMAC `owner_token`.  
-**Neutral:** Redis/Kafka/microservices/Grafana/Sonar are Backend **max** and **not claimed**. Target is a solid 5 plus 2–3 honest ops directions (Azure CD, log stream, correlation id, one alert).
+**Neutral:** Redis/Kafka/microservices/Grafana/Sonar/Alertmanager are Backend **max** and **skipped**. Defense target is a solid 5 plus honest ops: Azure CD after green CI, correlation id, coverage 80%.
 
 ## Implementation Details
 
@@ -90,25 +90,25 @@ See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_B
 | 6 | API description | ⚠️ | `backend/openapi.yaml` — keep in sync |
 | 7 | Global error handling | ✅ | `errorHandler.ts` |
 | 8 | Structured logging | ✅ | pino + request id |
-| 9 | Production deploy | ❌ | Azure D4 |
-| 10 | Unit tests ≥ 70% | ✅ | Jest `coverageThreshold` 70% statements/lines/functions; HTML+lcov artifact in CI |
+| 9 | Production deploy | ✅ | `https://api.kreptonanalytics.com` (Azure Container Apps) |
+| 10 | Unit tests ≥ 70% | ✅ | Jest `coverageThreshold` **80%** statements/lines/functions; HTML+lcov artifact in CI |
 | 11 | JSON, Git, secrets in env, no custom JWT | ✅ | |
 | 12 | `npm audit` | ✅ | CI job + `Docs/diploma/NPM_AUDIT_BACKEND.md` (xlsx high accepted) |
 | 13 | OpenAPI valid + in sync | ❌ | Spectral in CI (D2) |
 | 14 | Drizzle on remaining non-HMAC tables | ✅ | `ai_news_summaries`, `ai_usage_events`; keep `owner_token` SQL (ADR) |
-| 15 | Max: CD image → registry | ❌ | D4; also Cloud + CI/CD |
+| 15 | Max: CD image → registry | ✅ | GHCR + Container Apps after green CI |
 | 16 | Max: centralized logs | ❌ | Write-up + D4 Log stream screenshot; pino stdout already in code; not ELK |
 | 17 | Max: tracing | ⚠️ | Code done (`x-request-id`); remaining work is the thesis sentence, not a new tracer |
 | 18 | Max: alerting | ❌ | One Azure 5xx alert in D4 |
-| 19 | Max: deploy only if CI green | ❌ | D4 CD |
-| 20 | Max skip | — | No microservices, Kafka, Redis, Grafana, ELK cluster, Sonar, fake 80% coverage |
+| 19 | Max: deploy only if CI green | ✅ | `deploy.yml` waits on `ci.yml` via `workflow_run` |
+| 20 | Max skip | — | No microservices, Kafka, Redis, Grafana, ELK cluster, Sonar |
 
 ## Known Limitations
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| Branch coverage ~50% | Not the diploma counter (statements/lines) | Optional later |
-| No public URL | Backend min + Cloud | Phase D4 |
+| Branch coverage ~62% | Not the diploma counter (statements/lines/functions) | Optional later |
+| No public URL | Backend min + Cloud | Closed (`api.kreptonanalytics.com`) |
 | Max list not fully claimed | Expert may ask “where is Redis?” | ADR in this file: single instance, in-process quote cache |
 
 ## References

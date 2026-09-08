@@ -717,7 +717,7 @@ paths:
   /api/portfolio/ticker-chat:
     post:
       tags: [AI]
-      summary: Scoped ticker chat (Gemini + guardrails)
+      summary: Scoped ticker chat (Gemini + guardrails, optional Google Search, quote fact-check)
       requestBody:
         required: true
         content:
@@ -741,6 +741,9 @@ paths:
                         enum: [user, assistant]
                       content:
                         type: string
+                includeHoldingContext:
+                  type: boolean
+                  description: Opt-in to send this ticker's shares, avg buy, and unrealized P/L to Gemini. Default false.
       responses:
         '200':
           $ref: '#/components/responses/Success'

@@ -180,7 +180,7 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 - [x] GitHub Actions: lint + format check + build FE/BE + `jest` (оба пакета).
 - [x] Кэш npm. Пайплайн падает на ошибке.
-- [x] Coverage report как artifact; **порог 70%** на statements/lines/functions в `backend/jest.config.js` и в CI.
+- [x] Coverage report как artifact; **порог 80%** на statements/lines/functions в `backend/jest.config.js` и в CI.
 - [x] Job `docker build` (без push в registry, пока нет ACR) — проверка Dockerfiles без локального Docker.
 
 ### D0.5 AI артефакты
@@ -231,7 +231,7 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 - [x] Схема слоёв + SOLID одним абзацем на принцип (SRP репозиториев, DIP через интерфейсы сервисов — без религии).
 - [ ] **+ диплом** OpenAPI валиден (Spectral или Swagger Editor) + не разъезжается с роутами.
-- [x] Coverage ≥70% (Jest threshold + CI HTML/lcov artifact, 2026-08-18).
+- [x] Coverage ≥70% (Jest threshold now **80%** + CI HTML/lcov artifact).
 - [ ] **+ продукт** Production URL — из D4.
 - [x] **+ диплом** Drizzle на остальные не-HMAC таблицы (портфель с `owner_token` не трогаем).
 - [ ] **+ диплом (текст, не код)** В главе Backend: `x-request-id` = tracing / correlation ID (middleware + ALS + pino **уже в коде**). Azure Log stream = centralized logs, не ELK — абзац now; **скрин стрима** только в D4, когда URL живой. OpenTelemetry не пишем.
@@ -319,11 +319,11 @@ Product-фичи (импорт, onboarding) остаются в `STARTUP_ROADMAP
 
 - [x] Диаграмма: lint → test → build → artifact → deploy.
 - [x] Среды: `ci` (Actions) / `staging` = `production` для POC (честно так и написано в `deployment.md`).
-- [x] Trigger: push + PR (CI) и push в `main` + `workflow_dispatch` (CD, `.github/workflows/deploy.yml`) — **CD теперь автоматический**, не только manual.
+- [x] Trigger: push + PR (CI) и зелёный CI на `main` + `workflow_dispatch` (CD, `.github/workflows/deploy.yml`).
 - [x] Артефакт: `dist` и/или image. — `frontend-dist`, `backend-dist`, coverage в Actions CI; API-образ в GHCR через CD.
 - [x] Секреты только в GitHub Secrets / OIDC в Azure.
 - [x] `npm audit` job.
-- [ ] **+ продукт (Backend max)** CD не деплоит, если lint/test/build красные — сейчас CD — отдельный workflow, не зависит от результата `ci.yml` (задокументировано как known limitation в `cicd.md`).
+- [x] **+ продукт (Backend max)** CD не деплоит, если CI красный — `workflow_run` + refuse job.
 - [ ] **− skip** Blue/green, canary, K8s, Sonar, Grafana в пайплайне — min = Actions + auto CD.
 
 Husky остаётся локальным крючком. Для эксперта CI/CD = GitHub Actions, не Husky.

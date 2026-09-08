@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 import { LOADING_MESSAGES } from '../../../../constants';
 import { Button, ContentSkeleton } from '../../../../components/ui';
 import { fetchBuyTransactionsForTicker } from '../../../../api/portfolioApi';
 import type { PortfolioTransaction } from '../../../../api/portfolioApi';
+import { useFocusTrap } from '../../../../hooks/useFocusTrap';
 import styles from './DeleteConfirmModal.module.scss';
 
 interface DeleteConfirmModalProps {
@@ -79,17 +80,22 @@ function DeleteConfirmModalContent({
   onClose,
   isDeletingAll,
 }: Omit<DeleteConfirmModalProps, 'isOpen' | 'buysRefreshKey'>) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [buys, setBuys] = useState<PortfolioTransaction[]>([]);
   const [isLoadingBuys, setIsLoadingBuys] = useState(true);
   const [deletingBuyId, setDeletingBuyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !isDeletingAll && deletingBuyId === null) onClose();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, isDeletingAll, deletingBuyId]);
+  useFocusTrap({
+    containerRef: dialogRef,
+    isActive: true,
+    onEscape: () => {
+      if (!isDeletingAll && deletingBuyId === null) {
+        onClose();
+      }
+    },
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -134,14 +140,24 @@ function DeleteConfirmModalContent({
       className={styles.overlay}
       onClick={(e) => e.target === e.currentTarget && !isBusy && onClose()}
     >
-      <div className={styles.modal} role="alertdialog" aria-modal="true">
+      <div
+        ref={dialogRef}
+        className={styles.modal}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        tabIndex={-1}
+      >
         <div className={styles.header}>
           <div className={styles.iconWrapper}>
             <AlertTriangle size={24} />
           </div>
           <div className={styles.headerText}>
-            <h2 className={styles.title}>Remove {ticker}</h2>
-            <p className={styles.description}>
+            <h2 id={titleId} className={styles.title}>
+              Remove {ticker}
+            </h2>
+            <p id={descriptionId} className={styles.description}>
               {hasMultipleBuys
                 ? 'Remove individual purchases or delete the entire position.'
                 : 'This removes the position without recording a sale.'}

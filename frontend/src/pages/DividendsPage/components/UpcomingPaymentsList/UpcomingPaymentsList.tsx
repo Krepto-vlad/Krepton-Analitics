@@ -1,5 +1,6 @@
 import { CalendarDays } from 'lucide-react';
-import type { Currency } from '../../../../constants';
+import { Link } from 'react-router-dom';
+import { buildTickerDetailPath, type Currency } from '../../../../constants';
 import { TickerAvatar } from '../../../../components/ui';
 import type { DividendCalendarPayment } from '../../../../types/dividend.types';
 import { formatMoney } from '../../../../utils/moneyDisplay';
@@ -40,30 +41,36 @@ export function UpcomingPaymentsList({
             const normalizedTicker = payment.ticker.toUpperCase();
 
             return (
-              <li key={`${payment.ticker}-${payment.paymentDate}`} className={styles.row}>
-                <div className={styles.asset}>
-                  <TickerAvatar
-                    ticker={normalizedTicker}
-                    logoUrl={logoByTicker[normalizedTicker] ?? null}
-                    size="md"
-                  />
-                  <div className={styles.assetMeta}>
-                    <span className={styles.ticker}>{payment.ticker}</span>
-                    <span className={`${styles.paymentType} ${textToneClass}`}>
-                      {isCoupon ? 'Coupon' : 'Dividend'}
-                      {payment.isProjected ? ' · projected' : ''}
-                    </span>
+              <li key={`${payment.ticker}-${payment.paymentDate}`}>
+                <Link
+                  to={buildTickerDetailPath(normalizedTicker)}
+                  className={styles.row}
+                  aria-label={`Open ${payment.ticker} details`}
+                >
+                  <div className={styles.asset}>
+                    <TickerAvatar
+                      ticker={normalizedTicker}
+                      logoUrl={logoByTicker[normalizedTicker] ?? null}
+                      size="md"
+                    />
+                    <div className={styles.assetMeta}>
+                      <span className={styles.ticker}>{payment.ticker}</span>
+                      <span className={`${styles.paymentType} ${textToneClass}`}>
+                        {isCoupon ? 'Coupon' : 'Dividend'}
+                        {payment.isProjected ? ' · projected' : ''}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div className={styles.amountBlock}>
-                  <span className={`${styles.amount} ${textToneClass}`}>
-                    {formatMoney(payment.totalAmount, displayCurrency)}
-                  </span>
-                  <span className={styles.perShare}>
-                    {formatMoney(payment.amountPerShare, displayCurrency)}/sh
-                  </span>
-                  <span className={styles.date}>{formatPaymentDate(payment.paymentDate)}</span>
-                </div>
+                  <div className={styles.amountBlock}>
+                    <span className={`${styles.amount} ${textToneClass}`}>
+                      {formatMoney(payment.totalAmount, displayCurrency)}
+                    </span>
+                    <span className={styles.perShare}>
+                      {formatMoney(payment.amountPerShare, displayCurrency)}/sh
+                    </span>
+                    <span className={styles.date}>{formatPaymentDate(payment.paymentDate)}</span>
+                  </div>
+                </Link>
               </li>
             );
           })}

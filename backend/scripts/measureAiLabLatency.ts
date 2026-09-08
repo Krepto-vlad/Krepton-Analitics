@@ -68,6 +68,7 @@ function buildLabPromptContext(userMessage: string): TickerChatPromptContext {
     marketState: 'CLOSED',
     exchange: 'NMS',
     holding: null,
+    includeHoldingContext: false,
     history: [],
     userMessage,
   };
@@ -139,7 +140,10 @@ async function runConcurrentGemini(count: number): Promise<number[]> {
 }
 
 async function main(): Promise<void> {
-  const sequentialCount = readPositiveIntegerEnv('AI_LAB_SEQUENTIAL_COUNT', DEFAULT_SEQUENTIAL_COUNT);
+  const sequentialCount = readPositiveIntegerEnv(
+    'AI_LAB_SEQUENTIAL_COUNT',
+    DEFAULT_SEQUENTIAL_COUNT
+  );
   const concurrentGateCount = readPositiveIntegerEnv(
     'AI_LAB_CONCURRENT_GATE_COUNT',
     DEFAULT_CONCURRENT_GATE_COUNT

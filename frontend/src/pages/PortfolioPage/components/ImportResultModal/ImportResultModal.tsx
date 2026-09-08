@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useId, useRef } from 'react';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../../../components/ui';
+import { useFocusTrap } from '../../../../hooks/useFocusTrap';
 import styles from './ImportResultModal.module.scss';
 
 export type ImportResultModalType = 'success' | 'error';
@@ -20,16 +21,15 @@ export function ImportResultModal({
   message,
   onClose,
 }: ImportResultModalProps) {
-  useEffect(() => {
-    if (!isOpen) return;
+  const titleId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  useFocusTrap({
+    containerRef: dialogRef,
+    isActive: isOpen,
+    onEscape: onClose,
+  });
 
   if (!isOpen) return null;
 
@@ -41,11 +41,13 @@ export function ImportResultModal({
       onClick={(event) => event.target === event.currentTarget && onClose()}
     >
       <div
+        ref={dialogRef}
         className={styles.modal}
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="import-result-title"
-        aria-describedby="import-result-message"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        tabIndex={-1}
       >
         <div className={styles.header}>
           <div
@@ -54,10 +56,10 @@ export function ImportResultModal({
             {isSuccess ? <CheckCircle2 size={28} /> : <AlertTriangle size={28} />}
           </div>
           <div className={styles.headerText}>
-            <h2 id="import-result-title" className={styles.title}>
+            <h2 id={titleId} className={styles.title}>
               {title}
             </h2>
-            <p id="import-result-message" className={styles.message}>
+            <p id={descriptionId} className={styles.message}>
               {message}
             </p>
           </div>

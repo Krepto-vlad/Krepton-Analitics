@@ -27,7 +27,7 @@ Live since 2026-09-02 (phase D4 done):
                                    └─────────────────────────┘
 ```
 
-Reviewers open the public URL directly — no local setup needed. Static Web Apps only has non-EU regions available on the free tier and serves no personal data (pure static assets), so it stays outside the GDPR EU-residency scope; the API and the database — where personal data actually lives — are both in North Europe (EU). **Containerization is not a declared criterion**, but the backend image is the real CI/Azure deploy contract now (Container Apps pulls it from GHCR on every `main` push); the daily dev loop is still `npm run dev`, not `docker compose up`.
+Reviewers open the public URL directly — no local setup needed. Static Web Apps only has non-EU regions available on the free tier and serves no personal data (pure static assets), so it stays outside the GDPR EU-residency scope; the API and the database — where personal data actually lives — are both in North Europe (EU). **Containerization is not a declared criterion**, but the backend image is the real CI/Azure deploy contract now (Container Apps pulls it from GHCR after green CI on `main`); the daily dev loop is still `npm run dev`, not `docker compose up`.
 
 ### Environments
 
@@ -42,19 +42,20 @@ Reviewers open the public URL directly — no local setup needed. Static Web App
 Live CI: `.github/workflows/ci.yml` (see [CI/CD criterion](criteria/cicd.md)).
 
 ```
-push/PR → lint + format check → build FE/BE → Jest (backend coverage ≥ 70%) → artifacts
+push/PR → lint + format check → build FE/BE → Jest coverage (backend gate ≥ 80%; frontend report only) → artifacts
          → npm audit (fail on critical)
          → docker compose config + docker build (API + web, no registry push)
+         → Playwright e2e
 ```
 
-Live CD: `.github/workflows/deploy.yml`, triggered automatically on every `push` to `main`, plus `workflow_dispatch` for a redeploy with no new commit or a one-side-only rollout.
+Live CD: `.github/workflows/deploy.yml`, triggered when **CI succeeds on `main`**, plus `workflow_dispatch` for a redeploy with no new commit or a one-side-only rollout.
 
 ```
-push to main → build + push API image to GHCR → az containerapp update (Container Apps rollout)
-             → build SPA (VITE_API_URL=api.kreptonanalytics.com) → deploy to Static Web Apps
+green CI on main → build + push API image to GHCR → az containerapp update → wait /health
+                 → build SPA (VITE_API_URL=api.kreptonanalytics.com) → deploy to Static Web Apps → wait SPA URL
 ```
 
-Local `git push` also runs Husky: lint, Prettier, backend coverage.
+Local `git commit` runs Husky lint-staged. Local `git push` runs lint, Prettier, backend + frontend coverage.
 
 Secrets stay in GitHub Secrets / Azure settings, never in YAML.
 

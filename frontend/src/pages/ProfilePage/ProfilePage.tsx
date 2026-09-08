@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -53,10 +53,52 @@ import {
   isPasswordStrong,
 } from '../../utils/passwordValidation';
 import { joinClassNames } from '../../utils/classNames';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './ProfilePage.module.scss';
 
 const FREE_PLAN_FEATURES =
   PRICING_PLAN_DEFINITIONS.find((plan) => plan.id === 'free')?.features ?? [];
+
+interface ProfileDialogProps {
+  titleId: string;
+  onClose: () => void;
+  disableClose?: boolean;
+  children: ReactNode;
+}
+
+function ProfileDialog({ titleId, onClose, disableClose = false, children }: ProfileDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap({
+    containerRef: dialogRef,
+    isActive: true,
+    onEscape: disableClose ? undefined : onClose,
+  });
+
+  return (
+    <div
+      className={styles.overlay}
+      role="presentation"
+      onClick={() => {
+        if (!disableClose) {
+          onClose();
+        }
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export function ProfilePage() {
   const dispatch = useAppDispatch();
@@ -526,521 +568,495 @@ export function ProfilePage() {
       </section>
 
       {isPasswordModalOpen && (
-        <div className={styles.overlay} role="presentation" onClick={closePasswordModal}>
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="change-password-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h3 id="change-password-title" className={styles.modalTitle}>
-              {hasPassword ? 'Change password' : 'Set password'}
-            </h3>
-            <p className={styles.securityHint}>
-              Confirm with{' '}
-              {hasPassword && hasGoogle
-                ? 'password or Google'
-                : hasGoogle
-                  ? 'Google'
-                  : 'your current password'}{' '}
-              before saving a new password.
-            </p>
+        <ProfileDialog
+          titleId="change-password-title"
+          onClose={closePasswordModal}
+          disableClose={isChangingPassword}
+        >
+          <h3 id="change-password-title" className={styles.modalTitle}>
+            {hasPassword ? 'Change password' : 'Set password'}
+          </h3>
+          <p className={styles.securityHint}>
+            Confirm with{' '}
+            {hasPassword && hasGoogle
+              ? 'password or Google'
+              : hasGoogle
+                ? 'Google'
+                : 'your current password'}{' '}
+            before saving a new password.
+          </p>
 
-            {hasPassword && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Current password</span>
-                <div className={styles.passwordInputWrap}>
-                  <input
-                    type={showCurrentPassword ? 'text' : 'password'}
-                    className={styles.passwordInput}
-                    value={currentPassword}
-                    onChange={(event) => {
-                      setCurrentPassword(event.target.value);
-                      setPasswordGoogleIdToken(null);
-                    }}
-                    autoComplete="current-password"
-                    placeholder="Your current password"
-                    disabled={Boolean(passwordGoogleIdToken)}
-                  />
-                  <button
-                    type="button"
-                    className={styles.togglePasswordButton}
-                    onClick={() => setShowCurrentPassword((visible) => !visible)}
-                    aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showCurrentPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {hasGoogle && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Or confirm with Google</span>
-                {passwordGoogleIdToken ? (
-                  <p className={styles.statusMessage}>Google confirmation ready.</p>
-                ) : (
-                  <GoogleSignInButton
-                    text="continue_with"
-                    disabled={isChangingPassword || currentPassword.length > 0}
-                    onCredential={(idToken) => {
-                      setPasswordGoogleIdToken(idToken);
-                      setCurrentPassword('');
-                      setPasswordError(null);
-                    }}
-                    onError={() => setPasswordError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
-                  />
-                )}
-              </div>
-            )}
-
+          {hasPassword && (
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>New password</span>
-              <input
-                type="password"
-                className={styles.fieldInput}
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                autoComplete="new-password"
-                placeholder="Min. 10 chars, uppercase, number, symbol"
-              />
-
-              {newPassword.length > 0 && (
-                <div
-                  className={joinClassNames(
-                    styles.strengthRow,
-                    passwordStrength > 0 && styles[`strengthLevel${passwordStrength}`]
-                  )}
-                >
-                  <div className={styles.strengthBars}>
-                    {PASSWORD_STRENGTH_BAR_NUMBERS.map((barNumber) => (
-                      <div
-                        key={barNumber}
-                        className={joinClassNames(
-                          styles.strengthBar,
-                          barNumber <= passwordStrength && styles.filled
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <span className={styles.strengthLabel}>
-                    {PASSWORD_STRENGTH_LABELS[passwordStrength]}
-                  </span>
-                </div>
-              )}
-
-              <div className={styles.passwordRules}>
-                <p className={styles.passwordRulesTitle}>Password requirements</p>
-                {PASSWORD_RULES.map((rule) => {
-                  const passed = newPassword.length > 0 && rule.test(newPassword);
-                  const touched = newPassword.length > 0;
-                  const ruleStateClassName = passed
-                    ? styles.passed
-                    : touched
-                      ? styles.failed
-                      : undefined;
-
-                  return (
-                    <div
-                      key={rule.id}
-                      className={joinClassNames(styles.passwordRule, ruleStateClassName)}
-                    >
-                      <div className={joinClassNames(styles.passwordRuleIcon, ruleStateClassName)}>
-                        {passed && <Check size={8} />}
-                        {!passed && touched && (
-                          <span className={styles.passwordRuleFailMark}>✕</span>
-                        )}
-                      </div>
-                      {rule.label}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Confirm new password</span>
-              <div
-                className={`${styles.passwordInputWrap} ${
-                  confirmPassword.length > 0
-                    ? passwordsMatch
-                      ? styles.passwordInputWrapSuccess
-                      : styles.passwordInputWrapError
-                    : ''
-                }`}
-              >
+              <span className={styles.fieldLabel}>Current password</span>
+              <div className={styles.passwordInputWrap}>
                 <input
-                  type="password"
+                  type={showCurrentPassword ? 'text' : 'password'}
                   className={styles.passwordInput}
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  autoComplete="new-password"
-                  placeholder="Repeat your new password"
+                  value={currentPassword}
+                  onChange={(event) => {
+                    setCurrentPassword(event.target.value);
+                    setPasswordGoogleIdToken(null);
+                  }}
+                  autoComplete="current-password"
+                  placeholder="Your current password"
+                  disabled={Boolean(passwordGoogleIdToken)}
                 />
-                {confirmPassword.length > 0 &&
-                  (passwordsMatch ? (
-                    <Check size={14} color="#10B981" />
-                  ) : (
-                    <span className={styles.passwordRuleFailMark}>✕</span>
-                  ))}
+                <button
+                  type="button"
+                  className={styles.togglePasswordButton}
+                  onClick={() => setShowCurrentPassword((visible) => !visible)}
+                  aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showCurrentPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
-              {confirmPassword.length > 0 && !passwordsMatch && (
-                <p className={styles.fieldHintError}>Passwords do not match</p>
-              )}
-              {passwordsMatch && <p className={styles.fieldHintSuccess}>Passwords match ✓</p>}
             </div>
+          )}
 
-            {passwordError && <p className={styles.errorMessage}>{passwordError}</p>}
+          {hasGoogle && (
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Or confirm with Google</span>
+              {passwordGoogleIdToken ? (
+                <p className={styles.statusMessage}>Google confirmation ready.</p>
+              ) : (
+                <GoogleSignInButton
+                  text="continue_with"
+                  disabled={isChangingPassword || currentPassword.length > 0}
+                  onCredential={(idToken) => {
+                    setPasswordGoogleIdToken(idToken);
+                    setCurrentPassword('');
+                    setPasswordError(null);
+                  }}
+                  onError={() => setPasswordError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
+                />
+              )}
+            </div>
+          )}
 
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={closePasswordModal}
-                disabled={isChangingPassword}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.primaryButton}
-                onClick={() => void handleChangePassword()}
-                disabled={!canSubmitPassword || isChangingPassword}
-              >
-                {isChangingPassword ? (
-                  <>
-                    <Loader2 size={14} className={styles.spinner} />
-                    Saving…
-                  </>
-                ) : (
-                  'Update password'
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>New password</span>
+            <input
+              type="password"
+              className={styles.fieldInput}
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              autoComplete="new-password"
+              placeholder="Min. 10 chars, uppercase, number, symbol"
+            />
+
+            {newPassword.length > 0 && (
+              <div
+                className={joinClassNames(
+                  styles.strengthRow,
+                  passwordStrength > 0 && styles[`strengthLevel${passwordStrength}`]
                 )}
-              </button>
+              >
+                <div className={styles.strengthBars}>
+                  {PASSWORD_STRENGTH_BAR_NUMBERS.map((barNumber) => (
+                    <div
+                      key={barNumber}
+                      className={joinClassNames(
+                        styles.strengthBar,
+                        barNumber <= passwordStrength && styles.filled
+                      )}
+                    />
+                  ))}
+                </div>
+                <span className={styles.strengthLabel}>
+                  {PASSWORD_STRENGTH_LABELS[passwordStrength]}
+                </span>
+              </div>
+            )}
+
+            <div className={styles.passwordRules}>
+              <p className={styles.passwordRulesTitle}>Password requirements</p>
+              {PASSWORD_RULES.map((rule) => {
+                const passed = newPassword.length > 0 && rule.test(newPassword);
+                const touched = newPassword.length > 0;
+                const ruleStateClassName = passed
+                  ? styles.passed
+                  : touched
+                    ? styles.failed
+                    : undefined;
+
+                return (
+                  <div
+                    key={rule.id}
+                    className={joinClassNames(styles.passwordRule, ruleStateClassName)}
+                  >
+                    <div className={joinClassNames(styles.passwordRuleIcon, ruleStateClassName)}>
+                      {passed && <Check size={8} />}
+                      {!passed && touched && <span className={styles.passwordRuleFailMark}>✕</span>}
+                    </div>
+                    {rule.label}
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Confirm new password</span>
+            <div
+              className={`${styles.passwordInputWrap} ${
+                confirmPassword.length > 0
+                  ? passwordsMatch
+                    ? styles.passwordInputWrapSuccess
+                    : styles.passwordInputWrapError
+                  : ''
+              }`}
+            >
+              <input
+                type="password"
+                className={styles.passwordInput}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="new-password"
+                placeholder="Repeat your new password"
+              />
+              {confirmPassword.length > 0 &&
+                (passwordsMatch ? (
+                  <Check size={14} color="#10B981" />
+                ) : (
+                  <span className={styles.passwordRuleFailMark}>✕</span>
+                ))}
+            </div>
+            {confirmPassword.length > 0 && !passwordsMatch && (
+              <p className={styles.fieldHintError}>Passwords do not match</p>
+            )}
+            {passwordsMatch && <p className={styles.fieldHintSuccess}>Passwords match ✓</p>}
+          </div>
+
+          {passwordError && <p className={styles.errorMessage}>{passwordError}</p>}
+
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={closePasswordModal}
+              disabled={isChangingPassword}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => void handleChangePassword()}
+              disabled={!canSubmitPassword || isChangingPassword}
+            >
+              {isChangingPassword ? (
+                <>
+                  <Loader2 size={14} className={styles.spinner} />
+                  Saving…
+                </>
+              ) : (
+                'Update password'
+              )}
+            </button>
+          </div>
+        </ProfileDialog>
       )}
 
       {isExportModalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onClick={() => !isExportingData && closeExportModal()}
+        <ProfileDialog
+          titleId="export-data-title"
+          onClose={closeExportModal}
+          disableClose={isExportingData}
         >
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="export-data-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h3 id="export-data-title" className={styles.modalTitle}>
-              Export portfolio data
-            </h3>
-            <p className={styles.securityHint}>
-              Confirm with{' '}
-              {hasPassword && hasGoogle
-                ? 'password or Google'
-                : hasGoogle
-                  ? 'Google'
-                  : 'your password'}{' '}
-              before download. Excel has Positions / Transactions / Watchlist sheets; JSON is one
-              file.
-            </p>
+          <h3 id="export-data-title" className={styles.modalTitle}>
+            Export portfolio data
+          </h3>
+          <p className={styles.securityHint}>
+            Confirm with{' '}
+            {hasPassword && hasGoogle
+              ? 'password or Google'
+              : hasGoogle
+                ? 'Google'
+                : 'your password'}{' '}
+            before download. Excel has Positions / Transactions / Watchlist sheets; JSON is one
+            file.
+          </p>
 
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Format</span>
-              <div className={styles.formatToggle}>
-                <button
-                  type="button"
-                  className={`${styles.formatButton} ${
-                    exportFormat === 'xlsx' ? styles.formatButtonActive : ''
-                  }`}
-                  onClick={() => setExportFormat('xlsx')}
-                  disabled={isExportingData}
-                >
-                  Excel (.xlsx)
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.formatButton} ${
-                    exportFormat === 'json' ? styles.formatButtonActive : ''
-                  }`}
-                  onClick={() => setExportFormat('json')}
-                  disabled={isExportingData}
-                >
-                  JSON
-                </button>
-              </div>
-              <p className={styles.formatHint}>
-                Excel: sheets Positions / Transactions / Watchlist (+ Summary). JSON: same data for
-                technical backup.
-              </p>
-            </div>
-
-            {hasPassword && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Password</span>
-                <div className={styles.passwordInputWrap}>
-                  <input
-                    type={showExportPassword ? 'text' : 'password'}
-                    className={styles.passwordInput}
-                    value={exportPassword}
-                    onChange={(event) => {
-                      setExportPassword(event.target.value);
-                      setExportGoogleIdToken(null);
-                    }}
-                    autoComplete="current-password"
-                    placeholder="Enter your password"
-                    disabled={isExportingData || Boolean(exportGoogleIdToken)}
-                  />
-                  <button
-                    type="button"
-                    className={styles.togglePasswordButton}
-                    onClick={() => setShowExportPassword((visible) => !visible)}
-                    aria-label={showExportPassword ? 'Hide password' : 'Show password'}
-                    disabled={isExportingData}
-                  >
-                    {showExportPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {hasGoogle && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Or confirm with Google</span>
-                {exportGoogleIdToken ? (
-                  <p className={styles.statusMessage}>Google confirmation ready.</p>
-                ) : (
-                  <GoogleSignInButton
-                    text="continue_with"
-                    disabled={isExportingData || exportPassword.length > 0}
-                    onCredential={(idToken) => {
-                      setExportGoogleIdToken(idToken);
-                      setExportPassword('');
-                      setExportError(null);
-                    }}
-                    onError={() => setExportError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
-                  />
-                )}
-              </div>
-            )}
-
-            {exportError && <p className={styles.errorMessage}>{exportError}</p>}
-
-            <div className={styles.modalActions}>
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Format</span>
+            <div className={styles.formatToggle}>
               <button
                 type="button"
-                className={styles.secondaryButton}
-                onClick={closeExportModal}
+                className={`${styles.formatButton} ${
+                  exportFormat === 'xlsx' ? styles.formatButtonActive : ''
+                }`}
+                onClick={() => setExportFormat('xlsx')}
                 disabled={isExportingData}
               >
-                Cancel
+                Excel (.xlsx)
               </button>
               <button
                 type="button"
-                className={styles.primaryButton}
-                onClick={() => void handleExportPortfolioData()}
-                disabled={!canExport || isExportingData}
+                className={`${styles.formatButton} ${
+                  exportFormat === 'json' ? styles.formatButtonActive : ''
+                }`}
+                onClick={() => setExportFormat('json')}
+                disabled={isExportingData}
               >
-                {isExportingData ? (
-                  <>
-                    <Loader2 size={14} className={styles.spinner} />
-                    Exporting…
-                  </>
-                ) : (
-                  <>
-                    <Download size={14} />
-                    {exportFormat === 'xlsx' ? 'Download Excel' : 'Download JSON'}
-                  </>
-                )}
+                JSON
               </button>
             </div>
+            <p className={styles.formatHint}>
+              Excel: sheets Positions / Transactions / Watchlist (+ Summary). JSON: same data for
+              technical backup.
+            </p>
           </div>
-        </div>
+
+          {hasPassword && (
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Password</span>
+              <div className={styles.passwordInputWrap}>
+                <input
+                  type={showExportPassword ? 'text' : 'password'}
+                  className={styles.passwordInput}
+                  value={exportPassword}
+                  onChange={(event) => {
+                    setExportPassword(event.target.value);
+                    setExportGoogleIdToken(null);
+                  }}
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  disabled={isExportingData || Boolean(exportGoogleIdToken)}
+                />
+                <button
+                  type="button"
+                  className={styles.togglePasswordButton}
+                  onClick={() => setShowExportPassword((visible) => !visible)}
+                  aria-label={showExportPassword ? 'Hide password' : 'Show password'}
+                  disabled={isExportingData}
+                >
+                  {showExportPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {hasGoogle && (
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Or confirm with Google</span>
+              {exportGoogleIdToken ? (
+                <p className={styles.statusMessage}>Google confirmation ready.</p>
+              ) : (
+                <GoogleSignInButton
+                  text="continue_with"
+                  disabled={isExportingData || exportPassword.length > 0}
+                  onCredential={(idToken) => {
+                    setExportGoogleIdToken(idToken);
+                    setExportPassword('');
+                    setExportError(null);
+                  }}
+                  onError={() => setExportError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
+                />
+              )}
+            </div>
+          )}
+
+          {exportError && <p className={styles.errorMessage}>{exportError}</p>}
+
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={closeExportModal}
+              disabled={isExportingData}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => void handleExportPortfolioData()}
+              disabled={!canExport || isExportingData}
+            >
+              {isExportingData ? (
+                <>
+                  <Loader2 size={14} className={styles.spinner} />
+                  Exporting…
+                </>
+              ) : (
+                <>
+                  <Download size={14} />
+                  {exportFormat === 'xlsx' ? 'Download Excel' : 'Download JSON'}
+                </>
+              )}
+            </button>
+          </div>
+        </ProfileDialog>
       )}
 
       {isDeleteModalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onClick={() => !isDeletingData && setIsDeleteModalOpen(false)}
+        <ProfileDialog
+          titleId="delete-data-title"
+          onClose={() => setIsDeleteModalOpen(false)}
+          disableClose={isDeletingData}
         >
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-data-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h3 id="delete-data-title" className={styles.modalTitle}>
-              Delete portfolio data
-            </h3>
-            <p className={styles.securityHint}>
-              Type <strong>{PORTFOLIO_DATA_DELETE_CONFIRMATION}</strong> to confirm permanent
-              deletion of holdings, transactions and watchlist.
-            </p>
+          <h3 id="delete-data-title" className={styles.modalTitle}>
+            Delete portfolio data
+          </h3>
+          <p className={styles.securityHint}>
+            Type <strong>{PORTFOLIO_DATA_DELETE_CONFIRMATION}</strong> to confirm permanent deletion
+            of holdings, transactions and watchlist.
+          </p>
 
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Confirmation</span>
-              <input
-                className={styles.fieldInput}
-                value={deleteConfirmText}
-                onChange={(event) => setDeleteConfirmText(event.target.value)}
-                placeholder={PORTFOLIO_DATA_DELETE_CONFIRMATION}
-                disabled={isDeletingData}
-              />
-            </label>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Confirmation</span>
+            <input
+              className={styles.fieldInput}
+              value={deleteConfirmText}
+              onChange={(event) => setDeleteConfirmText(event.target.value)}
+              placeholder={PORTFOLIO_DATA_DELETE_CONFIRMATION}
+              disabled={isDeletingData}
+            />
+          </label>
 
-            {deleteError && <p className={styles.errorMessage}>{deleteError}</p>}
+          {deleteError && <p className={styles.errorMessage}>{deleteError}</p>}
 
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => setIsDeleteModalOpen(false)}
-                disabled={isDeletingData}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.dangerButton}
-                onClick={() => void handleDeletePortfolioData()}
-                disabled={!canDelete || isDeletingData}
-              >
-                {isDeletingData ? (
-                  <>
-                    <Loader2 size={14} className={styles.spinner} />
-                    Deleting…
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={14} />
-                    Delete forever
-                  </>
-                )}
-              </button>
-            </div>
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeletingData}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={styles.dangerButton}
+              onClick={() => void handleDeletePortfolioData()}
+              disabled={!canDelete || isDeletingData}
+            >
+              {isDeletingData ? (
+                <>
+                  <Loader2 size={14} className={styles.spinner} />
+                  Deleting…
+                </>
+              ) : (
+                <>
+                  <Trash2 size={14} />
+                  Delete forever
+                </>
+              )}
+            </button>
           </div>
-        </div>
+        </ProfileDialog>
       )}
 
       {isAccountDeleteModalOpen && (
-        <div className={styles.overlay} role="presentation" onClick={closeAccountDeleteModal}>
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-account-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h3 id="delete-account-title" className={styles.modalTitle}>
-              Delete account
-            </h3>
-            <p className={styles.securityHint}>
-              This permanently removes your account, portfolio, and AI history. Confirm with{' '}
-              {hasPassword && hasGoogle
-                ? 'password or Google'
-                : hasGoogle
-                  ? 'Google'
-                  : 'your password'}
-              , then type <strong>{ACCOUNT_DELETE_CONFIRMATION}</strong>.
-            </p>
+        <ProfileDialog
+          titleId="delete-account-title"
+          onClose={closeAccountDeleteModal}
+          disableClose={isDeletingAccount}
+        >
+          <h3 id="delete-account-title" className={styles.modalTitle}>
+            Delete account
+          </h3>
+          <p className={styles.securityHint}>
+            This permanently removes your account, portfolio, and AI history. Confirm with{' '}
+            {hasPassword && hasGoogle
+              ? 'password or Google'
+              : hasGoogle
+                ? 'Google'
+                : 'your password'}
+            , then type <strong>{ACCOUNT_DELETE_CONFIRMATION}</strong>.
+          </p>
 
-            {hasPassword && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Password</span>
-                <div className={styles.passwordInputWrap}>
-                  <input
-                    type={showAccountDeletePassword ? 'text' : 'password'}
-                    className={styles.passwordInput}
-                    value={accountDeletePassword}
-                    onChange={(event) => {
-                      setAccountDeletePassword(event.target.value);
-                      setAccountDeleteGoogleIdToken(null);
-                    }}
-                    autoComplete="current-password"
-                    placeholder="Your password"
-                    disabled={isDeletingAccount || Boolean(accountDeleteGoogleIdToken)}
-                  />
-                  <button
-                    type="button"
-                    className={styles.togglePasswordButton}
-                    onClick={() => setShowAccountDeletePassword((visible) => !visible)}
-                    aria-label={showAccountDeletePassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showAccountDeletePassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
+          {hasPassword && (
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Password</span>
+              <div className={styles.passwordInputWrap}>
+                <input
+                  type={showAccountDeletePassword ? 'text' : 'password'}
+                  className={styles.passwordInput}
+                  value={accountDeletePassword}
+                  onChange={(event) => {
+                    setAccountDeletePassword(event.target.value);
+                    setAccountDeleteGoogleIdToken(null);
+                  }}
+                  autoComplete="current-password"
+                  placeholder="Your password"
+                  disabled={isDeletingAccount || Boolean(accountDeleteGoogleIdToken)}
+                />
+                <button
+                  type="button"
+                  className={styles.togglePasswordButton}
+                  onClick={() => setShowAccountDeletePassword((visible) => !visible)}
+                  aria-label={showAccountDeletePassword ? 'Hide password' : 'Show password'}
+                >
+                  {showAccountDeletePassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
-            )}
-
-            {hasGoogle && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Or confirm with Google</span>
-                {accountDeleteGoogleIdToken ? (
-                  <p className={styles.statusMessage}>Google confirmation ready.</p>
-                ) : (
-                  <GoogleSignInButton
-                    text="continue_with"
-                    disabled={isDeletingAccount || accountDeletePassword.length > 0}
-                    onCredential={(idToken) => {
-                      setAccountDeleteGoogleIdToken(idToken);
-                      setAccountDeletePassword('');
-                      setAccountDeleteError(null);
-                    }}
-                    onError={() => setAccountDeleteError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
-                  />
-                )}
-              </div>
-            )}
-
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Confirmation</span>
-              <input
-                className={styles.fieldInput}
-                value={accountDeleteConfirmText}
-                onChange={(event) => setAccountDeleteConfirmText(event.target.value)}
-                placeholder={ACCOUNT_DELETE_CONFIRMATION}
-                disabled={isDeletingAccount}
-              />
-            </label>
-
-            {accountDeleteError && <p className={styles.errorMessage}>{accountDeleteError}</p>}
-
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={closeAccountDeleteModal}
-                disabled={isDeletingAccount}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.dangerButton}
-                onClick={() => void handleDeleteAccount()}
-                disabled={!canDeleteAccount || isDeletingAccount}
-              >
-                {isDeletingAccount ? (
-                  <>
-                    <Loader2 size={14} className={styles.spinner} />
-                    Deleting account…
-                  </>
-                ) : (
-                  <>
-                    <UserX size={14} />
-                    Delete my account
-                  </>
-                )}
-              </button>
             </div>
+          )}
+
+          {hasGoogle && (
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Or confirm with Google</span>
+              {accountDeleteGoogleIdToken ? (
+                <p className={styles.statusMessage}>Google confirmation ready.</p>
+              ) : (
+                <GoogleSignInButton
+                  text="continue_with"
+                  disabled={isDeletingAccount || accountDeletePassword.length > 0}
+                  onCredential={(idToken) => {
+                    setAccountDeleteGoogleIdToken(idToken);
+                    setAccountDeletePassword('');
+                    setAccountDeleteError(null);
+                  }}
+                  onError={() => setAccountDeleteError(ERROR_MESSAGES.AUTH_GOOGLE_STEP_UP_FAILED)}
+                />
+              )}
+            </div>
+          )}
+
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Confirmation</span>
+            <input
+              className={styles.fieldInput}
+              value={accountDeleteConfirmText}
+              onChange={(event) => setAccountDeleteConfirmText(event.target.value)}
+              placeholder={ACCOUNT_DELETE_CONFIRMATION}
+              disabled={isDeletingAccount}
+            />
+          </label>
+
+          {accountDeleteError && <p className={styles.errorMessage}>{accountDeleteError}</p>}
+
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={closeAccountDeleteModal}
+              disabled={isDeletingAccount}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={styles.dangerButton}
+              onClick={() => void handleDeleteAccount()}
+              disabled={!canDeleteAccount || isDeletingAccount}
+            >
+              {isDeletingAccount ? (
+                <>
+                  <Loader2 size={14} className={styles.spinner} />
+                  Deleting account…
+                </>
+              ) : (
+                <>
+                  <UserX size={14} />
+                  Delete my account
+                </>
+              )}
+            </button>
           </div>
-        </div>
+        </ProfileDialog>
       )}
     </div>
   );

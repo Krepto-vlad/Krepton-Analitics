@@ -53,6 +53,22 @@
   border: 1px solid $color-border-strong;
   border-radius: $radius-md;
   background: $color-surface;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast;
+  @include focus-ring;
+
+  &:hover {
+    background: $color-row-hover;
+    border-color: $color-primary-border;
+  }
+
+  &:hover .ticker {
+    color: $color-primary;
+  }
 }
 
 .asset {

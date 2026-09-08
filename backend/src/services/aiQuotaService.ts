@@ -70,6 +70,11 @@ export async function assertAiQuotaAvailable(
   return quota;
 }
 
+/**
+ * Increment the UTC-day counter only after a usable AI payload is ready to return.
+ * Call this after Gemini succeeds. Timeouts, 502/503, and empty replies must not call it.
+ * Successful completions still count when we sanitize or fact-check the text (anti-abuse).
+ */
 export async function recordAiUsage(userId: string, feature: AiFeatureId): Promise<void> {
   await insertAiUsageEvent(userId, feature);
 }

@@ -1,4 +1,9 @@
 import {
+  allocationsToTargetItems,
+  areStrategyAllocationsEqual,
+  buildAllocationsFromItems,
+  buildAllocationsFromStrategyBuckets,
+  buildCustomAllocationPayload,
   getTotalStrategyWeight,
   isStrategyAllocationValid,
   stepStrategyAllocationWeight,
@@ -24,5 +29,22 @@ describe('rebalancingAllocations', () => {
 
     expect(nextAllocations.find((item) => item.bucketId === 'bonds')?.weightPercent).toBe(25);
     expect(stepStrategyAllocationWeight(allocations, 'bonds', -80)[1].weightPercent).toBe(0);
+  });
+
+  it('maps buckets, payload objects, and equality checks', () => {
+    expect(
+      buildAllocationsFromItems([
+        { bucketId: 'equities', label: 'Equities', color: '#10b981', weightPercent: 100 },
+      ])[0]?.weightPercent
+    ).toBe(100);
+    expect(
+      buildAllocationsFromStrategyBuckets([
+        { id: 'equities', label: 'Equities', color: '#10b981', targetPercent: 55 },
+      ])[0]?.weightPercent
+    ).toBe(55);
+    expect(buildCustomAllocationPayload(allocations)).toEqual({ equities: 60, bonds: 40 });
+    expect(areStrategyAllocationsEqual(allocations, allocations)).toBe(true);
+    expect(areStrategyAllocationsEqual(allocations, allocations.slice(0, 1))).toBe(false);
+    expect(allocationsToTargetItems(allocations)[0]?.bucketId).toBe('equities');
   });
 });

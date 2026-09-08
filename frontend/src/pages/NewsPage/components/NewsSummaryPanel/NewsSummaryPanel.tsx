@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CircleHelp, ExternalLink, Sparkles } from 'lucide-react';
+import { CircleHelp, Sparkles } from 'lucide-react';
 import {
   AiGeneratedNotice,
   Button,
@@ -517,27 +517,6 @@ export function NewsSummaryPanel({
                   </article>
                 ))}
               </div>
-            </section>
-          )}
-
-          {summary.sources.length > 0 && (
-            <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Sources</h3>
-              <ul className={styles.sourcesList}>
-                {summary.sources.map((source) => (
-                  <li key={source.url}>
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.sourceLink}
-                    >
-                      {source.title}
-                      <ExternalLink size={12} />
-                    </a>
-                  </li>
-                ))}
-              </ul>
             </section>
           )}
 

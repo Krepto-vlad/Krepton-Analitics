@@ -81,6 +81,9 @@
 
 .headerCard {
   @include card($space-5);
+  position: relative;
+  z-index: 1;
+  overflow: visible;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -166,21 +169,84 @@
   color: $color-foreground;
 }
 
+.sessionBadgeWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover .sessionTooltip,
+  &:focus-within .sessionTooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
 .sessionBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 2px $space-2;
+  border: none;
   border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.06);
   color: $color-foreground-muted;
+  font-family: inherit;
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
+  line-height: 1.4;
+  cursor: help;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px $color-primary-muted;
+  }
+}
+
+.sessionBadgeOpen {
+  background: $color-primary-muted;
+  color: $color-primary-on-muted;
 }
 
 .sessionBadgeExtended {
   background: rgba(59, 130, 246, 0.12);
   color: #93c5fd;
+}
+
+.sessionBadgeClosed {
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-foreground-muted;
+}
+
+.sessionTooltip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + $space-2);
+  z-index: $z-dropdown;
+  width: min(260px, 70vw);
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface-elevated;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-normal;
+  line-height: 1.45;
+  text-align: left;
+  white-space: pre-line;
+  box-shadow: $shadow-md;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease,
+    transform 0.15s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .change {
