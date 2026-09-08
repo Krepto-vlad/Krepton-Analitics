@@ -21,5 +21,6 @@ module.exports = {
     '!src/utils/fileMock.ts',
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov'],
+  coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
+  // No coverageThreshold: current SPA unit coverage is ~7%. Gating 70%/80% would be dishonest until more RTL tests exist.
 };

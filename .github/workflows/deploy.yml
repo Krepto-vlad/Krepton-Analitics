@@ -1,12 +1,13 @@
 name: Deploy (Azure)
 
-# Auto-deploys on every push to main (both jobs run in full). workflow_dispatch is kept
-# for redeploys with no new commit (e.g. after a manual Azure Portal fix) and for
-# deploying just one side via the checkboxes. Cost stays ~$0 when idle either way
-# (Container Apps scale-to-zero + Static Web Apps free tier) — deploying more often
-# does not change the idle bill, it only spends GitHub Actions minutes.
+# Production deploys only after the CI workflow is green on main (lint, tests,
+# coverage gate, e2e, audit, docker build). workflow_dispatch is kept for
+# emergency / Portal-fix redeploys that skip waiting on a new CI run.
+# Cost stays ~$0 when idle (Container Apps scale-to-zero + Static Web Apps free tier).
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -24,6 +25,10 @@ permissions:
   packages: write
   id-token: write
 
+concurrency:
+  group: deploy-azure
+  cancel-in-progress: false
+
 env:
   # Must match the resource group / names created via Docs/diploma/thesis/docs/02-technical/deployment.md.
   AZURE_RESOURCE_GROUP: krepton-analytics-rg
@@ -31,17 +36,33 @@ env:
   # Hardcoded lowercase: GHCR/OCI repository names must be all-lowercase, but the GitHub
   # org/owner name ("Krepto-vlad") is mixed-case, so github.repository_owner can't be used here.
   IMAGE_NAME: ghcr.io/krepto-vlad/krepton-analytics-api
+  API_HEALTH_URL: https://api.kreptonanalytics.com/health
+  FRONTEND_HEALTH_URL: https://www.kreptonanalytics.com
+  # workflow_run must deploy the commit that CI tested, not the default-branch SHA of this file.
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
 jobs:
+  refuse-if-ci-failed:
+    name: Refuse deploy when CI is red
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail because CI did not pass
+        run: |
+          echo "CI conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "Refusing to deploy."
+          exit 1
+
   deploy-backend:
     name: Build + deploy API (Container Apps)
-    # inputs.* only exists for workflow_dispatch — a plain push always deploys both sides.
-    if: ${{ github.event_name == 'push' || inputs.deploy_backend }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deploy_backend) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -60,7 +81,7 @@ jobs:
           file: backend/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:${{ env.DEPLOY_SHA }}
             ${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha,scope=krepton-api
           cache-to: type=gha,mode=max,scope=krepton-api
@@ -80,7 +101,20 @@ jobs:
             az containerapp update \
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --image ${{ env.IMAGE_NAME }}:${{ github.sha }}
+              --image ${{ env.IMAGE_NAME }}:${{ env.DEPLOY_SHA }}
+
+      - name: Wait until live API is healthy
+        run: |
+          for i in $(seq 1 36); do
+            if curl -sf "${{ env.API_HEALTH_URL }}" > /dev/null; then
+              echo "API healthy after ${i} attempt(s)"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "API did not become healthy in time" >&2
+          curl -sS "${{ env.API_HEALTH_URL }}" || true
+          exit 1
 
       - name: Azure logout
         if: always()
@@ -88,8 +122,7 @@ jobs:
 
   deploy-frontend:
     name: Build + deploy SPA (Static Web Apps)
-    # inputs.* only exists for workflow_dispatch — a plain push always deploys both sides.
-    if: ${{ github.event_name == 'push' || inputs.deploy_frontend }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deploy_frontend) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -103,6 +136,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -126,3 +161,16 @@ jobs:
           app_location: 'frontend/dist'
           output_location: ''
           skip_app_build: true
+
+      - name: Wait until live SPA responds
+        run: |
+          for i in $(seq 1 24); do
+            if curl -sf "${{ env.FRONTEND_HEALTH_URL }}" > /dev/null; then
+              echo "Frontend healthy after ${i} attempt(s)"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Frontend did not become reachable in time" >&2
+          curl -sS -I "${{ env.FRONTEND_HEALTH_URL }}" || true
+          exit 1

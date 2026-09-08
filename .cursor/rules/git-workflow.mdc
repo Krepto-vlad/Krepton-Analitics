@@ -9,6 +9,6 @@ The app is deployed to Azure with auto-deploy on push to `main`. Follow this wor
 
 - **Work from `develop`**, not `main`, unless the user explicitly says otherwise.
 - **Before creating any commit**, ask the user for permission first — describe what will be committed (files + message) and wait for confirmation.
-- **Never push to `main`** without the user's explicit go-ahead in that turn. Pushing to `main` triggers a production deploy (`.github/workflows/deploy.yml`), so treat it as a deliberate release step, not a routine save.
+- **Never push to `main`** without the user's explicit go-ahead in that turn. Pushing to `main` runs CI, then (only if CI is green) `.github/workflows/deploy.yml` ships to Azure — treat it as a deliberate release step, not a routine save.
 - Pushing to `develop` is lower-risk (no auto-deploy) but still confirm before pushing if unsure.
 - When work is ready to ship, tell the user it's ready to merge/push to `main` and let them decide when — don't do it proactively "to be helpful."

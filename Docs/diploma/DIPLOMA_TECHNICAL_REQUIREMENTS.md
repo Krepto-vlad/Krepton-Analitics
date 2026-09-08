@@ -5,6 +5,8 @@
 
 План работ (фазы, набор из 8, как закрывать «неудобные» пункты рубрики): `Docs/diploma/DIPLOMA_ROADMAP.md`.
 
+**Для ментора / апрува темы:** официальные формулировки + галочки — `Docs/diploma/DIPLOMA_OFFICIAL_RUBRIC.md`: сначала заявленные 8, затем остальные 9 (не заявляем) — что есть в репо vs чего нет. Этот файл — внутренний трекер.
+
 **Как пользоваться:** в трекере отмечай статус выбранных критериев. Ниже — чеклист min/max. Ставить галку только если есть **артефакт** (код, диаграмма, отчёт, CI-лог), который можно показать эксперту и вписать в пояснительную записку.
 
 > Галочки — это минимум сложности для допуска. Комитет на предзащите ещё смотрит **глубину**. Семь поверхностных пунктов могут не пройти.
@@ -58,7 +60,7 @@ BA защищается **отдельной комиссией**, не у ин�
 | #   | Критерий                           | Категория      | Статус | Артефакты / дыры                                                                                                                                                                                                                            |
 | --- | ---------------------------------- | -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | Business Analysis                  | required       | plan   | Есть: GDPR (`Docs/GDPR_ITD.md`, Privacy/Terms PDF), архитектура (`ARCHITECTURE_*.md`, mermaid в `AI_INTEGRATION.md`), эпики в `ВозможныеФичи.md`. Нет BA-пакета: vision, stakeholders, use case diagram, in/out of scope, NFR.              |
-| 2   | Backend                            | required       | min    | Express + TS + слои, JWT+bcrypt, Yahoo, `errorHandler`, **Drizzle** (users/watchlist/AI cache+quota), **OpenAPI**, **pino** + `x-request-id`, Jest **≥70%** + CI artifact, **public deploy** (`api.kreptonanalytics.com`, Azure Container Apps). HMAC portfolio ещё raw SQL (ADR). Max-цель **7–8**: CD есть (автодеплой на push); дыры — Azure logs screenshot + alert + CD-gate-on-CI; skip Kafka/Redis/микросервисы/Grafana/Sonar. |
+| 2   | Backend                            | required       | min    | **Закрываем.** Express + TS + слои, Drizzle, OpenAPI, pino + `x-request-id`, Jest **gate 80%**, живой API, CD после зелёного CI. HMAC portfolio — ADR. Skip: Kafka/Redis/микросервисы/Grafana/Sonar/Alertmanager. Appendix по желанию: Log stream screenshot. |
 | 3   | Frontend                           | required       | min    | React SPA, Vite, RTK, 15+ lazy routes, SCSS, forms/tables/search, Error Boundary, skeletons, RTL, **Playwright e2e**, живой публичный URL. Дыры min: скрины tablet, mermaid демо-флоу. Max-цель **7–8**: lazy+RTK+charts уже в коде; + Lighthouse walkthrough (landing+dashboard, prod build) + a11y check. Дыра: повтор Lighthouse на HTTPS prod-домене (пока только `vite preview`). Skip FSD/Next/Figma/Sentry/PWA. i18n — после восьмёрки. |
 | 4   | Database                           | data           | min    | PostgreSQL + `node-pg-migrate`, PK/FK/UNIQUE/CASCADE/**CHECK**, транзакции, bcrypt, HMAC `owner_token`, роли `app_`*, `seed:demo`, dictionary/ER, **`\du` + `app_write` на живом Azure** (скрин: `Docs/diploma/thesis/docs/assets/screenshots/db-du-roles.png`). Max-цель **7–8**: migrations+indexes+HMAC+`\du` на стенде уже закрыты; дыра: `EXPLAIN` appendix. Skip Timescale/триггеры/views/шарды. |
 | 5   | Real-time Analytics                | data           | —      | **Не брать.** Котировки — polling ~30 с (TTL кэша). `useStockWebSocket.ts` не подключён, WS-сервера на бэке нет. Рубрика явно не считает delay > 10 с / cron.                                                                               |
@@ -68,11 +70,11 @@ BA защищается **отдельной комиссией**, не у ин�
 | 9   | AI Assistant / Chatbot             | technical      | plan   | Сильнейший technical: 4 поверхности, guardrails, quota, кэш briefing, 14 диалогов, user guide, lab p95. Max-цель **7–8**: guardrails+quota/cache уже в коде. Дыры: скрин чата, staging latency. Skip RAG/MCP/2 модели/стриминг/чат в БД. Grounding — после billing, ≠ RAG. |
 | 10  | Cryptography                       | technical      | —      | **Не брать.** bcrypt/JWT/HMAC сами по себе критерий не закрывают. HMAC `owner_token` — плюс к Database/GDPR, не отдельная криптозадача.                                                                                                     |
 | 11  | Cloud                              | infrastructure | min    | Azure живой: Static Web Apps (FE) + Container Apps (API, scale-to-zero) + PostgreSQL Flexible Server (managed DB, North Europe), кастомные домены + SSL. Дыры max: Log stream / alert screenshot, IaC (не заявляем). `Docs/diploma/DIPLOMA_ROADMAP.md` Phase D4.                                       |
-| 12  | CI/CD                              | infrastructure | min    | GitHub Actions: lint, build, Jest, coverage artifact, `npm audit`, `docker build` + `compose config`. **CD**: `.github/workflows/deploy.yml` — auto-deploy на push в `main` (GHCR image + Container Apps rollout + Static Web Apps). Husky pre-push с coverage. Дыра max: CD не gate-ится на CI.        |
+| 12  | CI/CD                              | infrastructure | min    | GitHub Actions: lint, build, Jest, coverage artifact (BE+FE), `npm audit`, `docker build` + `compose config`. **CD**: `.github/workflows/deploy.yml` — только после зелёного `ci.yml` на `main` (GHCR image + Container Apps + health; SWA + SPA URL). Husky pre-push: lint + format + coverage BE+FE. |
 | 13  | Containerization                   | infrastructure | —      | **Не заявляем.** Файлы min почти готовы (Dockerfile ×2, compose, non-root, healthcheck, CI `docker build`). Дыра для заявки: живой `compose up` + размеры образов. Можно 9-м после доказательства. |
 | 14  | Microservices                      | infrastructure | —      | **Не брать.** Монолит FE+BE+Postgres не считается.                                                                                                                                                                                          |
 | 15  | API Documentation                  | processes      | —      | Текстовые эндпоинты AI в `AI_INTEGRATION.md` ≠ OpenAPI-портал. Для Backend min хватит текста/Swagger; как отдельный критерий — нет.                                                                                                         |
-| 16  | Automated tests 70%+               | processes      | plan   | Backend Jest **≥70%** + HTTP supertest + RTL + **Playwright e2e с реальным Postgres в CI**. Max-цель **7–8**: gate 70% + критичные unit + полная пирамида уже есть. Дыра min: скрин зелёного CI. Skip mutation/Pact/k6/FE-70%/branches-70%. Qual testing не берём. |
+| 16  | Automated tests 70%+               | processes      | plan   | Backend Jest **gate 80%** + HTTP supertest + RTL + **Playwright e2e с реальным Postgres в CI**. Max-цель **7–8**: gate + критичные unit + полная пирамида уже есть. Дыра min: скрин зелёного CI. Skip mutation/Pact/k6/FE-70%/branches-70%. Qual testing не берём. |
 | 17  | Qualitative / quantitative testing | processes      | —      | Нет тест-плана, ручных кейсов, JMeter/Postman-коллекции как артефакта защиты.                                                                                                                                                               |
 
 
@@ -130,7 +132,7 @@ Node.js / Express подходит как «modern framework».
 - [x] Централизованный error handling — `backend/src/middleware/errorHandler.ts` + `AppError`
 - [x] Структурированные логи ключевых событий и ошибок — `pino` JSON + `x-request-id` (ELK не нужен для min)
 - [x] **+ продукт** Production deploy, доступный внешним пользователям — `https://api.kreptonanalytics.com` на Azure Container Apps
-- [x] Unit-тесты бизнес-логики, **coverage ≥ 70%**, отчёт coverage-инструментом — Jest `coverageThreshold`; HTML/lcov в CI artifact `backend-coverage`
+- [x] Unit-тесты бизнес-логики, **coverage ≥ 70%**, отчёт coverage-инструментом — Jest `coverageThreshold` **80%**; HTML/lcov в CI artifact `backend-coverage`
 
 **Обязательные ограничения:**
 
@@ -150,11 +152,11 @@ Node.js / Express подходит как «modern framework».
 
 **Делаем**
 
-- [x] **+ продукт** CI/CD: image → GHCR → auto-deploy на push в `main`, секреты через Container App env vars / GitHub Secrets — тот же пайплайн закрывает критерии Cloud и CI/CD
+- [x] **+ продукт** CI/CD: image → GHCR → auto-deploy **после зелёного CI** на `main`, секреты через Container App env vars / GitHub Secrets — тот же пайплайн закрывает критерии Cloud и CI/CD
 - [ ] **+ диплом (текст + скрин D4, не код)** Централизованные логи: `pino` JSON уже в stdout; Azure Log stream живой в Portal, скрин для appendix ещё не снят
 - [x] **+ диплом (текст, не код)** Tracing: `x-request-id` уже есть (middleware + ALS + pino); в thesis назвать correlation ID. OpenTelemetry/App Insights не делаем
-- [ ] **+ диплом** Alerting: один Azure alert на 5xx / restart — ещё не настроен
-- [ ] **+ продукт** Quality gate: деплой только с зелёного CI (lint + test + build) — сейчас CD не зависит от результата `ci.yml` (known limitation, `criteria/cicd.md`). Coverage остаётся **70%** живыми тестами
+- [ ] **+ диплом** Alerting: один Azure alert на 5xx / restart — ещё не настроен (Alertmanager/Prometheus не берём)
+- [x] **+ продукт** Quality gate: деплой только с зелёного CI (`deploy.yml` ← `workflow_run` на `ci.yml`). Coverage gate backend **80%** (live ~84% statements / 82% functions / 84% lines). Frontend coverage в CI **без** порога (~7%)
 
 **Скип** (в записке *why not*, не обещать эксперту)
 
@@ -521,7 +523,7 @@ CI ≥ 3 стадий:
 
 Плюс:
 
-- [x] Хоть один CD: `.github/workflows/deploy.yml` — GHCR image + Azure Container Apps + Static Web Apps, авто на push в `main`
+- [x] Хоть один CD: `.github/workflows/deploy.yml` — GHCR image + Azure Container Apps + Static Web Apps, **после зелёного CI** на `main`
 - [x] Триггер на push и/или PR
 - [x] Кэш зависимостей
 - [x] Артефакт (dist / image / zip)
@@ -655,7 +657,7 @@ Coverage < 70%: −2. Тесты без логики (`expect(true)`, пусты
 
 **Делаем**
 
-- [x] **+ продукт** Quality gate: CI падает, если backend coverage < 70% (statements/lines/functions)
+- [x] **+ продукт** Quality gate: CI падает, если backend coverage < 80% (statements/lines/functions)
 - [x] **+ продукт** Критичные зоны в unit: auth 401, validation 400, tickerChatScope jailbreak, HMAC/privacy, import parsers
 - [x] **+ продукт** Пирамида: unit (есть) + HTTP (есть) + RTL (есть) + **один** e2e Playwright + **один** API+Postgres — обе последние закрыты одной CI job `e2e`. Это закрывает «полная пирамида» тонко, не Cypress+Pact
 - [ ] **+ диплом** В thesis: «как тесты ловили баги» — 3–5 реальных регрессий (scope gate, CHECK, cookie 401) + план: не гнать 80% пустышками
@@ -726,7 +728,7 @@ Coverage < 70%: −2. Тесты без логики (`expect(true)`, пусты
 | Критерий             | Категория      | Комментарий                                                                     |
 | -------------------- | -------------- | ------------------------------------------------------------------------------- |
 | Business Analysis    | required       | комиссия; пакет после апрува темы — **единственный критерий без min**           |
-| Backend              | required       | Express + слои + ORM + OpenAPI + логи + **живой deploy** + 70% — min закрыт     |
+| Backend              | required       | **закрыт 7–8**: живой API, CD после CI, gate 80%. Не 10 (skip Kafka/Redis/микросервисы) |
 | Frontend             | required       | SPA + Redux + Vite + **Playwright** + живой URL; дыра min: скрины tablet; max evidence: Lighthouse walkthrough + a11y check закрыты в коде, повтор на HTTPS prod — evidence-проход; i18n после восьмёрки; не PWA/Sentry |
 | Database             | data           | OLTP min закрыт, включая `\du`+`app_write` на живом Azure; max: migrations+indexes+HMAC+`\du`; дыра max: `EXPLAIN`; не Timescale/триггеры |
 | AI Assistant         | technical      | min почти закрыт; max = guardrails + quota/cache; скрин + staging p95 (стенд готов, прогон предстоит); не RAG/MCP/две модели |
