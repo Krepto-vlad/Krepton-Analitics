@@ -22,5 +22,11 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
-  // No coverageThreshold: current SPA unit coverage is ~7%. Gating 70%/80% would be dishonest until more RTL tests exist.
+  coverageThreshold: {
+    global: {
+      statements: 80,
+      lines: 80,
+      functions: 80,
+    },
+  },
 };
