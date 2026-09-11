@@ -26,6 +26,8 @@ export const API_ROUTES = {
   AUTH: '/api/auth',
   PORTFOLIO: '/api/portfolio',
   FX: '/api/fx',
+  BILLING: '/api/billing',
+  ADMIN: '/api/admin',
   DOCS: '/api/docs',
 } as const;
 
@@ -184,6 +186,7 @@ export const IMPORT_AI_SCHEMA_SAMPLE_ROWS = 20;
 export const IMPORT_AI_SCHEMA_MAX_CELL_CHARS = 48;
 export const IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS = 512;
 export const IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT = 10;
+export const IMPORT_AI_SCHEMA_PAID_DAILY_LIMIT = 50;
 export const IMPORT_AI_SCHEMA_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const IMPORT_AI_SCHEMA_RATE_LIMIT_MAX_REQUESTS = 10;
 
@@ -206,6 +209,7 @@ export type AiFeatureId = (typeof AI_FEATURES)[number];
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
 export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
 export const AI_NEWS_SUMMARY_FREE_DAILY_LIMIT = 5;
+export const AI_NEWS_SUMMARY_PAID_DAILY_LIMIT = 50;
 export const AI_NEWS_SUMMARY_DISCLAIMER =
   'AI-generated summary for informational purposes only. Not financial advice. Verify prices and news with primary sources.';
 export const AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -213,6 +217,7 @@ export const AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS = 10;
 export const AI_BRIEFING_CACHE_VERSION = 'v2';
 
 export const AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT = 5;
+export const AI_EXPLAIN_ALIGNMENT_PAID_DAILY_LIMIT = 50;
 export const AI_EXPLAIN_ALIGNMENT_CACHE_VERSION = 'v2';
 export const AI_EXPLAIN_ALIGNMENT_DISCLAIMER =
   'AI-generated explanation for informational purposes only. Not financial advice. No buy/sell recommendations. False-diversification notes are qualitative (no ETF look-through holdings data).';
@@ -221,6 +226,7 @@ export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS = 10;
 export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1400;
 
 export const AI_TICKER_CHAT_FREE_DAILY_LIMIT = 20;
+export const AI_TICKER_CHAT_PAID_DAILY_LIMIT = 200;
 export const AI_TICKER_CHAT_DISCLAIMER =
   'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
 export const AI_EMPTY_REPLY_ERROR_MESSAGE = 'AI returned an empty response. Please try again.';
@@ -311,6 +317,26 @@ export const MONTH_LABELS = [
   'Nov',
   'Dec',
 ] as const;
+
+// ─── Billing (Paddle Merchant of Record) ───────────────────────────────────────
+export const BILLING_CHECKOUT_INTERVALS = ['month', 'year'] as const;
+export type BillingCheckoutInterval = (typeof BILLING_CHECKOUT_INTERVALS)[number];
+export const BILLING_PLAN_PLUS = 'plus';
+export const BILLING_ACCESS_GRACE_MS = 60 * 60 * 1000;
+export const BILLING_NOT_CONFIGURED_MESSAGE =
+  'Paid checkout is not configured on this server yet. Complimentary access can still be granted by an admin.';
+export const BILLING_WEBHOOK_INVALID_SIGNATURE_MESSAGE = 'Invalid Paddle webhook signature';
+export const PADDLE_ENVIRONMENTS = ['sandbox', 'production'] as const;
+export type PaddleEnvironmentName = (typeof PADDLE_ENVIRONMENTS)[number];
+export const PADDLE_STATUSES_WITH_PERIOD_ACCESS = [
+  'active',
+  'trialing',
+  'past_due',
+  'canceled',
+  'paused',
+] as const;
+export type PaddlePeriodAccessStatus = (typeof PADDLE_STATUSES_WITH_PERIOD_ACCESS)[number];
+export const BILLING_CUSTOM_DATA_USER_ID_KEY = 'userId';
 
 /** Rubric names: read / write / admin. Prefix avoids colliding with a cluster role named `admin`. */
 export const DB_ROLE_APP_READ = 'app_read';

@@ -6,6 +6,7 @@ import { LOADING_MESSAGES, ROUTES } from '../../constants';
 import { apiGetMe } from '../../api/authApi';
 import { authReducer } from '../../features/auth/authSlice';
 import type { AuthState, AuthUser } from '../../types/auth.types';
+import { FREE_SUBSCRIPTION_SUMMARY } from '../../types/billing.types';
 import { RequireAuth } from '../RequireAuth';
 
 jest.mock('../../api/authApi', () => ({
@@ -20,6 +21,8 @@ const testUser: AuthUser = {
   emailVerified: true,
   hasPassword: true,
   hasGoogle: false,
+  isAdmin: false,
+  subscription: FREE_SUBSCRIPTION_SUMMARY,
   sessionExpiresAt: '2026-01-01T00:15:00.000Z',
 };
 

@@ -13,6 +13,13 @@ function parseBooleanEnv(key: string, fallback: boolean): boolean {
   return value === 'true' || value === '1';
 }
 
+function parseAdminEmails(raw: string): string[] {
+  return raw
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter((email) => email.length > 0);
+}
+
 export const env = {
   port: parseInt(optionalEnv('PORT', '3001'), 10),
   frontendUrl: optionalEnv('FRONTEND_URL', 'http://localhost:5173'),
@@ -33,6 +40,12 @@ export const env = {
   smtpUser: optionalEnv('SMTP_USER', ''),
   smtpPassword: optionalEnv('SMTP_PASSWORD', ''),
   smtpFrom: optionalEnv('SMTP_FROM', 'Krepton Analytics <noreply@krepton.local>'),
+  paddleApiKey: optionalEnv('PADDLE_API_KEY', ''),
+  paddleWebhookSecret: optionalEnv('PADDLE_WEBHOOK_SECRET', ''),
+  paddleEnv: optionalEnv('PADDLE_ENV', 'sandbox'),
+  paddlePlusMonthlyPriceId: optionalEnv('PADDLE_PLUS_MONTHLY_PRICE_ID', ''),
+  paddlePlusAnnualPriceId: optionalEnv('PADDLE_PLUS_ANNUAL_PRICE_ID', ''),
+  adminEmails: parseAdminEmails(optionalEnv('ADMIN_EMAILS', '')),
 } as const;
 
 export const isGoogleAuthConfigured = env.googleClientId.length > 0;
@@ -45,3 +58,13 @@ export const isGeminiGroundingEnabled = env.geminiGroundingEnabled && isGeminiCo
 export const isDevelopment = env.nodeEnv === 'development';
 export const isProduction = env.nodeEnv === 'production';
 export const isTest = env.nodeEnv === 'test';
+
+export const isPaddleBillingConfigured =
+  env.paddleApiKey.length > 0 &&
+  env.paddleWebhookSecret.length > 0 &&
+  env.paddlePlusMonthlyPriceId.length > 0 &&
+  env.paddlePlusAnnualPriceId.length > 0;
+
+export function isAdminEmail(email: string): boolean {
+  return env.adminEmails.includes(email.trim().toLowerCase());
+}

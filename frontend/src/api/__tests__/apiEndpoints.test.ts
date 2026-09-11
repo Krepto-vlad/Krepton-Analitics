@@ -77,6 +77,12 @@ import {
   fetchTickerTape,
 } from '../stockApi';
 import { createWatchlistItem, deleteWatchlistItem, fetchWatchlistItems } from '../watchlistApi';
+import {
+  apiCreateBillingCheckout,
+  apiCreateBillingPortal,
+  apiGrantAdminEntitlement,
+  apiLookupAdminEntitlement,
+} from '../billingApi';
 
 const http = (
   axiosModule as unknown as {
@@ -101,6 +107,16 @@ const user = {
   emailVerified: true,
   hasPassword: true,
   hasGoogle: false,
+  isAdmin: false,
+  subscription: {
+    isPaid: false,
+    plan: 'free',
+    interval: null,
+    source: null,
+    status: 'none',
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
+  },
   sessionExpiresAt: '2026-01-01T00:15:00.000Z',
 };
 
@@ -274,5 +290,27 @@ describe('API clients', () => {
     expect(http.delete).toHaveBeenCalled();
     expect(http.patch).toHaveBeenCalled();
     expect(http.put).toHaveBeenCalled();
+  });
+
+  it('unwraps billing checkout, portal, and admin grant endpoints', async () => {
+    http.post.mockResolvedValueOnce(ok({ transactionId: 'txn_1' }));
+    http.post.mockResolvedValueOnce(ok({ url: 'https://paddle.example/portal' }));
+    http.post.mockResolvedValueOnce(
+      ok({ email: 'friend@example.com', expiresAt: '2026-12-01T00:00:00.000Z', isPaid: true })
+    );
+    http.get.mockResolvedValueOnce(
+      ok({ email: 'friend@example.com', expiresAt: '2026-12-01T00:00:00.000Z', isPaid: true })
+    );
+
+    await expect(apiCreateBillingCheckout('month')).resolves.toEqual({ transactionId: 'txn_1' });
+    await expect(apiCreateBillingPortal()).resolves.toEqual({
+      url: 'https://paddle.example/portal',
+    });
+    await expect(
+      apiGrantAdminEntitlement('friend@example.com', '2026-12-01T00:00:00.000Z')
+    ).resolves.toMatchObject({ isPaid: true });
+    await expect(apiLookupAdminEntitlement('friend@example.com')).resolves.toMatchObject({
+      email: 'friend@example.com',
+    });
   });
 });

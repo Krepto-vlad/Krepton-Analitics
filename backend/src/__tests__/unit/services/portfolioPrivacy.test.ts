@@ -48,6 +48,7 @@ import {
 } from '../../../repositories/portfolioRepository.js';
 import { getWatchlistByPortfolioId } from '../../../repositories/watchlistRepository.js';
 import { getUserById, verifySensitiveAction } from '../../../services/authService.js';
+import { createFreeSubscriptionSummary } from '../../../types/billing.types.js';
 import {
   deleteUserPortfolioData,
   exportUserPortfolioData,
@@ -156,6 +157,8 @@ describe('portfolioService privacy actions', () => {
         emailVerified: true,
         hasPassword: true,
         hasGoogle: false,
+        isAdmin: false,
+        subscription: createFreeSubscriptionSummary(),
       });
       mockedGetPositions.mockResolvedValue([positionRow]);
       mockedGetTxHistory.mockResolvedValue([transactionRow]);

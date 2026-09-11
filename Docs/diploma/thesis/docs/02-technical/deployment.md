@@ -70,9 +70,17 @@ Secrets stay in GitHub Secrets / Azure settings, never in YAML.
 | `VITE_API_URL` | Browser API base (baked into the web image) | Yes for frontend build |
 | `GEMINI_API_KEY` | LLM gateway | For AI features |
 | `GOOGLE_CLIENT_ID` | OAuth | Optional login |
+| `PADDLE_API_KEY` | Paddle Billing server key | For paid checkout |
+| `PADDLE_WEBHOOK_SECRET` | Paddle webhook HMAC | For paid checkout |
+| `PADDLE_ENV` | `sandbox` or `production` | Defaults to sandbox |
+| `PADDLE_PLUS_MONTHLY_PRICE_ID` | Plus monthly price id | For paid checkout |
+| `PADDLE_PLUS_ANNUAL_PRICE_ID` | Plus annual price id | For paid checkout |
+| `ADMIN_EMAILS` | Comma-separated allowlist | Complimentary Plus grants |
+| `VITE_PADDLE_CLIENT_TOKEN` | Paddle.js client token (baked into SPA) | For checkout overlay |
+| `VITE_PADDLE_ENV` | `sandbox` or `production` (baked into SPA) | Defaults to sandbox |
 | `NODE_ENV` | `development` / `production` | Yes |
 
-Copy from `.env.example` at the repo root (Compose) and from `backend/.env.example` / `frontend/.env.example` (inner loop). Never commit `.env`. In production, backend variables (`DATABASE_URL`, `JWT_SECRET`, `PORTFOLIO_SECRET`, `GOOGLE_CLIENT_ID`, SMTP) live in the Container App's environment variables blade; `VITE_API_URL` / `VITE_GOOGLE_CLIENT_ID` are baked in at build time by `deploy.yml` from GitHub Secrets.
+Copy from `.env.example` at the repo root (Compose) and from `backend/.env.example` / `frontend/.env.example` (inner loop). Never commit `.env`. In production, backend variables (`DATABASE_URL`, `JWT_SECRET`, `PORTFOLIO_SECRET`, `GOOGLE_CLIENT_ID`, SMTP, Paddle, `ADMIN_EMAILS`) live in the Container App's environment variables blade; `VITE_API_URL` / `VITE_GOOGLE_CLIENT_ID` / `VITE_PADDLE_CLIENT_TOKEN` / `VITE_PADDLE_ENV` are baked in at build time by `deploy.yml` from GitHub Secrets.
 
 ## How to Run Locally
 

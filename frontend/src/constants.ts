@@ -13,6 +13,11 @@ export const SESSION_ACTIVITY_THROTTLE_MS = 30_000;
 export const SESSION_ACTIVITY_EVENTS = ['pointerdown', 'keydown'] as const;
 export const HTTP_UNAUTHORIZED_STATUS = 401;
 
+export const PADDLE_CHECKOUT_COMPLETED_EVENT = 'checkout.completed';
+export const PADDLE_CHECKOUT_CLOSED_EVENT = 'checkout.closed';
+export const BILLING_CHECKOUT_STATUS_RETRY_ATTEMPTS = 4;
+export const BILLING_CHECKOUT_STATUS_RETRY_MS = 1_500;
+
 /** Axios 401 on these /api/auth paths is a failed login, not an expired session. */
 export const PUBLIC_AUTH_API_PATH_MARKERS = [
   '/api/auth/login',
@@ -48,6 +53,7 @@ export const ROUTES = {
   PORTFOLIO: '/portfolio',
   PROFILE: '/profile',
   SUBSCRIPTION: '/subscription',
+  ADMIN: '/admin',
   REBALANCING: '/rebalancing',
   SCREENER: '/screener',
   BACKTESTING: '/backtesting',
@@ -447,6 +453,14 @@ export const ERROR_MESSAGES = {
   AI_TICKER_CHAT_FAILED: 'Unable to get an AI reply. Please try again.',
   AI_TICKER_CHAT_QUOTA_FAILED: 'Unable to load AI chat quota. Please try again.',
   AI_TICKER_CHAT_EMPTY_MESSAGE: 'Enter a question about this ticker.',
+  BILLING_CHECKOUT_FAILED: 'Unable to start checkout. Please try again.',
+  BILLING_CHECKOUT_OPENED:
+    'Complete payment in the Paddle window. Your plan updates automatically after confirmation.',
+  BILLING_PORTAL_FAILED: 'Unable to open the billing portal. Please try again.',
+  BILLING_ADMIN_GRANT_FAILED: 'Unable to grant complimentary access. Please try again.',
+  BILLING_PADDLE_UNAVAILABLE: 'Paddle checkout is not configured in this browser build.',
+  BILLING_NOT_CONFIGURED:
+    'Paid checkout is not configured on this server yet. Complimentary access can still be granted by an admin.',
 } as const;
 
 export const AI_ALIGNMENT_EXPLAIN_SESSION_STORAGE_KEY = 'krepton_ai_alignment_explain_v1';

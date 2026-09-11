@@ -18,6 +18,8 @@ There is **no** FK from `portfolio_accounts` to `users`. The API stores `owner_t
 erDiagram
   users ||--o{ ai_news_summaries : "user_id"
   users ||--o{ ai_usage_events : "user_id"
+  users ||--o| billing_customers : "user_id"
+  users ||--o| billing_entitlements : "user_id"
   portfolio_accounts ||--o{ positions : "portfolio_id"
   portfolio_accounts ||--o{ transactions : "portfolio_id"
   portfolio_accounts ||--o{ watchlist_items : "portfolio_id"
@@ -55,6 +57,16 @@ erDiagram
     uuid id PK
     uuid user_id FK
     varchar feature
+  }
+  billing_customers {
+    uuid user_id PK
+    varchar paddle_customer_id UK
+  }
+  billing_entitlements {
+    uuid user_id PK
+    varchar paddle_subscription_id
+    timestamptz paddle_period_end
+    timestamptz admin_expires_at
   }
 ```
 

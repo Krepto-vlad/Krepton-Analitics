@@ -50,8 +50,13 @@ import {
   sendPasswordResetLink,
 } from './emailService.js';
 import { verifyGoogleIdToken } from './googleAuthService.js';
+import { isAdminEmail } from '../config/env.js';
+import { getSubscriptionSummaryForUser } from './entitlementService.js';
+import { cancelPaddleSubscriptionForUser } from './billingCheckoutService.js';
 
-function mapUserRowToAuthUser(user: UserRow): AuthUserProfile {
+async function mapUserRowToAuthUser(user: UserRow): Promise<AuthUserProfile> {
+  const subscription = await getSubscriptionSummaryForUser(user.id);
+
   return {
     id: user.id,
     email: user.email,
@@ -59,6 +64,8 @@ function mapUserRowToAuthUser(user: UserRow): AuthUserProfile {
     emailVerified: user.email_verified,
     hasPassword: Boolean(user.password_hash),
     hasGoogle: Boolean(user.google_sub),
+    isAdmin: isAdminEmail(user.email),
+    subscription,
   };
 }
 
@@ -185,7 +192,7 @@ export async function verifyEmailWithToken(rawToken: unknown): Promise<AuthUserP
     throw new AppError(500, 'Unable to verify email');
   }
 
-  return mapUserRowToAuthUser(verifiedUser);
+  return await mapUserRowToAuthUser(verifiedUser);
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthUserProfile> {
@@ -203,7 +210,7 @@ export async function loginUser(email: string, password: string): Promise<AuthUs
     throw new AppError(403, 'Please verify your email before signing in.');
   }
 
-  return mapUserRowToAuthUser(user);
+  return await mapUserRowToAuthUser(user);
 }
 
 export async function loginWithGoogleIdToken(idToken: unknown): Promise<AuthUserProfile> {
@@ -229,7 +236,7 @@ export async function loginWithGoogleIdToken(idToken: unknown): Promise<AuthUser
     throw new AppError(500, 'Unable to complete Google sign-in');
   }
 
-  return mapUserRowToAuthUser(user);
+  return await mapUserRowToAuthUser(user);
 }
 
 export async function getUserById(userId: string): Promise<AuthUserProfile> {
@@ -237,7 +244,7 @@ export async function getUserById(userId: string): Promise<AuthUserProfile> {
   if (!user) {
     throw new AppError(401, 'User not found');
   }
-  return mapUserRowToAuthUser(user);
+  return await mapUserRowToAuthUser(user);
 }
 
 /**
@@ -411,6 +418,7 @@ export async function deleteUserAccount(
   }
 
   await verifySensitiveAction(userId, credentials);
+  await cancelPaddleSubscriptionForUser(userId);
 
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findPortfolioAccountIdByOwnerToken(ownerToken);

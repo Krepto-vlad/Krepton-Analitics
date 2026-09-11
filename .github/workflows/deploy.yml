@@ -133,6 +133,8 @@ jobs:
       # live API custom domain, not localhost.
       VITE_API_URL: https://api.kreptonanalytics.com
       VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+      VITE_PADDLE_CLIENT_TOKEN: ${{ secrets.VITE_PADDLE_CLIENT_TOKEN }}
+      VITE_PADDLE_ENV: ${{ secrets.VITE_PADDLE_ENV }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

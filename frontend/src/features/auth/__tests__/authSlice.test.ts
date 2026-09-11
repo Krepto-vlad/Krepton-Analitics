@@ -10,6 +10,7 @@ import {
   apiVerifyEmail,
 } from '../../../api/authApi';
 import type { AuthUser } from '../../../types/auth.types';
+import { FREE_SUBSCRIPTION_SUMMARY } from '../../../types/billing.types';
 import type { AppDispatch } from '../../../store';
 import { expireClientSession } from '../expireClientSession';
 import {
@@ -49,6 +50,8 @@ const user: AuthUser = {
   emailVerified: true,
   hasPassword: true,
   hasGoogle: false,
+  isAdmin: false,
+  subscription: FREE_SUBSCRIPTION_SUMMARY,
   sessionExpiresAt: '2026-01-01T00:15:00.000Z',
 };
 

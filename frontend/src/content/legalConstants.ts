@@ -3,7 +3,7 @@ export const LEGAL_AUTH_COOKIE_NAME = 'accessToken';
 
 /** Keep in sync with backend SMTP_USER / SMTP_FROM (password-reset sender). */
 export const LEGAL_CONTACT_EMAIL = 'kreptonanalytics@gmail.com';
-export const LEGAL_LAST_UPDATED = '4 September 2026';
+export const LEGAL_LAST_UPDATED = '9 September 2026';
 export const LEGAL_COPYRIGHT_YEAR = 2026;
 export const LEGAL_DOCUMENTS_PUBLIC_DIR = '/legal';
 

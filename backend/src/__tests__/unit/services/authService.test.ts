@@ -35,6 +35,22 @@ jest.mock('../../../services/emailService.js', () => ({
   sendPasswordResetLink: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../../services/entitlementService.js', () => ({
+  getSubscriptionSummaryForUser: jest.fn().mockResolvedValue({
+    isPaid: false,
+    plan: 'free',
+    interval: null,
+    source: null,
+    status: 'none',
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
+  }),
+}));
+
+jest.mock('../../../services/billingCheckoutService.js', () => ({
+  cancelPaddleSubscriptionForUser: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../../services/googleAuthService.js', () => ({
   verifyGoogleIdToken: jest.fn(),
 }));
@@ -271,6 +287,16 @@ describe('authService', () => {
         emailVerified: true,
         hasPassword: true,
         hasGoogle: false,
+        isAdmin: false,
+        subscription: {
+          isPaid: false,
+          plan: 'free',
+          interval: null,
+          source: null,
+          status: 'none',
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+        },
       });
     });
   });
@@ -381,6 +407,16 @@ describe('authService', () => {
         emailVerified: true,
         hasPassword: true,
         hasGoogle: false,
+        isAdmin: false,
+        subscription: {
+          isPaid: false,
+          plan: 'free' as const,
+          interval: null,
+          source: null,
+          status: 'none' as const,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+        },
       };
       const payload = verifyAccessToken(token) as unknown as { exp: number };
 

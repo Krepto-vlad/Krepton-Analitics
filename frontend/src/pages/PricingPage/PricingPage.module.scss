@@ -67,6 +67,14 @@
   margin-bottom: 64px;
 }
 
+.vatFootnote {
+  margin: -$space-6 0 48px;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  line-height: 1.5;
+}
+
 .planCard {
   position: relative;
   display: flex;

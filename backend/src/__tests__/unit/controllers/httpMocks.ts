@@ -22,6 +22,7 @@ export function createMockRequest(overrides: Record<string, unknown> = {}): Requ
     query: {},
     body: {},
     cookies: {},
+    headers: {},
     file: undefined,
     originalUrl: '/test',
     method: 'GET',

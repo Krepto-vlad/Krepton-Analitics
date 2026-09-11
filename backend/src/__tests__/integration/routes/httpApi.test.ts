@@ -47,4 +47,14 @@ describe('HTTP API integration', () => {
       error: 'Query parameter "q" is required',
     });
   });
+
+  it('POST /api/billing/webhook without a signature returns 400', async () => {
+    const response = await request(app)
+      .post(`${API_ROUTES.BILLING}/webhook`)
+      .set('Content-Type', 'application/json')
+      .send({ event_type: 'subscription.updated' })
+      .expect(400);
+
+    expect(response.body.success).toBe(false);
+  });
 });

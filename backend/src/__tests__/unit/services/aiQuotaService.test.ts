@@ -3,11 +3,17 @@ jest.mock('../../../repositories/aiRepository.js', () => ({
   insertAiUsageEvent: jest.fn(),
 }));
 
+jest.mock('../../../services/entitlementService.js', () => ({
+  isPaidUser: jest.fn().mockResolvedValue(false),
+}));
+
 import {
   AI_NEWS_SUMMARY_FREE_DAILY_LIMIT,
+  AI_NEWS_SUMMARY_PAID_DAILY_LIMIT,
   AI_TICKER_CHAT_FREE_DAILY_LIMIT,
 } from '../../../constants.js';
 import { countAiUsageSince, insertAiUsageEvent } from '../../../repositories/aiRepository.js';
+import { isPaidUser } from '../../../services/entitlementService.js';
 import {
   assertAiQuotaAvailable,
   getAiQuotaStatus,
@@ -16,10 +22,12 @@ import {
 
 const mockedCount = countAiUsageSince as jest.MockedFunction<typeof countAiUsageSince>;
 const mockedInsert = insertAiUsageEvent as jest.MockedFunction<typeof insertAiUsageEvent>;
+const mockedIsPaid = isPaidUser as jest.MockedFunction<typeof isPaidUser>;
 
 describe('aiQuotaService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedIsPaid.mockResolvedValue(false);
   });
 
   it('computes remaining against the feature daily limit', async () => {
@@ -64,5 +72,14 @@ describe('aiQuotaService', () => {
     await recordAiUsage('user-1', 'explain_alignment');
 
     expect(mockedInsert).toHaveBeenCalledWith('user-1', 'explain_alignment');
+  });
+
+  it('uses paid daily limits when the user is entitled', async () => {
+    mockedIsPaid.mockResolvedValue(true);
+    mockedCount.mockResolvedValue(0);
+
+    const quota = await getAiQuotaStatus('user-1', 'news_summary');
+
+    expect(quota.limit).toBe(AI_NEWS_SUMMARY_PAID_DAILY_LIMIT);
   });
 });
