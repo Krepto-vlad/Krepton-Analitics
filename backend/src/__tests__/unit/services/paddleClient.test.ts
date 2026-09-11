@@ -1,3 +1,14 @@
+jest.mock('../../../config/env.js', () => ({
+  env: {
+    paddleApiKey: '',
+    paddleWebhookSecret: '',
+    paddleEnv: 'sandbox',
+    paddlePlusMonthlyPriceId: 'pri_month',
+    paddlePlusAnnualPriceId: 'pri_year',
+  },
+  isPaddleBillingConfigured: false,
+}));
+
 import { BILLING_NOT_CONFIGURED_MESSAGE } from '../../../constants.js';
 import {
   getPaddleClient,
@@ -23,7 +34,7 @@ describe('paddleClient', () => {
   });
 
   it('maps checkout intervals to the configured price ids', () => {
-    expect(getPaddlePriceIdForInterval('month')).toBe('');
-    expect(getPaddlePriceIdForInterval('year')).toBe('');
+    expect(getPaddlePriceIdForInterval('month')).toBe('pri_month');
+    expect(getPaddlePriceIdForInterval('year')).toBe('pri_year');
   });
 });
