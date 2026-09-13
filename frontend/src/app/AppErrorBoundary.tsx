@@ -10,17 +10,21 @@ interface AppErrorBoundaryProps {
 
 interface AppErrorBoundaryState {
   hasError: boolean;
+  errorMessage: string | null;
   recoveryKey: number;
 }
 
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   state: AppErrorBoundaryState = {
     hasError: false,
+    errorMessage: null,
     recoveryKey: 0,
   };
 
-  static getDerivedStateFromError(): Pick<AppErrorBoundaryState, 'hasError'> {
-    return { hasError: true };
+  static getDerivedStateFromError(
+    error: Error
+  ): Pick<AppErrorBoundaryState, 'hasError' | 'errorMessage'> {
+    return { hasError: true, errorMessage: error.message };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
@@ -30,6 +34,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   handleRetry = (): void => {
     this.setState((current) => ({
       hasError: false,
+      errorMessage: null,
       recoveryKey: current.recoveryKey + 1,
     }));
   };
@@ -40,7 +45,11 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
         <div className={styles.fallback}>
           <ErrorState
             title={ERROR_BOUNDARY_TITLE}
-            message={ERROR_MESSAGES.APP_RENDER_FAILED}
+            message={
+              this.state.errorMessage
+                ? `${ERROR_MESSAGES.APP_RENDER_FAILED} ${this.state.errorMessage}`
+                : ERROR_MESSAGES.APP_RENDER_FAILED
+            }
             retryLabel={ERROR_BOUNDARY_RETRY_LABEL}
             onRetry={this.handleRetry}
           />

@@ -69,7 +69,7 @@ export function SubscriptionPage() {
         }
 
         const result = await dispatch(fetchCurrentUserThunk());
-        if (fetchCurrentUserThunk.fulfilled.match(result) && result.payload.subscription.isPaid) {
+        if (fetchCurrentUserThunk.fulfilled.match(result) && result.payload.subscription?.isPaid) {
           setNotice(null);
           return;
         }

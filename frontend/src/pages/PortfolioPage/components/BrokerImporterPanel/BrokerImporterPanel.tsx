@@ -65,7 +65,7 @@ export function BrokerImporterPanel() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const isPaid = useAppSelector((state) => Boolean(state.auth.user?.subscription.isPaid));
+  const isPaid = useAppSelector((state) => Boolean(state.auth.user?.subscription?.isPaid));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const didAutoPreviewRef = useRef(false);
 
