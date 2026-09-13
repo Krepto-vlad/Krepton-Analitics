@@ -354,7 +354,7 @@ export function ProfilePage() {
             <div className={styles.overviewNameRow}>
               <p className={styles.overviewEmail}>{maskedEmail}</p>
               <span className={styles.planBadge}>
-                {user.subscription.isPaid ? 'Plus plan' : 'Free plan'}
+                {user.subscription?.isPaid ? 'Plus plan' : 'Free plan'}
               </span>
             </div>
             <p className={styles.overviewMeta}>Member since {memberSince}</p>
@@ -438,10 +438,12 @@ export function ProfilePage() {
             <CreditCard size={20} className={styles.securityIcon} />
             <div>
               <p className={styles.subscriptionTitle}>
-                {user ? formatSubscriptionHeadline(user.subscription) : 'Free — $0 / forever'}
+                {user?.subscription
+                  ? formatSubscriptionHeadline(user.subscription)
+                  : 'Free — $0 / forever'}
               </p>
               <p className={styles.subscriptionHint}>
-                {user
+                {user?.subscription
                   ? (formatSubscriptionPeriodEnd(user.subscription) ??
                     'Paid plans are sold by Paddle. Card numbers never reach Krepton.')
                   : 'Paid plans are sold by Paddle. Card numbers never reach Krepton.'}
@@ -449,12 +451,12 @@ export function ProfilePage() {
             </div>
           </div>
           <span className={styles.activeBadge}>
-            {user?.subscription.isPaid ? 'Plus' : 'Active'}
+            {user?.subscription?.isPaid ? 'Plus' : 'Active'}
           </span>
         </div>
 
         <ul className={styles.featureList}>
-          {(user?.subscription.isPaid
+          {(user?.subscription?.isPaid
             ? (PRICING_PLAN_DEFINITIONS.find((plan) => plan.id === 'plus_monthly')?.features ??
               FREE_PLAN_FEATURES)
             : FREE_PLAN_FEATURES

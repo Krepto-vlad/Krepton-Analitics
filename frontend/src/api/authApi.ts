@@ -10,6 +10,7 @@ import type {
   SessionExtension,
 } from '../types/auth.types';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types/stock.types';
+import { normalizeAuthUser } from '../utils/normalizeAuthUser';
 
 const authClient = createApiClient(`${API_BASE_URL}/api/auth`);
 
@@ -27,7 +28,7 @@ export async function apiLogin(credentials: LoginCredentials): Promise<AuthUser>
     '/login',
     credentials
   );
-  return assertSuccess(data);
+  return normalizeAuthUser(assertSuccess(data));
 }
 
 export async function apiGoogleLogin(idToken: string): Promise<AuthUser> {
@@ -35,7 +36,7 @@ export async function apiGoogleLogin(idToken: string): Promise<AuthUser> {
     '/google',
     { idToken }
   );
-  return assertSuccess(data);
+  return normalizeAuthUser(assertSuccess(data));
 }
 
 export async function apiVerifyEmail(token: string): Promise<AuthUser> {
@@ -43,7 +44,7 @@ export async function apiVerifyEmail(token: string): Promise<AuthUser> {
     '/verify-email',
     { token }
   );
-  return assertSuccess(data);
+  return normalizeAuthUser(assertSuccess(data));
 }
 
 export async function apiResendVerification(email: string): Promise<RegisterPendingResult> {
@@ -59,7 +60,7 @@ export async function apiLogout(): Promise<void> {
 
 export async function apiGetMe(): Promise<AuthUser> {
   const { data } = await authClient.get<ApiSuccessResponse<AuthUser> | ApiErrorResponse>('/me');
-  return assertSuccess(data);
+  return normalizeAuthUser(assertSuccess(data));
 }
 
 export async function apiExtendSession(): Promise<SessionExtension> {

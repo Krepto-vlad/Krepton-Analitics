@@ -36,6 +36,7 @@ describe('AppErrorBoundary', () => {
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: ERROR_BOUNDARY_TITLE })).toBeInTheDocument();
+    expect(screen.getByText(/Render boom/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: ERROR_BOUNDARY_RETRY_LABEL })).toBeInTheDocument();
   });
 
