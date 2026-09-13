@@ -19,7 +19,7 @@ interface SubNavItem {
 const SUB_NAV_ITEMS: SubNavItem[] = [
   { id: 'positions', label: 'Your Positions', icon: <LayoutList size={15} /> },
   { id: 'watchlist', label: 'Watchlist', icon: <Star size={15} /> },
-  { id: 'importer', label: 'Broker Importer', icon: <Upload size={15} /> },
+  { id: 'importer', label: 'Add holdings', icon: <Upload size={15} /> },
 ];
 
 const PANEL_MAP: Record<PortfolioSection, React.ReactNode> = {

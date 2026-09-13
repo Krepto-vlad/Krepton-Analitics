@@ -1,13 +1,18 @@
 import {
   AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT,
+  AI_EXPLAIN_ALIGNMENT_PAID_DAILY_LIMIT,
   AI_NEWS_SUMMARY_FREE_DAILY_LIMIT,
+  AI_NEWS_SUMMARY_PAID_DAILY_LIMIT,
   AI_TICKER_CHAT_FREE_DAILY_LIMIT,
+  AI_TICKER_CHAT_PAID_DAILY_LIMIT,
   IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT,
+  IMPORT_AI_SCHEMA_PAID_DAILY_LIMIT,
   type AiFeatureId,
 } from '../constants.js';
 import { countAiUsageSince, insertAiUsageEvent } from '../repositories/aiRepository.js';
 import { AppError } from '../middleware/errorHandler.js';
 import type { AiQuotaStatus } from '../types/ai.types.js';
+import { isPaidUser } from './entitlementService.js';
 
 function getUtcDayStart(date = new Date()): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -18,21 +23,21 @@ function getNextUtcDayStart(date = new Date()): Date {
   return new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
 }
 
-function getDailyLimitForFeature(feature: AiFeatureId): number {
+function getDailyLimitForFeature(feature: AiFeatureId, isPaid: boolean): number {
   if (feature === 'news_summary') {
-    return AI_NEWS_SUMMARY_FREE_DAILY_LIMIT;
+    return isPaid ? AI_NEWS_SUMMARY_PAID_DAILY_LIMIT : AI_NEWS_SUMMARY_FREE_DAILY_LIMIT;
   }
 
   if (feature === 'explain_alignment') {
-    return AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT;
+    return isPaid ? AI_EXPLAIN_ALIGNMENT_PAID_DAILY_LIMIT : AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT;
   }
 
   if (feature === 'import_schema') {
-    return IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT;
+    return isPaid ? IMPORT_AI_SCHEMA_PAID_DAILY_LIMIT : IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT;
   }
 
   if (feature === 'ticker_chat') {
-    return AI_TICKER_CHAT_FREE_DAILY_LIMIT;
+    return isPaid ? AI_TICKER_CHAT_PAID_DAILY_LIMIT : AI_TICKER_CHAT_FREE_DAILY_LIMIT;
   }
 
   return 0;
@@ -42,7 +47,8 @@ export async function getAiQuotaStatus(
   userId: string,
   feature: AiFeatureId
 ): Promise<AiQuotaStatus> {
-  const limit = getDailyLimitForFeature(feature);
+  const isPaid = await isPaidUser(userId);
+  const limit = getDailyLimitForFeature(feature, isPaid);
   const used = await countAiUsageSince(userId, feature, getUtcDayStart());
   const remaining = Math.max(limit - used, 0);
 

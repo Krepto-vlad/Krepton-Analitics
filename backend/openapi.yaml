@@ -21,6 +21,8 @@ tags:
   - name: Watchlist
   - name: Import
   - name: AI
+  - name: Billing
+  - name: Admin
   - name: Docs
 
 paths:
@@ -779,6 +781,63 @@ paths:
         '200':
           $ref: '#/components/responses/Success'
 
+  /api/portfolio/broker-sync/connect:
+    post:
+      tags: [Import]
+      summary: Open a read-only SnapTrade Connection Portal URL (Plus)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [broker]
+              properties:
+                broker:
+                  type: string
+                  enum: [TRADING212, DEGIRO, ETORO, INTERACTIVEBROKERS]
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/broker-sync/preview:
+    post:
+      tags: [Import]
+      summary: Preview today's SnapTrade holdings snapshot (Plus)
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/broker-sync/confirm:
+    post:
+      tags: [Import]
+      summary: Commit a previously previewed SnapTrade snapshot (Plus)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [importId]
+              properties:
+                importId:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/Error'
+
   /api/portfolio/watchlist:
     get:
       tags: [Watchlist]
@@ -873,6 +932,89 @@ paths:
         '401':
           $ref: '#/components/responses/Error'
 
+  /api/billing/checkout:
+    post:
+      tags: [Billing]
+      summary: Create a Paddle Plus checkout transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [interval]
+              properties:
+                interval:
+                  type: string
+                  enum: [month, year]
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+
+  /api/billing/portal:
+    post:
+      tags: [Billing]
+      summary: Open the Paddle customer portal for invoices and cancellation
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+
+  /api/billing/webhook:
+    post:
+      tags: [Billing]
+      summary: Paddle webhook (raw body, Paddle-Signature)
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+
+  /api/admin/entitlements:
+    get:
+      tags: [Admin]
+      summary: Look up Plus entitlement by email
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Admin]
+      summary: Grant complimentary Plus until expiresAt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, expiresAt]
+              properties:
+                email:
+                  type: string
+                  format: email
+                expiresAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Error'
+
 components:
   securitySchemes:
     cookieAuth:
@@ -935,7 +1077,17 @@ components:
     AuthUser:
       type: object
       required:
-        [id, email, createdAt, emailVerified, hasPassword, hasGoogle, sessionExpiresAt]
+        [
+          id,
+          email,
+          createdAt,
+          emailVerified,
+          hasPassword,
+          hasGoogle,
+          isAdmin,
+          subscription,
+          sessionExpiresAt,
+        ]
       properties:
         id:
           type: string
@@ -951,10 +1103,41 @@ components:
           type: boolean
         hasGoogle:
           type: boolean
+        isAdmin:
+          type: boolean
+          description: True when the email is listed in ADMIN_EMAILS. Not stored in the user table.
+        subscription:
+          $ref: '#/components/schemas/SubscriptionSummary'
         sessionExpiresAt:
           type: string
           format: date-time
           description: ISO timestamp of the HttpOnly JWT exp. Not stored in the anonymous user table.
+    SubscriptionSummary:
+      type: object
+      required: [isPaid, plan, interval, source, status, currentPeriodEnd, cancelAtPeriodEnd]
+      properties:
+        isPaid:
+          type: boolean
+        plan:
+          type: string
+          enum: [free, plus]
+        interval:
+          type: string
+          nullable: true
+          enum: [month, year, comp, null]
+        source:
+          type: string
+          nullable: true
+          enum: [paddle, admin, null]
+        status:
+          type: string
+          enum: [none, active, canceled, past_due]
+        currentPeriodEnd:
+          type: string
+          format: date-time
+          nullable: true
+        cancelAtPeriodEnd:
+          type: boolean
     SessionExtension:
       type: object
       required: [sessionExpiresAt, renewed]

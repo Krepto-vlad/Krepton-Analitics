@@ -18,6 +18,7 @@ jest.mock('../../../services/authService.js', () => ({
 }));
 
 import { JWT_COOKIE_NAME } from '../../../constants.js';
+import { createFreeSubscriptionSummary } from '../../../types/billing.types.js';
 import {
   changePassword,
   deleteAccount,
@@ -70,6 +71,8 @@ const user = {
   emailVerified: true,
   hasPassword: true,
   hasGoogle: false,
+  isAdmin: false,
+  subscription: createFreeSubscriptionSummary(),
 };
 
 const userWithSession = {

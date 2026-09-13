@@ -1,3 +1,5 @@
+import type { SubscriptionSummary } from './billing.types';
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -5,6 +7,8 @@ export interface AuthUser {
   emailVerified: boolean;
   hasPassword: boolean;
   hasGoogle: boolean;
+  isAdmin: boolean;
+  subscription: SubscriptionSummary;
   /** ISO timestamp of the HttpOnly JWT `exp`. */
   sessionExpiresAt: string;
 }

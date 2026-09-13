@@ -1,0 +1,79 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding: $space-5;
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  width: fit-content;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  text-decoration: none;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.subtitle {
+  margin: 0;
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  font-size: $font-size-sm;
+}
+
+.field input {
+  padding: 10px $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  color: $color-foreground;
+}
+
+.actions {
+  display: flex;
+  gap: $space-3;
+}
+
+.actions button {
+  padding: 10px $space-4;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  color: $color-foreground;
+  cursor: pointer;
+}
+
+.notice,
+.error {
+  margin: 0;
+  font-size: $font-size-sm;
+}
+
+.error {
+  color: $color-danger;
+}

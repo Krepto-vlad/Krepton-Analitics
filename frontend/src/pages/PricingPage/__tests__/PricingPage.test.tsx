@@ -27,7 +27,9 @@ describe('PricingPage', () => {
 
     expect(screen.getByRole('heading', { name: /Transparent/i })).toBeInTheDocument();
     await user.click(
-      screen.getAllByRole('button', { name: /Get Started Free|Start Pro Trial|Contact Sales/i })[0]
+      screen.getAllByRole('button', {
+        name: /Get started free|Start Plus monthly|Start Plus annual/i,
+      })[0]
     );
     expect(screen.getByText('Register')).toBeInTheDocument();
   });

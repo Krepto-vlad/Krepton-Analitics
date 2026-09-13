@@ -33,6 +33,12 @@ import {
   deleteWatchlistItemHandler,
 } from '../controllers/watchlistController.js';
 import { previewImport, confirmImport } from '../controllers/importController.js';
+import {
+  connectBrokerSync,
+  previewBrokerSync,
+  confirmBrokerSync,
+} from '../controllers/brokerSyncController.js';
+import { paidMiddleware } from '../middleware/paidMiddleware.js';
 import { brokerImportUploadMiddleware } from '../middleware/brokerImportUpload.js';
 import rateLimit from 'express-rate-limit';
 import type { Request } from 'express';
@@ -164,6 +170,15 @@ router.post(
   asyncHandler(previewImport)
 );
 router.post('/import/confirm', importLimiter, portfolioWriteLimiter, asyncHandler(confirmImport));
+router.post('/broker-sync/connect', importLimiter, paidMiddleware, asyncHandler(connectBrokerSync));
+router.post('/broker-sync/preview', importLimiter, paidMiddleware, asyncHandler(previewBrokerSync));
+router.post(
+  '/broker-sync/confirm',
+  importLimiter,
+  portfolioWriteLimiter,
+  paidMiddleware,
+  asyncHandler(confirmBrokerSync)
+);
 router.get('/watchlist', asyncHandler(getWatchlist));
 router.post('/watchlist', portfolioWriteLimiter, asyncHandler(postWatchlistItem));
 router.delete(

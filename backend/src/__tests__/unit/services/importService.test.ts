@@ -146,5 +146,14 @@ describe('importService', () => {
       });
       expect(mockedConfirm).toHaveBeenCalledWith('user-1', 'GENERIC', trades);
     });
+
+    it('rejects a SnapTrade holdings preview on the file-import confirm path', async () => {
+      mockedConsume.mockReturnValue({ broker: 'SNAPTRADE', trades: [trade()] });
+
+      await expect(confirmBrokerImport('user-1', 'import-1')).rejects.toMatchObject({
+        statusCode: 400,
+      });
+      expect(mockedConfirm).not.toHaveBeenCalled();
+    });
   });
 });

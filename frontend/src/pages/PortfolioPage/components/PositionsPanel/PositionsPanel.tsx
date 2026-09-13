@@ -8,6 +8,7 @@ import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import {
   buildTickerDetailPath,
+  PORTFOLIO_IMPORTER_PATH,
   EQUITY_PERIODS,
   HOLDINGS_TABLE_HEADER_HEIGHT_PX,
   HOLDINGS_TABLE_ROW_HEIGHT_PX,
@@ -521,6 +522,9 @@ export function PositionsPanel() {
             >
               Add Position
             </Button>
+            <Link to={PORTFOLIO_IMPORTER_PATH} className={styles.emptyImportLink}>
+              Import or connect a broker
+            </Link>
           </div>
         </div>
         <AddPositionModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />

@@ -20,7 +20,7 @@ export const REQUIRED_TRADE_COLUMN_KEYS: Array<Exclude<TradeColumnKey, 'currency
   'price',
 ];
 
-export type BrokerParserMode = 'heuristic' | 'ai_schema';
+export type BrokerParserMode = 'heuristic' | 'ai_schema' | 'broker_sync';
 
 export interface ColumnMapping {
   headerRowIndex: number;

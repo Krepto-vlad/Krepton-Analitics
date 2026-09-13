@@ -51,6 +51,14 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-Krepton Analytics <noreply@krepton.local>}
+      PADDLE_API_KEY: ${PADDLE_API_KEY:-}
+      PADDLE_WEBHOOK_SECRET: ${PADDLE_WEBHOOK_SECRET:-}
+      PADDLE_ENV: ${PADDLE_ENV:-sandbox}
+      PADDLE_PLUS_MONTHLY_PRICE_ID: ${PADDLE_PLUS_MONTHLY_PRICE_ID:-}
+      PADDLE_PLUS_ANNUAL_PRICE_ID: ${PADDLE_PLUS_ANNUAL_PRICE_ID:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      SNAPTRADE_CLIENT_ID: ${SNAPTRADE_CLIENT_ID:-}
+      SNAPTRADE_CONSUMER_KEY: ${SNAPTRADE_CONSUMER_KEY:-}
     ports:
       - "${API_HOST_PORT:-3001}:3001"
     healthcheck:
@@ -76,6 +84,8 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
         VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_PADDLE_CLIENT_TOKEN: ${VITE_PADDLE_CLIENT_TOKEN:-}
+        VITE_PADDLE_ENV: ${VITE_PADDLE_ENV:-sandbox}
     image: krepton-analytics-web:local
     restart: unless-stopped
     depends_on:

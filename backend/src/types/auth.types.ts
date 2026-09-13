@@ -1,3 +1,4 @@
+import type { SubscriptionSummary } from './billing.types.js';
 import type { ApiResponse } from './stock.types.js';
 
 export interface UserRow {
@@ -26,6 +27,8 @@ export interface AuthUser {
   hasGoogle: boolean;
   /** ISO timestamp of the HttpOnly JWT `exp` — not stored in the anonymous DB. */
   sessionExpiresAt: string;
+  isAdmin: boolean;
+  subscription: SubscriptionSummary;
 }
 
 export type AuthUserProfile = Omit<AuthUser, 'sessionExpiresAt'>;

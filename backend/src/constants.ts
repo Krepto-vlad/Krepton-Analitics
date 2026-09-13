@@ -26,6 +26,8 @@ export const API_ROUTES = {
   AUTH: '/api/auth',
   PORTFOLIO: '/api/portfolio',
   FX: '/api/fx',
+  BILLING: '/api/billing',
+  ADMIN: '/api/admin',
   DOCS: '/api/docs',
 } as const;
 
@@ -156,9 +158,47 @@ export const TICKER_TAPE_BROWSER_CACHE_TTL_S = 60 * 60; // 1 hour
 
 // ─── Broker import ────────────────────────────────────────────────────────────
 /** Universal import labels all accounts as GENERIC (no per-broker selection). */
-export const SUPPORTED_BROKER_IDS = ['GENERIC'] as const;
+export const SUPPORTED_BROKER_IDS = ['GENERIC', 'SNAPTRADE'] as const;
 export type SupportedBrokerId = (typeof SUPPORTED_BROKER_IDS)[number];
 export const IMPORT_DEFAULT_BROKER_ID: SupportedBrokerId = 'GENERIC';
+export const SNAPTRADE_BROKER_ID: SupportedBrokerId = 'SNAPTRADE';
+
+/** SnapTrade Connection Portal slugs we expose. Revolut has no API — keep the parser. */
+export const SNAPTRADE_CONNECTABLE_BROKERS = [
+  { id: 'TRADING212', slug: 'TRADING212', label: 'Trading 212' },
+  { id: 'DEGIRO', slug: 'DEGIRO', label: 'DEGIRO' },
+  { id: 'ETORO', slug: 'ETORO', label: 'eToro' },
+  { id: 'INTERACTIVEBROKERS', slug: 'INTERACTIVEBROKERS', label: 'Interactive Brokers' },
+] as const;
+export type SnaptradeConnectableBrokerId = (typeof SNAPTRADE_CONNECTABLE_BROKERS)[number]['id'];
+export const SNAPTRADE_CONNECTION_TYPE = 'read';
+export const SNAPTRADE_RETURN_QUERY = 'brokerSync';
+export const SNAPTRADE_RETURN_CONNECTED = 'connected';
+export const TRANSACTION_LEDGER_SOURCES = ['unknown', 'manual', 'import', 'snaptrade'] as const;
+export type TransactionLedgerSource = (typeof TRANSACTION_LEDGER_SOURCES)[number];
+export const TRANSACTION_SOURCE_SNAPTRADE: TransactionLedgerSource = 'snaptrade';
+export const TRANSACTION_SOURCE_MANUAL: TransactionLedgerSource = 'manual';
+export const TRANSACTION_SOURCE_IMPORT: TransactionLedgerSource = 'import';
+export const SNAPTRADE_NOT_CONFIGURED_MESSAGE =
+  'Broker sync is not configured on this server yet. Upload a statement or ask an admin for Plus.';
+export const SNAPTRADE_PLUS_REQUIRED_MESSAGE = 'Plus is required to connect a brokerage account.';
+export const SNAPTRADE_UNAVAILABLE_MESSAGE =
+  'Broker sync is temporarily unavailable. Please try again.';
+export const SNAPTRADE_NOT_CONNECTED_MESSAGE =
+  'Connect a brokerage account first, then preview holdings.';
+export const SNAPTRADE_NO_ACCOUNTS_MESSAGE =
+  'No linked brokerage account yet. Finish connecting in the portal, then preview again.';
+export const SNAPTRADE_INVALID_BROKER_MESSAGE =
+  'That brokerage is not available for one-click connect. Upload a statement instead.';
+export const SNAPTRADE_PREVIEW_WARNING =
+  "This is today's holdings snapshot (quantity and average price), not a full trade history. Tickers you already added from a file or by hand will be skipped so we do not overwrite them.";
+export const SNAPTRADE_PORTAL_REDIRECT_PATH = '/portfolio?section=importer';
+export const SNAPTRADE_CONFIRM_FILE_PREVIEW_MESSAGE =
+  'That preview is a file import. Confirm it from the statement importer.';
+export const SNAPTRADE_CONFIRM_HOLDINGS_PREVIEW_MESSAGE =
+  'Confirm broker holdings from the broker-sync endpoint.';
+export const SNAPTRADE_SKIP_EXISTING_TICKER_REASON =
+  'Already has imported or manual trades — left unchanged';
 /** Used when a statement has no currency column (common in stripped exports). */
 export const IMPORT_DEFAULT_CURRENCY = 'USD';
 
@@ -184,6 +224,7 @@ export const IMPORT_AI_SCHEMA_SAMPLE_ROWS = 20;
 export const IMPORT_AI_SCHEMA_MAX_CELL_CHARS = 48;
 export const IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS = 512;
 export const IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT = 10;
+export const IMPORT_AI_SCHEMA_PAID_DAILY_LIMIT = 50;
 export const IMPORT_AI_SCHEMA_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const IMPORT_AI_SCHEMA_RATE_LIMIT_MAX_REQUESTS = 10;
 
@@ -206,6 +247,7 @@ export type AiFeatureId = (typeof AI_FEATURES)[number];
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
 export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
 export const AI_NEWS_SUMMARY_FREE_DAILY_LIMIT = 5;
+export const AI_NEWS_SUMMARY_PAID_DAILY_LIMIT = 50;
 export const AI_NEWS_SUMMARY_DISCLAIMER =
   'AI-generated summary for informational purposes only. Not financial advice. Verify prices and news with primary sources.';
 export const AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -213,6 +255,7 @@ export const AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS = 10;
 export const AI_BRIEFING_CACHE_VERSION = 'v2';
 
 export const AI_EXPLAIN_ALIGNMENT_FREE_DAILY_LIMIT = 5;
+export const AI_EXPLAIN_ALIGNMENT_PAID_DAILY_LIMIT = 50;
 export const AI_EXPLAIN_ALIGNMENT_CACHE_VERSION = 'v2';
 export const AI_EXPLAIN_ALIGNMENT_DISCLAIMER =
   'AI-generated explanation for informational purposes only. Not financial advice. No buy/sell recommendations. False-diversification notes are qualitative (no ETF look-through holdings data).';
@@ -221,6 +264,7 @@ export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS = 10;
 export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1400;
 
 export const AI_TICKER_CHAT_FREE_DAILY_LIMIT = 20;
+export const AI_TICKER_CHAT_PAID_DAILY_LIMIT = 200;
 export const AI_TICKER_CHAT_DISCLAIMER =
   'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
 export const AI_EMPTY_REPLY_ERROR_MESSAGE = 'AI returned an empty response. Please try again.';
@@ -311,6 +355,26 @@ export const MONTH_LABELS = [
   'Nov',
   'Dec',
 ] as const;
+
+// ─── Billing (Paddle Merchant of Record) ───────────────────────────────────────
+export const BILLING_CHECKOUT_INTERVALS = ['month', 'year'] as const;
+export type BillingCheckoutInterval = (typeof BILLING_CHECKOUT_INTERVALS)[number];
+export const BILLING_PLAN_PLUS = 'plus';
+export const BILLING_ACCESS_GRACE_MS = 60 * 60 * 1000;
+export const BILLING_NOT_CONFIGURED_MESSAGE =
+  'Paid checkout is not configured on this server yet. Complimentary access can still be granted by an admin.';
+export const BILLING_WEBHOOK_INVALID_SIGNATURE_MESSAGE = 'Invalid Paddle webhook signature';
+export const PADDLE_ENVIRONMENTS = ['sandbox', 'production'] as const;
+export type PaddleEnvironmentName = (typeof PADDLE_ENVIRONMENTS)[number];
+export const PADDLE_STATUSES_WITH_PERIOD_ACCESS = [
+  'active',
+  'trialing',
+  'past_due',
+  'canceled',
+  'paused',
+] as const;
+export type PaddlePeriodAccessStatus = (typeof PADDLE_STATUSES_WITH_PERIOD_ACCESS)[number];
+export const BILLING_CUSTOM_DATA_USER_ID_KEY = 'userId';
 
 /** Rubric names: read / write / admin. Prefix avoids colliding with a cluster role named `admin`. */
 export const DB_ROLE_APP_READ = 'app_read';

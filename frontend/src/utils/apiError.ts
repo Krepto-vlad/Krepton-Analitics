@@ -11,6 +11,8 @@ const SAFE_SERVER_MESSAGES = new Set([
   'AI service is temporarily busy. Please try again later.',
   'AI service is unavailable. Please try again later.',
   'Gemini quota or billing limit reached. Check AI Studio limits or try again later.',
+  ERROR_MESSAGES.BILLING_NOT_CONFIGURED,
+  ERROR_MESSAGES.SNAPTRADE_NOT_CONFIGURED,
 ]);
 
 const UNSAFE_MESSAGE_PATTERNS = [

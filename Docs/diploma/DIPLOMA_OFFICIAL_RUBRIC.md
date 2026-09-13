@@ -7,13 +7,15 @@ Working notes with rationale stay in `DIPLOMA_TECHNICAL_REQUIREMENTS.md`.
 
 **Declared set (8):** Business Analysis · Backend · Frontend · Database · AI Assistant / Chatbot · Cloud · CI/CD · Automated tests 70%+.
 
-| Category | Declared | Listed below, not claimed |
-|----------|----------|---------------------------|
-| required | BA, Backend, Frontend | — |
-| technical | AI Assistant / Chatbot | Refined UX, Adaptive UI, Cryptography |
-| data | Database | Real-time Analytics, ML Model |
-| infrastructure | Cloud, CI/CD | Microservices, Containerization |
-| processes | Automated tests 70%+ | API Documentation (as its own criterion), Qualitative/quantitative testing |
+
+| Category       | Declared               | Listed below, not claimed                                                  |
+| -------------- | ---------------------- | -------------------------------------------------------------------------- |
+| required       | BA, Backend, Frontend  | —                                                                          |
+| technical      | AI Assistant / Chatbot | Refined UX, Adaptive UI, Cryptography                                      |
+| data           | Database               | Real-time Analytics, ML Model                                              |
+| infrastructure | Cloud, CI/CD           | Microservices, Containerization                                            |
+| processes      | Automated tests 70%+   | API Documentation (as its own criterion), Qualitative/quantitative testing |
+
 
 Legend: `[x]` present in the product/repo · `[ ]` missing. **Not claimed** means we will not defend this criterion even if some bullets happen to be `[x]`.
 
@@ -21,11 +23,15 @@ Legend: `[x]` present in the product/repo · `[ ]` missing. **Not claimed** mean
 
 ---
 
+
+
 # 1. Business Analysis (required)
 
 **Status:** in progress — committee packet not finished. First criterion after topic approval. Separate committee defense.
 
 ## Minimum (grade 5)
+
+
 
 ### Vision, Problem, Project
 
@@ -34,15 +40,21 @@ Legend: `[x]` present in the product/repo · `[ ]` missing. **Not claimed** mean
 - [ ] c. Business goals and objectives -- goals and tasks you want to achieve.
 - [ ] d. Key stakeholders -- key stakeholders, including the target audience and users.
 
+
+
 ### Scope
 
 - [ ] a. In-Scope -- what is included in the project (features, processes, systems).
 - [ ] b. Out-of-Scope -- what will not be done, to avoid scope creep.
 
+
+
 ### High-Level Solution Overview
 
 - [ ] a. Proposed Solution -- a general description of the proposed technical solution.
 - [x] b. Architecture / Integration Landscape (High-Level) -- a diagram or text description of the systems involved and how they connect.
+
+
 
 ### Features & Requirements (High-Level)
 
@@ -51,6 +63,8 @@ Legend: `[x]` present in the product/repo · `[ ]` missing. **Not claimed** mean
 - [ ] b. Non-Functional Requirements -- non-functional requirements for the product (performance, security, scalability, availability).
 - [x] c. Regulatory / Compliance Needs -- legal and regulatory requirements (GDPR, ISO, etc.) that apply to the project.
 - [ ] d. Use Case Diagram -- a visual representation of main usage scenarios (actors and their interactions with system features).
+
+
 
 ## Maximum (grade 10)
 
@@ -61,6 +75,8 @@ Not targeting 10. Official max = all minimum **plus** the sections below. Repeat
 - [ ] a. Purpose of the Document
 - [ ] b. Audience
 
+
+
 ### Vision
 
 - [ ] a. Vision Statement
@@ -69,6 +85,8 @@ Not targeting 10. Official max = all minimum **plus** the sections below. Repeat
 - [ ] d. Stakeholders Analysis (Influence/Interest matrix)
 - [ ] e. Success Criteria (KPI, SLA, metrics)
 
+
+
 ### Scope
 
 - [ ] a. In-Scope
@@ -76,11 +94,15 @@ Not targeting 10. Official max = all minimum **plus** the sections below. Repeat
 - [ ] c. Assumptions
 - [ ] d. Constraints (budget, deadlines, technology, regulations, resources)
 
+
+
 ### High-Level Solution Overview
 
 - [ ] a. Proposed Solution
 - [x] b. Architecture / Integration Landscape (same as min)
 - [ ] c. Alternatives Considered
+
+
 
 ### Features & Requirements
 
@@ -100,6 +122,8 @@ Not targeting 10. Official max = all minimum **plus** the sections below. Repeat
 - [x] c. Regulatory / Compliance Needs (same as min)
 - [ ] d. Use Case Diagram
 
+
+
 ### Risks & Dependencies
 
 - [ ] a. Risks
@@ -107,6 +131,8 @@ Not targeting 10. Official max = all minimum **plus** the sections below. Repeat
 - [ ] c. Mitigation Strategies
 
 ---
+
+
 
 # 2. Backend (required)
 
@@ -128,6 +154,8 @@ Appendix only (does not reopen the criterion): Azure Log stream screenshot; opti
 - [x] Logging -- structured logs (pino JSON + `x-request-id`)
 - [x] Production deployment -- public API `https://api.kreptonanalytics.com` (Azure Container Apps)
 - [x] Test coverage -- business logic unit tests, **≥ 70%** (CI gate **80%**), coverage tool (Jest / Istanbul)
+
+
 
 ### Specific constraints
 
@@ -153,33 +181,49 @@ Official list in full. **7–8 claimed.** Empty boxes below are skip, not a todo
 - [x] Typical process: Docker image → container registry (GHCR) → auto-deploy to production (Azure) **after green CI**
 - [x] Secrets and settings injected via environment variables / secret stores through the pipeline (Container App env + GitHub Secrets)
 
+
+
 ### Microservice Architecture
 
 - [ ] Several microservices, each one task, independently deployable — **skip**
+
+
 
 ### Asynchronous Communication
 
 - [ ] Message queues (RabbitMQ / Kafka) between parts of the system — **skip**
 
+
+
 ### Caching
 
 - [ ] Redis / Memcached (quotes cache is in-process) — **skip**
+
+
 
 ### System Monitoring
 
 - [ ] Grafana / Prometheus: CPU, request count, memory, dashboards — **skip**
 
+
+
 ### Log Management System
 
 - [ ] Centralized search/filter (ELK or Loki) — **skip**; Azure Log stream is the substitute (screenshot for appendix)
+
+
 
 ### Request Tracing Between Microservices
 
 - [x] Correlation ID (`x-request-id`) — one API process, not a microservice chain
 
+
+
 ### Alerting System
 
 - [ ] Alerts on thresholds / errors (Alertmanager, Slack, email, …) — **skip** Alertmanager; optional later: one Azure Portal email on 5xx, not required to close Backend
+
+
 
 ### Quality Gates in CI/CD
 
@@ -190,11 +234,15 @@ Official list in full. **7–8 claimed.** Empty boxes below are skip, not a todo
 
 ---
 
+
+
 # 3. Frontend (required)
 
 **Status:** SPA minimum closed in code + live `https://www.kreptonanalytics.com`. Remaining: demo-flow diagram, tablet screenshots, bundle visualizer. Max 7–8 via lazy + RTK + charts/theme.
 
 ## Minimum (grade 5)
+
+
 
 ### Documentation
 
@@ -203,6 +251,8 @@ Official list in full. **7–8 claimed.** Empty boxes below are skip, not a todo
 - [x] API documentation that the client works with (cookie session + OpenAPI)
 - [ ] User flows / navigation diagram -- demo scenario (register → import → rebalance → AI → export/delete) still to draw
 - [x] Tech stack justification (React/Vite/RTK)
+
+
 
 ### Architecture
 
@@ -217,6 +267,8 @@ Official list in full. **7–8 claimed.** Empty boxes below are skip, not a todo
 - [x] TypeScript interfaces
 - [x] Centralized request handling (axios wrapper)
 - [x] Error handling and loading states
+
+
 
 ### Implementation
 
@@ -241,11 +293,15 @@ Extra for the expert pack (not an official min bullet): tablet screenshots still
 - [x] Handle 401 / 403 / 404 / 500 correctly
 - [x] Skeleton / loading states for async operations
 
+
+
 ### Testing
 
 - [x] Unit tests for at least 3 key components or services (RTL)
 - [x] Integration / e2e tests (1–2) — Playwright (route guard + login → dashboard)
 - [x] Tests cover forms, states, or API logic
+
+
 
 ### Restrictions (must not — we comply)
 
@@ -263,12 +319,16 @@ No tokens in source; no unhandled API errors; no unjustified `any`; SCSS archite
 - [x] Lazy Loading of modules and routes (`React.lazy` in `AppRouter`)
 - [ ] Clean Architecture / Feature-Sliced Design / Domain-Driven Front-End — **skip**. We have a classic SPA split (`pages`, `components/ui`, `features` slices, `api`, `hooks`), not FSD layers (`app/pages/widgets/features/entities/shared`) and not DDD bounded contexts. Rewriting the tree for the letter would be ceremony, not architecture.
 
+
+
 ### Direction 2: Advanced State Management
 
 - [x] NGRX / Redux Toolkit with modules / slices
 - [ ] Reactive state management (RxJS, Signals, Vue reactivity) — **skip** (React)
 - [ ] Selectors, effects, memoization — **skip as this bullet**. Plain selector helpers exist (`tickerSelectors.ts`); no `createSelector` / `React.memo`. RTK thunks cover async, not ngrx effects.
 - [x] Complex chains of async operations (RTK thunks + live polling / hydrate)
+
+
 
 ### Direction 3: Performance
 
@@ -277,6 +337,8 @@ No tokens in source; no unhandled API errors; no unjustified `any`; SCSS archite
 - [ ] Using Web Workers — **skip**
 - [x] Lighthouse >= 90 for desktop and mobile — confirmed on the live site; paste the report (URL + device) in the appendix. If the score is landing/marketing, say so — the chart dashboard can still sit lower on Performance.
 - [ ] Bundle size reduction, performance analysis — **partial, not ticked**. Reduction is already real (`React.lazy` route chunks). Missing diploma artifacts: (1) Vite bundle visualizer HTML (treemap of which packages sit in which chunk), (2) a short note “charts stay in the dashboard chunk; landing stays small”. Lighthouse on HTTPS is the runtime analysis; visualizer is the build analysis. They are different files for the expert.
+
+
 
 ### Direction 4: Advanced UI/UX
 
@@ -291,11 +353,15 @@ No tokens in source; no unhandled API errors; no unjustified `any`; SCSS archite
 
 ---
 
+
+
 # 4. Database (data) — OLTP
 
 **Status:** OLTP minimum closed. `\du` captured on Azure. Remaining: `EXPLAIN` appendix.
 
 ## Minimum (grade 5)
+
+
 
 ### Documentation
 
@@ -304,6 +370,8 @@ No tokens in source; no unhandled API errors; no unjustified `any`; SCSS archite
 - [x] Logical schema / ER (mermaid in appendix)
 - [x] DDL / migrations in Git
 
+
+
 ### Design
 
 - [x] Modern relational DBMS (PostgreSQL)
@@ -311,20 +379,28 @@ No tokens in source; no unhandled API errors; no unjustified `any`; SCSS archite
 - [x] Enough tables and relationship types
 - [x] PK / FK, NOT NULL, UNIQUE, CHECK, meaningful types
 
+
+
 ### Deployment
 
 - [x] Structure via migrations, not manual prod DDL
 - [x] Scripts/migrations in Git
 
+
+
 ### Test data
 
 - [x] Test / seed data (`seed:demo`)
+
+
 
 ### Usage
 
 - [x] Roles: app_read / app_write / admin (or equivalent); application not under superuser on staging (`app_write`)
 - [x] Passwords hashed (bcrypt, not MD5/SHA-1)
 - [x] Integrity via constraints and transactions
+
+
 
 ## Maximum (grade 10)
 
@@ -342,11 +418,15 @@ Extra for the thesis (not an official OLTP-max bullet): `[ ]` `EXPLAIN` / query 
 
 ---
 
+
+
 # 5. AI Assistant / Chatbot (technical)
 
 **Status:** minimum almost closed in product. Remaining for expert: chat screenshot + latency rerun on production.
 
 ## Minimum (grade 5)
+
+
 
 ### Documentation
 
@@ -359,6 +439,8 @@ Extra for the thesis (not an official OLTP-max bullet): `[ ]` `EXPLAIN` / query 
 - [x] System limitations: what the assistant CANNOT do
 - [x] User guide
 
+
+
 ### Design / UX
 
 - [x] Modern LLM via API (Google Gemini)
@@ -368,6 +450,8 @@ Extra for the thesis (not an official OLTP-max bullet): `[ ]` `EXPLAIN` / query 
 - [x] New conversation (history resets on close / ticker change)
 - [x] Edge cases: empty input, overly long messages, inappropriate content
 
+
+
 ### Implementation
 
 - [x] Process text queries and generate model responses
@@ -376,6 +460,8 @@ Extra for the thesis (not an official OLTP-max bullet): `[ ]` `EXPLAIN` / query 
 - [x] API keys in environment variables
 - [x] Basic prompt-injection protection
 - [x] Rate limiting / quota
+
+
 
 ### Test data and usage
 
@@ -416,6 +502,8 @@ Restrictions we comply with: not a raw ChatGPT proxy; system prompt exists; no h
 - [ ] Decide when to use tools
 - [ ] At least 3 different tools / functions
 
+
+
 ### Advanced Processing
 
 **Preprocessing**
@@ -433,6 +521,8 @@ Restrictions we comply with: not a raw ChatGPT proxy; system prompt exists; no h
 - [x] Add sources / references (Google Search grounding is used internally; outbound URL lists are not shown in chat or briefing — phishing/liability)
 - [x] Structured output (JSON schema briefing)
 
+
+
 ### Context Management
 
 - [ ] Full conversation context management beyond the drawer session
@@ -442,12 +532,16 @@ Restrictions we comply with: not a raw ChatGPT proxy; system prompt exists; no h
 - [ ] User profiles / personalization in DB
 - [ ] Adapt style; remember user facts; formality / length / technical level settings
 
+
+
 ### Multimodality (at least one extra I/O type)
 
 - [ ] Images
 - [ ] Audio (STT / TTS)
 - [ ] Documents in the LLM (PDF/DOCX)
 - [ ] Structured data as LLM I/O (tables, CSV) — broker CSV is parsed without the LLM
+
+
 
 ### Monitoring and Analytics
 
@@ -460,6 +554,8 @@ Restrictions we comply with: not a raw ChatGPT proxy; system prompt exists; no h
 - [ ] API cost monitoring dashboard
 - [ ] Alerts on critical errors
 
+
+
 ### Optimization
 
 - [x] Cache frequent requests (news briefing cache)
@@ -470,6 +566,8 @@ Restrictions we comply with: not a raw ChatGPT proxy; system prompt exists; no h
 - [ ] Batch requests
 - [ ] Embeddings cache for RAG
 
+
+
 ### Developer Documentation
 
 - [x] OpenAPI tag for AI endpoints (in `openapi.yaml`)
@@ -478,6 +576,8 @@ Restrictions we comply with: not a raw ChatGPT proxy; system prompt exists; no h
 - [x] Performance benchmarks (lab latency; prod rerun still open)
 
 ---
+
+
 
 # 6. Cloud (infrastructure)
 
@@ -496,6 +596,8 @@ Live: `https://www.kreptonanalytics.com` · `https://api.kreptonanalytics.com`
 - [x] 7. Reachable during evaluation; firewall / network settings
 - [x] 8. No unnecessary paid resources left running (Container Apps scale-to-zero, SWA free tier, smallest Postgres SKU)
 
+
+
 ## Maximum (grade 10)
 
 Official numbered list in full. Screenshots are **max item 6**, not min.
@@ -511,11 +613,15 @@ Official numbered list in full. Screenshots are **max item 6**, not min.
 
 ---
 
+
+
 # 7. CI/CD (infrastructure)
 
 **Status:** minimum closed (CI + auto CD on `main`).
 
 ## Minimum (grade 5)
+
+
 
 ### Documentation
 
@@ -524,6 +630,8 @@ Official numbered list in full. Screenshots are **max item 6**, not min.
 - [x] What is automated and why
 - [x] List of artifacts (`dist`, coverage, GHCR image)
 - [x] Environments: local / CI / production (honest: no separate staging)
+
+
 
 ### Pipeline
 
@@ -537,6 +645,8 @@ Official numbered list in full. Screenshots are **max item 6**, not min.
 
 - [x] Deploy to Azure (Container Apps + Static Web Apps). Auto after green CI on `main`; `workflow_dispatch` also available.
 
+
+
 ### Implementation
 
 - [x] Starts on push and pull request
@@ -548,6 +658,8 @@ Official numbered list in full. Screenshots are **max item 6**, not min.
 - [x] Stage logs readable; CI shows tests + linter results
 - [x] Cancel deployment on a failed **CI** build (`workflow_run` + refuse job when CI is not success)
 - [x] Check that the container or server started successfully after deploy (`/health` on the live API; SPA URL after SWA upload)
+
+
 
 ### Restrictions (must not — we comply)
 
@@ -565,12 +677,16 @@ No manual artifact upload as the release path; no secrets in YAML; pipeline is n
 - [ ] Rollback mechanisms
 - [ ] Automatic database migration in CD
 
+
+
 ### Direction 2: Containerization and Orchestration
 
 - [x] Docker multi-stage build
 - [x] Docker Compose with multiple services (in repo; local `up` not proven)
 - [ ] Kubernetes: Deployments, Services, Ingress
 - [ ] Automatic deployment to Kubernetes through CI
+
+
 
 ### Direction 3: Observability
 
@@ -581,6 +697,8 @@ No manual artifact upload as the release path; no secrets in YAML; pipeline is n
 - [x] Auto-tagging containers with versions (GHCR image tags)
 - [ ] Slack / Teams / Discord notifications about pipeline status
 
+
+
 ### Direction 4: Quality Gates
 
 - [ ] SonarQube or SonarCloud analysis
@@ -588,6 +706,8 @@ No manual artifact upload as the release path; no secrets in YAML; pipeline is n
 - [ ] Code smells, bugs, vulnerabilities (Sonar)
 - [ ] PR Quality rules: successful pipeline required
 - [ ] PR Quality rules: code review required
+
+
 
 ### Direction 5: Infrastructure as Code
 
@@ -598,6 +718,8 @@ No manual artifact upload as the release path; no secrets in YAML; pipeline is n
 - [ ] Versioned environments
 
 ---
+
+
 
 # 8. Automated tests 70%+ (processes)
 
@@ -614,6 +736,8 @@ No manual artifact upload as the release path; no secrets in YAML; pipeline is n
 - [x] 7. Testing strategy documented (`criteria/automated-tests.md`)
 - [x] 8. Clear naming / folders (`*.test.ts`, `__tests__`, `e2e/*.spec.ts`)
 
+
+
 ## Maximum (grade 10)
 
 Official numbered list in full. Target 7–8, not mutation / Pact / k6.
@@ -629,17 +753,23 @@ Official numbered list in full. Target 7–8, not mutation / Pact / k6.
 
 ---
 
+
+
 # Undeclared criteria (visibility only)
 
 The eight criteria above are what we defend. Sections 9–17 are the rest of the official list so a mentor can see what exists in the repo versus what the rubric still requires. **We claim: no** for all of them.
 
 ---
 
+
+
 # 9. Adaptive UI (technical) — not claimed
 
 **Status:** not in the declared set. Product has rem / tokens / mixins / theme / desktop+mobile. Rubric also wants Figma (or PDF) with **3 form-factors**, 44px touch targets, WCAG 2.1 AA pack.
 
 ## Minimum (grade 5)
+
+
 
 ### General
 
@@ -648,6 +778,8 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [x] Relative units
 - [ ] Works correctly when browser zoom / system settings change
 
+
+
 ### Visual
 
 - [x] Scale fonts, icons, and images without distortion (lucide SVG + system fonts)
@@ -655,17 +787,25 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Contrast and readability; WCAG 2.1 **AA** (at least 4.5:1 for text)
 - [x] Consistent color palette and typography across devices (`_variables.scss`)
 
+
+
 ### Structural
 
 - [x] Responsive grid; blocks scale when width changes
 - [x] Main navigation available on all devices (`Navbar` + breakpoints)
+
+
 
 ### Document (required by the rubric)
 
 - [ ] Figma (preferred) / Adobe XD / Sketch / PDF mockups
 - [ ] 3 variants for different devices + reusable component library + interactive states
 
+
+
 ## Maximum (grade 10)
+
+
 
 ### Addition to General Criteria
 
@@ -673,11 +813,15 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Automatic device detection (pixel density, orientation, aspect ratio)
 - [ ] Design System
 
+
+
 ### Addition to Visual Criteria
 
 - [x] Light / dark theme support
 - [x] SVG images for icons
 - [x] User display settings (theme, display currency — not a full scale/color-scheme control panel)
+
+
 
 ### Addition to Structural Criteria
 
@@ -687,11 +831,15 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 
 ---
 
+
+
 # 10. Refined UX (technical) — not claimed
 
 **Status:** not in the declared set. Live UI has tokens, ErrorBanner, empty/error/loading. Missing: UX spec, 2–3 scenario documents, personas, Figma/PDF mockup pack.
 
 ## Minimum (grade 5)
+
+
 
 ### Interaction design / scenarios / prototyping
 
@@ -699,11 +847,15 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Transition logic without jumps; each step justified by the user goal
 - [ ] Link to navigation: every screen/action appears on a navigation diagram
 
+
+
 ### Visual style and component library
 
 - [x] Palette, typography, grid, components, states (`components/ui` + SCSS tokens)
 - [x] No obvious duplicated/redundant visual language in the implemented kit
 - [x] Visual hierarchy in the live product (not a separate UX spec)
+
+
 
 ### Screen prototypes
 
@@ -711,13 +863,19 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [x] Error messages present and clear (`ErrorBanner`, `ERROR_MESSAGES`)
 - [x] Validation warnings/restrictions on forms
 
+
+
 ### Document (required by the rubric)
 
 - [ ] UX Design Specification (PDF) or Figma/Miro with comments
 - [ ] Scenarios → navigation → screens linked; short “why” for each UX decision
 - [ ] Accessibility checklist at the end of that document
 
+
+
 ## Maximum (grade 10)
+
+
 
 ### Target audience analysis and personas
 
@@ -725,10 +883,14 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Insights, needs, problems
 - [ ] 1–2 realistic personas (goals, behavior, motivation)
 
+
+
 ### Usability testing
 
 - [ ] Goals, hypotheses, tasks, participant profiles
 - [ ] Testing with users; metrics (success rate, time, errors); priorities; prototype changes
+
+
 
 ### Navigation scheme (IA / sitemap)
 
@@ -739,6 +901,8 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Depth, predictability, naming consistency
 - [ ] Visibility correct for guest / authorized / error / loading
 
+
+
 ### Additional (official)
 
 - [ ] Interactive prototypes (e.g. Figma)
@@ -747,11 +911,15 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 
 ---
 
+
+
 # 11. Cryptography (technical) — not claimed
 
 **Status:** not in the declared set. bcrypt / JWT / HMAC exist as **product security** (Backend / Database / GDPR). This criterion is a separate academic crypto thesis (theory, threat model, measurements). Official split: theory 20% · design 25% · implementation 25% · tests 20% · document 10%. JWT from a library and bcrypt for passwords **do not close this criterion by themselves**.
 
 ## Project components (official; no 5/10 split)
+
+
 
 ### Theoretical foundation
 
@@ -759,11 +927,15 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Justify algorithms (AES, RSA, ECC, …) vs requirements
 - [ ] Mathematical primitives of the chosen algorithms
 
+
+
 ### Design and implementation
 
 - [ ] Architecture diagram of where cryptography is applied
 - [x] Working use of standard libraries (not a custom protocol): `bcrypt`, `jsonwebtoken`, HMAC-SHA256 `owner_token`
 - [ ] Documented security assumptions, key management, dependencies **as this criterion**
+
+
 
 ### Justification
 
@@ -771,11 +943,15 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Performance / resource trade-offs
 - [ ] NIST / ISO (or equivalent) compliance write-up
 
+
+
 ### Testing and evaluation
 
 - [ ] Correctness tests of the cryptographic mechanism as a dedicated suite
 - [ ] Latency / throughput / complexity measurements
 - [ ] Resilience notes (brute force / side-channel / chosen plaintext where applicable)
+
+
 
 ### Documentation
 
@@ -783,6 +959,8 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Oral defense with empirical numbers for **this** criterion
 
 ---
+
+
 
 # 12. Real-time Analytics (data) — not claimed
 
@@ -792,11 +970,15 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 
 - [ ] At least **one** real event type arriving in near real-time
 
+
+
 ### Documentation
 
 - [ ] Full event path: source + trigger → backend → delivery channel → UI
 - [ ] What is “real-time” and **acceptable delay** (typically 1–5 s) with reasoning
 - [ ] Event source and data format
+
+
 
 ### Implementation — backend
 
@@ -805,10 +987,14 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] API for current data state **as a stream component**
 - [ ] Processing isolated in a dedicated module/service
 
+
+
 ### Implementation — frontend
 
 - [ ] Dynamic visualization that updates without page reload **from a continuous stream** (polling UI updates exist; they do not close this criterion)
 - [ ] Message when the connection is lost
+
+
 
 ## Maximum (grade 10)
 
@@ -822,6 +1008,8 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 - [ ] Scaling: horizontal processors, strategy for increased load
 - [ ] Stream security: auth (e.g. WS token), access restrictions, PII masked/anonymized
 
+
+
 ### Implementation
 
 - [ ] Low latency for many clients
@@ -834,6 +1022,8 @@ The eight criteria above are what we defend. Sections 9–17 are the rest of the
 Official restrictions we currently hit: scheduled / polling delay **> 10 s**; no continuous event stream.
 
 ---
+
+
 
 # 13. ML Model (data) — not claimed
 
@@ -849,6 +1039,8 @@ Official restrictions we currently hit: scheduled / polling delay **> 10 s**; no
 - [ ] Structured logging of input/output; runtime exception handling
 - [ ] Git history + reproducible install/run for **the ML project**
 - [ ] Short report: dataset, architecture, preprocessing, usage
+
+
 
 ## Maximum (grade 10)
 
@@ -866,11 +1058,15 @@ Hardcoded / static “predictions”: official −2. Chatbot wrappers do not cou
 
 ---
 
+
+
 # 14. Microservices (infrastructure) — not claimed
 
 **Status:** not in the declared set. Frontend + backend + database **does not count**. Need ≥ 3 **business** services. One Express API is a monolith.
 
 ## Minimum (grade 5)
+
+
 
 ### Documentation
 
@@ -879,6 +1075,8 @@ Hardcoded / static “predictions”: official −2. Chatbot wrappers do not cou
 - [ ] Contracts between services (OpenAPI / AsyncAPI)
 - [ ] Deployment diagram
 - [ ] Decomposition rationale
+
+
 
 ### Architecture
 
@@ -889,6 +1087,8 @@ Hardcoded / static “predictions”: official −2. Chatbot wrappers do not cou
 - [ ] Handling unavailable dependents
 - [ ] Rate limiting on API Gateway or service entry points **of that architecture** (Express rate limit on one API exists; not this criterion)
 
+
+
 ### Implementation
 
 - [ ] Own codebase per service (monorepo allowed)
@@ -896,6 +1096,8 @@ Hardcoded / static “predictions”: official −2. Chatbot wrappers do not cou
 - [ ] Health / ready per service
 - [ ] Correlation ID across services
 - [ ] API Gateway: single external entry, routing, auth, rate limiting
+
+
 
 ### Error handling / testing
 
@@ -917,6 +1119,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [ ] Handler idempotency
 - [ ] Event sourcing (optional)
 
+
+
 ### Direction 2: Resilience Patterns
 
 - [ ] Circuit breakers
@@ -925,6 +1129,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [ ] Retry with exponential backoff
 - [ ] Timeout management
 - [ ] Fallback mechanisms
+
+
 
 ### Direction 3: Observability
 
@@ -935,6 +1141,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [ ] Custom business metrics
 - [ ] Service dependency mapping
 
+
+
 ### Direction 4: Advanced Patterns
 
 - [ ] Saga
@@ -943,6 +1151,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [ ] Backend for Frontend (BFF)
 - [ ] Service registry and discovery
 - [ ] Database per service with synchronization
+
+
 
 ### Direction 5: API Management
 
@@ -955,11 +1165,15 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 
 ---
 
+
+
 # 15. Containerization (infrastructure) — not claimed
 
 **Status:** not in the declared set. Dockerfiles + compose exist for CI/Azure. Blocker to **claim** the criterion: proven `docker compose up` (screenshot of healthy stack) + image sizes in the appendix. Local day-to-day remains `npm run dev`.
 
 ## Minimum (grade 5)
+
+
 
 ### Docker images
 
@@ -970,6 +1184,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [x] Multi-stage where applicable
 - [x] No secrets in the image; non-root `USER`; tags not `latest` in compose (`:local`)
 
+
+
 ### Docker Compose
 
 - [x] `docker-compose.yml` for local deployment (api + web + postgres, `depends_on`, network, `.env.example`)
@@ -977,11 +1193,15 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [x] Isolated network; DB volume (upload volume N/A — Multer memory)
 - [x] Environment via `.env` / `.env.example`
 
+
+
 ### Documentation
 
 - [x] README launch instructions + service table + min RAM/CPU
 - [ ] Container architecture diagram **as this criterion’s appendix** (Cloud/deploy diagrams are a different criterion)
 - [ ] List of all ENV variables with descriptions **as a container pack**
+
+
 
 ## Maximum (grade 10)
 
@@ -995,6 +1215,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [x] Distroless or Alpine where possible (frontend Alpine; backend is bookworm-slim, not distroless)
 - [ ] Layer caching strategy documented
 
+
+
 ### Production-ready Features
 
 - [x] Healthcheck for each container (api / web / postgres)
@@ -1003,12 +1225,16 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [x] Automatic restart on failure (`restart: unless-stopped`)
 - [x] Logging in structured format (JSON) to stdout
 
+
+
 ### Extended Configuration
 
 - [ ] Separate compose files for dev / test / prod
 - [ ] Override files for different configurations
 - [ ] Secrets management (Docker secrets or external vault)
 - [ ] Network policies for additional isolation
+
+
 
 ### Monitoring and Debugging
 
@@ -1018,6 +1244,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [ ] Performance metrics for containers
 
 ---
+
+
 
 # 16. API Documentation (processes) — not claimed as its own criterion
 
@@ -1035,6 +1263,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 - [ ] Report: documentation strategy, naming, versioning, known gaps
 - [ ] Consistent folders (e.g. `/reference`, `/guides`, `/examples`, `/schemas`)
 
+
+
 ## Maximum (grade 10)
 
 - [ ] 1. Conceptual guides, best practices, tutorials, onboarding, release notes, versioning (DX)
@@ -1045,6 +1275,8 @@ Must not: sync chains > 3 services · reach into another service’s DB · share
 Official penalties if claimed: undocumented endpoints −2 · no examples −2 · no auth/security in the docs −2.
 
 ---
+
+
 
 # 17. Qualitative / quantitative testing (processes) — not claimed
 
@@ -1062,6 +1294,8 @@ Official penalties if claimed: undocumented endpoints −2 · no examples −2 �
 - [ ] Git + reproduce the test run
 - [ ] Short technical report: strategy, work done, metrics, conclusions
 
+
+
 ## Maximum (grade 10)
 
 - [ ] 1. Strategy combining functional, non-functional, usability, exploratory, or regression; risk-based justification
@@ -1076,24 +1310,29 @@ Official penalties if claimed: undocumented endpoints −2 · no examples −2 �
 
 ---
 
+
+
 # Summary for the mentor
 
-| # | Criterion | We claim | Min (5) | Honest snapshot |
-|---|-----------|----------|---------|-----------------|
-| 1 | Business Analysis | **yes** | open | Packet after topic approval |
-| 2 | Backend | **yes** | **closed (7–8)** | Live API, CD after CI, coverage 80%. Skip Kafka/Redis/microservices/Grafana/Sonar/Alertmanager |
-| 3 | Frontend | **yes** | closed | Missing: demo-flow diagram, device screenshots, bundle visualizer. Lighthouse 90 confirmed; skip FSD / React.memo |
-| 4 | Database | **yes** | closed | OLTP Postgres; skip second DBMS |
-| 5 | AI Assistant / Chatbot | **yes** | nearly closed | Need chat screenshot + prod latency |
-| 6 | Cloud | **yes** | closed | Azure EU DB+API; skip IaC |
-| 7 | CI/CD | **yes** | closed | Actions CI + deploy.yml after green CI |
-| 8 | Automated tests 70%+ | **yes** | closed | 70% + Playwright; need CI screenshot |
-| 9 | Adaptive UI | no | not targeting | rem/theme/responsive yes; no Figma ×3 / 44px / WCAG AA pack |
-| 10 | Refined UX | no | not targeting | Tokens + errors in code; no UX spec / personas / scenario docs |
-| 11 | Cryptography | no | not targeting | bcrypt/JWT/HMAC = product security, not this thesis |
-| 12 | Real-time Analytics | no | not targeting | ~30 s polling; no WS stream; rubric delay > 10 s |
-| 13 | ML Model | no | not targeting | Gemini ≠ trained model |
-| 14 | Microservices | no | not targeting | FE+BE+DB ≠ ≥ 3 business services |
-| 15 | Containerization | no | files only | Dockerfiles + compose exist; no proven `compose up` |
-| 16 | API Documentation *(as criterion)* | no | not targeting | OpenAPI = Backend min; no Swagger UI portal / Spectral |
-| 17 | Qualitative/quantitative testing | no | not targeting | No manual plan / JMeter; auto tests are criterion #8 |
+
+| #   | Criterion                          | We claim | Min (5)          | Honest snapshot                                                                                                   |
+| --- | ---------------------------------- | -------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | Business Analysis                  | **yes**  | open             | Packet after topic approval                                                                                       |
+| 2   | Backend                            | **yes**  | **closed (7–8)** | Live API, CD after CI, coverage 80%. Skip Kafka/Redis/microservices/Grafana/Sonar/Alertmanager                    |
+| 3   | Frontend                           | **yes**  | closed           | Missing: demo-flow diagram, device screenshots, bundle visualizer. Lighthouse 90 confirmed; skip FSD / React.memo |
+| 4   | Database                           | **yes**  | closed           | OLTP Postgres; skip second DBMS                                                                                   |
+| 5   | AI Assistant / Chatbot             | **yes**  | nearly closed    | Need chat screenshot + prod latency                                                                               |
+| 6   | Cloud                              | **yes**  | closed           | Azure EU DB+API; skip IaC                                                                                         |
+| 7   | CI/CD                              | **yes**  | closed           | Actions CI + deploy.yml after green CI                                                                            |
+| 8   | Automated tests 70%+               | **yes**  | closed           | 70% + Playwright; need CI screenshot                                                                              |
+| 9   | Adaptive UI                        | no       | not targeting    | rem/theme/responsive yes; no Figma ×3 / 44px / WCAG AA pack                                                       |
+| 10  | Refined UX                         | no       | not targeting    | Tokens + errors in code; no UX spec / personas / scenario docs                                                    |
+| 11  | Cryptography                       | no       | not targeting    | bcrypt/JWT/HMAC = product security, not this thesis                                                               |
+| 12  | Real-time Analytics                | no       | not targeting    | ~30 s polling; no WS stream; rubric delay > 10 s                                                                  |
+| 13  | ML Model                           | no       | not targeting    | Gemini ≠ trained model                                                                                            |
+| 14  | Microservices                      | no       | not targeting    | FE+BE+DB ≠ ≥ 3 business services                                                                                  |
+| 15  | Containerization                   | no       | files only       | Dockerfiles + compose exist; no proven `compose up`                                                               |
+| 16  | API Documentation *(as criterion)* | no       | not targeting    | OpenAPI = Backend min; no Swagger UI portal / Spectral                                                            |
+| 17  | Qualitative/quantitative testing   | no       | not targeting    | No manual plan / JMeter; auto tests are criterion #8                                                              |
+
+

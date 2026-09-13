@@ -1,8 +1,8 @@
-export type SupportedBrokerId = 'GENERIC';
+export type SupportedBrokerId = 'GENERIC' | 'SNAPTRADE';
 
 export type TradeColumnKey = 'date' | 'ticker' | 'side' | 'quantity' | 'price' | 'currency';
 
-export type BrokerParserMode = 'heuristic' | 'ai_schema';
+export type BrokerParserMode = 'heuristic' | 'ai_schema' | 'broker_sync';
 
 export interface ColumnMapping {
   headerRowIndex: number;

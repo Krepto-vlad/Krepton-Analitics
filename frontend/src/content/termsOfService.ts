@@ -36,8 +36,16 @@ export const TERMS_OF_SERVICE_CONTENT: LegalDocumentContent = {
       ],
     },
     {
+      id: 'paid-plans',
+      title: '5. Paid plans',
+      paragraphs: [
+        'Paid Plus subscriptions are sold by Paddle as Merchant of Record, not by Krepton Analytics. Paddle is the seller on the receipt, calculates and remits applicable VAT/GST/sales tax, and emails tax invoices. Refunds and the EU 14-day withdrawal right for digital services are handled under Paddle’s checkout and refund policy. Access to Plus is provisioned immediately after Paddle confirms payment.',
+        'Cancelling stops future renewals. You keep Plus until the current period end stored from Paddle (or until an admin complimentary grant expires). We do not shorten that period ourselves.',
+      ],
+    },
+    {
       id: 'liability',
-      title: '5. Limitation of liability',
+      title: '6. Limitation of liability',
       paragraphs: [
         'The service is provided as-is for educational and informational use. To the extent permitted by applicable law, Krepton Analytics is not liable for investment losses, missed trades, or decisions you make after viewing analytics or AI text. Nothing in these terms limits liability that cannot be limited by law.',
         `Questions: ${LEGAL_CONTACT_EMAIL}.`,

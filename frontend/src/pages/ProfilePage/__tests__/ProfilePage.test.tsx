@@ -193,6 +193,7 @@ describe('ProfilePage', () => {
       'href',
       ROUTES.SUBSCRIPTION
     );
+    expect(screen.queryByRole('link', { name: 'Admin grants' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Legal Documents' })).toHaveAttribute(
       'href',
       ROUTES.LEGAL
@@ -209,6 +210,34 @@ describe('ProfilePage', () => {
     const freePlan = PRICING_PLAN_DEFINITIONS.find((plan) => plan.id === 'free');
     expect(freePlan).toBeDefined();
     expect(screen.getByText(freePlan!.features[0])).toBeInTheDocument();
+  });
+
+  it('shows the admin grants link only for allowlisted admins', () => {
+    renderProfile({ ...testUser, isAdmin: true });
+
+    expect(screen.getByRole('link', { name: 'Admin grants' })).toHaveAttribute(
+      'href',
+      ROUTES.ADMIN
+    );
+  });
+
+  it('shows Plus plan in the overview badge when the account is paid', () => {
+    renderProfile({
+      ...testUser,
+      isAdmin: true,
+      subscription: {
+        isPaid: true,
+        plan: 'plus',
+        interval: 'comp',
+        source: 'admin',
+        status: 'active',
+        currentPeriodEnd: '2026-09-15T00:00:00.000Z',
+        cancelAtPeriodEnd: false,
+      },
+    });
+
+    expect(screen.getByText('Plus plan')).toBeInTheDocument();
+    expect(screen.queryByText('Free plan')).not.toBeInTheDocument();
   });
 
   it('changes the password after current-password confirmation', async () => {

@@ -43,6 +43,10 @@ import {
 import { fetchWatchlistThunk } from '../../features/watchlist/watchlistSlice';
 import { getRejectedMessage } from '../../utils/apiError';
 import { formatMemberSince, getEmailInitials, maskEmail } from '../../utils/emailDisplay';
+import {
+  formatSubscriptionHeadline,
+  formatSubscriptionPeriodEnd,
+} from '../../utils/subscriptionDisplay';
 import { clearPersistedAlignmentExplanation } from '../../utils/alignmentExplainStorage';
 import { clearPersistedNewsBriefing } from '../../utils/newsBriefingStorage';
 import {
@@ -349,7 +353,9 @@ export function ProfilePage() {
           <div className={styles.overviewInfo}>
             <div className={styles.overviewNameRow}>
               <p className={styles.overviewEmail}>{maskedEmail}</p>
-              <span className={styles.planBadge}>Free plan</span>
+              <span className={styles.planBadge}>
+                {user.subscription.isPaid ? 'Plus plan' : 'Free plan'}
+              </span>
             </div>
             <p className={styles.overviewMeta}>Member since {memberSince}</p>
           </div>
@@ -431,17 +437,28 @@ export function ProfilePage() {
           <div className={styles.subscriptionInfo}>
             <CreditCard size={20} className={styles.securityIcon} />
             <div>
-              <p className={styles.subscriptionTitle}>Free — $0 / forever</p>
+              <p className={styles.subscriptionTitle}>
+                {user ? formatSubscriptionHeadline(user.subscription) : 'Free — $0 / forever'}
+              </p>
               <p className={styles.subscriptionHint}>
-                Demo billing status for this POC. No payment method required.
+                {user
+                  ? (formatSubscriptionPeriodEnd(user.subscription) ??
+                    'Paid plans are sold by Paddle. Card numbers never reach Krepton.')
+                  : 'Paid plans are sold by Paddle. Card numbers never reach Krepton.'}
               </p>
             </div>
           </div>
-          <span className={styles.activeBadge}>Active</span>
+          <span className={styles.activeBadge}>
+            {user?.subscription.isPaid ? 'Plus' : 'Active'}
+          </span>
         </div>
 
         <ul className={styles.featureList}>
-          {FREE_PLAN_FEATURES.map((feature) => (
+          {(user?.subscription.isPaid
+            ? (PRICING_PLAN_DEFINITIONS.find((plan) => plan.id === 'plus_monthly')?.features ??
+              FREE_PLAN_FEATURES)
+            : FREE_PLAN_FEATURES
+          ).map((feature) => (
             <li key={feature} className={styles.featureItem}>
               <Check size={14} className={styles.featureCheck} />
               {feature}
@@ -452,6 +469,11 @@ export function ProfilePage() {
         <Link to={ROUTES.SUBSCRIPTION} className={styles.secondaryButton}>
           Manage subscription
         </Link>
+        {user?.isAdmin && (
+          <Link to={ROUTES.ADMIN} className={styles.secondaryButton}>
+            Admin grants
+          </Link>
+        )}
       </section>
 
       <section className={styles.card}>

@@ -1,14 +1,31 @@
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { confirmBrokerImport, previewBrokerImport } from '../../../../../api/importApi';
-import { ERROR_MESSAGES } from '../../../../../constants';
-import { renderWithProviders } from '../../../../../__tests__/renderWithProviders';
+import {
+  confirmBrokerSync,
+  connectBrokerSync,
+  previewBrokerSync,
+} from '../../../../../api/brokerSyncApi';
+import { ERROR_MESSAGES, ROUTES } from '../../../../../constants';
+import { renderWithProviders, testUser } from '../../../../../__tests__/renderWithProviders';
 import type { ImportPreviewResponse } from '../../../../../types/import.types';
 import { BrokerImporterPanel } from '../BrokerImporterPanel';
 
 jest.mock('../../../../../api/importApi', () => ({
   previewBrokerImport: jest.fn(),
   confirmBrokerImport: jest.fn(),
+}));
+
+jest.mock('../../../../../api/brokerSyncApi', () => ({
+  connectBrokerSync: jest.fn(),
+  previewBrokerSync: jest.fn(),
+  confirmBrokerSync: jest.fn(),
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
 }));
 
 jest.mock('../../../../../features/portfolio/portfolioSlice', () => {
@@ -87,7 +104,11 @@ describe('BrokerImporterPanel', () => {
   it('rejects unsupported files and accepts a csv via the file input', () => {
     renderWithProviders(<BrokerImporterPanel />);
 
-    expect(screen.getByText('Statement Importer')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Add holdings' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Upload a statement' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Connect a brokerage' })).toBeInTheDocument();
+    expect(screen.getByText('Option 1')).toBeInTheDocument();
+    expect(screen.getByText('Option 2 · Plus only')).toBeInTheDocument();
 
     selectFile(new File(['pdf'], 'report.pdf', { type: 'application/pdf' }));
     expect(screen.getByText(/Only \.xlsx and \.csv/)).toBeInTheDocument();
@@ -202,5 +223,84 @@ describe('BrokerImporterPanel', () => {
 
     await user.click(screen.getByRole('button', { name: 'Remove' }));
     expect(screen.getByText(/Drop your statement here/)).toBeInTheDocument();
+  });
+
+  it('sends free users to subscription when they click Connect', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<BrokerImporterPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Connect' }));
+
+    expect(connectBrokerSync).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SUBSCRIPTION);
+  });
+
+  it('opens the SnapTrade portal for a Plus user and auto-previews holdings on return', async () => {
+    jest.mocked(connectBrokerSync).mockResolvedValue({
+      redirectUrl: 'https://app.snaptrade.com/portal/abc',
+    });
+    jest.mocked(previewBrokerSync).mockResolvedValue(
+      preview({
+        broker: 'SNAPTRADE',
+        parserMode: 'broker_sync',
+        warning: 'Snapshot warning',
+        skipped: [],
+        summary: {
+          totalRows: 2,
+          tradeCount: 2,
+          buyCount: 2,
+          sellCount: 0,
+          skippedCount: 0,
+          duplicateCount: 0,
+        },
+      })
+    );
+    jest.mocked(confirmBrokerSync).mockResolvedValue({
+      importedCount: 2,
+      skippedDuplicateCount: 0,
+      affectedTickers: ['AAPL', 'MSFT'],
+    });
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    const user = userEvent.setup();
+
+    renderWithProviders(<BrokerImporterPanel />, {
+      route: '/portfolio?section=importer&brokerSync=connected',
+      preloadedState: {
+        auth: {
+          user: {
+            ...testUser,
+            subscription: {
+              isPaid: true,
+              plan: 'plus',
+              interval: 'month',
+              source: 'paddle',
+              status: 'active',
+              currentPeriodEnd: '2026-12-01T00:00:00.000Z',
+              cancelAtPeriodEnd: false,
+            },
+          },
+          isLoading: false,
+          error: null,
+          isInitialized: true,
+          pendingVerificationEmail: null,
+          infoMessage: null,
+        },
+      },
+    });
+
+    expect(await screen.findByText('Broker snapshot')).toBeInTheDocument();
+    expect(previewBrokerSync).toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Sync 2 holdings' }));
+    expect(await screen.findByText('Holdings synced')).toBeInTheDocument();
+    expect(confirmBrokerSync).toHaveBeenCalledWith('import-1');
+
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    await user.click(screen.getByLabelText('Brokerage'));
+    await user.click(screen.getByRole('option', { name: 'DEGIRO' }));
+    await user.click(screen.getByRole('button', { name: 'Connect' }));
+    expect(connectBrokerSync).toHaveBeenCalledWith('DEGIRO');
+    expect(openSpy).toHaveBeenCalledWith('https://app.snaptrade.com/portal/abc', '_self');
+    openSpy.mockRestore();
   });
 });

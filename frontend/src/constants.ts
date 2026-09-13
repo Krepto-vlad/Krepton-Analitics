@@ -13,6 +13,11 @@ export const SESSION_ACTIVITY_THROTTLE_MS = 30_000;
 export const SESSION_ACTIVITY_EVENTS = ['pointerdown', 'keydown'] as const;
 export const HTTP_UNAUTHORIZED_STATUS = 401;
 
+export const PADDLE_CHECKOUT_COMPLETED_EVENT = 'checkout.completed';
+export const PADDLE_CHECKOUT_CLOSED_EVENT = 'checkout.closed';
+export const BILLING_CHECKOUT_STATUS_RETRY_ATTEMPTS = 4;
+export const BILLING_CHECKOUT_STATUS_RETRY_MS = 1_500;
+
 /** Axios 401 on these /api/auth paths is a failed login, not an expired session. */
 export const PUBLIC_AUTH_API_PATH_MARKERS = [
   '/api/auth/login',
@@ -48,6 +53,7 @@ export const ROUTES = {
   PORTFOLIO: '/portfolio',
   PROFILE: '/profile',
   SUBSCRIPTION: '/subscription',
+  ADMIN: '/admin',
   REBALANCING: '/rebalancing',
   SCREENER: '/screener',
   BACKTESTING: '/backtesting',
@@ -59,6 +65,39 @@ export const ROUTES = {
 
 /** Watchlist UI lives on Portfolio; `/watchlist` redirects here. */
 export const PORTFOLIO_WATCHLIST_PATH = `${ROUTES.PORTFOLIO}?section=watchlist`;
+
+/** Statement importer + SnapTrade connect live on Portfolio. */
+export const PORTFOLIO_IMPORTER_PATH = `${ROUTES.PORTFOLIO}?section=importer`;
+export const BROKER_SYNC_RETURN_QUERY = 'brokerSync';
+export const BROKER_SYNC_CONNECTED = 'connected';
+
+/** SnapTrade hosts square logos; no local downloads needed. */
+const SNAPTRADE_BROKER_LOGO_BASE = 'https://passiv-brokerage-logos.s3.ca-central-1.amazonaws.com';
+
+/** Keep slugs in sync with backend SNAPTRADE_CONNECTABLE_BROKERS. Revolut stays parser-only. */
+export const SNAPTRADE_CONNECTABLE_BROKERS = [
+  {
+    id: 'TRADING212',
+    label: 'Trading 212',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/trading212-logo-square.png`,
+  },
+  {
+    id: 'DEGIRO',
+    label: 'DEGIRO',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/degiro-logo-square.png`,
+  },
+  {
+    id: 'ETORO',
+    label: 'eToro',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/etoro-logo-square.png`,
+  },
+  {
+    id: 'INTERACTIVEBROKERS',
+    label: 'Interactive Brokers',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/interactive-brokers-logo-square.png`,
+  },
+] as const;
+export type SnaptradeConnectableBrokerId = (typeof SNAPTRADE_CONNECTABLE_BROKERS)[number]['id'];
 
 /** React Router splat — unknown paths render NotFoundPage. Not a navigable URL. */
 export const ROUTE_CATCH_ALL_PATH = '*';
@@ -432,6 +471,11 @@ export const ERROR_MESSAGES = {
   WATCHLIST_DELETE_FAILED: 'Unable to remove the ticker. Please try again.',
   IMPORT_PREVIEW_FAILED: 'Unable to read the broker file. Please check the format and try again.',
   IMPORT_CONFIRM_FAILED: 'Unable to complete the import. Please try again.',
+  BROKER_SYNC_CONNECT_FAILED: 'Unable to open the brokerage connection portal. Please try again.',
+  BROKER_SYNC_PREVIEW_FAILED: 'Unable to load connected holdings. Please try again.',
+  BROKER_SYNC_CONFIRM_FAILED: 'Unable to sync connected holdings. Please try again.',
+  SNAPTRADE_NOT_CONFIGURED:
+    'Broker sync is not configured on this server yet. Upload a statement or ask an admin for Plus.',
   STOCK_SEARCH_FAILED: 'Unable to search tickers right now. Please try again.',
   STOCK_COMPARE_FAILED: 'Unable to load comparison data. Please try again.',
   STOCK_MOVERS_FAILED: 'Unable to load market movers. Please try again.',
@@ -447,6 +491,14 @@ export const ERROR_MESSAGES = {
   AI_TICKER_CHAT_FAILED: 'Unable to get an AI reply. Please try again.',
   AI_TICKER_CHAT_QUOTA_FAILED: 'Unable to load AI chat quota. Please try again.',
   AI_TICKER_CHAT_EMPTY_MESSAGE: 'Enter a question about this ticker.',
+  BILLING_CHECKOUT_FAILED: 'Unable to start checkout. Please try again.',
+  BILLING_CHECKOUT_OPENED:
+    'Complete payment in the Paddle window. Your plan updates automatically after confirmation.',
+  BILLING_PORTAL_FAILED: 'Unable to open the billing portal. Please try again.',
+  BILLING_ADMIN_GRANT_FAILED: 'Unable to grant complimentary access. Please try again.',
+  BILLING_PADDLE_UNAVAILABLE: 'Paddle checkout is not configured in this browser build.',
+  BILLING_NOT_CONFIGURED:
+    'Paid checkout is not configured on this server yet. Complimentary access can still be granted by an admin.',
 } as const;
 
 export const AI_ALIGNMENT_EXPLAIN_SESSION_STORAGE_KEY = 'krepton_ai_alignment_explain_v1';

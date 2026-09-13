@@ -267,7 +267,7 @@
 
 Не смешивать с дипломным дедлайном, но держать в голове:
 
-1. Stripe + реальная `/subscription` (SCA, 14-day withdrawal checkbox для EU)
+1. **Paddle Billing** (Merchant of Record) — код checkout, webhook, `/me` plan, paid AI caps и admin grant готов. Живой checkout заработает после sandbox catalog (два price id), webhook URL и client token. Без ключей checkout/portal отдают 503; complimentary grant через `ADMIN_EMAILS` работает сразу.
 2. Домен + нормальная почта (меньше spam)
 3. Killer loop: **deposit-based rebalancing** (+ optionally ETF overlap)
 4. Надёжность котировок (кэш, fallback provider, честные empty states)

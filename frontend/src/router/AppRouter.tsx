@@ -8,6 +8,7 @@ import { useSessionRenewal } from '../hooks/useSessionRenewal';
 import { AppShell } from '../components/layout';
 import { PageLoader } from './PageLoader';
 import { RequireAuth } from './RequireAuth';
+import { RequireAdmin } from './RequireAdmin';
 
 const LandingPage = lazy(() =>
   import('../pages/LandingPage/LandingPage').then((m) => ({ default: m.LandingPage }))
@@ -68,6 +69,9 @@ const SubscriptionPage = lazy(() =>
   import('../pages/SubscriptionPage/SubscriptionPage').then((m) => ({
     default: m.SubscriptionPage,
   }))
+);
+const AdminPage = lazy(() =>
+  import('../pages/AdminPage/AdminPage').then((m) => ({ default: m.AdminPage }))
 );
 const VerifyEmailPage = lazy(() =>
   import('../pages/VerifyEmailPage/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
@@ -150,6 +154,14 @@ function AppRoutes() {
           <Route path={ROUTES.TICKER} element={<TickerDetailPage />} />
           <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
+          <Route
+            path={ROUTES.ADMIN}
+            element={
+              <RequireAdmin>
+                <AdminPage />
+              </RequireAdmin>
+            }
+          />
           <Route
             path={ROUTES.WATCHLIST}
             element={<Navigate to={PORTFOLIO_WATCHLIST_PATH} replace />}

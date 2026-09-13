@@ -5,23 +5,28 @@ import { PAGE_SEO_METADATA } from '../../constants/seo';
 import {
   MARKETING_PLAN_CALL_TO_ACTIONS,
   PRICING_PLAN_DEFINITIONS,
+  PRICING_VAT_FOOTNOTE,
 } from '../../constants/pricingPlans';
 import { Navbar, Footer } from '../../components/layout';
 import { usePageSeo } from '../../hooks/usePageSeo';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import styles from './PricingPage.module.scss';
 
 const PRIVACY_FEATURES = [
-  { icon: Lock, label: 'End-to-End Encrypted' },
-  { icon: Globe, label: 'No IP Logging' },
-  { icon: Shield, label: 'No KYC Required' },
+  { icon: Lock, label: 'HttpOnly session cookie' },
+  { icon: Globe, label: 'No advertising pixels' },
+  { icon: Shield, label: 'No KYC, no legal names' },
 ];
 
 export function PricingPage() {
   const navigate = useNavigate();
+  const isAuthenticated = useAppSelector((state) => Boolean(state.auth.user));
 
   usePageSeo(PAGE_SEO_METADATA[ROUTES.PRICING]);
 
-  const handleRegister = () => navigate(ROUTES.REGISTER);
+  function handlePlanClick() {
+    navigate(isAuthenticated ? ROUTES.SUBSCRIPTION : ROUTES.REGISTER);
+  }
 
   return (
     <div className={styles.page}>
@@ -64,7 +69,7 @@ export function PricingPage() {
               </div>
 
               <button
-                onClick={handleRegister}
+                onClick={handlePlanClick}
                 className={plan.highlighted ? styles.btnPlanHighlighted : styles.btnPlanDefault}
               >
                 {MARKETING_PLAN_CALL_TO_ACTIONS[plan.id]}
@@ -73,6 +78,8 @@ export function PricingPage() {
           ))}
         </div>
 
+        <p className={styles.vatFootnote}>{PRICING_VAT_FOOTNOTE}</p>
+
         <div className={styles.privacyCard}>
           <div className={styles.privacyGlow} />
           <div className={styles.privacyIconWrap}>
@@ -80,13 +87,12 @@ export function PricingPage() {
           </div>
           <div className={styles.privacyBody}>
             <div className={styles.privacyTitleRow}>
-              <h2 className={styles.privacyTitle}>Zero Personal Data Tracked</h2>
-              <span className={styles.privacyCertBadge}>CERTIFIED</span>
+              <h2 className={styles.privacyTitle}>Anonymous by design</h2>
             </div>
             <p className={styles.privacyText}>
-              We separate your financial records from your identity using cryptographic
-              architecture. No real names, no phone numbers, no bank connections.{' '}
-              <strong>Your assets remain your business.</strong>
+              We store email and a password hash, not your legal name or broker account numbers.
+              Paid checkout is handled by Paddle; card numbers never reach our servers.{' '}
+              <strong>Your holdings stay linked only through an HMAC token.</strong>
             </p>
             <div className={styles.privacyFeatures}>
               {PRIVACY_FEATURES.map(({ icon: Icon, label }) => (
@@ -97,8 +103,8 @@ export function PricingPage() {
               ))}
             </div>
           </div>
-          <button className={styles.btnCta} onClick={handleRegister}>
-            Start Anonymously
+          <button className={styles.btnCta} onClick={handlePlanClick}>
+            {isAuthenticated ? 'Manage subscription' : 'Start anonymously'}
             <ChevronRight size={14} />
           </button>
         </div>

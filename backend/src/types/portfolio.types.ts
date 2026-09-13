@@ -33,6 +33,7 @@ export interface TransactionRow {
   currency: string;
   transaction_date: string | null;
   transaction_type: 'BUY' | 'SELL';
+  source?: string;
   created_at: Date;
 }
 

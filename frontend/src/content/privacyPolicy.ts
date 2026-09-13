@@ -65,7 +65,7 @@ export const PRIVACY_POLICY_CONTENT: LegalDocumentContent = {
       paragraphs: [
         'We use subprocessors only to run the product. We do not sell personal data.',
         'Optional AI features send prompts and truncated, anonymised samples to Google Gemini. That processing can occur in the United States. Google participates in the EU–US Data Privacy Framework; we use Gemini only for generating informational text, not to store your full broker statements.',
-        'If you sign in with Google, Google Identity receives the OAuth handshake. Transactional mail (email verification, password reset) is sent through Resend. Market quotes and news may be fetched from public market-data providers (for example Yahoo Finance) so the product can display prices. Those quote requests are not used to sell advertising about you.',
+        'If you sign in with Google, Google Identity receives the OAuth handshake. Transactional mail (email verification, password reset) is sent through Resend. Paid subscriptions are sold by Paddle.com Market Ltd (Merchant of Record). Paddle collects payment, billing address, and tax details, emails the invoice, and remits VAT/sales tax. We store only Paddle customer/subscription ids and entitlement dates — never card numbers. Market quotes and news may be fetched from public market-data providers (for example Yahoo Finance) so the product can display prices. Those quote requests are not used to sell advertising about you.',
         'DNS and the redirect from kreptonanalytics.com to www are handled by Cloudflare. Cloudflare may process connection metadata (such as IP address) as any HTTPS reverse proxy does. The live site itself is served from Microsoft Azure, as described in Hosting.',
       ],
     },
