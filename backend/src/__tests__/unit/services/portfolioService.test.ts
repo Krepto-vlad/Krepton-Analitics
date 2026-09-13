@@ -24,6 +24,8 @@ jest.mock('../../../repositories/portfolioRepository.js', () => ({
   deleteTransactionById: jest.fn(),
   updatePositionSector: jest.fn(),
   getAllTransactionsForDedup: jest.fn(),
+  listTickersBySource: jest.fn(),
+  deleteTransactionsBySource: jest.fn(),
   insertPositionFromLedger: jest.fn(),
   getPortfolioRebalancingStrategy: jest.fn(),
   updatePortfolioRebalancingStrategy: jest.fn(),
@@ -40,6 +42,8 @@ import {
   deleteTransactionById,
   findOrCreatePortfolioAccount,
   getAllTransactionsForDedup,
+  listTickersBySource,
+  deleteTransactionsBySource,
   getBuyTransactionsByTicker,
   getPositionById,
   getPositionByTicker,
@@ -56,6 +60,7 @@ import {
 import {
   closePosition,
   confirmImportedTrades,
+  confirmSnaptradeHoldings,
   createPosition,
   editPosition,
   getBuyTransactionsForTicker,
@@ -88,6 +93,12 @@ const mockedCountPositions = countPositionsByPortfolioId as jest.MockedFunction<
 >;
 const mockedGetAllTx = getAllTransactionsForDedup as jest.MockedFunction<
   typeof getAllTransactionsForDedup
+>;
+const mockedListTickersBySource = listTickersBySource as jest.MockedFunction<
+  typeof listTickersBySource
+>;
+const mockedDeleteBySource = deleteTransactionsBySource as jest.MockedFunction<
+  typeof deleteTransactionsBySource
 >;
 const mockedUpdatePosition = updatePosition as jest.MockedFunction<typeof updatePosition>;
 const mockedGetPositionById = getPositionById as jest.MockedFunction<typeof getPositionById>;
@@ -419,23 +430,23 @@ describe('portfolioService', () => {
     });
   });
 
-  describe('confirmImportedTrades', () => {
-    function importedTrade(overrides: Partial<NormalizedTrade> = {}): NormalizedTrade {
-      return {
-        rowNumber: 2,
-        ticker: 'AAPL',
-        companyName: 'Apple Inc.',
-        transactionType: 'BUY',
-        shares: 10,
-        pricePerShare: 100,
-        currency: 'USD',
-        transactionDate: '2026-01-15',
-        sourceType: 'csv',
-        sourceRowHash: 'hash-1',
-        ...overrides,
-      };
-    }
+  function importedTrade(overrides: Partial<NormalizedTrade> = {}): NormalizedTrade {
+    return {
+      rowNumber: 2,
+      ticker: 'AAPL',
+      companyName: 'Apple Inc.',
+      transactionType: 'BUY',
+      shares: 10,
+      pricePerShare: 100,
+      currency: 'USD',
+      transactionDate: '2026-01-15',
+      sourceType: 'csv',
+      sourceRowHash: 'hash-1',
+      ...overrides,
+    };
+  }
 
+  describe('confirmImportedTrades', () => {
     it('skips trades that already exist in the ledger', async () => {
       mockedGetAllTx.mockResolvedValue([buildTransactionRow()]);
 
@@ -473,6 +484,35 @@ describe('portfolioService', () => {
         importedCount: 1,
         skippedDuplicateCount: 0,
         affectedTickers: ['AAPL'],
+      });
+    });
+  });
+
+  describe('confirmSnaptradeHoldings', () => {
+    it('replaces previous snaptrade rows and skips tickers that still have other trades', async () => {
+      mockedListTickersBySource.mockResolvedValue(['AAPL', 'TSLA']);
+      mockedDeleteBySource.mockResolvedValue(2);
+      mockedGetAllTx.mockResolvedValue([buildTransactionRow({ ticker: 'AAPL', source: 'import' })]);
+      mockedGetTxByTicker.mockResolvedValue([buildTransactionRow()]);
+      mockedGetPositionByTicker.mockResolvedValue(buildPositionRow({ sector: null }));
+      mockedInsertFromLedger.mockResolvedValue(buildPositionRow({ sector: null }));
+      mockedUpdateSector.mockResolvedValue(undefined);
+
+      const result = await confirmSnaptradeHoldings(USER_ID, [
+        importedTrade(),
+        importedTrade({ ticker: 'MSFT', companyName: 'Microsoft', shares: 4 }),
+      ]);
+
+      expect(mockedDeleteBySource).toHaveBeenCalledWith(PORTFOLIO_ID, 'snaptrade');
+      expect(mockedAddTransaction).toHaveBeenCalledTimes(1);
+      expect(mockedAddTransaction).toHaveBeenCalledWith(
+        PORTFOLIO_ID,
+        expect.objectContaining({ ticker: 'MSFT', source: 'snaptrade' })
+      );
+      expect(result).toEqual({
+        importedCount: 1,
+        skippedDuplicateCount: 1,
+        affectedTickers: ['MSFT'],
       });
     });
   });

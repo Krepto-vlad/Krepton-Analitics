@@ -46,6 +46,8 @@ export const env = {
   paddlePlusMonthlyPriceId: optionalEnv('PADDLE_PLUS_MONTHLY_PRICE_ID', ''),
   paddlePlusAnnualPriceId: optionalEnv('PADDLE_PLUS_ANNUAL_PRICE_ID', ''),
   adminEmails: parseAdminEmails(optionalEnv('ADMIN_EMAILS', '')),
+  snaptradeClientId: optionalEnv('SNAPTRADE_CLIENT_ID', ''),
+  snaptradeConsumerKey: optionalEnv('SNAPTRADE_CONSUMER_KEY', ''),
 } as const;
 
 export const isGoogleAuthConfigured = env.googleClientId.length > 0;
@@ -64,6 +66,9 @@ export const isPaddleBillingConfigured =
   env.paddleWebhookSecret.length > 0 &&
   env.paddlePlusMonthlyPriceId.length > 0 &&
   env.paddlePlusAnnualPriceId.length > 0;
+
+export const isSnaptradeConfigured =
+  env.snaptradeClientId.length > 0 && env.snaptradeConsumerKey.length > 0;
 
 export function isAdminEmail(email: string): boolean {
   return env.adminEmails.includes(email.trim().toLowerCase());

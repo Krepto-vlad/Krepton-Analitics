@@ -1,9 +1,18 @@
-import { useRef, useState } from 'react';
-import { Upload, CloudUpload, Loader } from 'lucide-react';
-import { Button, ErrorBanner } from '../../../../components/ui';
-import { ERROR_MESSAGES } from '../../../../constants';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Upload, CloudUpload, Loader, Link2 } from 'lucide-react';
+import { Button, ErrorBanner, Select } from '../../../../components/ui';
+import {
+  BROKER_SYNC_CONNECTED,
+  BROKER_SYNC_RETURN_QUERY,
+  ERROR_MESSAGES,
+  ROUTES,
+  SNAPTRADE_CONNECTABLE_BROKERS,
+  type SnaptradeConnectableBrokerId,
+} from '../../../../constants';
 import { getRejectedMessage } from '../../../../utils/apiError';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
+import { useAppSelector } from '../../../../hooks/useAppSelector';
 import {
   fetchPortfolioSummaryThunk,
   fetchInvestmentSummaryThunk,
@@ -11,6 +20,11 @@ import {
   fetchTransactionsPageThunk,
 } from '../../../../features/portfolio/portfolioSlice';
 import { previewBrokerImport, confirmBrokerImport } from '../../../../api/importApi';
+import {
+  confirmBrokerSync,
+  connectBrokerSync,
+  previewBrokerSync,
+} from '../../../../api/brokerSyncApi';
 import type { BrokerParserMode, ImportPreviewResponse } from '../../../../types/import.types';
 import {
   ImportResultModal,
@@ -22,6 +36,7 @@ import styles from './BrokerImporterPanel.module.scss';
 const PARSER_MODE_LABELS: Record<BrokerParserMode, string> = {
   heuristic: 'Auto-detected',
   ai_schema: 'AI-assisted',
+  broker_sync: 'Broker snapshot',
 };
 
 const MAX_PREVIEW_ROWS = 25;
@@ -48,20 +63,24 @@ function isSupportedStatementFile(fileName: string): boolean {
 
 export function BrokerImporterPanel() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isPaid = useAppSelector((state) => Boolean(state.auth.user?.subscription.isPaid));
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const didAutoPreviewRef = useRef(false);
 
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
+  const [selectedBroker, setSelectedBroker] = useState<SnaptradeConnectableBrokerId>(
+    SNAPTRADE_CONNECTABLE_BROKERS[0].id
+  );
+  const [isConnectingBroker, setIsConnectingBroker] = useState(false);
   const [preview, setPreview] = useState<ImportPreviewResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [connectError, setConnectError] = useState<string | null>(null);
   const [importResultModal, setImportResultModal] = useState<ImportResultModalState | null>(null);
-
-  function resetState(): void {
-    setPreview(null);
-    setError(null);
-  }
 
   function closeImportResultModal(): void {
     setImportResultModal(null);
@@ -69,12 +88,13 @@ export function BrokerImporterPanel() {
 
   function handleFileSelected(file: File): void {
     if (!isSupportedStatementFile(file.name)) {
-      setError('Only .xlsx and .csv statements are supported (PDF is not supported)');
+      setFileError('Only .xlsx and .csv statements are supported (PDF is not supported)');
       return;
     }
 
     setUploadedFile(file);
-    resetState();
+    setPreview(null);
+    setFileError(null);
   }
 
   function handleDragOver(event: React.DragEvent<HTMLDivElement>): void {
@@ -109,7 +129,7 @@ export function BrokerImporterPanel() {
   function handleClearFile(): void {
     setUploadedFile(null);
     setPreview(null);
-    setError(null);
+    setFileError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -119,27 +139,98 @@ export function BrokerImporterPanel() {
     if (!uploadedFile) return;
 
     setIsPreviewLoading(true);
-    setError(null);
+    setFileError(null);
 
     try {
       const result = await previewBrokerImport(uploadedFile);
       setPreview(result);
     } catch (previewError) {
-      setError(getRejectedMessage(previewError, ERROR_MESSAGES.IMPORT_PREVIEW_FAILED));
+      setFileError(getRejectedMessage(previewError, ERROR_MESSAGES.IMPORT_PREVIEW_FAILED));
       setPreview(null);
     } finally {
       setIsPreviewLoading(false);
     }
   }
 
+  async function handleConnectBroker(broker: SnaptradeConnectableBrokerId): Promise<void> {
+    if (!isPaid) {
+      navigate(ROUTES.SUBSCRIPTION);
+      return;
+    }
+
+    setIsConnectingBroker(true);
+    setConnectError(null);
+
+    try {
+      const result = await connectBrokerSync(broker);
+      window.open(result.redirectUrl, '_self');
+    } catch (connectFailure) {
+      setConnectError(
+        getRejectedMessage(connectFailure, ERROR_MESSAGES.BROKER_SYNC_CONNECT_FAILED)
+      );
+      setIsConnectingBroker(false);
+    }
+  }
+
+  useEffect(() => {
+    if (didAutoPreviewRef.current) {
+      return;
+    }
+
+    if (searchParams.get(BROKER_SYNC_RETURN_QUERY) !== BROKER_SYNC_CONNECTED) {
+      return;
+    }
+
+    didAutoPreviewRef.current = true;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete(BROKER_SYNC_RETURN_QUERY);
+
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (cancelled) {
+        return;
+      }
+      setSearchParams(nextParams, { replace: true });
+      setIsPreviewLoading(true);
+      setConnectError(null);
+    });
+
+    void previewBrokerSync()
+      .then((result) => {
+        if (!cancelled) {
+          setPreview(result);
+        }
+      })
+      .catch((previewError: unknown) => {
+        if (!cancelled) {
+          setConnectError(
+            getRejectedMessage(previewError, ERROR_MESSAGES.BROKER_SYNC_PREVIEW_FAILED)
+          );
+          setPreview(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsPreviewLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, setSearchParams]);
+
   async function handleConfirmImport(): Promise<void> {
     if (!preview) return;
 
+    const isHoldingsSync = preview.broker === 'SNAPTRADE';
     setIsConfirmLoading(true);
-    setError(null);
 
     try {
-      const result = await confirmBrokerImport(preview.importId);
+      const result = isHoldingsSync
+        ? await confirmBrokerSync(preview.importId)
+        : await confirmBrokerImport(preview.importId);
 
       await Promise.all([
         dispatch(fetchPortfolioSummaryThunk()),
@@ -148,13 +239,16 @@ export function BrokerImporterPanel() {
         dispatch(fetchTransactionsPageThunk({ offset: 0, append: false })),
       ]);
 
+      const noun = isHoldingsSync ? 'holding' : 'trade';
       setImportResultModal({
         type: 'success',
-        title: 'Import complete',
+        title: isHoldingsSync ? 'Holdings synced' : 'Import complete',
         message:
-          `Successfully imported ${result.importedCount} trade${result.importedCount === 1 ? '' : 's'}.` +
+          `Successfully ${isHoldingsSync ? 'synced' : 'imported'} ${result.importedCount} ${noun}${result.importedCount === 1 ? '' : 's'}.` +
           (result.skippedDuplicateCount > 0
-            ? ` ${result.skippedDuplicateCount} duplicate${result.skippedDuplicateCount === 1 ? '' : 's'} skipped.`
+            ? isHoldingsSync
+              ? ` ${result.skippedDuplicateCount} ticker${result.skippedDuplicateCount === 1 ? '' : 's'} left unchanged because they already have imported or manual trades.`
+              : ` ${result.skippedDuplicateCount} duplicate${result.skippedDuplicateCount === 1 ? '' : 's'} skipped.`
             : '') +
           ' Your portfolio has been updated.',
       });
@@ -166,8 +260,13 @@ export function BrokerImporterPanel() {
     } catch (confirmError) {
       setImportResultModal({
         type: 'error',
-        title: 'Import failed',
-        message: getRejectedMessage(confirmError, ERROR_MESSAGES.IMPORT_CONFIRM_FAILED),
+        title: isHoldingsSync ? 'Sync failed' : 'Import failed',
+        message: getRejectedMessage(
+          confirmError,
+          isHoldingsSync
+            ? ERROR_MESSAGES.BROKER_SYNC_CONFIRM_FAILED
+            : ERROR_MESSAGES.IMPORT_CONFIRM_FAILED
+        ),
       });
     } finally {
       setIsConfirmLoading(false);
@@ -177,6 +276,10 @@ export function BrokerImporterPanel() {
   const previewTrades = preview?.trades.slice(0, MAX_PREVIEW_ROWS) ?? [];
   const previewSkipped = preview?.skipped.slice(0, MAX_PREVIEW_ROWS) ?? [];
   const importableCount = preview ? preview.summary.tradeCount - preview.summary.duplicateCount : 0;
+  const isHoldingsPreview = preview?.broker === 'SNAPTRADE';
+  const confirmLabel = isHoldingsPreview
+    ? `Sync ${importableCount} holding${importableCount === 1 ? '' : 's'}`
+    : `Import ${importableCount} trades`;
 
   return (
     <div className={pageStyles.panelContent}>
@@ -185,86 +288,147 @@ export function BrokerImporterPanel() {
           <Upload size={16} />
         </div>
         <div>
-          <h2 className={pageStyles.panelTitle}>Statement Importer</h2>
+          <h2 className={pageStyles.panelTitle}>Add holdings</h2>
           <p className={pageStyles.panelSubtitle}>
-            Upload a broker trade export (.xlsx or .csv). Parsing stays in memory; files are never
-            stored. Columns are mapped locally when possible; otherwise a truncated sample may be
-            sent to AI (never the full file). PDF is not supported.
+            Two separate options. Uploading a spreadsheet does not require a brokerage login.
           </p>
         </div>
       </div>
 
-      <div
-        className={`${pageStyles.dropZone} ${isDragging ? pageStyles.dropZoneActive : ''} ${uploadedFile ? pageStyles.dropZoneFilled : ''}`}
-        onClick={() => {
-          if (!uploadedFile) {
-            handleBrowseClick();
-          }
-        }}
-        onKeyDown={(event) => {
-          if (uploadedFile) return;
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            handleBrowseClick();
-          }
-        }}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        role={uploadedFile ? undefined : 'button'}
-        tabIndex={uploadedFile ? -1 : 0}
-        aria-label={uploadedFile ? undefined : 'Upload broker statement file'}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-          className={pageStyles.fileInput}
-          onChange={handleFileChange}
-        />
+      <section className={styles.pathCard} aria-labelledby="upload-path-title">
+        <p className={styles.pathEyebrow}>Option 1</p>
+        <h3 id="upload-path-title" className={styles.pathTitle}>
+          Upload a statement
+        </h3>
+        <p className={styles.pathHint}>
+          Revolut and any other broker. Drop an .xlsx or .csv export. Parsing stays in memory; the
+          file is never stored. PDF is not supported.
+        </p>
 
-        {uploadedFile ? (
-          <div className={pageStyles.uploadedFile}>
-            <div className={pageStyles.uploadedFileIcon}>
-              <Upload size={24} />
-            </div>
-            <p className={pageStyles.uploadedFileName}>{uploadedFile.name}</p>
-            <p className={pageStyles.uploadedFileSize}>
-              {(uploadedFile.size / 1024).toFixed(1)} KB
-            </p>
-            <div
-              className={pageStyles.uploadedFileActions}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => void handlePreview()}
-                disabled={isPreviewLoading}
-                leftIcon={isPreviewLoading ? <Loader size={14} /> : undefined}
+        <div
+          className={`${pageStyles.dropZone} ${isDragging ? pageStyles.dropZoneActive : ''} ${uploadedFile ? pageStyles.dropZoneFilled : ''}`}
+          onClick={() => {
+            if (!uploadedFile) {
+              handleBrowseClick();
+            }
+          }}
+          onKeyDown={(event) => {
+            if (uploadedFile) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              handleBrowseClick();
+            }
+          }}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          role={uploadedFile ? undefined : 'button'}
+          tabIndex={uploadedFile ? -1 : 0}
+          aria-label={uploadedFile ? undefined : 'Upload broker statement file'}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            className={pageStyles.fileInput}
+            onChange={handleFileChange}
+          />
+
+          {uploadedFile ? (
+            <div className={pageStyles.uploadedFile}>
+              <div className={pageStyles.uploadedFileIcon}>
+                <Upload size={24} />
+              </div>
+              <p className={pageStyles.uploadedFileName}>{uploadedFile.name}</p>
+              <p className={pageStyles.uploadedFileSize}>
+                {(uploadedFile.size / 1024).toFixed(1)} KB
+              </p>
+              <div
+                className={pageStyles.uploadedFileActions}
+                onClick={(event) => event.stopPropagation()}
               >
-                {isPreviewLoading ? 'Parsing…' : 'Preview Import'}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleClearFile}>
-                Remove
-              </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => void handlePreview()}
+                  disabled={isPreviewLoading}
+                  leftIcon={isPreviewLoading ? <Loader size={14} /> : undefined}
+                >
+                  {isPreviewLoading ? 'Parsing…' : 'Preview Import'}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleClearFile}>
+                  Remove
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className={pageStyles.dropZoneContent}>
-            <div className={pageStyles.dropZoneIcon}>
-              <CloudUpload size={28} />
+          ) : (
+            <div className={pageStyles.dropZoneContent}>
+              <div className={pageStyles.dropZoneIcon}>
+                <CloudUpload size={28} />
+              </div>
+              <p className={pageStyles.dropZoneText}>
+                Drop your statement here, or{' '}
+                <span className={pageStyles.browseLink}>browse files</span>
+              </p>
+              <p className={pageStyles.dropZoneHint}>Accepts: .xlsx, .csv · Max 5 MB · No PDF</p>
             </div>
-            <p className={pageStyles.dropZoneText}>
-              Drop your statement here, or{' '}
-              <span className={pageStyles.browseLink}>browse files</span>
-            </p>
-            <p className={pageStyles.dropZoneHint}>Accepts: .xlsx, .csv · Max 5 MB · No PDF</p>
-          </div>
-        )}
+          )}
+        </div>
+
+        {fileError && <ErrorBanner message={fileError} className={styles.errorText} />}
+      </section>
+
+      <div className={styles.pathDivider} role="separator">
+        <span>or</span>
       </div>
 
-      {error && <ErrorBanner message={error} className={styles.errorText} />}
+      <section className={styles.pathCard} aria-labelledby="connect-path-title">
+        <p className={styles.pathEyebrow}>Option 2 · Plus only</p>
+        <div className={styles.connectHeader}>
+          <div className={styles.connectIcon}>
+            <Link2 size={16} />
+          </div>
+          <div>
+            <h3 id="connect-path-title" className={styles.pathTitle}>
+              Connect a brokerage
+            </h3>
+            <p className={styles.pathHint}>
+              Optional snapshot of today&apos;s holdings from Trading 212, DEGIRO, eToro, or
+              Interactive Brokers. Not required for the file upload above. Read-only — we never
+              store your brokerage password.
+            </p>
+          </div>
+        </div>
+        <div className={styles.connectActions}>
+          <Select
+            className={styles.brokerSelect}
+            label="Brokerage"
+            value={selectedBroker}
+            onChange={setSelectedBroker}
+            disabled={isConnectingBroker || isPreviewLoading}
+            options={SNAPTRADE_CONNECTABLE_BROKERS.map((broker) => ({
+              value: broker.id,
+              label: broker.label,
+              iconUrl: broker.logoUrl,
+            }))}
+          />
+          <Button
+            className={styles.connectButton}
+            variant="primary"
+            onClick={() => void handleConnectBroker(selectedBroker)}
+            disabled={isConnectingBroker || isPreviewLoading}
+            leftIcon={isConnectingBroker ? <Loader size={14} /> : undefined}
+          >
+            {isConnectingBroker ? 'Opening…' : 'Connect'}
+          </Button>
+        </div>
+        {!isPaid && (
+          <p className={styles.connectUpgrade}>
+            Free accounts stay on Option 1. Connect is included with Plus.
+          </p>
+        )}
+        {connectError && <ErrorBanner message={connectError} className={styles.errorText} />}
+      </section>
 
       <ImportResultModal
         isOpen={importResultModal !== null}
@@ -279,7 +443,11 @@ export function BrokerImporterPanel() {
           <div className={styles.parserMeta}>
             <span
               className={`${styles.modeBadge} ${
-                preview.parserMode === 'heuristic' ? styles.modeBadgeHeuristic : styles.modeBadgeAi
+                preview.parserMode === 'heuristic'
+                  ? styles.modeBadgeHeuristic
+                  : preview.parserMode === 'broker_sync'
+                    ? styles.modeBadgeSync
+                    : styles.modeBadgeAi
               }`}
             >
               {PARSER_MODE_LABELS[preview.parserMode]}
@@ -294,7 +462,9 @@ export function BrokerImporterPanel() {
           <div className={styles.summaryGrid}>
             <div className={styles.summaryCard}>
               <div className={styles.summaryValue}>{preview.summary.tradeCount}</div>
-              <div className={styles.summaryLabel}>Trades found</div>
+              <div className={styles.summaryLabel}>
+                {isHoldingsPreview ? 'Holdings found' : 'Trades found'}
+              </div>
             </div>
             <div className={styles.summaryCard}>
               <div className={styles.summaryValue}>{preview.summary.buyCount}</div>
@@ -315,7 +485,9 @@ export function BrokerImporterPanel() {
           </div>
 
           <div className={styles.previewBlock}>
-            <h3 className={styles.previewTitle}>Trades to import</h3>
+            <h3 className={styles.previewTitle}>
+              {isHoldingsPreview ? 'Holdings to sync' : 'Trades to import'}
+            </h3>
             <div className={styles.tableWrapper}>
               <table className={styles.table}>
                 <thead>
@@ -352,7 +524,8 @@ export function BrokerImporterPanel() {
             </div>
             {preview.trades.length > MAX_PREVIEW_ROWS && (
               <p className={pageStyles.dropZoneHint}>
-                Showing first {MAX_PREVIEW_ROWS} of {preview.trades.length} trades
+                Showing first {MAX_PREVIEW_ROWS} of {preview.trades.length}{' '}
+                {isHoldingsPreview ? 'holdings' : 'trades'}
               </p>
             )}
           </div>
@@ -391,7 +564,7 @@ export function BrokerImporterPanel() {
               disabled={isConfirmLoading || importableCount === 0}
               leftIcon={isConfirmLoading ? <Loader size={16} /> : undefined}
             >
-              {isConfirmLoading ? 'Importing…' : `Import ${importableCount} trades`}
+              {isConfirmLoading ? (isHoldingsPreview ? 'Syncing…' : 'Importing…') : confirmLabel}
             </Button>
             <Button
               variant="outline"

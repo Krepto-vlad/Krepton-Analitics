@@ -349,6 +349,10 @@ describe('PositionsPanel', () => {
     renderPanel({ isLoading: false, error: null, summaryPositions: [], positions: [] });
 
     expect(screen.getByRole('heading', { name: 'No positions yet' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Import or connect a broker' })).toHaveAttribute(
+      'href',
+      '/portfolio?section=importer'
+    );
     await user.click(screen.getByRole('button', { name: 'Add Position' }));
 
     expect(screen.getByRole('dialog', { name: 'Add position' })).toBeInTheDocument();

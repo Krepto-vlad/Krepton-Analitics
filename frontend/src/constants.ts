@@ -66,6 +66,39 @@ export const ROUTES = {
 /** Watchlist UI lives on Portfolio; `/watchlist` redirects here. */
 export const PORTFOLIO_WATCHLIST_PATH = `${ROUTES.PORTFOLIO}?section=watchlist`;
 
+/** Statement importer + SnapTrade connect live on Portfolio. */
+export const PORTFOLIO_IMPORTER_PATH = `${ROUTES.PORTFOLIO}?section=importer`;
+export const BROKER_SYNC_RETURN_QUERY = 'brokerSync';
+export const BROKER_SYNC_CONNECTED = 'connected';
+
+/** SnapTrade hosts square logos; no local downloads needed. */
+const SNAPTRADE_BROKER_LOGO_BASE = 'https://passiv-brokerage-logos.s3.ca-central-1.amazonaws.com';
+
+/** Keep slugs in sync with backend SNAPTRADE_CONNECTABLE_BROKERS. Revolut stays parser-only. */
+export const SNAPTRADE_CONNECTABLE_BROKERS = [
+  {
+    id: 'TRADING212',
+    label: 'Trading 212',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/trading212-logo-square.png`,
+  },
+  {
+    id: 'DEGIRO',
+    label: 'DEGIRO',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/degiro-logo-square.png`,
+  },
+  {
+    id: 'ETORO',
+    label: 'eToro',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/etoro-logo-square.png`,
+  },
+  {
+    id: 'INTERACTIVEBROKERS',
+    label: 'Interactive Brokers',
+    logoUrl: `${SNAPTRADE_BROKER_LOGO_BASE}/interactive-brokers-logo-square.png`,
+  },
+] as const;
+export type SnaptradeConnectableBrokerId = (typeof SNAPTRADE_CONNECTABLE_BROKERS)[number]['id'];
+
 /** React Router splat — unknown paths render NotFoundPage. Not a navigable URL. */
 export const ROUTE_CATCH_ALL_PATH = '*';
 
@@ -438,6 +471,11 @@ export const ERROR_MESSAGES = {
   WATCHLIST_DELETE_FAILED: 'Unable to remove the ticker. Please try again.',
   IMPORT_PREVIEW_FAILED: 'Unable to read the broker file. Please check the format and try again.',
   IMPORT_CONFIRM_FAILED: 'Unable to complete the import. Please try again.',
+  BROKER_SYNC_CONNECT_FAILED: 'Unable to open the brokerage connection portal. Please try again.',
+  BROKER_SYNC_PREVIEW_FAILED: 'Unable to load connected holdings. Please try again.',
+  BROKER_SYNC_CONFIRM_FAILED: 'Unable to sync connected holdings. Please try again.',
+  SNAPTRADE_NOT_CONFIGURED:
+    'Broker sync is not configured on this server yet. Upload a statement or ask an admin for Plus.',
   STOCK_SEARCH_FAILED: 'Unable to search tickers right now. Please try again.',
   STOCK_COMPARE_FAILED: 'Unable to load comparison data. Please try again.',
   STOCK_MOVERS_FAILED: 'Unable to load market movers. Please try again.',

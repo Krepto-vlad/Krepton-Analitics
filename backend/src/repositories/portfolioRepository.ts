@@ -17,6 +17,7 @@ interface AddTransactionParams {
   currency: string;
   transactionDate?: string;
   transactionType: 'BUY' | 'SELL';
+  source?: string;
 }
 
 /**
@@ -149,8 +150,8 @@ export async function addTransaction(
   const result = await pool.query<TransactionRow>(
     `INSERT INTO transactions
        (portfolio_id, ticker, company_name, shares, price_per_share, currency,
-        transaction_date, transaction_type)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        transaction_date, transaction_type, source)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
     [
       portfolioId,
@@ -161,6 +162,7 @@ export async function addTransaction(
       params.currency,
       params.transactionDate ?? null,
       params.transactionType,
+      params.source ?? 'unknown',
     ]
   );
 
@@ -463,13 +465,35 @@ export async function getTransactionsByPortfolioIdPaginated(
 export async function getAllTransactionsForDedup(portfolioId: string): Promise<TransactionRow[]> {
   const result = await pool.query<TransactionRow>(
     `SELECT id, portfolio_id, ticker, company_name, shares, price_per_share,
-            currency, transaction_date, transaction_type, created_at
+            currency, transaction_date, transaction_type, source, created_at
      FROM transactions
      WHERE portfolio_id = $1`,
     [portfolioId]
   );
 
   return result.rows;
+}
+
+export async function listTickersBySource(portfolioId: string, source: string): Promise<string[]> {
+  const result = await pool.query<{ ticker: string }>(
+    `SELECT DISTINCT ticker
+     FROM transactions
+     WHERE portfolio_id = $1 AND source = $2`,
+    [portfolioId, source]
+  );
+
+  return result.rows.map((row) => row.ticker);
+}
+
+export async function deleteTransactionsBySource(
+  portfolioId: string,
+  source: string
+): Promise<number> {
+  const result = await pool.query(
+    'DELETE FROM transactions WHERE portfolio_id = $1 AND source = $2',
+    [portfolioId, source]
+  );
+  return result.rowCount ?? 0;
 }
 
 export async function insertPositionFromLedger(

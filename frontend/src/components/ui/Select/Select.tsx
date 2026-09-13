@@ -5,6 +5,7 @@ import styles from './Select.module.scss';
 export interface SelectOption<T extends string = string> {
   value: T;
   label: string;
+  iconUrl?: string;
 }
 
 interface SelectProps<T extends string> {
@@ -15,6 +16,16 @@ interface SelectProps<T extends string> {
   disabled?: boolean;
   id?: string;
   className?: string;
+}
+
+function SelectOptionIcon({ src }: { src?: string }) {
+  const [hasFailed, setHasFailed] = useState(false);
+
+  if (!src || hasFailed) {
+    return null;
+  }
+
+  return <img src={src} alt="" className={styles.optionIcon} onError={() => setHasFailed(true)} />;
 }
 
 function normalizeOptions<T extends string>(
@@ -162,7 +173,13 @@ export function Select<T extends string>({
           aria-haspopup="listbox"
           aria-expanded={isOpen}
         >
-          <span className={styles.triggerValue}>{selectedOption?.label ?? ''}</span>
+          <span className={styles.triggerValue}>
+            <SelectOptionIcon
+              key={selectedOption?.iconUrl ?? 'none'}
+              src={selectedOption?.iconUrl}
+            />
+            {selectedOption?.label ?? ''}
+          </span>
           <ChevronDown
             size={14}
             className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}
@@ -185,7 +202,10 @@ export function Select<T extends string>({
                     onMouseEnter={() => setHighlightedIndex(index)}
                     onClick={() => handleSelect(option.value)}
                   >
-                    <span>{option.label}</span>
+                    <span className={styles.optionLabel}>
+                      <SelectOptionIcon key={option.iconUrl ?? option.value} src={option.iconUrl} />
+                      {option.label}
+                    </span>
                     {isSelected && <Check size={14} className={styles.checkIcon} />}
                   </button>
                 </li>

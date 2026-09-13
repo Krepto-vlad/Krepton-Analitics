@@ -91,6 +91,18 @@ describe('apiError', () => {
     expect(error.message).toBe(ERROR_MESSAGES.BILLING_NOT_CONFIGURED);
   });
 
+  it('keeps the SnapTrade-not-configured 503 message', () => {
+    const error = toApiRequestError(
+      asAxiosError({
+        response: {
+          status: 503,
+          data: { error: ERROR_MESSAGES.SNAPTRADE_NOT_CONFIGURED },
+        } as AxiosError['response'],
+      })
+    );
+    expect(error.message).toBe(ERROR_MESSAGES.SNAPTRADE_NOT_CONFIGURED);
+  });
+
   it('unwraps generic Error messages and unknown values', () => {
     expect(axios.isAxiosError(new Error('nope'))).toBe(false);
     expect(toApiRequestError(new Error('Boom')).message).toBe('Boom');

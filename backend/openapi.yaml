@@ -781,6 +781,63 @@ paths:
         '200':
           $ref: '#/components/responses/Success'
 
+  /api/portfolio/broker-sync/connect:
+    post:
+      tags: [Import]
+      summary: Open a read-only SnapTrade Connection Portal URL (Plus)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [broker]
+              properties:
+                broker:
+                  type: string
+                  enum: [TRADING212, DEGIRO, ETORO, INTERACTIVEBROKERS]
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/broker-sync/preview:
+    post:
+      tags: [Import]
+      summary: Preview today's SnapTrade holdings snapshot (Plus)
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/broker-sync/confirm:
+    post:
+      tags: [Import]
+      summary: Commit a previously previewed SnapTrade snapshot (Plus)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [importId]
+              properties:
+                importId:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/Error'
+
   /api/portfolio/watchlist:
     get:
       tags: [Watchlist]

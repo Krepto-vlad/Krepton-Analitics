@@ -48,6 +48,15 @@ describe('HTTP API integration', () => {
     });
   });
 
+  it('POST /api/portfolio/broker-sync/connect without a cookie returns 401', async () => {
+    const response = await request(app)
+      .post(`${API_ROUTES.PORTFOLIO}/broker-sync/connect`)
+      .send({ broker: 'TRADING212' })
+      .expect(401);
+
+    expect(response.body).toEqual({ success: false, error: 'Unauthorized' });
+  });
+
   it('POST /api/billing/webhook without a signature returns 400', async () => {
     const response = await request(app)
       .post(`${API_ROUTES.BILLING}/webhook`)

@@ -3,6 +3,34 @@ import userEvent from '@testing-library/user-event';
 import { Select } from '../Select';
 
 describe('Select', () => {
+  it('renders option icons when iconUrl is provided', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select
+        label="Brokerage"
+        value="T212"
+        onChange={jest.fn()}
+        options={
+          [
+            { value: 'T212', label: 'Trading 212', iconUrl: 'https://example.com/t212.png' },
+            { value: 'DEGIRO', label: 'DEGIRO', iconUrl: 'https://example.com/degiro.png' },
+          ] satisfies { value: string; label: string; iconUrl: string }[]
+        }
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Brokerage' }).querySelector('img')).toHaveAttribute(
+      'src',
+      'https://example.com/t212.png'
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Brokerage' }));
+    expect(screen.getByRole('option', { name: 'DEGIRO' }).querySelector('img')).toHaveAttribute(
+      'src',
+      'https://example.com/degiro.png'
+    );
+  });
+
   it('picks an object option and closes on outside click', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();

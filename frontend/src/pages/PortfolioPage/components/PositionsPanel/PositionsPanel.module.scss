@@ -525,8 +525,21 @@
 
 .emptyActions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: $space-3;
   margin-top: $space-1;
+}
+
+.emptyImportLink {
+  color: $color-foreground-muted;
+  font-size: $font-size-sm;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: $color-foreground;
+  }
 }
 
 // ─── Pagination / History ─────────────────────────────────────────────────────

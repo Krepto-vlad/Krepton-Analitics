@@ -158,9 +158,47 @@ export const TICKER_TAPE_BROWSER_CACHE_TTL_S = 60 * 60; // 1 hour
 
 // ─── Broker import ────────────────────────────────────────────────────────────
 /** Universal import labels all accounts as GENERIC (no per-broker selection). */
-export const SUPPORTED_BROKER_IDS = ['GENERIC'] as const;
+export const SUPPORTED_BROKER_IDS = ['GENERIC', 'SNAPTRADE'] as const;
 export type SupportedBrokerId = (typeof SUPPORTED_BROKER_IDS)[number];
 export const IMPORT_DEFAULT_BROKER_ID: SupportedBrokerId = 'GENERIC';
+export const SNAPTRADE_BROKER_ID: SupportedBrokerId = 'SNAPTRADE';
+
+/** SnapTrade Connection Portal slugs we expose. Revolut has no API — keep the parser. */
+export const SNAPTRADE_CONNECTABLE_BROKERS = [
+  { id: 'TRADING212', slug: 'TRADING212', label: 'Trading 212' },
+  { id: 'DEGIRO', slug: 'DEGIRO', label: 'DEGIRO' },
+  { id: 'ETORO', slug: 'ETORO', label: 'eToro' },
+  { id: 'INTERACTIVEBROKERS', slug: 'INTERACTIVEBROKERS', label: 'Interactive Brokers' },
+] as const;
+export type SnaptradeConnectableBrokerId = (typeof SNAPTRADE_CONNECTABLE_BROKERS)[number]['id'];
+export const SNAPTRADE_CONNECTION_TYPE = 'read';
+export const SNAPTRADE_RETURN_QUERY = 'brokerSync';
+export const SNAPTRADE_RETURN_CONNECTED = 'connected';
+export const TRANSACTION_LEDGER_SOURCES = ['unknown', 'manual', 'import', 'snaptrade'] as const;
+export type TransactionLedgerSource = (typeof TRANSACTION_LEDGER_SOURCES)[number];
+export const TRANSACTION_SOURCE_SNAPTRADE: TransactionLedgerSource = 'snaptrade';
+export const TRANSACTION_SOURCE_MANUAL: TransactionLedgerSource = 'manual';
+export const TRANSACTION_SOURCE_IMPORT: TransactionLedgerSource = 'import';
+export const SNAPTRADE_NOT_CONFIGURED_MESSAGE =
+  'Broker sync is not configured on this server yet. Upload a statement or ask an admin for Plus.';
+export const SNAPTRADE_PLUS_REQUIRED_MESSAGE = 'Plus is required to connect a brokerage account.';
+export const SNAPTRADE_UNAVAILABLE_MESSAGE =
+  'Broker sync is temporarily unavailable. Please try again.';
+export const SNAPTRADE_NOT_CONNECTED_MESSAGE =
+  'Connect a brokerage account first, then preview holdings.';
+export const SNAPTRADE_NO_ACCOUNTS_MESSAGE =
+  'No linked brokerage account yet. Finish connecting in the portal, then preview again.';
+export const SNAPTRADE_INVALID_BROKER_MESSAGE =
+  'That brokerage is not available for one-click connect. Upload a statement instead.';
+export const SNAPTRADE_PREVIEW_WARNING =
+  "This is today's holdings snapshot (quantity and average price), not a full trade history. Tickers you already added from a file or by hand will be skipped so we do not overwrite them.";
+export const SNAPTRADE_PORTAL_REDIRECT_PATH = '/portfolio?section=importer';
+export const SNAPTRADE_CONFIRM_FILE_PREVIEW_MESSAGE =
+  'That preview is a file import. Confirm it from the statement importer.';
+export const SNAPTRADE_CONFIRM_HOLDINGS_PREVIEW_MESSAGE =
+  'Confirm broker holdings from the broker-sync endpoint.';
+export const SNAPTRADE_SKIP_EXISTING_TICKER_REASON =
+  'Already has imported or manual trades — left unchanged';
 /** Used when a statement has no currency column (common in stripped exports). */
 export const IMPORT_DEFAULT_CURRENCY = 'USD';
 

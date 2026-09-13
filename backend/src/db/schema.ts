@@ -111,6 +111,16 @@ export const billingEntitlements = pgTable('billing_entitlements', {
   updated_at: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
 
+export const snaptradeUsers = pgTable('snaptrade_users', {
+  user_id: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  snaptrade_user_id: varchar('snaptrade_user_id', { length: 128 }).notNull().unique(),
+  user_secret: varchar('user_secret', { length: 256 }).notNull(),
+  created_at: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
 export const billingWebhookEvents = pgTable('billing_webhook_events', {
   event_id: varchar('event_id', { length: 128 }).primaryKey(),
   event_type: varchar('event_type', { length: 128 }).notNull(),

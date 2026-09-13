@@ -221,6 +221,25 @@ describe('ProfilePage', () => {
     );
   });
 
+  it('shows Plus plan in the overview badge when the account is paid', () => {
+    renderProfile({
+      ...testUser,
+      isAdmin: true,
+      subscription: {
+        isPaid: true,
+        plan: 'plus',
+        interval: 'comp',
+        source: 'admin',
+        status: 'active',
+        currentPeriodEnd: '2026-09-15T00:00:00.000Z',
+        cancelAtPeriodEnd: false,
+      },
+    });
+
+    expect(screen.getByText('Plus plan')).toBeInTheDocument();
+    expect(screen.queryByText('Free plan')).not.toBeInTheDocument();
+  });
+
   it('changes the password after current-password confirmation', async () => {
     const user = userEvent.setup();
     renderProfile();

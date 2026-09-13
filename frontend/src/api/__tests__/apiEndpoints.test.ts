@@ -35,6 +35,7 @@ import {
   apiVerifyEmail,
 } from '../authApi';
 import { clearLiveFxRateCache, fetchFxRate, fetchLiveFxRates } from '../fxApi';
+import { confirmBrokerSync, connectBrokerSync, previewBrokerSync } from '../brokerSyncApi';
 import { confirmBrokerImport, previewBrokerImport } from '../importApi';
 import {
   closePortfolioPosition,
@@ -229,6 +230,9 @@ describe('API clients', () => {
     await deleteWatchlistItem('w1');
     await previewBrokerImport(new File(['a'], 'a.csv', { type: 'text/csv' }));
     await confirmBrokerImport('imp-1');
+    await connectBrokerSync('TRADING212');
+    await previewBrokerSync();
+    await confirmBrokerSync('imp-2');
     await fetchPortfolioPositions('USD');
     await fetchPortfolioPositionsPage(20, 0, 'USD');
     await fetchPortfolioTransactionsPage(20, 0);

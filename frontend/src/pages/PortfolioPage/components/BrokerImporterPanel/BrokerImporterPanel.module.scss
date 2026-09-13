@@ -38,6 +38,109 @@
   border-color: rgba(59, 130, 246, 0.35);
 }
 
+.modeBadgeSync {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.pathCard {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-5;
+  border-radius: $radius-md;
+  border: 1px solid $color-border-strong;
+  background: $color-surface;
+}
+
+.pathEyebrow {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-primary;
+}
+
+.pathTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.pathHint {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: 1.45;
+  color: $color-foreground-subtle;
+}
+
+.pathDivider {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  color: $color-foreground-subtle;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $color-border-strong;
+  }
+}
+
+.connectHeader {
+  display: flex;
+  gap: $space-3;
+  align-items: flex-start;
+}
+
+.connectIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border-strong;
+  color: $color-foreground-subtle;
+  flex-shrink: 0;
+}
+
+.connectUpgrade {
+  margin: $space-1 0 0;
+  font-size: $font-size-sm;
+  line-height: 1.45;
+  color: $color-foreground-subtle;
+}
+
+.connectActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: $space-3;
+}
+
+.brokerSelect {
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.connectButton {
+  padding: $space-2 $space-4;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  border-radius: $radius-md;
+}
+
 .metaText {
   font-size: $font-size-sm;
   color: $color-foreground-subtle;

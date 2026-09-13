@@ -20,6 +20,7 @@ erDiagram
   users ||--o{ ai_usage_events : "user_id"
   users ||--o| billing_customers : "user_id"
   users ||--o| billing_entitlements : "user_id"
+  users ||--o| snaptrade_users : "user_id"
   portfolio_accounts ||--o{ positions : "portfolio_id"
   portfolio_accounts ||--o{ transactions : "portfolio_id"
   portfolio_accounts ||--o{ watchlist_items : "portfolio_id"
@@ -67,6 +68,11 @@ erDiagram
     varchar paddle_subscription_id
     timestamptz paddle_period_end
     timestamptz admin_expires_at
+  }
+  snaptrade_users {
+    uuid user_id PK
+    varchar snaptrade_user_id UK
+    varchar user_secret
   }
 ```
 
@@ -133,7 +139,11 @@ UNIQUE `(portfolio_id, ticker)`. Index: `portfolio_id`.
 
 Immutable buy/sell history (not a substitute for `positions`).
 
-Same money/ticker CHECKs as positions. `transaction_type` CHECK `BUY`/`SELL`. Indexes: `portfolio_id`, `(portfolio_id, ticker)`.
+Same money/ticker CHECKs as positions. `transaction_type` CHECK `BUY`/`SELL`. `source` CHECK `unknown`/`manual`/`import`/`snaptrade` (default `unknown`). Indexes: `portfolio_id`, `(portfolio_id, ticker)`.
+
+### snaptrade_users
+
+Server-only SnapTrade credentials. Never sent to the browser. FK `user_id` → `users` ON DELETE CASCADE. UNIQUE `snaptrade_user_id`.
 
 ### watchlist_items
 

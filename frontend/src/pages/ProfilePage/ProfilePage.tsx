@@ -353,7 +353,9 @@ export function ProfilePage() {
           <div className={styles.overviewInfo}>
             <div className={styles.overviewNameRow}>
               <p className={styles.overviewEmail}>{maskedEmail}</p>
-              <span className={styles.planBadge}>Free plan</span>
+              <span className={styles.planBadge}>
+                {user.subscription.isPaid ? 'Plus plan' : 'Free plan'}
+              </span>
             </div>
             <p className={styles.overviewMeta}>Member since {memberSince}</p>
           </div>

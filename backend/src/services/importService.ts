@@ -1,5 +1,9 @@
 import { AppError } from '../middleware/errorHandler.js';
-import { IMPORT_DEFAULT_BROKER_ID } from '../constants.js';
+import {
+  IMPORT_DEFAULT_BROKER_ID,
+  SNAPTRADE_BROKER_ID,
+  SNAPTRADE_CONFIRM_HOLDINGS_PREVIEW_MESSAGE,
+} from '../constants.js';
 import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
 import { readSafeTabularBuffer } from '../utils/excelSafeReader.js';
 import { buildTradeFingerprint } from '../utils/tradeFingerprint.js';
@@ -102,6 +106,10 @@ export async function confirmBrokerImport(
   const preview = consumeImportPreview(importId, userId);
   if (!preview) {
     throw new AppError(404, 'Import preview expired or not found. Upload the file again.');
+  }
+
+  if (preview.broker === SNAPTRADE_BROKER_ID) {
+    throw new AppError(400, SNAPTRADE_CONFIRM_HOLDINGS_PREVIEW_MESSAGE);
   }
 
   return confirmImportedTrades(userId, preview.broker, preview.trades);

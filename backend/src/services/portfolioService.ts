@@ -30,6 +30,8 @@ import {
   deleteTransactionById,
   updatePositionSector,
   getAllTransactionsForDedup,
+  listTickersBySource,
+  deleteTransactionsBySource,
   insertPositionFromLedger,
   getPortfolioRebalancingStrategy,
   updatePortfolioRebalancingStrategy,
@@ -74,7 +76,12 @@ import {
   PORTFOLIO_DATA_DELETE_CONFIRMATION,
   PORTFOLIO_EXPORT_SCHEMA_VERSION,
 } from '../constants.js';
-import type { SupportedBrokerId } from '../constants.js';
+import {
+  TRANSACTION_SOURCE_IMPORT,
+  TRANSACTION_SOURCE_MANUAL,
+  TRANSACTION_SOURCE_SNAPTRADE,
+  type SupportedBrokerId,
+} from '../constants.js';
 import type { NormalizedTrade, ImportConfirmResponse } from '../types/import.types.js';
 import type { PortfolioNewsItem } from '../types/news.types.js';
 import type { DividendCalendarResponse } from '../types/dividend.types.js';
@@ -517,6 +524,7 @@ export async function createPosition(userId: string, rawDto: unknown): Promise<P
     currency: dto.currency,
     transactionDate: dto.entryDate,
     transactionType: 'BUY',
+    source: TRANSACTION_SOURCE_MANUAL,
   });
 
   // Upsert the aggregated position (insert new or recalculate weighted avg)
@@ -917,6 +925,7 @@ export async function closePosition(
     currency: dto.currency,
     transactionDate: dto.saleDate,
     transactionType: 'SELL',
+    source: TRANSACTION_SOURCE_MANUAL,
   });
 
   const isFullClose = Math.abs(dto.shares - currentShares) < 0.000000001;
@@ -978,6 +987,7 @@ export async function confirmImportedTrades(
       currency: trade.currency as 'USD' | 'EUR',
       transactionDate: trade.transactionDate,
       transactionType: trade.transactionType,
+      source: TRANSACTION_SOURCE_IMPORT,
     });
 
     existingFingerprints.add(fingerprint);
@@ -999,6 +1009,65 @@ export async function confirmImportedTrades(
     importedCount,
     skippedDuplicateCount,
     affectedTickers: [...affectedTickers].sort(),
+  };
+}
+
+export async function confirmSnaptradeHoldings(
+  userId: string,
+  trades: NormalizedTrade[]
+): Promise<ImportConfirmResponse> {
+  const ownerToken = computePortfolioOwnerToken(userId);
+  const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
+  const previousSnaptradeTickers = await listTickersBySource(
+    portfolioId,
+    TRANSACTION_SOURCE_SNAPTRADE
+  );
+
+  await deleteTransactionsBySource(portfolioId, TRANSACTION_SOURCE_SNAPTRADE);
+
+  const remainingTransactions = await getAllTransactionsForDedup(portfolioId);
+  const blockedTickers = new Set(remainingTransactions.map((transaction) => transaction.ticker));
+
+  let importedCount = 0;
+  let skippedDuplicateCount = 0;
+  const insertedTickers = new Set<string>();
+
+  for (const trade of trades) {
+    if (blockedTickers.has(trade.ticker)) {
+      skippedDuplicateCount += 1;
+      continue;
+    }
+
+    await addTransaction(portfolioId, {
+      ticker: trade.ticker,
+      companyName: trade.companyName,
+      shares: trade.shares,
+      pricePerShare: trade.pricePerShare,
+      currency: trade.currency as 'USD' | 'EUR',
+      transactionDate: trade.transactionDate,
+      transactionType: 'BUY',
+      source: TRANSACTION_SOURCE_SNAPTRADE,
+    });
+
+    insertedTickers.add(trade.ticker);
+    importedCount += 1;
+  }
+
+  const tickersToSync = new Set([...previousSnaptradeTickers, ...insertedTickers]);
+  for (const ticker of tickersToSync) {
+    await syncPositionFromTransactions(portfolioId, ticker);
+
+    const position = await getPositionByTicker(portfolioId, ticker);
+    if (position && !position.sector) {
+      const { sector } = await getStockSector(ticker);
+      await updatePositionSector(position.id, portfolioId, sector);
+    }
+  }
+
+  return {
+    importedCount,
+    skippedDuplicateCount,
+    affectedTickers: [...insertedTickers].sort(),
   };
 }
 

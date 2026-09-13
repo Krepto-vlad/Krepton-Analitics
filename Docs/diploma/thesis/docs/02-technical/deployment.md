@@ -76,6 +76,8 @@ Secrets stay in GitHub Secrets / Azure settings, never in YAML.
 | `PADDLE_PLUS_MONTHLY_PRICE_ID` | Plus monthly price id | For paid checkout |
 | `PADDLE_PLUS_ANNUAL_PRICE_ID` | Plus annual price id | For paid checkout |
 | `ADMIN_EMAILS` | Comma-separated allowlist | Complimentary Plus grants |
+| `SNAPTRADE_CLIENT_ID` | SnapTrade Commercial client id | For Plus broker sync |
+| `SNAPTRADE_CONSUMER_KEY` | SnapTrade consumer key (server-only) | For Plus broker sync |
 | `VITE_PADDLE_CLIENT_TOKEN` | Paddle.js client token (baked into SPA) | For checkout overlay |
 | `VITE_PADDLE_ENV` | `sandbox` or `production` (baked into SPA) | Defaults to sandbox |
 | `NODE_ENV` | `development` / `production` | Yes |
