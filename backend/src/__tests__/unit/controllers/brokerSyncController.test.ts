@@ -5,9 +5,17 @@ jest.mock('../../../services/brokerSyncService.js', () => ({
   confirmBrokerSyncHoldings: jest.fn(),
 }));
 
+jest.mock('../../../services/snaptradeConnectionsService.js', () => ({
+  parseSnaptradeAuthorizationId: jest.fn((authorizationId: string) => authorizationId),
+  listBrokerSyncConnections: jest.fn(),
+  disconnectBrokerSyncConnection: jest.fn(),
+}));
+
 import {
   confirmBrokerSync,
   connectBrokerSync,
+  disconnectBrokerSync,
+  listBrokerSync,
   previewBrokerSync,
 } from '../../../controllers/brokerSyncController.js';
 import {
@@ -16,6 +24,11 @@ import {
   parseSnaptradeBroker,
   previewBrokerSyncHoldings,
 } from '../../../services/brokerSyncService.js';
+import {
+  disconnectBrokerSyncConnection,
+  listBrokerSyncConnections,
+  parseSnaptradeAuthorizationId,
+} from '../../../services/snaptradeConnectionsService.js';
 import { asResponse, createMockRequest, createMockResponse } from './httpMocks.js';
 
 const mockedParseBroker = parseSnaptradeBroker as jest.MockedFunction<typeof parseSnaptradeBroker>;
@@ -27,6 +40,15 @@ const mockedPreview = previewBrokerSyncHoldings as jest.MockedFunction<
 >;
 const mockedConfirm = confirmBrokerSyncHoldings as jest.MockedFunction<
   typeof confirmBrokerSyncHoldings
+>;
+const mockedList = listBrokerSyncConnections as jest.MockedFunction<
+  typeof listBrokerSyncConnections
+>;
+const mockedDisconnect = disconnectBrokerSyncConnection as jest.MockedFunction<
+  typeof disconnectBrokerSyncConnection
+>;
+const mockedParseAuthorizationId = parseSnaptradeAuthorizationId as jest.MockedFunction<
+  typeof parseSnaptradeAuthorizationId
 >;
 
 describe('brokerSyncController', () => {
@@ -79,5 +101,29 @@ describe('brokerSyncController', () => {
         asResponse(createMockResponse())
       )
     ).rejects.toMatchObject({ statusCode: 401 });
+  });
+
+  it('lists brokerage connections', async () => {
+    mockedList.mockResolvedValue([]);
+    const res = createMockResponse();
+
+    await listBrokerSync(createMockRequest(), asResponse(res));
+
+    expect(mockedList).toHaveBeenCalledWith('user-1');
+    expect(res.json).toHaveBeenCalledWith({ success: true, data: [] });
+  });
+
+  it('disconnects a brokerage connection', async () => {
+    mockedParseAuthorizationId.mockReturnValue('87b24961-b51e-4db8-9226-f198f6518a89');
+    mockedDisconnect.mockResolvedValue(undefined);
+    const res = createMockResponse();
+
+    await disconnectBrokerSync(
+      createMockRequest({ params: { authorizationId: '87b24961-b51e-4db8-9226-f198f6518a89' } }),
+      asResponse(res)
+    );
+
+    expect(mockedDisconnect).toHaveBeenCalledWith('user-1', '87b24961-b51e-4db8-9226-f198f6518a89');
+    expect(res.json).toHaveBeenCalledWith({ success: true, data: { disconnected: true } });
   });
 });

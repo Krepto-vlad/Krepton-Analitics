@@ -3,7 +3,7 @@ import type { PortfolioDataExport } from '../../../types/portfolio.types.js';
 
 function exportPayload(overrides: Partial<PortfolioDataExport> = {}): PortfolioDataExport {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     exportedAt: '2026-01-15T00:00:00.000Z',
     account: {
       email: 'user@example.com',
@@ -34,6 +34,7 @@ function exportPayload(overrides: Partial<PortfolioDataExport> = {}): PortfolioD
         transactionDate: '2026-01-10',
         transactionType: 'BUY',
         createdAt: '2026-01-10T00:00:00.000Z',
+        source: 'import',
       },
     ],
     watchlist: [
@@ -49,6 +50,15 @@ function exportPayload(overrides: Partial<PortfolioDataExport> = {}): PortfolioD
       customBaseStrategyId: 'warren-buffett-9010',
       customAllocations: { equities: 90, bonds: 10 },
     },
+    brokerageConnections: [
+      {
+        brokerageName: 'Trading 212',
+        brokerageSlug: 'TRADING212',
+        connectedAt: '2026-01-12T00:00:00.000Z',
+        disabled: false,
+        accessType: 'read',
+      },
+    ],
     ...overrides,
   };
 }

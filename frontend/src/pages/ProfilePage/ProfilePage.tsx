@@ -28,6 +28,7 @@ import { PRICING_PLAN_DEFINITIONS } from '../../constants/pricingPlans';
 import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 import { apiChangePassword, apiDeleteAccount } from '../../api/authApi';
 import { deletePortfolioData, exportPortfolioData } from '../../api/portfolioApi';
+import { BrokerConnectionsList } from '../../components/broker/BrokerConnectionsList';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchCurrentUserThunk, logoutThunk } from '../../features/auth/authSlice';
@@ -513,7 +514,9 @@ export function ProfilePage() {
           <div className={styles.dataActionCopy}>
             <p className={styles.securityTitle}>Export your data</p>
             <p className={styles.securityHint}>
-              Download a copy of your portfolio snapshot (positions, transactions, watchlist).
+              Download a copy of your portfolio snapshot (positions, transactions with source,
+              watchlist, and connected brokerages). SnapTrade secrets and brokerage account numbers
+              are never included.
             </p>
           </div>
           <button
@@ -531,6 +534,10 @@ export function ProfilePage() {
         </div>
 
         {exportMessage && <p className={styles.statusMessage}>{exportMessage}</p>}
+
+        <div className={styles.connectionsBox}>
+          <BrokerConnectionsList />
+        </div>
 
         <div className={styles.dangerZone}>
           <div className={styles.dangerZoneHeader}>
@@ -798,8 +805,8 @@ export function ProfilePage() {
               : hasGoogle
                 ? 'Google'
                 : 'your password'}{' '}
-            before download. Excel has Positions / Transactions / Watchlist sheets; JSON is one
-            file.
+            before download. Excel has Positions, Transactions, Watchlist, and Brokerage connections
+            sheets; JSON is one file.
           </p>
 
           <div className={styles.field}>
@@ -827,8 +834,9 @@ export function ProfilePage() {
               </button>
             </div>
             <p className={styles.formatHint}>
-              Excel: sheets Positions / Transactions / Watchlist (+ Summary). JSON: same data for
-              technical backup.
+              Excel: Positions, Transactions (with source), Watchlist, Brokerage connections, plus
+              Summary. JSON: the same snapshot for a technical backup. Several connected brokers
+              appear as separate rows.
             </p>
           </div>
 

@@ -11,5 +11,7 @@ describe('SecurityPage', () => {
   it('explains the privacy and encryption pillars', () => {
     renderWithProviders(<SecurityPage />, { route: ROUTES.SECURITY });
     expect(screen.getByText(/Zero-Identity by Design/i)).toBeInTheDocument();
+    expect(screen.getByText(/read-only through SnapTrade/i)).toBeInTheDocument();
+    expect(screen.queryByText(/No bank connections/i)).not.toBeInTheDocument();
   });
 });

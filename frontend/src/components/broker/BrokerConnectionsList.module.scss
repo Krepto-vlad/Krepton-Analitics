@@ -1,0 +1,107 @@
+@use '../../styles/variables' as *;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.hint {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: 1.45;
+  color: $color-foreground-subtle;
+}
+
+.status {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-subtle;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  flex-wrap: wrap;
+  padding: $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.logo,
+.logoFallback {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.logo {
+  object-fit: contain;
+  background: $color-overlay;
+}
+
+.logoFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  background: $color-overlay;
+}
+
+.name {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-foreground;
+}
+
+.meta {
+  margin: 2px 0 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.error {
+  margin: 0;
+}

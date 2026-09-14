@@ -53,6 +53,7 @@ import { verifyGoogleIdToken } from './googleAuthService.js';
 import { isAdminEmail } from '../config/env.js';
 import { getSubscriptionSummaryForUser } from './entitlementService.js';
 import { cancelPaddleSubscriptionForUser } from './billingCheckoutService.js';
+import { deleteRemoteSnaptradeUserIfPresent } from './snaptradeUserLifecycle.js';
 
 async function mapUserRowToAuthUser(user: UserRow): Promise<AuthUserProfile> {
   const subscription = await getSubscriptionSummaryForUser(user.id);
@@ -419,6 +420,7 @@ export async function deleteUserAccount(
 
   await verifySensitiveAction(userId, credentials);
   await cancelPaddleSubscriptionForUser(userId);
+  await deleteRemoteSnaptradeUserIfPresent(userId);
 
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findPortfolioAccountIdByOwnerToken(ownerToken);

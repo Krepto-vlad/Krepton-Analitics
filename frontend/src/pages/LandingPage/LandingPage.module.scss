@@ -187,6 +187,15 @@ $landing-pink: #ec4899;
   color: $color-foreground-subtle;
 }
 
+.heroDisclaimer {
+  max-width: 540px;
+  margin: 0 auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: $color-foreground-muted;
+  text-align: center;
+}
+
 .accentIcon {
   color: $color-primary-on-muted;
 }

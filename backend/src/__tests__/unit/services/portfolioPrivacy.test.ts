@@ -1,3 +1,7 @@
+jest.mock('../../../services/snaptradeConnectionsService.js', () => ({
+  listBrokerSyncConnectionsForExport: jest.fn().mockResolvedValue([]),
+}));
+
 jest.mock('../../../services/authService.js', () => ({
   getUserById: jest.fn(),
   verifySensitiveAction: jest.fn(),
@@ -180,6 +184,8 @@ describe('portfolioService privacy actions', () => {
         expect.objectContaining({ ticker: 'MSFT', companyName: 'Microsoft' }),
       ]);
       expect(exported.rebalancing.strategyId).toBe('warren-buffett-9010');
+      expect(exported.transactions[0]?.source).toBe('unknown');
+      expect(exported.brokerageConnections).toEqual([]);
     });
   });
 });

@@ -51,6 +51,10 @@ jest.mock('../../../services/billingCheckoutService.js', () => ({
   cancelPaddleSubscriptionForUser: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../../services/snaptradeUserLifecycle.js', () => ({
+  deleteRemoteSnaptradeUserIfPresent: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../../services/googleAuthService.js', () => ({
   verifyGoogleIdToken: jest.fn(),
 }));
@@ -72,6 +76,7 @@ import {
   findPortfolioAccountIdByOwnerToken,
 } from '../../../repositories/portfolioRepository.js';
 import { sendEmailVerificationLink } from '../../../services/emailService.js';
+import { deleteRemoteSnaptradeUserIfPresent } from '../../../services/snaptradeUserLifecycle.js';
 import { verifyGoogleIdToken } from '../../../services/googleAuthService.js';
 import {
   changeUserPassword,
@@ -378,6 +383,7 @@ describe('authService', () => {
       });
 
       expect(mockedDeletePortfolio).toHaveBeenCalledWith('portfolio-1');
+      expect(deleteRemoteSnaptradeUserIfPresent).toHaveBeenCalledWith('user-1');
       expect(mockedDeleteUser).toHaveBeenCalledWith('user-1');
     });
   });

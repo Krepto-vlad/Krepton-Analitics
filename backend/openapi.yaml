@@ -838,6 +838,35 @@ paths:
         '404':
           $ref: '#/components/responses/Error'
 
+  /api/portfolio/broker-sync/connections:
+    get:
+      tags: [Import]
+      summary: List read-only SnapTrade brokerage connections
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /api/portfolio/broker-sync/connections/{authorizationId}:
+    delete:
+      tags: [Import]
+      summary: Disconnect a SnapTrade brokerage authorization (queued delete)
+      parameters:
+        - in: path
+          name: authorizationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+
   /api/portfolio/watchlist:
     get:
       tags: [Watchlist]

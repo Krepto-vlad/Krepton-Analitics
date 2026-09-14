@@ -4,6 +4,7 @@ import { ROUTES } from '../../constants';
 import { PAGE_SEO_METADATA } from '../../constants/seo';
 import {
   MARKETING_PLAN_CALL_TO_ACTIONS,
+  PRICING_NOT_ADVICE_FOOTNOTE,
   PRICING_PLAN_DEFINITIONS,
   PRICING_VAT_FOOTNOTE,
 } from '../../constants/pricingPlans';
@@ -79,6 +80,7 @@ export function PricingPage() {
         </div>
 
         <p className={styles.vatFootnote}>{PRICING_VAT_FOOTNOTE}</p>
+        <p className={styles.adviceFootnote}>{PRICING_NOT_ADVICE_FOOTNOTE}</p>
 
         <div className={styles.privacyCard}>
           <div className={styles.privacyGlow} />

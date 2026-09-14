@@ -4,11 +4,15 @@ import { Navbar, Footer } from '../../components/layout';
 import { ROUTES } from '../../constants';
 import { SITE_NAME } from '../../constants/seo';
 import { getLegalPdfDocumentById } from '../../content/legalDocuments';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { usePageSeo } from '../../hooks/usePageSeo';
+import { joinClassNames } from '../../utils/classNames';
 import styles from './LegalPdfViewerPage.module.scss';
 
 export function LegalPdfViewerPage() {
   const { documentId = '' } = useParams<{ documentId: string }>();
+  const isAuthenticated = Boolean(useAppSelector((state) => state.auth.user));
+  const Body = isAuthenticated ? 'div' : 'main';
   const legalDocument = getLegalPdfDocumentById(documentId);
 
   usePageSeo({
@@ -25,9 +29,9 @@ export function LegalPdfViewerPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <Navbar />
-      <main className={styles.body}>
+    <div className={joinClassNames(styles.page, isAuthenticated && styles.inApp)}>
+      {!isAuthenticated && <Navbar />}
+      <Body className={joinClassNames(styles.body, isAuthenticated && styles.inApp)}>
         <div className={styles.toolbar}>
           <Link to={ROUTES.LEGAL} className={styles.backLink}>
             <ArrowLeft size={16} />
@@ -63,8 +67,8 @@ export function LegalPdfViewerPage() {
           title={legalDocument.title}
           src={legalDocument.publicPath}
         />
-      </main>
-      <Footer />
+      </Body>
+      {!isAuthenticated && <Footer />}
     </div>
   );
 }

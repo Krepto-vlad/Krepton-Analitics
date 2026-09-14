@@ -474,6 +474,8 @@ export const ERROR_MESSAGES = {
   BROKER_SYNC_CONNECT_FAILED: 'Unable to open the brokerage connection portal. Please try again.',
   BROKER_SYNC_PREVIEW_FAILED: 'Unable to load connected holdings. Please try again.',
   BROKER_SYNC_CONFIRM_FAILED: 'Unable to sync connected holdings. Please try again.',
+  BROKER_SYNC_LIST_FAILED: 'Unable to load connected brokerages. Please try again.',
+  BROKER_SYNC_DISCONNECT_FAILED: 'Unable to disconnect that brokerage. Please try again.',
   SNAPTRADE_NOT_CONFIGURED:
     'Broker sync is not configured on this server yet. Upload a statement or ask an admin for Plus.',
   STOCK_SEARCH_FAILED: 'Unable to search tickers right now. Please try again.',
@@ -511,6 +513,7 @@ export {
   LEGAL_CONTACT_EMAIL,
   LEGAL_COPYRIGHT_YEAR,
   LEGAL_DOCUMENTS_PUBLIC_DIR,
+  LANDING_NOT_FINANCIAL_ASSISTANT,
   LEGAL_LAST_UPDATED,
   LEGAL_NOT_INVESTMENT_ADVICE,
   LEGAL_REBALANCING_DISCLAIMER,

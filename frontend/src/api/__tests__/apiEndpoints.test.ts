@@ -35,7 +35,13 @@ import {
   apiVerifyEmail,
 } from '../authApi';
 import { clearLiveFxRateCache, fetchFxRate, fetchLiveFxRates } from '../fxApi';
-import { confirmBrokerSync, connectBrokerSync, previewBrokerSync } from '../brokerSyncApi';
+import {
+  confirmBrokerSync,
+  connectBrokerSync,
+  previewBrokerSync,
+  fetchBrokerSyncConnections,
+  disconnectBrokerSyncConnection,
+} from '../brokerSyncApi';
 import { confirmBrokerImport, previewBrokerImport } from '../importApi';
 import {
   closePortfolioPosition,
@@ -233,6 +239,9 @@ describe('API clients', () => {
     await connectBrokerSync('TRADING212');
     await previewBrokerSync();
     await confirmBrokerSync('imp-2');
+    await fetchBrokerSyncConnections();
+    http.delete.mockResolvedValueOnce(ok({ disconnected: true }));
+    await disconnectBrokerSyncConnection('87b24961-b51e-4db8-9226-f198f6518a89');
     await fetchPortfolioPositions('USD');
     await fetchPortfolioPositionsPage(20, 0, 'USD');
     await fetchPortfolioTransactionsPage(20, 0);

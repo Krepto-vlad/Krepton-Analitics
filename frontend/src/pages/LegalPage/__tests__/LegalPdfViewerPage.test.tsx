@@ -2,15 +2,28 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { ROUTES } from '../../../constants';
-import { createTestStore } from '../../../__tests__/renderWithProviders';
+import { createTestStore, testUser } from '../../../__tests__/renderWithProviders';
 import { LegalPdfViewerPage } from '../LegalPdfViewerPage';
 
 jest.mock('../../../hooks/usePageSeo', () => ({
   usePageSeo: jest.fn(),
 }));
 
-function renderViewer(path: string) {
-  const store = createTestStore();
+function renderViewer(path: string, authenticated = false) {
+  const store = createTestStore(
+    authenticated
+      ? {
+          auth: {
+            user: testUser,
+            isLoading: false,
+            error: null,
+            isInitialized: true,
+            pendingVerificationEmail: null,
+            infoMessage: null,
+          },
+        }
+      : undefined
+  );
   return render(
     <Provider store={store}>
       <MemoryRouter initialEntries={[path]}>
@@ -28,6 +41,13 @@ describe('LegalPdfViewerPage', () => {
     renderViewer('/legal/privacy-policy');
     expect(screen.getByRole('heading', { name: 'Privacy Policy' })).toBeInTheDocument();
     expect(screen.getByTitle('Privacy Policy')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sign In' })).toBeInTheDocument();
+  });
+
+  it('hides marketing chrome when the user is already signed in', () => {
+    renderViewer('/legal/privacy-policy', true);
+    expect(screen.getByRole('heading', { name: 'Privacy Policy' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Sign In' })).not.toBeInTheDocument();
   });
 
   it('redirects unknown documents back to the legal index', () => {

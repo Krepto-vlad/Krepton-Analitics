@@ -7,6 +7,7 @@ import { useSessionExpiry } from '../hooks/useSessionExpiry';
 import { useSessionRenewal } from '../hooks/useSessionRenewal';
 import { AppShell } from '../components/layout';
 import { PageLoader } from './PageLoader';
+import { OptionalAuthLayout } from './OptionalAuthLayout';
 import { RequireAuth } from './RequireAuth';
 import { RequireAdmin } from './RequireAdmin';
 
@@ -93,8 +94,6 @@ const NotFoundPage = lazy(() =>
 function AuthenticatedShell() {
   useWatchlistPolling();
   useHoldingsPolling();
-  useSessionExpiry();
-  useSessionRenewal();
 
   return (
     <AppShell>
@@ -126,6 +125,9 @@ function ScrollToTopOnNavigate() {
 }
 
 function AppRoutes() {
+  useSessionExpiry();
+  useSessionRenewal();
+
   return (
     <Suspense fallback={<PageLoader />}>
       <ScrollToTopOnNavigate />
@@ -134,8 +136,10 @@ function AppRoutes() {
         <Route path={ROUTES.HOME} element={<LandingPage />} />
         <Route path={ROUTES.PRICING} element={<PricingPage />} />
         <Route path={ROUTES.SECURITY} element={<SecurityPage />} />
-        <Route path={ROUTES.LEGAL} element={<LegalDocumentsPage />} />
-        <Route path={ROUTES.LEGAL_DOCUMENT} element={<LegalPdfViewerPage />} />
+        <Route element={<OptionalAuthLayout />}>
+          <Route path={ROUTES.LEGAL} element={<LegalDocumentsPage />} />
+          <Route path={ROUTES.LEGAL_DOCUMENT} element={<LegalPdfViewerPage />} />
+        </Route>
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
         <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />

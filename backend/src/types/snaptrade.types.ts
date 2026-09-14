@@ -17,5 +17,25 @@ export interface SnaptradeConnectDto {
   broker: SnaptradeConnectableBrokerId;
 }
 
+export type SnaptradeConnectionAccessType = 'read' | 'trade';
+
+export interface BrokerageConnectionSummary {
+  id: string;
+  brokerageName: string;
+  brokerageSlug: string;
+  logoUrl: string | null;
+  connectedAt: string | null;
+  disabled: boolean;
+  accessType: SnaptradeConnectionAccessType;
+}
+
+export interface PortfolioExportBrokerageConnection {
+  brokerageName: string;
+  brokerageSlug: string;
+  connectedAt: string | null;
+  disabled: boolean;
+  accessType: SnaptradeConnectionAccessType;
+}
+
 export type SnaptradePreviewResponse = ImportPreviewResponse;
 export type SnaptradeConfirmResponse = ImportConfirmResponse;

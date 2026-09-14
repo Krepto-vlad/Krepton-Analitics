@@ -92,8 +92,8 @@ const TECH_CARDS: TechCard[] = [
     icon: FileX,
     accent: 'danger',
     title: 'Broker Report Processing',
-    body: 'Uploaded CSV and XLSX broker reports are parsed entirely in-memory using a streaming reader. The raw file bytes never touch the server disk and are garbage-collected immediately after parsing. Only the extracted trade records (ticker, quantity, price, date) are persisted.',
-    tags: ['In-memory parsing', 'No disk write', 'Immediate GC', 'Field-only storage'],
+    body: 'Uploaded CSV and XLSX broker reports are parsed entirely in-memory using a streaming reader. The raw file bytes never touch the server disk and are garbage-collected immediately after parsing. Only the extracted trade records (ticker, quantity, price, date) are persisted. Plus users can also pull a read-only holdings snapshot through SnapTrade; we never store brokerage passwords.',
+    tags: ['In-memory parsing', 'No disk write', 'Read-only SnapTrade', 'Field-only storage'],
   },
   {
     icon: Database,
@@ -106,7 +106,7 @@ const TECH_CARDS: TechCard[] = [
     icon: Eye,
     accent: 'warning',
     title: 'No Telemetry, No Ads',
-    body: 'Krepton Analytics does not embed Google Analytics, Meta Pixel, Hotjar, or any advertising SDK. The only third-party script we load is Google\u2019s own sign-in button, used strictly for authentication. Everything else is blocked by a strict Content Security Policy.',
+    body: 'Krepton Analytics does not embed Google Analytics, Meta Pixel, Hotjar, or any advertising SDK. Third-party scripts are limited to Google sign-in (authentication) and Paddle.js (checkout only). Optional brokerage connect opens SnapTrade\u2019s portal in a separate flow. Everything else is blocked by a strict Content Security Policy.',
     tags: ['No Google Analytics', 'No Meta Pixel', 'Strict CSP', 'No ad SDKs'],
   },
   {
@@ -152,7 +152,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: 'Is my broker login stored anywhere?',
     answer:
-      'Never. Krepton uses CSV/XLSX import — we never ask for your broker credentials, API keys, or account numbers. Import is a one-time file upload, fully in-memory.',
+      'We never store your brokerage password. File import is a one-time CSV/XLSX upload parsed in memory. Optional Plus connect is read-only through SnapTrade: you authorize the broker in SnapTrade\u2019s portal, and we pull a holdings snapshot. You can view and disconnect that link from Profile or Add holdings. We do not place trades.',
   },
   {
     question: 'Where is the data hosted?',
@@ -167,7 +167,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: 'Do you comply with GDPR?',
     answer:
-      'We built the platform to minimise personal data from day one — no real names, no phone numbers, no bank connections, ever. Email and a hashed password are the only identifying information we hold. Full account and data erasure is available on request and takes effect immediately.',
+      'We built the platform to minimise personal data from day one — no real names, no phone numbers, no stored brokerage passwords. Email and a hashed password are the only identifying information we hold. Optional Plus brokerage connect is read-only via SnapTrade. Full account and data erasure is available on request and takes effect immediately.',
   },
 ];
 
@@ -198,8 +198,9 @@ export function SecurityPage() {
             </h1>
             <p className={styles.heroSubtitle}>
               Krepton was built with privacy as a core constraint, not an afterthought. No real
-              names. No bank connections. No identity linking. We designed the architecture so that
-              your trades can never be traced back to who you are.
+              names. No stored brokerage passwords. Optional Plus connect is read-only via
+              SnapTrade. We designed the architecture so that your trades can never be traced back
+              to who you are.
             </p>
             <button className={styles.heroCta} onClick={handleRegister}>
               Start Anonymously
@@ -329,7 +330,8 @@ export function SecurityPage() {
             <h2 className={styles.ctaTitle}>Privacy-first investing starts here.</h2>
             <p className={styles.ctaSubtitle}>
               Join investors who demand institutional-grade analytics without sacrificing their
-              identity. No real names. No bank connections. Just pure, anonymous math.
+              identity. No real names. No stored brokerage passwords. Just anonymous math — not a
+              financial assistant.
             </p>
             <div className={styles.ctaButtons}>
               <button className={styles.btnCtaPrimary} onClick={handleRegister}>

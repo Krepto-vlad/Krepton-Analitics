@@ -91,7 +91,7 @@ export const PASSWORD_MIN_LENGTH = 10;
 export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
 /** Typed confirmation phrase required for hard account deletion (GDPR erasure). */
 export const ACCOUNT_DELETE_CONFIRMATION = 'DELETE ACCOUNT';
-export const PORTFOLIO_EXPORT_SCHEMA_VERSION = 1;
+export const PORTFOLIO_EXPORT_SCHEMA_VERSION = 2;
 export const EMAIL_VERIFICATION_TOKEN_BYTES = 32;
 export const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 export const PASSWORD_RESET_TOKEN_BYTES = 32;
@@ -199,6 +199,12 @@ export const SNAPTRADE_CONFIRM_HOLDINGS_PREVIEW_MESSAGE =
   'Confirm broker holdings from the broker-sync endpoint.';
 export const SNAPTRADE_SKIP_EXISTING_TICKER_REASON =
   'Already has imported or manual trades — left unchanged';
+export const SNAPTRADE_AUTHORIZATION_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const SNAPTRADE_INVALID_CONNECTION_ID_MESSAGE = 'That brokerage connection id is not valid.';
+export const SNAPTRADE_CONNECTION_NOT_FOUND_MESSAGE =
+  'That brokerage connection was not found. Refresh the list and try again.';
+export const TRANSACTION_LEDGER_SOURCE_UNKNOWN: TransactionLedgerSource = 'unknown';
 /** Used when a statement has no currency column (common in stripped exports). */
 export const IMPORT_DEFAULT_CURRENCY = 'USD';
 

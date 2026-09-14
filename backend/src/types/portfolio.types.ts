@@ -1,3 +1,6 @@
+import type { TransactionLedgerSource } from '../constants.js';
+import type { PortfolioExportBrokerageConnection } from './snaptrade.types.js';
+
 // ─── DB row types ─────────────────────────────────────────────────────────────
 
 export interface PortfolioAccountRow {
@@ -108,6 +111,10 @@ export interface TransactionResponse {
   displayFxRateDate?: string;
 }
 
+export interface PortfolioExportTransaction extends TransactionResponse {
+  source: TransactionLedgerSource;
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -126,7 +133,7 @@ export interface InvestmentSummaryResponse {
   displayTotalWithdrawn?: number;
 }
 
-/** Portable portfolio snapshot — never includes owner_token or password material. */
+/** Portable portfolio snapshot — never includes owner_token, passwords, or SnapTrade secrets. */
 export interface PortfolioDataExport {
   schemaVersion: number;
   exportedAt: string;
@@ -135,7 +142,7 @@ export interface PortfolioDataExport {
     memberSince: string;
   };
   positions: PositionResponse[];
-  transactions: TransactionResponse[];
+  transactions: PortfolioExportTransaction[];
   watchlist: Array<{
     id: string;
     ticker: string;
@@ -147,6 +154,7 @@ export interface PortfolioDataExport {
     customBaseStrategyId: string | null;
     customAllocations: Record<string, number> | null;
   };
+  brokerageConnections: PortfolioExportBrokerageConnection[];
 }
 
 export interface PortfolioExportXlsxFile {

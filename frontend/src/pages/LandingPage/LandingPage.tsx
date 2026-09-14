@@ -14,7 +14,7 @@ import {
   BarChart3,
   Check,
 } from 'lucide-react';
-import { ROUTES, TICKER_CACHE_TTL_MS } from '../../constants';
+import { LANDING_NOT_FINANCIAL_ASSISTANT, ROUTES, TICKER_CACHE_TTL_MS } from '../../constants';
 import { LANDING_STRUCTURED_DATA, PAGE_SEO_METADATA } from '../../constants/seo';
 import { fetchTickerTape } from '../../api/stockApi';
 import type { StockQuote } from '../../types/stock.types';
@@ -101,8 +101,8 @@ const FEATURES: Array<{
     accent: 'primary',
     title: 'Universal Broker Import',
     description:
-      'Upload a CSV or XLSX trade history from any broker — Interactive Brokers, Revolut, Schwab, and more. Smart column detection maps your file automatically, no fixed template required.',
-    tags: ['Any Broker', 'CSV/XLSX', 'Auto-Detect'],
+      'Upload a CSV or XLSX statement from any broker — parsed in memory, no file left on disk. Plus can also connect Trading 212, DEGIRO, eToro, or IBKR read-only through SnapTrade. We never store your brokerage password.',
+    tags: ['CSV/XLSX', 'Read-only Connect', 'Plus'],
   },
   {
     icon: Sparkles,
@@ -141,7 +141,7 @@ const FEATURES: Array<{
     accent: 'primary',
     title: 'Zero-Identity Architecture',
     description:
-      'No KYC. No real names. No bank linking. Your portfolio is addressed by a one-way cryptographic token, never by your email or identity.',
+      'No KYC. No real names. We never store brokerage passwords. Optional Plus connect is read-only via SnapTrade; file import stays in memory. Your portfolio is addressed by a one-way cryptographic token, never by your email or identity.',
     tags: ['No KYC', 'Encrypted', 'Anonymous'],
   },
 ];
@@ -382,7 +382,7 @@ export function LandingPage() {
 
             <p className={styles.heroSubtitle}>
               Track multi-broker assets, automate rebalancing, and monitor dividends.{' '}
-              <strong>No real names. No bank connections. Pure math.</strong>
+              <strong>No real names. No stored brokerage passwords. Pure math.</strong>
             </p>
 
             <div className={styles.heroCtas}>
@@ -396,7 +396,7 @@ export function LandingPage() {
             </div>
 
             <div className={styles.heroTrust}>
-              {['No credit card required', 'No KYC verification', 'Zero personal data'].map(
+              {['No credit card required', 'No KYC verification', 'No legal name required'].map(
                 (text) => (
                   <div key={text} className={styles.heroTrustItem}>
                     <Check size={12} className={styles.accentIcon} />
@@ -405,6 +405,8 @@ export function LandingPage() {
                 )
               )}
             </div>
+
+            <p className={styles.heroDisclaimer}>{LANDING_NOT_FINANCIAL_ASSISTANT}</p>
           </div>
 
           <div className={styles.previewWrapper}>
@@ -505,11 +507,12 @@ export function LandingPage() {
             <div className={styles.privacyBody}>
               <div className={styles.privacyTitleRow}>
                 <h3 className={styles.privacyTitle}>Zero Personal Data Tracked</h3>
-                <span className={styles.privacyCertBadge}>CERTIFIED</span>
+                <span className={styles.privacyCertBadge}>BY DESIGN</span>
               </div>
               <p className={styles.privacyText}>
                 We separate your financial records from your identity using cryptographic
-                architecture. No real names, no phone numbers, no bank connections.{' '}
+                architecture. No real names, no phone numbers, no stored brokerage passwords.
+                Optional Plus connect is read-only via SnapTrade.{' '}
                 <strong>Your assets remain your business.</strong>
               </p>
               <div className={styles.privacyFeatures}>

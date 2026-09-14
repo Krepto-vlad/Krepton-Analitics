@@ -40,7 +40,7 @@ export const PAGE_SEO_METADATA: Record<string, PageSeoMetadata> = {
   [ROUTES.PRICING]: {
     title: `Pricing — ${SITE_NAME}`,
     description:
-      'Compare Free and Plus (monthly or annual) for Krepton Analytics portfolio tracking and higher AI limits.',
+      'Compare Free (file import) and Plus (read-only brokerage import plus higher AI limits) for Krepton Analytics. Educational, not investment advice.',
   },
   [ROUTES.SECURITY]: {
     title: `Security & Privacy — ${SITE_NAME}`,

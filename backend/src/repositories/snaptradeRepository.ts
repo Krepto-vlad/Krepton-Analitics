@@ -28,3 +28,7 @@ export async function upsertSnaptradeUser(
   );
   return result.rows[0];
 }
+
+export async function deleteSnaptradeUserByUserId(userId: string): Promise<void> {
+  await pool.query('DELETE FROM snaptrade_users WHERE user_id = $1', [userId]);
+}

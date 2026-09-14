@@ -20,6 +20,18 @@ export interface PortfolioExportWatchlistItem {
   createdAt: string;
 }
 
+export interface PortfolioExportBrokerageConnection {
+  brokerageName: string;
+  brokerageSlug: string;
+  connectedAt: string | null;
+  disabled: boolean;
+  accessType: 'read' | 'trade';
+}
+
+export interface PortfolioExportTransaction extends PortfolioTransaction {
+  source: 'unknown' | 'manual' | 'import' | 'snaptrade';
+}
+
 export interface PortfolioDataExport {
   schemaVersion: number;
   exportedAt: string;
@@ -28,13 +40,14 @@ export interface PortfolioDataExport {
     memberSince: string;
   };
   positions: PortfolioExportPosition[];
-  transactions: PortfolioTransaction[];
+  transactions: PortfolioExportTransaction[];
   watchlist: PortfolioExportWatchlistItem[];
   rebalancing: {
     strategyId: string;
     customBaseStrategyId: string | null;
     customAllocations: Record<string, number> | null;
   };
+  brokerageConnections: PortfolioExportBrokerageConnection[];
 }
 
 export interface PortfolioExportXlsxFile {

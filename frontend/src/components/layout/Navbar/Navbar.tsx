@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { TrendingUp, Menu, X, Sun, Moon } from 'lucide-react';
 import { LANDING_SCROLL_TO_FEATURES_STATE, ROUTES } from '../../../constants';
+import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useTheme } from '../../../hooks/useTheme';
 import styles from './Navbar.module.scss';
 
@@ -15,7 +16,9 @@ export function Navbar({ activeRoute }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const isAuthenticated = Boolean(useAppSelector((state) => state.auth.user));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const homeRoute = isAuthenticated ? ROUTES.DASHBOARD : ROUTES.HOME;
 
   const handleFeatures = () => {
     if (location.pathname === ROUTES.HOME) {
@@ -30,7 +33,7 @@ export function Navbar({ activeRoute }: NavbarProps) {
   return (
     <>
       <nav className={styles.navbar}>
-        <Link to={ROUTES.HOME} state={null} className={styles.logo}>
+        <Link to={homeRoute} state={null} className={styles.logo}>
           <div className={styles.logoIcon}>
             <TrendingUp size={14} />
           </div>
@@ -67,12 +70,20 @@ export function Navbar({ activeRoute }: NavbarProps) {
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <Link to={ROUTES.LOGIN} className={styles.btnSignIn}>
-            Sign In
-          </Link>
-          <Link to={ROUTES.REGISTER} className={styles.btnGetStarted}>
-            Get Started
-          </Link>
+          {isAuthenticated ? (
+            <Link to={ROUTES.DASHBOARD} className={styles.btnGetStarted}>
+              Open app
+            </Link>
+          ) : (
+            <>
+              <Link to={ROUTES.LOGIN} className={styles.btnSignIn}>
+                Sign In
+              </Link>
+              <Link to={ROUTES.REGISTER} className={styles.btnGetStarted}>
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -113,16 +124,28 @@ export function Navbar({ activeRoute }: NavbarProps) {
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
-          <Link to={ROUTES.LOGIN} className={styles.mobileBtnSignIn} onClick={closeMobileMenu}>
-            Sign In
-          </Link>
-          <Link
-            to={ROUTES.REGISTER}
-            className={styles.mobileBtnGetStarted}
-            onClick={closeMobileMenu}
-          >
-            Get Started Free
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to={ROUTES.DASHBOARD}
+              className={styles.mobileBtnGetStarted}
+              onClick={closeMobileMenu}
+            >
+              Open app
+            </Link>
+          ) : (
+            <>
+              <Link to={ROUTES.LOGIN} className={styles.mobileBtnSignIn} onClick={closeMobileMenu}>
+                Sign In
+              </Link>
+              <Link
+                to={ROUTES.REGISTER}
+                className={styles.mobileBtnGetStarted}
+                onClick={closeMobileMenu}
+              >
+                Get Started Free
+              </Link>
+            </>
+          )}
         </div>
       )}
     </>

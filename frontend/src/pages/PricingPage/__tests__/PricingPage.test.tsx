@@ -26,6 +26,10 @@ describe('PricingPage', () => {
     );
 
     expect(screen.getByRole('heading', { name: /Transparent/i })).toBeInTheDocument();
+    expect(screen.getByText(/Read-only brokerage import via SnapTrade/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/not a financial assistant or investment adviser/i)
+    ).toBeInTheDocument();
     await user.click(
       screen.getAllByRole('button', {
         name: /Get started free|Start Plus monthly|Start Plus annual/i,

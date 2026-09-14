@@ -40,6 +40,7 @@ import {
 } from '../repositories/portfolioRepository.js';
 import { getWatchlistByPortfolioId } from '../repositories/watchlistRepository.js';
 import { getUserById, verifySensitiveAction } from './authService.js';
+import { listBrokerSyncConnectionsForExport } from './snaptradeConnectionsService.js';
 import type { StepUpCredentials } from '../types/auth.types.js';
 import type {
   AddPositionDto,
@@ -49,6 +50,7 @@ import type {
   PositionRow,
   TransactionRow,
   TransactionResponse,
+  PortfolioExportTransaction,
   PaginatedResponse,
   InvestmentSummaryResponse,
   EquityPoint,
@@ -75,12 +77,13 @@ import {
   MAX_PAGE_SIZE,
   PORTFOLIO_DATA_DELETE_CONFIRMATION,
   PORTFOLIO_EXPORT_SCHEMA_VERSION,
-} from '../constants.js';
-import {
+  TRANSACTION_LEDGER_SOURCES,
+  TRANSACTION_LEDGER_SOURCE_UNKNOWN,
   TRANSACTION_SOURCE_IMPORT,
   TRANSACTION_SOURCE_MANUAL,
   TRANSACTION_SOURCE_SNAPTRADE,
   type SupportedBrokerId,
+  type TransactionLedgerSource,
 } from '../constants.js';
 import type { NormalizedTrade, ImportConfirmResponse } from '../types/import.types.js';
 import type { PortfolioNewsItem } from '../types/news.types.js';
@@ -142,6 +145,21 @@ function mapTransactionRowToResponse(row: TransactionRow): TransactionResponse {
     transactionDate: normalizeDbDate(row.transaction_date),
     transactionType: row.transaction_type,
     createdAt: row.created_at.toISOString(),
+  };
+}
+
+function normalizeTransactionLedgerSource(raw: string | undefined): TransactionLedgerSource {
+  if (raw && (TRANSACTION_LEDGER_SOURCES as readonly string[]).includes(raw)) {
+    return raw as TransactionLedgerSource;
+  }
+
+  return TRANSACTION_LEDGER_SOURCE_UNKNOWN;
+}
+
+function mapTransactionRowToExport(row: TransactionRow): PortfolioExportTransaction {
+  return {
+    ...mapTransactionRowToResponse(row),
+    source: normalizeTransactionLedgerSource(row.source),
   };
 }
 
@@ -1190,12 +1208,14 @@ export async function exportUserPortfolioData(
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
 
-  const [positionRows, transactionRows, watchlistRows, rebalancing] = await Promise.all([
-    getPositionsByPortfolioId(portfolioId),
-    getTransactionHistory(portfolioId),
-    getWatchlistByPortfolioId(portfolioId),
-    getPortfolioRebalancingStrategy(portfolioId),
-  ]);
+  const [positionRows, transactionRows, watchlistRows, rebalancing, brokerageConnections] =
+    await Promise.all([
+      getPositionsByPortfolioId(portfolioId),
+      getTransactionHistory(portfolioId),
+      getWatchlistByPortfolioId(portfolioId),
+      getPortfolioRebalancingStrategy(portfolioId),
+      listBrokerSyncConnectionsForExport(userId),
+    ]);
 
   logger.info(
     {
@@ -1215,7 +1235,7 @@ export async function exportUserPortfolioData(
       memberSince: account.createdAt,
     },
     positions: positionRows.map(mapRowToResponse),
-    transactions: transactionRows.map(mapTransactionRowToResponse),
+    transactions: transactionRows.map(mapTransactionRowToExport),
     watchlist: watchlistRows.map((row) => ({
       id: row.id,
       ticker: row.ticker,
@@ -1227,5 +1247,6 @@ export async function exportUserPortfolioData(
       customBaseStrategyId: rebalancing.customBaseStrategyId,
       customAllocations: rebalancing.customAllocations,
     },
+    brokerageConnections,
   };
 }

@@ -11,14 +11,14 @@ export const TERMS_OF_SERVICE_CONTENT: LegalDocumentContent = {
       title: '1. Not investment advice',
       paragraphs: [
         LEGAL_NOT_INVESTMENT_ADVICE,
-        'Krepton is not a broker, custodian, investment firm, or financial advisor. It does not execute trades, hold client money, or transmit orders to a venue.',
+        'Krepton is not a broker, custodian, investment firm, financial assistant, or financial advisor. It does not execute trades, hold client money, or transmit orders to a venue.',
       ],
     },
     {
       id: 'the-service',
       title: '2. The service',
       paragraphs: [
-        'The app lets you track holdings, import broker files in memory, compare allocations to a strategy you choose, and optionally generate AI explanations. Market data may be delayed or incomplete. You are responsible for checking figures against your broker.',
+        'The app lets you track holdings, import broker files in memory, compare allocations to a strategy you choose, and optionally generate AI explanations. Plus subscribers may also connect selected brokerages read-only through SnapTrade (currently Trading 212, DEGIRO, eToro, and Interactive Brokers). That connection pulls a holdings snapshot; it does not place trades. You can view and disconnect those links from Profile or Add holdings. Disconnecting does not automatically delete holdings already saved in your portfolio. Market data may be delayed or incomplete. You are responsible for checking figures against your broker.',
       ],
     },
     {
@@ -39,7 +39,7 @@ export const TERMS_OF_SERVICE_CONTENT: LegalDocumentContent = {
       id: 'paid-plans',
       title: '5. Paid plans',
       paragraphs: [
-        'Paid Plus subscriptions are sold by Paddle as Merchant of Record, not by Krepton Analytics. Paddle is the seller on the receipt, calculates and remits applicable VAT/GST/sales tax, and emails tax invoices. Refunds and the EU 14-day withdrawal right for digital services are handled under Paddle’s checkout and refund policy. Access to Plus is provisioned immediately after Paddle confirms payment.',
+        'Paid Plus subscriptions are sold by Paddle as Merchant of Record, not by Krepton Analytics. Paddle is the seller on the receipt, calculates and remits applicable VAT/GST/sales tax, and emails tax invoices. Refunds and the EU 14-day withdrawal right for digital services are handled under Paddle’s checkout and refund policy. Access to Plus is provisioned immediately after Paddle confirms payment. Plus includes higher AI limits and optional read-only brokerage import via SnapTrade.',
         'Cancelling stops future renewals. You keep Plus until the current period end stored from Paddle (or until an admin complimentary grant expires). We do not shorten that period ourselves.',
       ],
     },

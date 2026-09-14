@@ -20,6 +20,8 @@ jest.mock('../../../../../api/brokerSyncApi', () => ({
   connectBrokerSync: jest.fn(),
   previewBrokerSync: jest.fn(),
   confirmBrokerSync: jest.fn(),
+  fetchBrokerSyncConnections: jest.fn().mockResolvedValue([]),
+  disconnectBrokerSyncConnection: jest.fn(),
 }));
 
 const mockNavigate = jest.fn();

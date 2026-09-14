@@ -48,6 +48,14 @@ describe('HTTP API integration', () => {
     });
   });
 
+  it('GET /api/portfolio/broker-sync/connections without a cookie returns 401', async () => {
+    const response = await request(app)
+      .get(`${API_ROUTES.PORTFOLIO}/broker-sync/connections`)
+      .expect(401);
+
+    expect(response.body).toEqual({ success: false, error: 'Unauthorized' });
+  });
+
   it('POST /api/portfolio/broker-sync/connect without a cookie returns 401', async () => {
     const response = await request(app)
       .post(`${API_ROUTES.PORTFOLIO}/broker-sync/connect`)

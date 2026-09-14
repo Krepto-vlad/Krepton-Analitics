@@ -91,6 +91,10 @@ describe('LandingPage', () => {
     );
     expect(screen.getByRole('link', { name: 'Sign In' })).toHaveAttribute('href', ROUTES.LOGIN);
     expect(screen.getByText('Universal Broker Import')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Not a financial assistant or investment adviser/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/No bank connections/i)).not.toBeInTheDocument();
     expect(screen.getByText('Zero Personal Data Tracked')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Start Anonymously/i })).toHaveAttribute(
       'href',

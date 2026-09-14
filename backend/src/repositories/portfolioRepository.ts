@@ -381,7 +381,7 @@ export async function deleteTransactionById(
 export async function getTransactionHistory(portfolioId: string): Promise<TransactionRow[]> {
   const result = await pool.query<TransactionRow>(
     `SELECT id, portfolio_id, ticker, company_name, shares, price_per_share,
-            currency, transaction_date, transaction_type, created_at
+            currency, transaction_date, transaction_type, source, created_at
      FROM transactions
      WHERE portfolio_id = $1
      ORDER BY COALESCE(transaction_date, created_at::date) ASC, created_at ASC`,

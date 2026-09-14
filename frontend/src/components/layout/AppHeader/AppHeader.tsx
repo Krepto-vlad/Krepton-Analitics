@@ -21,6 +21,9 @@ const PAGE_TITLES: Record<string, string> = {
   [ROUTES.REBALANCING]: 'Rebalancing',
   [ROUTES.SCREENER]: 'Stock Matrix',
   [ROUTES.BACKTESTING]: 'Backtesting',
+  [ROUTES.LEGAL]: 'Legal Documents',
+  [ROUTES.PRIVACY]: 'Privacy Policy',
+  [ROUTES.TERMS]: 'Terms of Service',
 };
 
 export function AppHeader({

@@ -35,3 +35,29 @@ export async function confirmBrokerSync(importId: string): Promise<ImportConfirm
 
   return assertSuccess(data);
 }
+
+export interface BrokerageConnectionSummary {
+  id: string;
+  brokerageName: string;
+  brokerageSlug: string;
+  logoUrl: string | null;
+  connectedAt: string | null;
+  disabled: boolean;
+  accessType: 'read' | 'trade';
+}
+
+export async function fetchBrokerSyncConnections(): Promise<BrokerageConnectionSummary[]> {
+  const { data } = await brokerSyncApiClient.get<
+    ApiSuccessResponse<BrokerageConnectionSummary[]> | ApiErrorResponse
+  >('/broker-sync/connections');
+
+  return assertSuccess(data);
+}
+
+export async function disconnectBrokerSyncConnection(authorizationId: string): Promise<void> {
+  const { data } = await brokerSyncApiClient.delete<
+    ApiSuccessResponse<{ disconnected: true }> | ApiErrorResponse
+  >(`/broker-sync/connections/${encodeURIComponent(authorizationId)}`);
+
+  assertSuccess(data);
+}

@@ -77,6 +77,11 @@ jest.mock('../../../api/portfolioApi', () => ({
   fetchPortfolioTransactionsPage: jest.fn(),
 }));
 
+jest.mock('../../../api/brokerSyncApi', () => ({
+  fetchBrokerSyncConnections: jest.fn().mockResolvedValue([]),
+  disconnectBrokerSyncConnection: jest.fn(),
+}));
+
 jest.mock('../../../api/watchlistApi', () => ({
   fetchWatchlistItems: jest.fn(),
 }));

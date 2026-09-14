@@ -17,7 +17,6 @@ import {
 } from '../constants.js';
 import { env } from '../config/env.js';
 import { AppError } from '../middleware/errorHandler.js';
-import { logger } from '../utils/logger.js';
 import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
 import { getTodayIsoDate } from '../utils/displayCurrency.js';
 import {
@@ -30,7 +29,7 @@ import {
 } from '../repositories/snaptradeRepository.js';
 import { consumeImportPreview, saveImportPreview } from './importPreviewStore.js';
 import { confirmSnaptradeHoldings } from './portfolioService.js';
-import { requireSnaptradeClient } from './snaptradeClient.js';
+import { requireSnaptradeClient, rethrowSnaptradeFailure } from './snaptradeClient.js';
 import {
   mapSnaptradePositionsToTrades,
   type SnaptradePositionLike,
@@ -41,15 +40,6 @@ import type { SnaptradeConnectResult } from '../types/snaptrade.types.js';
 const CONNECTABLE_BROKER_IDS = new Set<string>(
   SNAPTRADE_CONNECTABLE_BROKERS.map((broker) => broker.id)
 );
-
-function rethrowSnaptradeFailure(error: unknown): never {
-  if (error instanceof AppError) {
-    throw error;
-  }
-
-  logger.warn({ err: error }, 'SnapTrade request failed');
-  throw new AppError(502, SNAPTRADE_UNAVAILABLE_MESSAGE);
-}
 
 function readRedirectUrl(payload: unknown): string | null {
   if (!payload || typeof payload !== 'object') {

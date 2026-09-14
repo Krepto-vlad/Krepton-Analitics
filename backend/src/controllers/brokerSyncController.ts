@@ -6,12 +6,21 @@ import {
   parseSnaptradeBroker,
   previewBrokerSyncHoldings,
 } from '../services/brokerSyncService.js';
+import {
+  disconnectBrokerSyncConnection,
+  listBrokerSyncConnections,
+  parseSnaptradeAuthorizationId,
+} from '../services/snaptradeConnectionsService.js';
 import type {
   ConfirmImportDto,
   ImportConfirmResponse,
   ImportPreviewResponse,
 } from '../types/import.types.js';
-import type { SnaptradeConnectDto, SnaptradeConnectResult } from '../types/snaptrade.types.js';
+import type {
+  BrokerageConnectionSummary,
+  SnaptradeConnectDto,
+  SnaptradeConnectResult,
+} from '../types/snaptrade.types.js';
 import type { ApiResponse } from '../types/stock.types.js';
 
 function requireUserId(req: Request): string {
@@ -51,4 +60,21 @@ export async function confirmBrokerSync(
 
   const result = await confirmBrokerSyncHoldings(requireUserId(req), dto.importId.trim());
   res.json({ success: true, data: result });
+}
+
+export async function listBrokerSync(
+  req: Request,
+  res: Response<ApiResponse<BrokerageConnectionSummary[]>>
+): Promise<void> {
+  const connections = await listBrokerSyncConnections(requireUserId(req));
+  res.json({ success: true, data: connections });
+}
+
+export async function disconnectBrokerSync(
+  req: Request,
+  res: Response<ApiResponse<{ disconnected: true }>>
+): Promise<void> {
+  const authorizationId = parseSnaptradeAuthorizationId(req.params.authorizationId);
+  await disconnectBrokerSyncConnection(requireUserId(req), authorizationId);
+  res.json({ success: true, data: { disconnected: true } });
 }

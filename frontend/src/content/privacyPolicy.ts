@@ -34,7 +34,7 @@ export const PRIVACY_POLICY_CONTENT: LegalDocumentContent = {
       id: 'what-we-do-not-store',
       title: '3. What we do not store',
       paragraphs: [
-        'Broker statement files are parsed in server memory and are not written to disk. We do not store full names, phone numbers, IBANs, or brokerage account numbers from those files.',
+        'Broker statement files are parsed in server memory and are not written to disk. We do not store full names, phone numbers, IBANs, or brokerage account numbers from those files. We never store brokerage passwords. Optional Plus brokerage connect is read-only through SnapTrade: SnapTrade’s portal collects the broker authorization, and we persist only a holdings snapshot (tickers, quantities, prices) linked to your user id.',
       ],
     },
     {
@@ -56,7 +56,7 @@ export const PRIVACY_POLICY_CONTENT: LegalDocumentContent = {
       id: 'rights',
       title: '6. Your rights',
       paragraphs: [
-        'You can export a copy of your portfolio snapshot (positions, transactions, watchlist) from Profile. You can permanently delete your account from Profile; that hard-deletes the login and linked portfolio data. You may also contact us using the email above to exercise access or erasure.',
+        'You can export a copy of your portfolio snapshot from Profile (positions, transactions with import source, watchlist, and connected brokerage names). The export never includes SnapTrade secrets, brokerage passwords, or account numbers. You can disconnect a brokerage from Profile or from Add holdings without deleting your account. You can permanently delete your account from Profile; that hard-deletes the login, linked portfolio data, and our SnapTrade user credentials, and we also ask SnapTrade to delete its copy of that user. You may also contact us using the email above to exercise access or erasure.',
       ],
     },
     {
@@ -65,7 +65,7 @@ export const PRIVACY_POLICY_CONTENT: LegalDocumentContent = {
       paragraphs: [
         'We use subprocessors only to run the product. We do not sell personal data.',
         'Optional AI features send prompts and truncated, anonymised samples to Google Gemini. That processing can occur in the United States. Google participates in the EU–US Data Privacy Framework; we use Gemini only for generating informational text, not to store your full broker statements.',
-        'If you sign in with Google, Google Identity receives the OAuth handshake. Transactional mail (email verification, password reset) is sent through Resend. Paid subscriptions are sold by Paddle.com Market Ltd (Merchant of Record). Paddle collects payment, billing address, and tax details, emails the invoice, and remits VAT/sales tax. We store only Paddle customer/subscription ids and entitlement dates — never card numbers. Market quotes and news may be fetched from public market-data providers (for example Yahoo Finance) so the product can display prices. Those quote requests are not used to sell advertising about you.',
+        'If you sign in with Google, Google Identity receives the OAuth handshake. Transactional mail (email verification, password reset) is sent through Resend. Paid subscriptions are sold by Paddle.com Market Ltd (Merchant of Record). Paddle collects payment, billing address, and tax details, emails the invoice, and remits VAT/sales tax. We store only Paddle customer/subscription ids and entitlement dates — never card numbers. Optional Plus brokerage connect uses SnapTrade as a read-only aggregator: SnapTrade processes the broker authorization; we receive a holdings snapshot and do not place trades. Market quotes and news may be fetched from public market-data providers (for example Yahoo Finance) so the product can display prices. Those quote requests are not used to sell advertising about you.',
         'DNS and the redirect from kreptonanalytics.com to www are handled by Cloudflare. Cloudflare may process connection metadata (such as IP address) as any HTTPS reverse proxy does. The live site itself is served from Microsoft Azure, as described in Hosting.',
       ],
     },

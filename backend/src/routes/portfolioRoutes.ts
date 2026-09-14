@@ -37,6 +37,8 @@ import {
   connectBrokerSync,
   previewBrokerSync,
   confirmBrokerSync,
+  listBrokerSync,
+  disconnectBrokerSync,
 } from '../controllers/brokerSyncController.js';
 import { paidMiddleware } from '../middleware/paidMiddleware.js';
 import { brokerImportUploadMiddleware } from '../middleware/brokerImportUpload.js';
@@ -178,6 +180,12 @@ router.post(
   portfolioWriteLimiter,
   paidMiddleware,
   asyncHandler(confirmBrokerSync)
+);
+router.get('/broker-sync/connections', importLimiter, asyncHandler(listBrokerSync));
+router.delete(
+  '/broker-sync/connections/:authorizationId',
+  importLimiter,
+  asyncHandler(disconnectBrokerSync)
 );
 router.get('/watchlist', asyncHandler(getWatchlist));
 router.post('/watchlist', portfolioWriteLimiter, asyncHandler(postWatchlistItem));

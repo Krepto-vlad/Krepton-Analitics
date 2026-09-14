@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Upload, CloudUpload, Loader, Link2 } from 'lucide-react';
 import { Button, ErrorBanner, Select } from '../../../../components/ui';
+import { BrokerConnectionsList } from '../../../../components/broker/BrokerConnectionsList';
 import {
   BROKER_SYNC_CONNECTED,
   BROKER_SYNC_RETURN_QUERY,
@@ -428,6 +429,7 @@ export function BrokerImporterPanel() {
           </p>
         )}
         {connectError && <ErrorBanner message={connectError} className={styles.errorText} />}
+        <BrokerConnectionsList />
       </section>
 
       <ImportResultModal
