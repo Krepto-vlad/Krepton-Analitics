@@ -47,6 +47,9 @@ describe('BeginnerTutorialCard', () => {
       screen.getByRole('heading', { name: BEGINNER_TUTORIAL_STEPS[0].title })
     ).toBeInTheDocument();
     expect(
+      screen.getByRole('dialog', { name: BEGINNER_TUTORIAL_STEPS[0].title })
+    ).toBeInTheDocument();
+    expect(
       screen.queryByRole('button', { name: BEGINNER_TUTORIAL_NEXT_LABEL })
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: BEGINNER_TUTORIAL_SKIP_LABEL }));

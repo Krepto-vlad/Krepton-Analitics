@@ -115,7 +115,6 @@ export const BEGINNER_TUTORIAL_STEPS: BeginnerTutorialStep[] = [
 ];
 
 export const BEGINNER_TUTORIAL_TITLE_ID = 'beginner-tutorial-title';
-export const BEGINNER_TUTORIAL_DIALOG_LABEL = 'Beginner tutorial';
 export const BEGINNER_TUTORIAL_SKIP_LABEL = 'Skip';
 export const BEGINNER_TUTORIAL_START_LABEL = 'Start tour';
 export const BEGINNER_TUTORIAL_BACK_LABEL = 'Back';

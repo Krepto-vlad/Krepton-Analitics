@@ -4,7 +4,6 @@ import { Button } from '../ui';
 import {
   BEGINNER_TUTORIAL_BACK_LABEL,
   BEGINNER_TUTORIAL_CLOSE_LABEL,
-  BEGINNER_TUTORIAL_DIALOG_LABEL,
   BEGINNER_TUTORIAL_DONE_LABEL,
   BEGINNER_TUTORIAL_NEXT_LABEL,
   BEGINNER_TUTORIAL_PROGRESS_LABEL,
@@ -53,7 +52,6 @@ export function BeginnerTutorialCard({
       role="dialog"
       aria-modal="false"
       aria-labelledby={BEGINNER_TUTORIAL_TITLE_ID}
-      aria-label={BEGINNER_TUTORIAL_DIALOG_LABEL}
     >
       <div className={styles.header}>
         <div>
