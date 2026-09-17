@@ -1,6 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { Newspaper } from 'lucide-react';
-import { NEWS_PAGE_INITIAL_VISIBLE, NEWS_PAGE_LOAD_MORE_STEP } from '../../constants';
+import {
+  NEWS_PAGE_INITIAL_VISIBLE,
+  NEWS_PAGE_LOAD_MORE_STEP,
+  BEGINNER_TUTORIAL_ANCHORS,
+} from '../../constants';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import {
@@ -68,12 +72,14 @@ export function NewsPage() {
         </p>
       </header>
 
-      <NewsSummaryPanel
-        key={holdingsTickerKey}
-        holdings={summaryPositions}
-        holdingsKey={holdingsTickerKey}
-        isHoldingsLoading={isHoldingsLoading}
-      />
+      <div data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.news}>
+        <NewsSummaryPanel
+          key={holdingsTickerKey}
+          holdings={summaryPositions}
+          holdingsKey={holdingsTickerKey}
+          isHoldingsLoading={isHoldingsLoading}
+        />
+      </div>
 
       <NewsFeed
         news={news}

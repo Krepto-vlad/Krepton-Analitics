@@ -7,6 +7,7 @@ import {
   ERROR_MESSAGES,
   HOLDINGS_PAGE_SIZE,
   PORTFOLIO_DATA_DELETE_CONFIRMATION,
+  PORTFOLIO_IMPORTER_PATH,
   ROUTES,
   TRANSACTIONS_PAGE_SIZE,
 } from '../../../constants';
@@ -187,7 +188,7 @@ describe('ProfilePage', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('shows account overview, free-plan features, and legal links', () => {
+  it('shows account overview, free-plan features, and legal links', async () => {
     renderProfile();
 
     expect(screen.getByRole('heading', { name: 'My Profile' })).toBeInTheDocument();
@@ -210,6 +211,14 @@ describe('ProfilePage', () => {
     expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute(
       'href',
       ROUTES.TERMS
+    );
+    expect(screen.getByRole('button', { name: 'Replay beginner tutorial' })).toBeInTheDocument();
+    expect(screen.queryByText('Zero-identity architecture')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Connected brokerages' })).toBeInTheDocument();
+    expect(await screen.findByText('No brokerage connected.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Add connection' })).toHaveAttribute(
+      'href',
+      ROUTES.SUBSCRIPTION
     );
 
     const freePlan = PRICING_PLAN_DEFINITIONS.find((plan) => plan.id === 'free');
@@ -243,6 +252,10 @@ describe('ProfilePage', () => {
 
     expect(screen.getByText('Plus plan')).toBeInTheDocument();
     expect(screen.queryByText('Free plan')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Add connection' })).toHaveAttribute(
+      'href',
+      PORTFOLIO_IMPORTER_PATH
+    );
   });
 
   it('changes the password after current-password confirmation', async () => {

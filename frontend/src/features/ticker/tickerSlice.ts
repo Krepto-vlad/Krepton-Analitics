@@ -87,87 +87,104 @@ export const fetchTickerQuoteThunk = createAsyncThunk<
   StockQuote,
   string,
   { rejectValue: string; state: RootState }
->('ticker/fetchQuote', async (ticker, { getState, rejectWithValue }) => {
-  const normalizedTicker = normalizeTicker(ticker);
-  const cached = getState().ticker.quotesByTicker[normalizedTicker];
+>(
+  'ticker/fetchQuote',
+  async (ticker, { rejectWithValue }) => {
+    const normalizedTicker = normalizeTicker(ticker);
 
-  if (cached && isCacheFresh(cached.fetchedAt, TICKER_QUOTE_CLIENT_CACHE_TTL_MS)) {
-    return cached.data;
-  }
+    try {
+      return await fetchStockQuote(normalizedTicker);
+    } catch (error) {
+      const apiError = toApiRequestError(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED);
+      if (apiError.statusCode === HTTP_STATUS_NOT_FOUND) {
+        return rejectWithValue(formatTickerNotFoundMessage(normalizedTicker));
+      }
 
-  try {
-    return await fetchStockQuote(normalizedTicker);
-  } catch (error) {
-    const apiError = toApiRequestError(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED);
-    if (apiError.statusCode === HTTP_STATUS_NOT_FOUND) {
-      return rejectWithValue(formatTickerNotFoundMessage(normalizedTicker));
+      return rejectWithValue(apiError.message);
     }
-
-    return rejectWithValue(apiError.message);
+  },
+  {
+    condition: (ticker, { getState }) => {
+      const cached = getState().ticker.quotesByTicker[normalizeTicker(ticker)];
+      return !(cached && isCacheFresh(cached.fetchedAt, TICKER_QUOTE_CLIENT_CACHE_TTL_MS));
+    },
   }
-});
+);
 
 export const fetchTickerHistoryThunk = createAsyncThunk<
   { cacheKey: string; history: StockHistoryResponse },
   { ticker: string; period?: string; interval?: string },
   { rejectValue: string; state: RootState }
->('ticker/fetchHistory', async (params, { getState, rejectWithValue }) => {
-  const normalizedTicker = normalizeTicker(params.ticker);
-  const period = params.period ?? DEFAULT_PERIOD;
-  const interval = params.interval ?? DEFAULT_INTERVAL;
-  const cacheKey = buildTickerHistoryCacheKey(normalizedTicker, period, interval);
-  const cached = getState().ticker.historyByKey[cacheKey];
+>(
+  'ticker/fetchHistory',
+  async (params, { rejectWithValue }) => {
+    const normalizedTicker = normalizeTicker(params.ticker);
+    const period = params.period ?? DEFAULT_PERIOD;
+    const interval = params.interval ?? DEFAULT_INTERVAL;
+    const cacheKey = buildTickerHistoryCacheKey(normalizedTicker, period, interval);
 
-  if (cached && isCacheFresh(cached.fetchedAt, TICKER_HISTORY_CLIENT_CACHE_TTL_MS)) {
-    return { cacheKey, history: cached.data };
+    try {
+      const history = await fetchStockHistory(normalizedTicker, period, interval);
+      return { cacheKey, history };
+    } catch (error) {
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED));
+    }
+  },
+  {
+    condition: (params, { getState }) => {
+      const period = params.period ?? DEFAULT_PERIOD;
+      const interval = params.interval ?? DEFAULT_INTERVAL;
+      const cacheKey = buildTickerHistoryCacheKey(params.ticker, period, interval);
+      const cached = getState().ticker.historyByKey[cacheKey];
+      return !(cached && isCacheFresh(cached.fetchedAt, TICKER_HISTORY_CLIENT_CACHE_TTL_MS));
+    },
   }
-
-  try {
-    const history = await fetchStockHistory(normalizedTicker, period, interval);
-    return { cacheKey, history };
-  } catch (error) {
-    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED));
-  }
-});
+);
 
 export const fetchTickerFundamentalsThunk = createAsyncThunk<
   StockCompareItem,
   string,
   { rejectValue: string; state: RootState }
->('ticker/fetchFundamentals', async (ticker, { getState, rejectWithValue }) => {
-  const normalizedTicker = normalizeTicker(ticker);
-  const cached = getState().ticker.fundamentalsByTicker[normalizedTicker];
-
-  if (cached && isCacheFresh(cached.fetchedAt, TICKER_FUNDAMENTALS_CLIENT_CACHE_TTL_MS)) {
-    return cached.data;
+>(
+  'ticker/fetchFundamentals',
+  async (ticker, { rejectWithValue }) => {
+    try {
+      return await fetchStockFundamentals(normalizeTicker(ticker));
+    } catch (error) {
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED));
+    }
+  },
+  {
+    condition: (ticker, { getState }) => {
+      const cached = getState().ticker.fundamentalsByTicker[normalizeTicker(ticker)];
+      return !(cached && isCacheFresh(cached.fetchedAt, TICKER_FUNDAMENTALS_CLIENT_CACHE_TTL_MS));
+    },
   }
-
-  try {
-    return await fetchStockFundamentals(normalizedTicker);
-  } catch (error) {
-    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED));
-  }
-});
+);
 
 export const fetchTickerNewsThunk = createAsyncThunk<
   { ticker: string; news: NewsItem[] },
   string,
   { rejectValue: string; state: RootState }
->('ticker/fetchNews', async (ticker, { getState, rejectWithValue }) => {
-  const normalizedTicker = normalizeTicker(ticker);
-  const cached = getState().ticker.newsByTicker[normalizedTicker];
+>(
+  'ticker/fetchNews',
+  async (ticker, { rejectWithValue }) => {
+    const normalizedTicker = normalizeTicker(ticker);
 
-  if (cached && isCacheFresh(cached.fetchedAt, TICKER_NEWS_CLIENT_CACHE_TTL_MS)) {
-    return { ticker: normalizedTicker, news: cached.data };
+    try {
+      const news = await fetchStockNews(normalizedTicker);
+      return { ticker: normalizedTicker, news };
+    } catch (error) {
+      return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.STOCK_TICKER_NEWS_FAILED));
+    }
+  },
+  {
+    condition: (ticker, { getState }) => {
+      const cached = getState().ticker.newsByTicker[normalizeTicker(ticker)];
+      return !(cached && isCacheFresh(cached.fetchedAt, TICKER_NEWS_CLIENT_CACHE_TTL_MS));
+    },
   }
-
-  try {
-    const news = await fetchStockNews(normalizedTicker);
-    return { ticker: normalizedTicker, news };
-  } catch (error) {
-    return rejectWithValue(getRejectedMessage(error, ERROR_MESSAGES.STOCK_TICKER_NEWS_FAILED));
-  }
-});
+);
 
 const tickerSlice = createSlice({
   name: 'ticker',
@@ -180,8 +197,10 @@ const tickerSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchTickerQuoteThunk.pending, (state) => {
-        state.isLoadingQuote = true;
+      .addCase(fetchTickerQuoteThunk.pending, (state, action) => {
+        if (!state.quotesByTicker[normalizeTicker(action.meta.arg)]) {
+          state.isLoadingQuote = true;
+        }
         state.error = null;
       })
       .addCase(fetchTickerQuoteThunk.fulfilled, (state, action) => {
@@ -196,8 +215,13 @@ const tickerSlice = createSlice({
         state.isLoadingQuote = false;
         state.error = action.payload ?? ERROR_MESSAGES.STOCK_TICKER_LOAD_FAILED;
       })
-      .addCase(fetchTickerHistoryThunk.pending, (state) => {
-        state.isLoadingHistory = true;
+      .addCase(fetchTickerHistoryThunk.pending, (state, action) => {
+        const period = action.meta.arg.period ?? DEFAULT_PERIOD;
+        const interval = action.meta.arg.interval ?? DEFAULT_INTERVAL;
+        const cacheKey = buildTickerHistoryCacheKey(action.meta.arg.ticker, period, interval);
+        if (!state.historyByKey[cacheKey]) {
+          state.isLoadingHistory = true;
+        }
       })
       .addCase(fetchTickerHistoryThunk.fulfilled, (state, action) => {
         state.isLoadingHistory = false;
@@ -209,8 +233,10 @@ const tickerSlice = createSlice({
       .addCase(fetchTickerHistoryThunk.rejected, (state) => {
         state.isLoadingHistory = false;
       })
-      .addCase(fetchTickerFundamentalsThunk.pending, (state) => {
-        state.isLoadingFundamentals = true;
+      .addCase(fetchTickerFundamentalsThunk.pending, (state, action) => {
+        if (!state.fundamentalsByTicker[normalizeTicker(action.meta.arg)]) {
+          state.isLoadingFundamentals = true;
+        }
       })
       .addCase(fetchTickerFundamentalsThunk.fulfilled, (state, action) => {
         state.isLoadingFundamentals = false;
@@ -222,8 +248,10 @@ const tickerSlice = createSlice({
       .addCase(fetchTickerFundamentalsThunk.rejected, (state) => {
         state.isLoadingFundamentals = false;
       })
-      .addCase(fetchTickerNewsThunk.pending, (state) => {
-        state.isLoadingNews = true;
+      .addCase(fetchTickerNewsThunk.pending, (state, action) => {
+        if (!state.newsByTicker[normalizeTicker(action.meta.arg)]) {
+          state.isLoadingNews = true;
+        }
         state.newsError = null;
       })
       .addCase(fetchTickerNewsThunk.fulfilled, (state, action) => {

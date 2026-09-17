@@ -32,6 +32,34 @@
   color: $color-foreground-subtle;
 }
 
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-3;
+  padding: $space-6 $space-4;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-lg;
+  background: $color-overlay;
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-foreground-subtle;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
 .list {
   display: flex;
   flex-direction: column;

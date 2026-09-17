@@ -11,9 +11,16 @@
   font-weight: $font-weight-semibold;
   cursor: pointer;
   transition:
-    background $transition-fast,
-    border-color $transition-fast,
-    opacity $transition-fast;
+    background $transition-smooth,
+    border-color $transition-smooth,
+    color $transition-smooth,
+    opacity $transition-smooth,
+    box-shadow $transition-smooth;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px $color-primary-border;
+  }
 
   &:disabled {
     opacity: 0.5;

@@ -2,15 +2,16 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
+  BookOpen,
   Check,
   CreditCard,
   Download,
   Eye,
   EyeOff,
   KeyRound,
+  Link2,
   Loader2,
   MonitorSmartphone,
-  Shield,
   Smartphone,
   Trash2,
   User,
@@ -21,6 +22,7 @@ import {
   DEFAULT_PORTFOLIO_EXPORT_FORMAT,
   ERROR_MESSAGES,
   PORTFOLIO_DATA_DELETE_CONFIRMATION,
+  PORTFOLIO_IMPORTER_PATH,
   ROUTES,
   type PortfolioExportFormat,
 } from '../../constants';
@@ -29,6 +31,7 @@ import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 import { apiChangePassword, apiDeleteAccount } from '../../api/authApi';
 import { deletePortfolioData, exportPortfolioData } from '../../api/portfolioApi';
 import { BrokerConnectionsList } from '../../components/broker/BrokerConnectionsList';
+import { BEGINNER_TUTORIAL_REPLAY_LABEL } from '../../content/beginnerTutorial';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchCurrentUserThunk, logoutThunk } from '../../features/auth/authSlice';
@@ -58,6 +61,10 @@ import {
   isPasswordStrong,
 } from '../../utils/passwordValidation';
 import { joinClassNames } from '../../utils/classNames';
+import {
+  requestBeginnerTutorial,
+  resetBeginnerTutorial,
+} from '../../utils/beginnerTutorialStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './ProfilePage.module.scss';
 
@@ -392,7 +399,7 @@ export function ProfilePage() {
             </div>
             <button
               type="button"
-              className={styles.secondaryButton}
+              className={styles.accentButton}
               onClick={() => {
                 setPasswordMessage(null);
                 setIsPasswordModalOpen(true);
@@ -469,7 +476,7 @@ export function ProfilePage() {
           ))}
         </ul>
 
-        <Link to={ROUTES.SUBSCRIPTION} className={styles.secondaryButton}>
+        <Link to={ROUTES.SUBSCRIPTION} className={styles.accentButton}>
           Manage subscription
         </Link>
         {user?.isAdmin && (
@@ -481,21 +488,61 @@ export function ProfilePage() {
 
       <section className={styles.card}>
         <div className={styles.cardHeader}>
+          <p className={styles.cardLabel}>Help</p>
+          <h2 className={styles.cardTitle}>Beginner tutorial</h2>
+        </div>
+        <div className={styles.dataActionRow}>
+          <div className={styles.dataActionCopy}>
+            <p className={styles.securityTitle}>New to the app?</p>
+            <p className={styles.securityHint}>
+              A short tour of holdings, Dashboard, research tools, and privacy. It appears once
+              after sign-in; you can replay it here.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={styles.accentButton}
+            onClick={() => {
+              if (!user) {
+                return;
+              }
+              resetBeginnerTutorial(user.id);
+              requestBeginnerTutorial();
+            }}
+          >
+            <BookOpen size={14} />
+            {BEGINNER_TUTORIAL_REPLAY_LABEL}
+          </button>
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <p className={styles.cardLabel}>Brokerage</p>
+          <h2 className={styles.cardTitle}>Connected brokerages</h2>
+        </div>
+        <div className={styles.dataActionRow}>
+          <div className={styles.dataActionCopy}>
+            <p className={styles.securityHint}>
+              Disconnect removes the SnapTrade authorization. Synced holdings stay in your portfolio
+              until you delete them.
+            </p>
+          </div>
+          <Link
+            to={user.subscription?.isPaid ? PORTFOLIO_IMPORTER_PATH : ROUTES.SUBSCRIPTION}
+            className={styles.accentButton}
+          >
+            <Link2 size={14} />
+            Add connection
+          </Link>
+        </div>
+        <BrokerConnectionsList hideHeader />
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
           <p className={styles.cardLabel}>Privacy</p>
           <h2 className={styles.cardTitle}>Privacy &amp; Data</h2>
-        </div>
-
-        <div className={styles.privacyBox}>
-          <div className={styles.privacyBoxLeft}>
-            <Shield size={20} className={styles.securityIcon} />
-            <div className={styles.securityText}>
-              <p className={styles.securityTitle}>Zero-identity architecture</p>
-              <p className={styles.securityHint}>
-                Portfolio data is linked via opaque tokens — no names or account numbers stored.
-              </p>
-            </div>
-          </div>
-          <span className={styles.activeBadge}>Active</span>
         </div>
 
         <div className={styles.legalLinks}>
@@ -521,7 +568,7 @@ export function ProfilePage() {
           </div>
           <button
             type="button"
-            className={styles.secondaryButton}
+            className={styles.accentButton}
             onClick={() => {
               setExportError(null);
               setExportMessage(null);
@@ -534,10 +581,6 @@ export function ProfilePage() {
         </div>
 
         {exportMessage && <p className={styles.statusMessage}>{exportMessage}</p>}
-
-        <div className={styles.connectionsBox}>
-          <BrokerConnectionsList />
-        </div>
 
         <div className={styles.dangerZone}>
           <div className={styles.dangerZoneHeader}>

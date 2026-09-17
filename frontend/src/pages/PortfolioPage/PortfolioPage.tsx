@@ -6,6 +6,7 @@ import type { LivePollingScope } from '../../features/livePolling/livePollingSli
 import { PositionsPanel } from './components/PositionsPanel/PositionsPanel';
 import { WatchlistPanel } from './components/WatchlistPanel/WatchlistPanel';
 import { BrokerImporterPanel } from './components/BrokerImporterPanel/BrokerImporterPanel';
+import { BEGINNER_TUTORIAL_ANCHORS } from '../../constants';
 import styles from './PortfolioPage.module.scss';
 
 type PortfolioSection = 'positions' | 'watchlist' | 'importer';
@@ -85,6 +86,9 @@ export function PortfolioPage() {
               <button
                 className={`${styles.subNavItem} ${activeSection === navItem.id ? styles.subNavItemActive : ''}`}
                 onClick={() => handleSectionChange(navItem.id)}
+                data-tutorial-anchor={
+                  navItem.id === 'positions' ? BEGINNER_TUTORIAL_ANCHORS.positions : undefined
+                }
               >
                 <span className={styles.subNavIcon}>{navItem.icon}</span>
                 <span className={styles.subNavLabel}>{navItem.label}</span>

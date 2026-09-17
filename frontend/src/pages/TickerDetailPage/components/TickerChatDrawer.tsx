@@ -29,6 +29,7 @@ import {
   TICKER_CHAT_SUGGESTION_PROMPTS,
   TICKER_CHAT_SUGGESTIONS_MARQUEE_DURATION_SEC,
   TICKER_CHAT_WEB_SEARCH_LABEL,
+  BEGINNER_TUTORIAL_ANCHORS,
 } from '../../../constants';
 import type {
   AiQuotaStatus,
@@ -472,6 +473,7 @@ export function TickerChatDrawer({
         id={titleId}
         className={`${styles.drawer} ${isOpen ? styles.drawerOpen : ''} ${isResizing ? styles.drawerResizing : ''}`}
         style={drawerStyle}
+        data-tutorial-anchor={isOpen ? BEGINNER_TUTORIAL_ANCHORS.tickerChat : undefined}
         role="dialog"
         aria-modal={isOpen}
         aria-hidden={!isOpen}

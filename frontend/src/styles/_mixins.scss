@@ -126,6 +126,39 @@ $breakpoint-xl: 1280px;
   }
 }
 
+@mixin modal-close-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: $radius-md;
+  background: transparent;
+  border: 1px solid transparent;
+  color: $color-danger;
+  cursor: pointer;
+  transition:
+    background $transition-smooth,
+    color $transition-smooth,
+    border-color $transition-smooth,
+    box-shadow $transition-smooth;
+
+  &:hover {
+    background: $color-danger-muted;
+    border-color: $color-danger-border;
+    color: $color-danger-hover;
+  }
+
+  &:focus-visible {
+    outline: none;
+    color: $color-danger-hover;
+    border-color: $color-danger-border;
+    box-shadow: 0 0 0 2px $color-danger-muted;
+  }
+}
+
 // ─── Badge ───────────────────────────────────────────────────────────────────
 
 @mixin badge($bg, $color) {

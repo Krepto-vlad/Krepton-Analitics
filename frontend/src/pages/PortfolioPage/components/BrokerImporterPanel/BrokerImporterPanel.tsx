@@ -9,6 +9,7 @@ import {
   ERROR_MESSAGES,
   ROUTES,
   SNAPTRADE_CONNECTABLE_BROKERS,
+  BEGINNER_TUTORIAL_ANCHORS,
   type SnaptradeConnectableBrokerId,
 } from '../../../../constants';
 import { getRejectedMessage } from '../../../../utils/apiError';
@@ -283,8 +284,14 @@ export function BrokerImporterPanel() {
     : `Import ${importableCount} trades`;
 
   return (
-    <div className={pageStyles.panelContent}>
-      <div className={pageStyles.panelHeader}>
+    <div
+      className={pageStyles.panelContent}
+      data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.importer}
+    >
+      <div
+        className={pageStyles.panelHeader}
+        data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.importerCard}
+      >
         <div className={pageStyles.panelHeaderIcon}>
           <Upload size={16} />
         </div>
@@ -384,7 +391,10 @@ export function BrokerImporterPanel() {
       </div>
 
       <section className={styles.pathCard} aria-labelledby="connect-path-title">
-        <p className={styles.pathEyebrow}>Option 2 · Plus only</p>
+        <div className={styles.pathEyebrowRow}>
+          <p className={styles.pathEyebrow}>Option 2</p>
+          <span className={styles.plusOnlyBadge}>Plus only</span>
+        </div>
         <div className={styles.connectHeader}>
           <div className={styles.connectIcon}>
             <Link2 size={16} />
@@ -394,9 +404,7 @@ export function BrokerImporterPanel() {
               Connect a brokerage
             </h3>
             <p className={styles.pathHint}>
-              Optional snapshot of today&apos;s holdings from Trading 212, DEGIRO, eToro, or
-              Interactive Brokers. Not required for the file upload above. Read-only — we never
-              store your brokerage password.
+              Snapshot of today&apos;s holdings. Read-only — we never store your brokerage password.
             </p>
           </div>
         </div>
@@ -423,11 +431,6 @@ export function BrokerImporterPanel() {
             {isConnectingBroker ? 'Opening…' : 'Connect'}
           </Button>
         </div>
-        {!isPaid && (
-          <p className={styles.connectUpgrade}>
-            Free accounts stay on Option 1. Connect is included with Plus.
-          </p>
-        )}
         {connectError && <ErrorBanner message={connectError} className={styles.errorText} />}
         <BrokerConnectionsList />
       </section>

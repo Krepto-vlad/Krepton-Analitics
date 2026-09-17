@@ -50,26 +50,7 @@
 }
 
 .closeButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: $radius-md;
-  background: transparent;
-  border: 1px solid transparent;
-  color: $color-danger;
-  cursor: pointer;
-  transition:
-    background $transition-fast,
-    color $transition-fast,
-    border-color $transition-fast;
-
-  &:hover {
-    background: rgba(239, 68, 68, 0.12);
-    border-color: rgba(239, 68, 68, 0.25);
-    color: $color-danger-hover;
-  }
+  @include modal-close-button;
 }
 
 // ─── Form ────────────────────────────────────────────────────────────────────

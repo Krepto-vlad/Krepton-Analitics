@@ -51,8 +51,6 @@ import {
   PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS,
   PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW_MS,
   PORTFOLIO_EXPORT_RATE_LIMIT_MAX_REQUESTS,
-  IMPORT_RATE_LIMIT_WINDOW_MS,
-  IMPORT_RATE_LIMIT_MAX_REQUESTS,
   AI_NEWS_SUMMARY_RATE_LIMIT_WINDOW_MS,
   AI_NEWS_SUMMARY_RATE_LIMIT_MAX_REQUESTS,
   AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_WINDOW_MS,
@@ -77,14 +75,6 @@ const portfolioWriteLimiter = rateLimit({
   windowMs: PORTFOLIO_WRITE_RATE_LIMIT_WINDOW_MS,
   max: PORTFOLIO_WRITE_RATE_LIMIT_MAX_REQUESTS,
   message: { success: false, error: 'Too many requests, please try again later' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const importLimiter = rateLimit({
-  windowMs: IMPORT_RATE_LIMIT_WINDOW_MS,
-  max: IMPORT_RATE_LIMIT_MAX_REQUESTS,
-  message: { success: false, error: 'Too many import attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -165,26 +155,20 @@ router.put(
   portfolioWriteLimiter,
   asyncHandler(updatePortfolioRebalancingHandler)
 );
-router.post(
-  '/import/preview',
-  importLimiter,
-  brokerImportUploadMiddleware,
-  asyncHandler(previewImport)
-);
-router.post('/import/confirm', importLimiter, portfolioWriteLimiter, asyncHandler(confirmImport));
-router.post('/broker-sync/connect', importLimiter, paidMiddleware, asyncHandler(connectBrokerSync));
-router.post('/broker-sync/preview', importLimiter, paidMiddleware, asyncHandler(previewBrokerSync));
+router.post('/import/preview', brokerImportUploadMiddleware, asyncHandler(previewImport));
+router.post('/import/confirm', portfolioWriteLimiter, asyncHandler(confirmImport));
+router.post('/broker-sync/connect', paidMiddleware, asyncHandler(connectBrokerSync));
+router.post('/broker-sync/preview', paidMiddleware, asyncHandler(previewBrokerSync));
 router.post(
   '/broker-sync/confirm',
-  importLimiter,
   portfolioWriteLimiter,
   paidMiddleware,
   asyncHandler(confirmBrokerSync)
 );
-router.get('/broker-sync/connections', importLimiter, asyncHandler(listBrokerSync));
+router.get('/broker-sync/connections', asyncHandler(listBrokerSync));
 router.delete(
   '/broker-sync/connections/:authorizationId',
-  importLimiter,
+  portfolioWriteLimiter,
   asyncHandler(disconnectBrokerSync)
 );
 router.get('/watchlist', asyncHandler(getWatchlist));

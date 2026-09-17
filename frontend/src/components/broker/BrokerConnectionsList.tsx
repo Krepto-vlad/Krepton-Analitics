@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Unlink } from 'lucide-react';
+import { Unlink, Unplug } from 'lucide-react';
 import { Button, ErrorBanner } from '../ui';
 import { ERROR_MESSAGES, SNAPTRADE_CONNECTABLE_BROKERS } from '../../constants';
 import {
@@ -35,11 +35,13 @@ function formatConnectedAt(value: string | null): string {
 interface BrokerConnectionsListProps {
   heading?: string;
   hint?: string;
+  hideHeader?: boolean;
 }
 
 export function BrokerConnectionsList({
   heading = 'Connected brokerages',
   hint = 'Disconnect removes the SnapTrade authorization. Synced holdings stay in your portfolio until you delete them.',
+  hideHeader = false,
 }: BrokerConnectionsListProps) {
   const [connections, setConnections] = useState<BrokerageConnectionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,18 +114,29 @@ export function BrokerConnectionsList({
   }
 
   return (
-    <section className={styles.section} aria-labelledby="broker-connections-heading">
-      <div className={styles.header}>
-        <h3 id="broker-connections-heading" className={styles.title}>
-          {heading}
-        </h3>
-        <p className={styles.hint}>{hint}</p>
-      </div>
+    <section
+      className={styles.section}
+      aria-labelledby={hideHeader ? undefined : 'broker-connections-heading'}
+      aria-label={hideHeader ? heading : undefined}
+    >
+      {!hideHeader && (
+        <div className={styles.header}>
+          <h3 id="broker-connections-heading" className={styles.title}>
+            {heading}
+          </h3>
+          <p className={styles.hint}>{hint}</p>
+        </div>
+      )}
 
       {isLoading && <p className={styles.status}>Loading connections…</p>}
 
       {!isLoading && connections.length === 0 && !errorMessage && (
-        <p className={styles.status}>No brokerage connected.</p>
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon} aria-hidden>
+            <Unplug size={22} />
+          </div>
+          <p className={styles.emptyText}>No brokerage connected.</p>
+        </div>
       )}
 
       {connections.length > 0 && (

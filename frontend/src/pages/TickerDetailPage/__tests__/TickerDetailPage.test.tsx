@@ -8,7 +8,10 @@ import {
   ROUTES,
   STOCK_MARKET_SESSION_LABELS,
   STOCK_PERIODS,
+  BEGINNER_TUTORIAL_ANCHORS,
   TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX,
+  BEGINNER_TUTORIAL_CHAT_QUERY,
+  BEGINNER_TUTORIAL_CHAT_OPEN_VALUE,
   buildTickerDetailPath,
 } from '../../../constants';
 import { renderWithProviders } from '../../../__tests__/renderWithProviders';
@@ -90,7 +93,7 @@ jest.mock('../components/TickerChatDrawer', () => ({
         Start chat resize
       </button>
       {isOpen ? (
-        <p>
+        <p data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.tickerChat}>
           Chat open for {ticker} {companyName}
         </p>
       ) : null}
@@ -179,14 +182,18 @@ const appleWatchlistItem: WatchlistItem = {
   logoUrl: null,
 };
 
-function renderTickerPage(ticker = APPLE_TICKER, extraState: Record<string, unknown> = {}) {
+function renderTickerPage(
+  ticker = APPLE_TICKER,
+  extraState: Record<string, unknown> = {},
+  route = buildTickerDetailPath(ticker)
+) {
   return renderWithProviders(
     <Routes>
       <Route path={ROUTES.TICKER} element={<TickerDetailPage />} />
       <Route path={ROUTES.DASHBOARD} element={<p>Dashboard</p>} />
     </Routes>,
     {
-      route: buildTickerDetailPath(ticker),
+      route,
       preloadedState: {
         portfolio: {
           summaryPositions: [],
@@ -335,6 +342,18 @@ describe('TickerDetailPage', () => {
     expect(
       screen.queryByText(`Chat open for ${APPLE_TICKER} ${APPLE_COMPANY_NAME}`)
     ).not.toBeInTheDocument();
+  });
+
+  it('opens ticker chat from the tutorial query', async () => {
+    renderTickerPage(
+      APPLE_TICKER,
+      {},
+      `${buildTickerDetailPath(APPLE_TICKER)}?${BEGINNER_TUTORIAL_CHAT_QUERY}=${BEGINNER_TUTORIAL_CHAT_OPEN_VALUE}`
+    );
+
+    expect(
+      await screen.findByText(`Chat open for ${APPLE_TICKER} ${APPLE_COMPANY_NAME}`)
+    ).toBeInTheDocument();
   });
 
   it('shows a quote skeleton while the quote is still loading', async () => {

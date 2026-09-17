@@ -22,7 +22,7 @@ import {
 import { uiReducer } from '../../ui/uiSlice';
 import type { AppDispatch } from '../../../store';
 import { ApiRequestError } from '../../../utils/apiError';
-import { ERROR_MESSAGES } from '../../../constants';
+import { ERROR_MESSAGES, TICKER_QUOTE_CLIENT_CACHE_TTL_MS } from '../../../constants';
 import type { StockQuote } from '../../../types/stock.types';
 
 jest.mock('../../../api/stockApi', () => ({
@@ -67,6 +67,10 @@ function dispatch(store: ReturnType<typeof createStore>) {
 describe('tickerSlice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('caches quote, history, fundamentals, and news', async () => {
@@ -118,6 +122,30 @@ describe('tickerSlice', () => {
 
     await dispatch(store)(fetchTickerQuoteThunk('aapl'));
     expect(fetchStockQuote).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps showing a cached quote while a stale refresh is in flight', async () => {
+    jest.mocked(fetchStockQuote).mockResolvedValue(quote);
+    const store = createStore();
+    await dispatch(store)(fetchTickerQuoteThunk('aapl'));
+
+    jest.useFakeTimers();
+    jest.setSystemTime(Date.now() + TICKER_QUOTE_CLIENT_CACHE_TTL_MS + 1);
+    let releaseRefresh: (value: StockQuote) => void = () => undefined;
+    jest.mocked(fetchStockQuote).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseRefresh = resolve;
+        })
+    );
+
+    const pending = dispatch(store)(fetchTickerQuoteThunk('aapl'));
+    expect(store.getState().ticker.isLoadingQuote).toBe(false);
+    expect(selectTickerQuote(store.getState() as never, 'AAPL')?.price).toBe(100);
+
+    releaseRefresh({ ...quote, price: 101 });
+    await pending;
+    jest.useRealTimers();
   });
 
   it('maps a 404 quote error to a not-found message', async () => {

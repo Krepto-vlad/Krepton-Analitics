@@ -35,6 +35,10 @@ jest.mock('../../../../hooks/usePortfolioCurrencyRefresh', () => ({
   usePortfolioCurrencyRefresh: jest.fn(),
 }));
 
+jest.mock('../../../tutorial/BeginnerTutorialHost', () => ({
+  BeginnerTutorialHost: () => null,
+}));
+
 describe('AppShell', () => {
   it('forwards currency and theme changes from the header', async () => {
     const user = userEvent.setup();

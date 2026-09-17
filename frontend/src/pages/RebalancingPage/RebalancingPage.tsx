@@ -4,6 +4,7 @@ import {
   ERROR_MESSAGES,
   LEGAL_REBALANCING_DISCLAIMER,
   LOADING_MESSAGES,
+  BEGINNER_TUTORIAL_ANCHORS,
   type Currency,
 } from '../../constants';
 import {
@@ -255,33 +256,35 @@ export function RebalancingPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.titleRow}>
-          <Scale size={22} className={styles.titleIcon} />
-          <h2 className={styles.title}>Portfolio Rebalancing &amp; Strategy Engine</h2>
-        </div>
-        <p className={styles.subtitle}>
-          Compare your current holdings against a target allocation strategy.
-        </p>
-      </header>
+    <div className={styles.page} data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.rebalancing}>
+      <div data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.rebalancingCard}>
+        <header className={styles.header}>
+          <div className={styles.titleRow}>
+            <Scale size={22} className={styles.titleIcon} />
+            <h2 className={styles.title}>Portfolio Rebalancing &amp; Strategy Engine</h2>
+          </div>
+          <p className={styles.subtitle}>
+            Compare your current holdings against a target allocation strategy.
+          </p>
+        </header>
 
-      <div className={styles.tabs}>
-        <button
-          type="button"
-          className={`${styles.tab} ${activeTab === 'technical' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('technical')}
-        >
-          Technical Rebalancing
-        </button>
-        <button
-          type="button"
-          className={`${styles.tab} ${activeTab === 'ai' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('ai')}
-        >
-          <Sparkles size={14} />
-          AI Insights
-        </button>
+        <div className={styles.tabs}>
+          <button
+            type="button"
+            className={`${styles.tab} ${activeTab === 'technical' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('technical')}
+          >
+            Technical Rebalancing
+          </button>
+          <button
+            type="button"
+            className={`${styles.tab} ${activeTab === 'ai' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('ai')}
+          >
+            <Sparkles size={14} />
+            AI Insights
+          </button>
+        </div>
       </div>
 
       {error && <ErrorBanner message={error} className={styles.errorBanner} />}

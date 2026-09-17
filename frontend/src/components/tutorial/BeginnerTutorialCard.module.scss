@@ -1,0 +1,106 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.inviteScrim {
+  position: fixed;
+  inset: 0;
+  z-index: $z-modal - 1;
+  background: color-mix(in srgb, var(--color-foreground) 16%, transparent);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.card {
+  position: fixed;
+  z-index: $z-modal;
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(70dvh, 360px);
+  overflow: auto;
+  padding: $space-4;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  border-radius: $radius-lg;
+  color: $color-foreground;
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--color-surface-elevated) 62%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 80%, var(--color-primary-border));
+  box-shadow:
+    0 16px 48px color-mix(in srgb, var(--color-foreground) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+
+  :global(html:not([data-theme='light'])) & {
+    background: color-mix(in srgb, var(--color-surface-elevated) 55%, rgba(255, 255, 255, 0.16));
+  }
+
+  :global(html[data-theme='light']) & {
+    background: color-mix(in srgb, #ffffff 78%, transparent);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.kicker {
+  margin: 0 0 $space-1;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $color-foreground-subtle;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  letter-spacing: -0.02em;
+  color: $color-foreground;
+}
+
+.closeButton {
+  @include modal-close-button;
+}
+
+.body {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-foreground;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.highlightClip {
+  position: fixed;
+  z-index: $z-overlay;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.highlight {
+  position: absolute;
+  pointer-events: none;
+  border-radius: $radius-md;
+  border: 2px solid $color-primary;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+@include mobile {
+  .card {
+    max-height: 50dvh;
+  }
+}

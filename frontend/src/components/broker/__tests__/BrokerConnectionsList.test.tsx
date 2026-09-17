@@ -25,6 +25,16 @@ describe('BrokerConnectionsList', () => {
     renderWithProviders(<BrokerConnectionsList />);
 
     expect(await screen.findByText('No brokerage connected.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Connected brokerages' })).toBeInTheDocument();
+  });
+
+  it('can hide the built-in heading when the parent already provides one', async () => {
+    jest.mocked(fetchBrokerSyncConnections).mockResolvedValue([]);
+
+    renderWithProviders(<BrokerConnectionsList hideHeader />);
+
+    expect(await screen.findByText('No brokerage connected.')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Connected brokerages' })).not.toBeInTheDocument();
   });
 
   it('disconnects a listed brokerage after confirmation', async () => {

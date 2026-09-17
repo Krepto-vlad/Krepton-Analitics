@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   TrendingUp,
   LayoutDashboard,
@@ -11,7 +11,8 @@ import {
   Newspaper,
   LogOut,
 } from 'lucide-react';
-import { ROUTES } from '../../../constants';
+import { ROUTES, BEGINNER_TUTORIAL_ANCHORS } from '../../../constants';
+import { useBeginnerTutorial } from '../../tutorial/BeginnerTutorialContext';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { logoutThunk } from '../../../features/auth/authSlice';
@@ -43,13 +44,20 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { currentStep, isOpen } = useBeginnerTutorial();
   const [isExpanded, setIsExpanded] = useState(false);
   const isPointerInsideRef = useRef(false);
   const isFocusInsideRef = useRef(false);
+  const isTutorialLockExpanded = isOpen && Boolean(currentStep?.lockSidebarExpanded);
+
+  const isSidebarExpanded = isTutorialLockExpanded || isExpanded;
+
+  useEffect(() => {
+    onExpandedChange(isSidebarExpanded);
+  }, [isSidebarExpanded, onExpandedChange]);
 
   function setExpanded(nextExpanded: boolean): void {
     setIsExpanded(nextExpanded);
-    onExpandedChange(nextExpanded);
   }
 
   function syncExpandedState(): void {
@@ -62,7 +70,7 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
 
   return (
     <aside
-      className={`${styles.sidebar} ${isExpanded ? styles.expanded : ''}`}
+      className={`${styles.sidebar} ${isSidebarExpanded ? styles.expanded : ''}`}
       onMouseEnter={() => {
         isPointerInsideRef.current = true;
         syncExpandedState();
@@ -100,7 +108,7 @@ export function AppSidebar({ onExpandedChange }: AppSidebarProps) {
         </div>
       </div>
 
-      <nav className={styles.nav}>
+      <nav className={styles.nav} data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.sidebar}>
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.route;
           return (

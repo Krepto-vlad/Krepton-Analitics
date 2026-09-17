@@ -213,8 +213,6 @@ export const IMPORT_MAX_ROWS = 5_000;
 export const IMPORT_MAX_COLUMNS = 40;
 export const IMPORT_MAX_SHEETS = 3;
 export const IMPORT_PREVIEW_TTL_MS = 15 * 60 * 1000; // 15 minutes
-export const IMPORT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-export const IMPORT_RATE_LIMIT_MAX_REQUESTS = 10;
 export const IMPORT_MAX_TRADES_PER_FILE = 2_000;
 export const IMPORT_ALLOWED_EXTENSIONS = ['.xlsx', '.csv'] as const;
 

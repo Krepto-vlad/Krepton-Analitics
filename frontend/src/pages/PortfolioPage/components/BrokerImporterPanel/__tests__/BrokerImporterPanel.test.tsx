@@ -110,7 +110,8 @@ describe('BrokerImporterPanel', () => {
     expect(screen.getByRole('heading', { name: 'Upload a statement' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Connect a brokerage' })).toBeInTheDocument();
     expect(screen.getByText('Option 1')).toBeInTheDocument();
-    expect(screen.getByText('Option 2 · Plus only')).toBeInTheDocument();
+    expect(screen.getByText('Option 2')).toBeInTheDocument();
+    expect(screen.getByText('Plus only')).toBeInTheDocument();
 
     selectFile(new File(['pdf'], 'report.pdf', { type: 'application/pdf' }));
     expect(screen.getByText(/Only \.xlsx and \.csv/)).toBeInTheDocument();

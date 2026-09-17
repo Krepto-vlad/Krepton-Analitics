@@ -63,6 +63,26 @@
   color: $color-primary;
 }
 
+.pathEyebrowRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.plusOnlyBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px $space-2;
+  border-radius: $radius-full;
+  background: $color-primary-muted;
+  border: 1px solid $color-primary-border;
+  color: $color-primary-on-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .pathTitle {
   margin: 0;
   font-size: $font-size-base;
@@ -112,13 +132,6 @@
   border: 1px solid $color-border-strong;
   color: $color-foreground-subtle;
   flex-shrink: 0;
-}
-
-.connectUpgrade {
-  margin: $space-1 0 0;
-  font-size: $font-size-sm;
-  line-height: 1.45;
-  color: $color-foreground-subtle;
 }
 
 .connectActions {

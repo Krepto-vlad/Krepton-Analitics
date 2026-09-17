@@ -184,6 +184,7 @@ $shadow-glow-primary: var(--shadow-glow-primary);
 $transition-fast: 0.15s ease;
 $transition-base: 0.2s ease;
 $transition-slow: 0.3s ease;
+$transition-smooth: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
 // ─── Z-index ─────────────────────────────────────────────────────────────────
 

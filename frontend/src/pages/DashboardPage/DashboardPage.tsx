@@ -13,7 +13,7 @@ import {
 import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { ErrorBanner } from '../../components/ui';
 import { toCssCustomProperties } from '../../utils/cssCustomProperties';
-import { DASHBOARD_PANEL_HEIGHT_PX } from '../../constants';
+import { DASHBOARD_PANEL_HEIGHT_PX, BEGINNER_TUTORIAL_ANCHORS } from '../../constants';
 import { PortfolioHealthCard } from './components/PortfolioHealthCard/PortfolioHealthCard';
 import { PortfolioEquityCard } from './components/PortfolioEquityCard/PortfolioEquityCard';
 import { PositionsTable } from './components/PositionsTable/PositionsTable';
@@ -85,44 +85,49 @@ export function DashboardPage() {
         <ErrorBanner message={dashboardError} className={styles.pageErrorBanner} />
       )}
 
-      <div className={styles.topRow}>
-        <PortfolioHealthCard
-          alignmentScore={portfolioHealth.alignmentScore}
-          strategyId={portfolioHealth.strategyId}
-          strategyName={portfolioHealth.strategyName}
-          deviations={portfolioHealth.deviations}
-          isLoading={isDashboardBootstrapping}
-        />
-        <PortfolioEquityCard
-          stats={stats}
-          equityHistory={equityHistory}
-          currency={currency}
-          isLoading={isDashboardBootstrapping}
-        />
-      </div>
+      <div className={styles.layout} data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.dashboard}>
+        <div
+          className={styles.topRow}
+          data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.dashboardCard}
+        >
+          <PortfolioHealthCard
+            alignmentScore={portfolioHealth.alignmentScore}
+            strategyId={portfolioHealth.strategyId}
+            strategyName={portfolioHealth.strategyName}
+            deviations={portfolioHealth.deviations}
+            isLoading={isDashboardBootstrapping}
+          />
+          <PortfolioEquityCard
+            stats={stats}
+            equityHistory={equityHistory}
+            currency={currency}
+            isLoading={isDashboardBootstrapping}
+          />
+        </div>
 
-      <div className={styles.middleRow}>
-        <PositionsTable
-          positions={summaryPositions}
-          currency={currency}
-          isLoading={isDashboardBootstrapping}
-        />
-        <WatchlistPanel
-          watchlist={watchlist}
-          currency={currency}
-          isLoading={isDashboardBootstrapping}
-        />
-      </div>
+        <div className={styles.middleRow}>
+          <PositionsTable
+            positions={summaryPositions}
+            currency={currency}
+            isLoading={isDashboardBootstrapping}
+          />
+          <WatchlistPanel
+            watchlist={watchlist}
+            currency={currency}
+            isLoading={isDashboardBootstrapping}
+          />
+        </div>
 
-      <div className={styles.bottomRow}>
-        <NewsFeed
-          news={news}
-          isLoading={isDashboardBootstrapping}
-          error={newsError}
-          hasPortfolioHoldings={hasPortfolioHoldings}
-          onRetry={handleRetryNews}
-          logoByTicker={newsLogoByTicker}
-        />
+        <div className={styles.bottomRow}>
+          <NewsFeed
+            news={news}
+            isLoading={isDashboardBootstrapping}
+            error={newsError}
+            hasPortfolioHoldings={hasPortfolioHoldings}
+            onRetry={handleRetryNews}
+            logoByTicker={newsLogoByTicker}
+          />
+        </div>
       </div>
     </div>
   );

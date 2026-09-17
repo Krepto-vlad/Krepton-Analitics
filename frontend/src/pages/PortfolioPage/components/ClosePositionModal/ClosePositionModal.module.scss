@@ -37,19 +37,7 @@
 }
 
 .closeButton {
-  background: none;
-  border: none;
-  color: $color-danger;
-  cursor: pointer;
-  font-size: $font-size-base;
-  padding: $space-1;
-  border-radius: $radius-sm;
-  line-height: 1;
-
-  &:hover {
-    color: $color-danger-hover;
-    background: rgba(239, 68, 68, 0.12);
-  }
+  @include modal-close-button;
 }
 
 .title {

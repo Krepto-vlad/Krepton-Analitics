@@ -389,6 +389,41 @@ export const NEWS_PAGE_LOAD_MORE_STEP = 10;
 export const AI_NEWS_SUMMARY_MAX_TICKERS = 5;
 export const AI_NEWS_SUMMARY_MIN_TICKERS = 1;
 export const THEME_STORAGE_KEY = 'krepton_theme';
+export const BEGINNER_TUTORIAL_STORAGE_KEY_PREFIX = 'krepton_beginner_tutorial_v1:';
+export const BEGINNER_TUTORIAL_COMPLETED_VALUE = 'completed';
+export const BEGINNER_TUTORIAL_OPEN_EVENT = 'krepton:beginner-tutorial-open';
+export const BEGINNER_TUTORIAL_SAMPLE_TICKER = 'MSFT';
+export const BEGINNER_TUTORIAL_CHAT_QUERY = 'chat';
+export const BEGINNER_TUTORIAL_CHAT_OPEN_VALUE = 'open';
+export const BEGINNER_TUTORIAL_CARD_WIDTH_PX = 320;
+export const BEGINNER_TUTORIAL_CARD_ESTIMATED_HEIGHT_PX = 220;
+export const BEGINNER_TUTORIAL_CARD_GAP_PX = 16;
+export const BEGINNER_TUTORIAL_VIEWPORT_MARGIN_PX = 12;
+export const BEGINNER_TUTORIAL_HIGHLIGHT_PADDING_PX = 0;
+export const BEGINNER_TUTORIAL_MIN_TARGET_SIZE_PX = 24;
+export const BEGINNER_TUTORIAL_ANCHOR_RETRY_INTERVAL_MS = 200;
+export const BEGINNER_TUTORIAL_ANCHOR_RETRY_DURATION_MS = 4000;
+export const BEGINNER_TUTORIAL_ANCHOR_ATTRIBUTE = 'data-tutorial-anchor';
+export const BEGINNER_TUTORIAL_CLIP_ATTRIBUTE = 'data-tutorial-clip';
+export const BEGINNER_TUTORIAL_LAYOUT_TRANSITION_PROPERTIES = ['width', 'margin-left'] as const;
+
+export const BEGINNER_TUTORIAL_ANCHORS = {
+  dashboard: 'dashboard',
+  dashboardCard: 'dashboard-card',
+  sidebar: 'sidebar',
+  importer: 'importer',
+  importerCard: 'importer-card',
+  positions: 'positions',
+  rebalancing: 'rebalancing',
+  rebalancingCard: 'rebalancing-card',
+  news: 'news',
+  tickerChat: 'ticker-chat',
+} as const;
+
+export function buildBeginnerTutorialTickerPath(): string {
+  return `${buildTickerDetailPath(BEGINNER_TUTORIAL_SAMPLE_TICKER)}?${BEGINNER_TUTORIAL_CHAT_QUERY}=${BEGINNER_TUTORIAL_CHAT_OPEN_VALUE}`;
+}
+
 export const THEME_OPTIONS = ['dark', 'light'] as const;
 export const PREFERS_COLOR_SCHEME_LIGHT_QUERY = '(prefers-color-scheme: light)';
 
