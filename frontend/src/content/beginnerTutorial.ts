@@ -5,13 +5,15 @@ import {
   buildBeginnerTutorialTickerPath,
 } from '../constants';
 
-export type BeginnerTutorialPlacement =
-  | 'center'
-  | 'right'
-  | 'left'
-  | 'bottom'
-  | 'bottom-end'
-  | 'top';
+export const BEGINNER_TUTORIAL_PLACEMENTS = [
+  'center',
+  'right',
+  'left',
+  'bottom',
+  'bottom-end',
+  'top',
+] as const;
+export type BeginnerTutorialPlacement = (typeof BEGINNER_TUTORIAL_PLACEMENTS)[number];
 export type BeginnerTutorialKind = 'invite' | 'coach';
 
 export interface BeginnerTutorialStep {
