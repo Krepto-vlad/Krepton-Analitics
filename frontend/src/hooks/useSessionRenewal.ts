@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { SESSION_ACTIVITY_EVENTS, SESSION_ACTIVITY_THROTTLE_MS } from '../constants';
 import { extendSessionThunk } from '../features/auth/authSlice';
-import { isSessionDueForRenewal } from '../utils/sessionRenewal';
+import { getMsUntilSessionRenewalDue, isSessionDueForRenewal } from '../utils/sessionRenewal';
 import { useAppDispatch } from './useAppDispatch';
 import { useAppSelector } from './useAppSelector';
 
@@ -15,19 +15,40 @@ export function useSessionRenewal(): void {
       return;
     }
 
-    const tryRenew = (): void => {
-      if (!isSessionDueForRenewal(sessionExpiresAt)) {
+    const expiresAt = sessionExpiresAt;
+    let timeoutId = 0;
+
+    function scheduleUpcomingRenewal(): void {
+      const delayMs = getMsUntilSessionRenewalDue(expiresAt);
+      if (delayMs !== null && delayMs > 0) {
+        timeoutId = window.setTimeout(tryRenew, delayMs);
+      }
+    }
+
+    function tryRenew(): void {
+      window.clearTimeout(timeoutId);
+
+      if (document.visibilityState !== 'visible') {
+        scheduleUpcomingRenewal();
+        return;
+      }
+
+      if (!isSessionDueForRenewal(expiresAt)) {
+        scheduleUpcomingRenewal();
         return;
       }
 
       const nowMs = Date.now();
-      if (nowMs - lastAttemptAtMsRef.current < SESSION_ACTIVITY_THROTTLE_MS) {
+      const waitMs = SESSION_ACTIVITY_THROTTLE_MS - (nowMs - lastAttemptAtMsRef.current);
+      if (waitMs > 0) {
+        timeoutId = window.setTimeout(tryRenew, waitMs);
         return;
       }
 
       lastAttemptAtMsRef.current = nowMs;
       void dispatch(extendSessionThunk());
-    };
+      timeoutId = window.setTimeout(tryRenew, SESSION_ACTIVITY_THROTTLE_MS);
+    }
 
     const onVisibilityChange = (): void => {
       if (document.visibilityState === 'visible') {
@@ -35,14 +56,18 @@ export function useSessionRenewal(): void {
       }
     };
 
+    tryRenew();
+
+    const activityListenerOptions: AddEventListenerOptions = { passive: true };
     for (const eventName of SESSION_ACTIVITY_EVENTS) {
-      window.addEventListener(eventName, tryRenew);
+      window.addEventListener(eventName, tryRenew, activityListenerOptions);
     }
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
+      window.clearTimeout(timeoutId);
       for (const eventName of SESSION_ACTIVITY_EVENTS) {
-        window.removeEventListener(eventName, tryRenew);
+        window.removeEventListener(eventName, tryRenew, activityListenerOptions);
       }
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };

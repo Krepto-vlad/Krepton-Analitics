@@ -10,7 +10,7 @@ export const SESSION_TTL_MS = 15 * 60 * 1000;
 /** Keep in sync with backend JWT_SLIDING_RENEW_REMAINING_MS. */
 export const SESSION_RENEW_REMAINING_MS = SESSION_TTL_MS / 2;
 export const SESSION_ACTIVITY_THROTTLE_MS = 30_000;
-export const SESSION_ACTIVITY_EVENTS = ['pointerdown', 'keydown'] as const;
+export const SESSION_ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 export const HTTP_UNAUTHORIZED_STATUS = 401;
 
 export const PADDLE_CHECKOUT_COMPLETED_EVENT = 'checkout.completed';
