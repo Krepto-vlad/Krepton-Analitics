@@ -169,7 +169,6 @@ Grounding включается только если **и** env flag `true`, **�
 | `AI_NEWS_SUMMARY_MIN_TICKERS` | 1 | Минимум тикеров |
 | `AI_NEWS_SUMMARY_FREE_DAILY_LIMIT` | 3 | Запросов к Gemini в день на пользователя |
 | `GEMINI_MODEL` | `gemini-3.1-flash-lite` | Актуальная free-tier модель (2.0-* может отдавать 429) |
-| `GEMINI_TEMPERATURE` | 0.3 | Низкая «креативность» — меньше галлюцинаций |
 | `GEMINI_MAX_OUTPUT_TOKENS` | 2048 | Потолок длины ответа (v2 briefing длиннее v1) |
 | `GEMINI_REQUEST_TIMEOUT_MS` | 30 000 | Таймаут без grounding |
 | `GEMINI_GROUNDING_REQUEST_TIMEOUT_MS` | 90 000 | Таймаут с Google Search grounding |
@@ -614,7 +613,6 @@ Daily quota: `AI_TICKER_CHAT_FREE_DAILY_LIMIT` = **20** (`AiFeatureId`: `ticker_
 | `AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS` | 12000 | Бюджет history; старые режутся первыми |
 | `AI_TICKER_CHAT_MAX_HISTORY_MESSAGES` | 12 | Макс. число turns в history |
 | `AI_TICKER_CHAT_MAX_OUTPUT_TOKENS` | 1024 | Потолок ответа модели |
-| `AI_TICKER_CHAT_TEMPERATURE` | 0.4 | Стабильнее «креатива» |
 
 History на бэке: truncate per message + trim total budget (не hard-fail 400 на длинный ответ ассистента). На UI текст остаётся полным; режется только payload в API.
 

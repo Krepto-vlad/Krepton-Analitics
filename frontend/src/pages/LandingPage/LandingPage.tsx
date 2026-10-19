@@ -133,7 +133,7 @@ const FEATURES: Array<{
     accent: 'pink',
     title: 'Auto Rebalancing',
     description:
-      'Four pre-built strategies — Ray Dalio All-Weather, Buffett 90/10, Bogleheads, and Permanent Portfolio — plus fully custom targets with exact trade instructions.',
+      'Four pre-built strategies — Ray Dalio All-Weather, Buffett 90/10, Bogleheads, and Permanent Portfolio — plus fully custom targets. You see how your allocation drifts from the mix you chose, not orders to buy or sell.',
     tags: ['All-Weather', 'Buffett', 'Custom'],
   },
   {
@@ -263,8 +263,8 @@ function DashboardPreview() {
             <span className={styles.previewAiLabel}>AI Insights</span>
           </div>
           <p className={styles.previewAiText}>
-            Portfolio deviates from All-Weather target. Scale into LT Bonds (TLT) to reduce
-            volatility exposure...
+            Portfolio is underweight long-term bonds versus the All-Weather target. This is
+            allocation drift, not a trade order.
           </p>
         </div>
 
@@ -381,7 +381,7 @@ export function LandingPage() {
             </h1>
 
             <p className={styles.heroSubtitle}>
-              Track multi-broker assets, automate rebalancing, and monitor dividends.{' '}
+              Track multi-broker assets, compare allocation to a target mix, and monitor dividends.{' '}
               <strong>No real names. No stored brokerage passwords. Pure math.</strong>
             </p>
 

@@ -111,7 +111,6 @@ describe('AuthPage', () => {
     renderAuth('register');
 
     await user.click(screen.getByRole('checkbox'));
-    await user.type(screen.getByLabelText('Choose a Nickname'), 'investor_42');
     await user.type(screen.getByLabelText('Email Address'), 'investor@example.com');
     await user.type(screen.getByLabelText('Password'), 'Abcdefgh1!');
     await user.type(screen.getByLabelText('Confirm Password'), 'Abcdefgh1!');

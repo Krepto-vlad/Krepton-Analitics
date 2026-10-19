@@ -2,14 +2,12 @@ import axios from 'axios';
 import {
   AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS,
   AI_TICKER_CHAT_MAX_OUTPUT_TOKENS,
-  AI_TICKER_CHAT_TEMPERATURE,
   GEMINI_API_BASE_URL,
   GEMINI_GROUNDING_MAX_SOURCES,
   GEMINI_GROUNDING_REQUEST_TIMEOUT_MS,
   GEMINI_MAX_OUTPUT_TOKENS,
   GEMINI_MODEL,
   GEMINI_REQUEST_TIMEOUT_MS,
-  GEMINI_TEMPERATURE,
   IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS,
 } from '../constants.js';
 import {
@@ -536,7 +534,6 @@ export async function generateAlignmentExplanationWithGemini(
           },
         ],
         generationConfig: {
-          temperature: GEMINI_TEMPERATURE,
           maxOutputTokens: AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS,
           responseMimeType: 'application/json',
           responseSchema: getAlignmentResponseSchema(),
@@ -579,7 +576,6 @@ export async function generateBriefingWithGemini(
       },
     ],
     generationConfig: {
-      temperature: GEMINI_TEMPERATURE,
       maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
       responseMimeType: 'application/json',
       responseSchema: getBriefingResponseSchema(),
@@ -788,7 +784,6 @@ export async function inferImportSchemaWithGemini(
           },
         ],
         generationConfig: {
-          temperature: 0.1,
           maxOutputTokens: IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS,
           responseMimeType: 'application/json',
           responseSchema: getImportSchemaResponseSchema(),
@@ -931,7 +926,6 @@ export async function generateTickerChatReplyWithGemini(
     },
     contents,
     generationConfig: {
-      temperature: AI_TICKER_CHAT_TEMPERATURE,
       maxOutputTokens: AI_TICKER_CHAT_MAX_OUTPUT_TOKENS,
     },
   };

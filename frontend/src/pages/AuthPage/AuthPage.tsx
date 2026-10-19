@@ -65,7 +65,6 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   );
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -98,12 +97,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const passwordStrength = calculatePasswordStrength(password);
   const allRulesPassed = passwordStrength === PASSWORD_RULES.length;
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
-  const isRegisterReady =
-    agreed &&
-    allRulesPassed &&
-    passwordsMatch &&
-    nickname.trim().length > 0 &&
-    email.trim().length > 0;
+  const isRegisterReady = agreed && allRulesPassed && passwordsMatch && email.trim().length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,7 +127,6 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
   const switchMode = () => {
     setMode((current) => (current === 'login' ? 'register' : 'login'));
-    setNickname('');
     setEmail('');
     setPassword('');
     setConfirmPassword('');
@@ -264,21 +257,6 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           </div>
 
           <form onSubmit={handleSubmit} className={styles.cardBody}>
-            {/* Nickname (register only) */}
-            {mode === 'register' && (
-              <Input
-                id="nickname"
-                label="Choose a Nickname"
-                type="text"
-                placeholder="investor_42"
-                value={nickname}
-                onChange={setNickname}
-                hint="No real names. This is your only identifier."
-                autoComplete="off"
-                spellCheck={false}
-              />
-            )}
-
             {/* Email */}
             <Input
               id="email"

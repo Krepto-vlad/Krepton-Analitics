@@ -275,7 +275,6 @@ export const AI_EMPTY_REPLY_ERROR_MESSAGE = 'AI returned an empty response. Plea
 export const AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS = 30;
 export const AI_TICKER_CHAT_MAX_OUTPUT_TOKENS = 1024;
-export const AI_TICKER_CHAT_TEMPERATURE = 0.4;
 /** Soft cap for the current user message (composer input). */
 export const AI_TICKER_CHAT_MAX_MESSAGE_CHARS = 1000;
 /** Per-message cap for history items (assistant replies are often longer than user input). */
@@ -306,7 +305,6 @@ export const GEMINI_MODEL = 'gemini-3.1-flash-lite';
 export const GEMINI_REQUEST_TIMEOUT_MS = 30_000;
 export const GEMINI_GROUNDING_REQUEST_TIMEOUT_MS = 90_000;
 export const GEMINI_MAX_OUTPUT_TOKENS = 2048;
-export const GEMINI_TEMPERATURE = 0.3;
 
 // ─── Stock history / fundamentals (ticker detail) ──────────────────────────────
 export const STOCK_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
