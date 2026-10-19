@@ -230,6 +230,13 @@ export const TICKER_CHAT_QUOTE_CHECKED_LABEL = 'Krepton quote';
 export const TICKER_CHAT_FACT_CHECK_CORRECTED_LABEL = 'Numbers aligned to the Krepton quote';
 export const TICKER_CHAT_WEB_SEARCH_LABEL = 'Web search';
 export const TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY = 'krepton_ticker_chat_include_holding_v1';
+/** Browser-tab transcript. Cleared when the tab closes, on logout, or via New chat. Not sent to the API store. */
+export const TICKER_CHAT_SESSION_STORAGE_KEY = 'krepton_ticker_chat_session_v1';
+export const TICKER_CHAT_SESSION_MAX_TICKERS = 8;
+export const TICKER_CHAT_SESSION_MAX_MESSAGES = 40;
+export const TICKER_CHAT_SESSION_MAX_MESSAGE_CHARS = 8000;
+export const TICKER_CHAT_SESSION_MAX_MESSAGE_ID_CHARS = 80;
+export const TICKER_CHAT_SESSION_MAX_COMPANY_NAME_CHARS = 120;
 export const TICKER_CHAT_INCLUDE_HOLDING_LABEL =
   'Include my position (shares, avg price, unrealized P/L)';
 export const TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP =
@@ -250,8 +257,11 @@ export const TICKER_CHAT_SUGGESTION_PROMPTS = [
 ] as const;
 /** Suggestion marquee loop duration; keep in sync with TickerChatDrawer.module.scss. */
 export const TICKER_CHAT_SUGGESTIONS_MARQUEE_DURATION_SEC = 45;
-/** Keep in sync with AppShell `$header-height`. */
+/** Desktop app header height. Phone layout uses the CSS variables below. */
 export const APP_SHELL_HEADER_HEIGHT_PX = 60;
+export const APP_SHELL_ELEMENT_ATTRIBUTE = 'data-app-shell';
+export const APP_SHELL_HEADER_HEIGHT_VARIABLE = '--app-header-height';
+export const APP_SHELL_BOTTOM_INSET_VARIABLE = '--app-bottom-inset';
 
 /** Yahoo marketState → UI labels (exchange hours already baked into Yahoo's state). */
 export const STOCK_MARKET_SESSION_LABELS = {

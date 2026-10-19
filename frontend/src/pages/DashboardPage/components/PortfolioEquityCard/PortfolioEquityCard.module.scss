@@ -155,3 +155,25 @@
 .negative {
   color: $color-chart-down;
 }
+
+@include mobile {
+  .card {
+    padding: $space-3;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .periodSelectorSlot {
+    min-width: 0;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .totalValue {
+    font-size: $font-size-2xl;
+  }
+}

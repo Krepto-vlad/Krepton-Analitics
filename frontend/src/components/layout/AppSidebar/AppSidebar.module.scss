@@ -23,6 +23,10 @@ $transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   &.expanded {
     width: $sidebar-width-expanded;
   }
+
+  @include mobile {
+    display: none;
+  }
 }
 
 // ─── Top ─────────────────────────────────────────────────────────────────────

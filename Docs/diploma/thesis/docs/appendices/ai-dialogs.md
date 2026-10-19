@@ -66,7 +66,7 @@ Quota (free tier): **20** ticker-chat turns / user / UTC day; **5** news briefin
 
 **User:** And compared with the last few days?
 
-**Assistant (typical):** Refers to the previous turn (price move). History is sent as `history[]` (max 12 messages, 12 000 chars). Closing the drawer (`handleCloseChat`) clears it — that is “new conversation”.
+**Assistant (typical):** Refers to the previous turn (price move). History is sent as `history[]` (max 12 messages, 12 000 chars). The thread stays in this browser tab (`sessionStorage`, per ticker). The same chat button on other app pages reopens that ticker's thread. Closing the drawer only hides it. **New chat**, logout, or closing the tab starts a fresh conversation.
 
 **Why it passes:** Rubric: keep conversation history **within a session**. We deliberately do **not** persist chat in PostgreSQL (privacy).
 

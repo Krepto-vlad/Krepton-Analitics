@@ -6,6 +6,7 @@ jest.mock('yahoo-finance2', () =>
   }))
 );
 
+import { MARKET_MOVERS_COUNT } from '../../../constants.js';
 import { getMarketMovers } from '../../../services/marketMoversService.js';
 
 function quote(overrides: Record<string, unknown> = {}) {
@@ -36,6 +37,12 @@ describe('marketMoversService', () => {
 
     const movers = await getMarketMovers();
 
+    expect(mockScreener).toHaveBeenNthCalledWith(
+      1,
+      { scrIds: 'day_gainers', count: MARKET_MOVERS_COUNT },
+      undefined,
+      { validateResult: false }
+    );
     expect(movers.gainers[0]).toEqual(
       expect.objectContaining({ ticker: 'AAPL', name: 'Apple Inc.', price: 150 })
     );

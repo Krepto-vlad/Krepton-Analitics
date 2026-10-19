@@ -39,6 +39,10 @@ jest.mock('../../../tutorial/BeginnerTutorialHost', () => ({
   BeginnerTutorialHost: () => null,
 }));
 
+jest.mock('../../TickerChatReturnHost/TickerChatReturnHost', () => ({
+  TickerChatReturnHost: () => null,
+}));
+
 describe('AppShell', () => {
   it('forwards currency and theme changes from the header', async () => {
     const user = userEvent.setup();

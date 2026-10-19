@@ -73,10 +73,13 @@ type MarketMoversScreenerId =
   | typeof MARKET_MOVERS_LOSERS_SCREENER_ID;
 
 async function fetchScreenerMovers(screenerId: MarketMoversScreenerId): Promise<MarketMoverItem[]> {
-  const result = (await yahooFinance.screener({
-    scrIds: screenerId,
-    count: MARKET_MOVERS_COUNT,
-  })) as YahooScreenerResult;
+  // Yahoo now returns screener fields the installed yahoo-finance2 schema rejects.
+  // The quotes themselves are valid; skip result validation the same way quotes do.
+  const result = (await yahooFinance.screener(
+    { scrIds: screenerId, count: MARKET_MOVERS_COUNT },
+    undefined,
+    { validateResult: false }
+  )) as YahooScreenerResult;
 
   const quotes = Array.isArray(result.quotes) ? result.quotes : [];
   const movers: MarketMoverItem[] = [];

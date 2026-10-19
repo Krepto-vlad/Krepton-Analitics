@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ROUTES } from '../../../../constants';
+import { buildTickerDetailPath, ROUTES } from '../../../../constants';
 import { renderWithProviders, testUser } from '../../../../__tests__/renderWithProviders';
 import { AppHeader } from '../AppHeader';
 
@@ -43,5 +43,34 @@ describe('AppHeader', () => {
     expect(onCurrencyChange).toHaveBeenCalledWith('EUR');
     await user.click(screen.getByRole('button', { name: 'Switch to light theme' }));
     expect(onThemeToggle).toHaveBeenCalled();
+  });
+
+  it('titles the news page and a ticker route', () => {
+    const { unmount } = renderWithProviders(
+      <AppHeader
+        currency="USD"
+        onCurrencyChange={jest.fn()}
+        isSidebarExpanded={false}
+        theme="dark"
+        onThemeToggle={jest.fn()}
+      />,
+      { route: ROUTES.NEWS }
+    );
+
+    expect(screen.getByRole('heading', { name: 'News' })).toBeInTheDocument();
+    unmount();
+
+    renderWithProviders(
+      <AppHeader
+        currency="USD"
+        onCurrencyChange={jest.fn()}
+        isSidebarExpanded={false}
+        theme="dark"
+        onThemeToggle={jest.fn()}
+      />,
+      { route: buildTickerDetailPath('msft') }
+    );
+
+    expect(screen.getByRole('heading', { name: 'MSFT' })).toBeInTheDocument();
   });
 });

@@ -38,6 +38,13 @@ $breakpoint-xl: 1280px;
   }
 }
 
+@mixin mobile-page-gutter {
+  @include mobile {
+    padding: $space-3;
+    gap: $space-3;
+  }
+}
+
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
 @mixin card($padding: $space-5) {

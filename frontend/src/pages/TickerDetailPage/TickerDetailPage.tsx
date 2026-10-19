@@ -16,6 +16,7 @@ import {
 } from '../../constants';
 import { fetchLiveFxRates } from '../../api/fxApi';
 import { fetchTickerTransactions, type PortfolioTransaction } from '../../api/portfolioApi';
+import { saveActiveTickerChat } from '../../utils/tickerChatSession';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchPortfolioSummaryThunk } from '../../features/portfolio/portfolioSlice';
@@ -265,6 +266,14 @@ export function TickerDetailPage() {
     () => buildTradeChartMarkers(tickerTransactions, displayCandles),
     [displayCandles, tickerTransactions]
   );
+
+  useEffect(() => {
+    if (!isValidTicker || !quote) {
+      return;
+    }
+
+    saveActiveTickerChat(ticker, quote.name || ticker);
+  }, [isValidTicker, quote, ticker]);
 
   useEffect(() => {
     if (!isValidTicker) {
@@ -644,7 +653,10 @@ export function TickerDetailPage() {
                   trades={tickerTransactions}
                   fxRates={fxRates}
                 />
-                <p className={styles.chartZoomHint}>Ctrl / ⌘ + scroll to zoom</p>
+                <p className={styles.chartZoomHint}>
+                  <span className={styles.chartZoomHintPointer}>Ctrl / ⌘ + scroll to zoom</span>
+                  <span className={styles.chartZoomHintTouch}>Swipe to move, pinch to zoom</span>
+                </p>
               </section>
 
               {holding && (

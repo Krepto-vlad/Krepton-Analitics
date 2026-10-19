@@ -166,7 +166,8 @@ $radius-full: 9999px;
 $sidebar-width-collapsed: 64px;
 $sidebar-width-expanded: 220px;
 $header-height: 64px;
-$header-height-mobile: 56px;
+// Two-row phone header: page title row plus the ticker search field.
+$header-height-mobile: 104px;
 $bottom-nav-height: 64px;
 $cell-grid-size: 48px;
 $cell-grid-size-sm: 40px;

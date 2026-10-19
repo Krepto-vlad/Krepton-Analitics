@@ -1,4 +1,5 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
 $fab-size: 48px;
 $transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -44,6 +45,19 @@ $resize-handle-width: 6px;
   transform: translate(12px, -50%);
 }
 
+@include mobile {
+  .fab {
+    top: auto;
+    right: $space-4;
+    bottom: calc(var(--app-bottom-inset, #{$bottom-nav-height}) + #{$space-4});
+    transform: none;
+  }
+
+  .fabHidden {
+    transform: translateY(#{$space-3});
+  }
+}
+
 .drawer {
   position: fixed;
   top: var(--app-shell-header-height);
@@ -69,12 +83,21 @@ $resize-handle-width: 6px;
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
+
+  @include mobile {
+    top: var(--app-header-height, #{$header-height-mobile});
+    bottom: var(--app-bottom-inset, 0px);
+  }
 }
 
 .drawerOpen {
   width: min(var(--ticker-chat-drawer-width), 100vw);
   border-left-color: $color-border;
   transform: translateX(0);
+
+  @include mobile {
+    width: 100%;
+  }
 }
 
 .drawerResizing {
@@ -91,6 +114,10 @@ $resize-handle-width: 6px;
   height: 100%;
   cursor: col-resize;
   touch-action: none;
+
+  @include mobile {
+    display: none;
+  }
 
   &::after {
     content: '';
@@ -173,6 +200,30 @@ $resize-handle-width: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.newChatButton {
+  height: 32px;
+  padding: 0 $space-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    color: $color-foreground;
+    border-color: $color-foreground-muted;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .closeButton {

@@ -12,6 +12,7 @@ import {
 import { ERROR_MESSAGES } from '../../constants';
 import { getRejectedMessage } from '../../utils/apiError';
 import { clearStrategyDriftAlertDismissal } from '../../utils/strategyDriftAlertStorage';
+import { clearTickerChatSession } from '../../utils/tickerChatSession';
 import type { AuthState, LoginCredentials, RegisterCredentials } from '../../types/auth.types';
 
 const initialState: AuthState = {
@@ -82,6 +83,7 @@ export const resendVerificationThunk = createAsyncThunk(
 
 export const logoutThunk = createAsyncThunk('auth/logout', async () => {
   clearStrategyDriftAlertDismissal();
+  clearTickerChatSession();
   try {
     await apiLogout();
   } catch {

@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { AppSidebar } from '../AppSidebar/AppSidebar';
 import { AppHeader } from '../AppHeader/AppHeader';
+import { AppBottomNav } from '../AppBottomNav/AppBottomNav';
+import { TickerChatReturnHost } from '../TickerChatReturnHost/TickerChatReturnHost';
 import { BeginnerTutorialHost } from '../../tutorial/BeginnerTutorialHost';
 import { BeginnerTutorialProvider } from '../../tutorial/BeginnerTutorialContext';
 import { useTheme } from '../../../hooks/useTheme';
@@ -8,7 +10,11 @@ import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { setCurrency } from '../../../features/ui/uiSlice';
 import { usePortfolioCurrencyRefresh } from '../../../hooks/usePortfolioCurrencyRefresh';
-import { BEGINNER_TUTORIAL_CLIP_ATTRIBUTE, type Currency } from '../../../constants';
+import {
+  APP_SHELL_ELEMENT_ATTRIBUTE,
+  BEGINNER_TUTORIAL_CLIP_ATTRIBUTE,
+  type Currency,
+} from '../../../constants';
 import styles from './AppShell.module.scss';
 
 interface AppShellProps {
@@ -29,7 +35,10 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <BeginnerTutorialProvider>
-      <div className={`${styles.shell} ${isSidebarExpanded ? styles.sidebarExpanded : ''}`}>
+      <div
+        className={`${styles.shell} ${isSidebarExpanded ? styles.sidebarExpanded : ''}`}
+        {...{ [APP_SHELL_ELEMENT_ATTRIBUTE]: '' }}
+      >
         <AppSidebar onExpandedChange={setIsSidebarExpanded} />
         <div className={styles.mainArea}>
           <AppHeader
@@ -43,6 +52,8 @@ export function AppShell({ children }: AppShellProps) {
             {children}
           </main>
         </div>
+        <AppBottomNav />
+        <TickerChatReturnHost />
         <BeginnerTutorialHost />
       </div>
     </BeginnerTutorialProvider>

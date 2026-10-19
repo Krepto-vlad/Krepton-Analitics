@@ -1,0 +1,159 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: $z-overlay;
+  border: none;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--app-bottom-inset, #{$bottom-nav-height});
+  z-index: $z-modal;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  max-height: min(70dvh, 32rem);
+  padding: $space-4 $space-3 $space-3;
+  border: 1px solid $color-border;
+  border-bottom: none;
+  border-radius: $radius-xl $radius-xl 0 0;
+  background: $color-surface-elevated;
+  box-shadow: $shadow-lg;
+  overflow-y: auto;
+  @include custom-scrollbar;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.sheetTitle {
+  margin: 0;
+  padding: 0 $space-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-foreground-subtle;
+}
+
+.sheetList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheetLink,
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  min-height: 48px;
+  padding: $space-2 $space-3;
+  border: none;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-foreground;
+  font: inherit;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-overlay;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.sheetLinkActive {
+  color: $color-primary;
+  background: $color-primary-muted;
+}
+
+.logoutButton {
+  color: $color-danger;
+  border-top: 1px solid $color-divider;
+  border-radius: 0;
+  margin-top: $space-1;
+
+  &:hover {
+    background: $color-danger-muted;
+  }
+}
+
+.bar {
+  display: none;
+}
+
+@include mobile {
+  .bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: $z-sticky;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: $color-header;
+    border-top: 1px solid $color-border;
+  }
+
+  .barRaised {
+    z-index: $z-toast;
+  }
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: $bottom-nav-height;
+  padding: $space-1 $space-1;
+  border: none;
+  background: transparent;
+  color: $color-foreground-muted;
+  font: inherit;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: -2px;
+  }
+}
+
+.tabActive {
+  color: $color-primary;
+}
+
+.tabLabel {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -4,7 +4,10 @@ import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { prefetchBeginnerTutorialTicker } from '../../utils/prefetchBeginnerTutorialTicker';
 import {
+  APP_SHELL_BOTTOM_INSET_VARIABLE,
+  APP_SHELL_ELEMENT_ATTRIBUTE,
   APP_SHELL_HEADER_HEIGHT_PX,
+  APP_SHELL_HEADER_HEIGHT_VARIABLE,
   BEGINNER_TUTORIAL_ANCHOR_ATTRIBUTE,
   BEGINNER_TUTORIAL_ANCHOR_RETRY_DURATION_MS,
   BEGINNER_TUTORIAL_ANCHOR_RETRY_INTERVAL_MS,
@@ -56,7 +59,20 @@ function isTutorialRouteActive(route: string, pathname: string, search: string):
   return pathname === route && (search === '' || search === '?');
 }
 
-function readClipBounds(viewport: { width: number; height: number }): {
+function readShellCssPx(variableName: string, fallbackPx: number): number {
+  const shell = document.querySelector(`[${APP_SHELL_ELEMENT_ATTRIBUTE}]`);
+  if (!(shell instanceof HTMLElement)) {
+    return fallbackPx;
+  }
+
+  const parsed = Number.parseFloat(getComputedStyle(shell).getPropertyValue(variableName));
+  return Number.isFinite(parsed) ? parsed : fallbackPx;
+}
+
+function readClipBounds(
+  viewport: { width: number; height: number },
+  headerHeightPx: number
+): {
   top: number;
   left: number;
   right: number;
@@ -66,7 +82,7 @@ function readClipBounds(viewport: { width: number; height: number }): {
   const clipRect = clipNode?.getBoundingClientRect();
   if (!clipRect) {
     return {
-      top: APP_SHELL_HEADER_HEIGHT_PX,
+      top: headerHeightPx,
       left: 0,
       right: viewport.width,
       bottom: viewport.height,
@@ -74,10 +90,10 @@ function readClipBounds(viewport: { width: number; height: number }): {
   }
 
   return {
-    top: clipRect.top,
+    top: Math.max(clipRect.top, headerHeightPx),
     left: clipRect.left,
     right: clipRect.right,
-    bottom: clipRect.bottom,
+    bottom: Math.min(clipRect.bottom, viewport.height),
   };
 }
 
@@ -221,7 +237,15 @@ export function BeginnerTutorialHost() {
     }
 
     function updatePosition(): void {
-      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const headerHeightPx = readShellCssPx(
+        APP_SHELL_HEADER_HEIGHT_VARIABLE,
+        APP_SHELL_HEADER_HEIGHT_PX
+      );
+      const bottomInsetPx = readShellCssPx(APP_SHELL_BOTTOM_INSET_VARIABLE, 0);
+      const viewport = {
+        width: window.innerWidth,
+        height: Math.max(0, window.innerHeight - bottomInsetPx),
+      };
       const highlightNode = readAnchorNode(currentStep?.anchorId ?? null);
       const placementNode = readAnchorNode(
         currentStep?.placementAnchorId ?? currentStep?.anchorId ?? null
@@ -241,10 +265,11 @@ export function BeginnerTutorialHost() {
           viewport.width - BEGINNER_TUTORIAL_VIEWPORT_MARGIN_PX * 2
         ),
         cardHeight,
+        headerHeight: headerHeightPx,
       });
 
       const clipNode = document.querySelector(`[${BEGINNER_TUTORIAL_CLIP_ATTRIBUTE}]`);
-      const clipBounds = readClipBounds(viewport);
+      const clipBounds = readClipBounds(viewport, headerHeightPx);
       syncObservedNodes(highlightNode, placementNode);
       if (clipNode !== observedClipNode) {
         if (observedClipNode) {

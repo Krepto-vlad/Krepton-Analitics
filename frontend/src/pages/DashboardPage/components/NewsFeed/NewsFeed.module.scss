@@ -260,6 +260,35 @@ $news-ticker-column-width: 12.5rem;
   border-top: 1px solid $color-divider;
 }
 
+@include mobile {
+  .card {
+    padding: $space-3;
+  }
+
+  .cardFull {
+    min-height: 0;
+  }
+
+  .cardFull .newsList {
+    overflow: visible;
+  }
+
+  .newsItem {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: $space-2;
+  }
+
+  .tickerTags {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .cardFull .headline {
+    -webkit-line-clamp: 4;
+  }
+}
+
 .loadMoreButton {
   padding: $space-2 $space-4;
   font-size: $font-size-xs;

@@ -116,6 +116,47 @@
   width: 100%;
 }
 
+@include mobile {
+  .page {
+    flex-direction: column;
+  }
+
+  .subSidebar {
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid $color-border;
+    overflow: hidden;
+  }
+
+  .subSidebarHeader {
+    display: none;
+  }
+
+  .subNav {
+    flex-direction: row;
+    width: 100%;
+    overflow-x: auto;
+    padding: $space-2;
+    gap: $space-2;
+  }
+
+  .subNav > li {
+    flex: 1 0 auto;
+  }
+
+  .subNavItem {
+    justify-content: center;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  .panelContent {
+    padding: $space-3;
+    gap: $space-4;
+  }
+}
+
 .scrollToTopButton {
   position: fixed;
   right: $space-6;
@@ -151,6 +192,11 @@
 
   &:active {
     transform: translateY(0) scale(0.96);
+  }
+
+  @include mobile {
+    right: $space-4;
+    bottom: calc(var(--app-bottom-inset, 0px) + #{$space-4});
   }
 }
 

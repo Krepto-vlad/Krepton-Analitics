@@ -29,6 +29,20 @@
   &.sidebarExpanded {
     left: $sidebar-width-expanded;
   }
+
+  @include mobile {
+    left: 0;
+    height: var(--app-header-height);
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: $space-2;
+    padding: calc(#{$space-2} + env(safe-area-inset-top, 0px)) $space-3 $space-2;
+
+    &.sidebarExpanded {
+      left: 0;
+    }
+  }
 }
 
 // ─── Left ─────────────────────────────────────────────────────────────────────
@@ -39,6 +53,11 @@
   gap: $space-3;
   min-width: 0;
   justify-self: start;
+
+  @include mobile {
+    flex: 1 1 auto;
+    order: 1;
+  }
 }
 
 .center {
@@ -47,6 +66,11 @@
   align-items: center;
   width: 100%;
   min-width: 0;
+
+  @include mobile {
+    flex: 1 0 100%;
+    order: 3;
+  }
 }
 
 .pageTitle {
@@ -106,6 +130,11 @@
   gap: $space-3;
   min-width: 0;
   justify-self: end;
+
+  @include mobile {
+    order: 2;
+    gap: $space-2;
+  }
 }
 
 .currencySwitcher {
@@ -175,6 +204,12 @@
   &:focus-visible {
     outline: 2px solid $color-primary;
     outline-offset: 2px;
+  }
+}
+
+.notificationsButton {
+  @include mobile {
+    display: none;
   }
 }
 

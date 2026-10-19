@@ -10,6 +10,7 @@ import {
   apiVerifyEmail,
 } from '../../../api/authApi';
 import type { AuthUser } from '../../../types/auth.types';
+import { TICKER_CHAT_SESSION_STORAGE_KEY } from '../../../constants';
 import { FREE_SUBSCRIPTION_SUMMARY } from '../../../types/billing.types';
 import type { AppDispatch } from '../../../store';
 import { expireClientSession } from '../expireClientSession';
@@ -17,7 +18,6 @@ import {
   authReducer,
   clearAuthError,
   clearAuthInfoMessage,
-  expireSession,
   extendSessionThunk,
   fetchCurrentUserThunk,
   googleLoginThunk,
@@ -98,8 +98,10 @@ describe('authSlice', () => {
     const store = createStore();
     await dispatch(store)(loginThunk({ email: user.email, password: 'Abcdefgh1!' }));
     expect(store.getState().auth.user?.email).toBe(user.email);
+    sessionStorage.setItem(TICKER_CHAT_SESSION_STORAGE_KEY, '{"threads":{"AAPL":{}}}');
     await dispatch(store)(logoutThunk());
     expect(store.getState().auth.user).toBeNull();
+    expect(sessionStorage.getItem(TICKER_CHAT_SESSION_STORAGE_KEY)).toBeNull();
   });
 
   it('covers google, verify, resend, me, and extend paths', async () => {
@@ -132,7 +134,9 @@ describe('authSlice', () => {
 
   it('still expires local state through the expireSession reducer', () => {
     const store = createStore();
-    store.dispatch(expireSession());
+    sessionStorage.setItem(TICKER_CHAT_SESSION_STORAGE_KEY, '{"threads":{"AAPL":{}}}');
+    expireClientSession(store.dispatch);
     expect(store.getState().auth.isInitialized).toBe(true);
+    expect(sessionStorage.getItem(TICKER_CHAT_SESSION_STORAGE_KEY)).toBeNull();
   });
 });

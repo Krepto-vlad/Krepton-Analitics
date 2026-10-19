@@ -125,3 +125,57 @@
   color: $color-foreground-muted;
   text-align: center;
 }
+
+$allocation-label-width: 7.5rem;
+
+@include mobile {
+  .plot {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-height: 0;
+    gap: $space-3;
+    padding-top: 0;
+  }
+
+  .group {
+    display: grid;
+    grid-template-columns: $allocation-label-width minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    gap: $space-3;
+  }
+
+  .labelGroup {
+    grid-column: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .label {
+    text-align: left;
+    line-height: 1.3;
+  }
+
+  .bars {
+    grid-column: 2;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    gap: $space-1;
+  }
+
+  .bar {
+    flex: none;
+    width: var(--bar-height);
+    max-width: 100%;
+    height: $space-2;
+    min-height: $space-2;
+    border-radius: 0 $radius-sm $radius-sm 0;
+  }
+}

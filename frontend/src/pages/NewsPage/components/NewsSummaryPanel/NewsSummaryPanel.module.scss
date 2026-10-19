@@ -274,10 +274,33 @@
   color: $color-foreground;
 }
 
+@include mobile {
+  .panel {
+    padding: $space-3;
+  }
+
+  .headerText {
+    min-width: 0;
+    flex: 1 1 10rem;
+  }
+
+  .quotaBadge {
+    margin-left: 0;
+  }
+
+  .tickerChip {
+    min-height: 44px;
+  }
+}
+
 .insightsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: $space-3;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
 }
 
 .insightCard {

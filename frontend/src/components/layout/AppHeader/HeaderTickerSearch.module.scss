@@ -1,4 +1,5 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
 .root {
   position: relative;
@@ -46,6 +47,11 @@
 
   &[type='search']::-webkit-search-cancel-button {
     appearance: none;
+  }
+
+  @include mobile {
+    height: 40px;
+    font-size: $font-size-md;
   }
 }
 

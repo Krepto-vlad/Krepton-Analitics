@@ -245,6 +245,37 @@ describe('TickerChatDrawer', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it('restores the ticker thread and draft after leaving the page', async () => {
+    const user = userEvent.setup();
+    let view = renderDrawer();
+    await screen.findByText('9/10 left today');
+
+    const composer = screen.getByLabelText(`Message about ${APPLE_TICKER}`);
+    fireEvent.change(composer, { target: { value: 'draft to keep' } });
+    view.unmount();
+
+    view = renderDrawer();
+    expect(screen.getByLabelText(`Message about ${APPLE_TICKER}`)).toHaveValue('draft to keep');
+
+    const savedQuestion = 'How did services revenue change?';
+    await user.clear(screen.getByLabelText(`Message about ${APPLE_TICKER}`));
+    await user.type(screen.getByLabelText(`Message about ${APPLE_TICKER}`), savedQuestion);
+    await user.click(screen.getByRole('button', { name: 'Send message' }));
+    expect(await screen.findByText(ASSISTANT_REPLY)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Close AI chat' }));
+    view.unmount();
+
+    view = renderDrawer();
+    expect(await screen.findByText(ASSISTANT_REPLY)).toBeInTheDocument();
+    expect(screen.getByText(savedQuestion)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'New chat' }));
+    expect(screen.queryByText(ASSISTANT_REPLY)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New chat' })).not.toBeInTheDocument();
+    view.unmount();
+  });
+
   it('shows the quota skeleton while quota is loading', () => {
     jest.mocked(fetchTickerChatQuota).mockReturnValue(new Promise(() => undefined));
     renderDrawer();

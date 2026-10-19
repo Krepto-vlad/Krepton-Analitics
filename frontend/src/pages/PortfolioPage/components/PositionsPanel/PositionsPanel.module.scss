@@ -212,6 +212,31 @@
   flex-shrink: 0;
 }
 
+@include mobile {
+  .panel {
+    padding: $space-3;
+  }
+
+  .statsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statValue {
+    font-size: $font-size-xl;
+  }
+
+  .chartsRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chartCard,
+  .allocationCard,
+  .chartContainer {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 // ─── Holdings table ───────────────────────────────────────────────────────────
 
 .holdingsSection {

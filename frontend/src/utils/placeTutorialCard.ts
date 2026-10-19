@@ -25,6 +25,7 @@ interface PlaceTutorialCardInput {
   cardHeight: number;
   gap?: number;
   margin?: number;
+  headerHeight?: number;
 }
 
 interface PlacementCandidate {
@@ -63,8 +64,9 @@ export function placeTutorialCard({
   cardHeight,
   gap = BEGINNER_TUTORIAL_CARD_GAP_PX,
   margin = BEGINNER_TUTORIAL_VIEWPORT_MARGIN_PX,
+  headerHeight = APP_SHELL_HEADER_HEIGHT_PX,
 }: PlaceTutorialCardInput): TutorialCardBox {
-  const topMargin = margin + APP_SHELL_HEADER_HEIGHT_PX;
+  const topMargin = margin + headerHeight;
   const maxLeft = Math.max(margin, viewport.width - cardWidth - margin);
   const maxTop = Math.max(topMargin, viewport.height - cardHeight - margin);
 

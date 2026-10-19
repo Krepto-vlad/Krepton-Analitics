@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { matchPath, useLocation } from 'react-router-dom';
 import { Bell, Sun, Moon } from 'lucide-react';
 import { ROUTES, CURRENCY_OPTIONS } from '../../../constants';
 import type { Currency } from '../../../constants';
@@ -18,13 +18,33 @@ interface AppHeaderProps {
 const PAGE_TITLES: Record<string, string> = {
   [ROUTES.DASHBOARD]: 'Dashboard',
   [ROUTES.PORTFOLIO]: 'Portfolio',
+  [ROUTES.NEWS]: 'News',
   [ROUTES.REBALANCING]: 'Rebalancing',
   [ROUTES.SCREENER]: 'Stock Matrix',
   [ROUTES.BACKTESTING]: 'Backtesting',
+  [ROUTES.DIVIDENDS]: 'Dividends',
+  [ROUTES.PROFILE]: 'Profile',
+  [ROUTES.SUBSCRIPTION]: 'Subscription',
+  [ROUTES.ADMIN]: 'Admin',
   [ROUTES.LEGAL]: 'Legal Documents',
   [ROUTES.PRIVACY]: 'Privacy Policy',
   [ROUTES.TERMS]: 'Terms of Service',
 };
+
+function resolvePageTitle(pathname: string): string {
+  const knownTitle = PAGE_TITLES[pathname];
+  if (knownTitle) {
+    return knownTitle;
+  }
+
+  const tickerMatch = matchPath(ROUTES.TICKER, pathname);
+  const ticker = tickerMatch?.params.ticker;
+  if (ticker) {
+    return ticker.toUpperCase();
+  }
+
+  return 'Krepton Analytics';
+}
 
 export function AppHeader({
   currency,
@@ -36,7 +56,7 @@ export function AppHeader({
   const location = useLocation();
   const [hasUnreadNotifications] = useState(false);
 
-  const pageTitle = PAGE_TITLES[location.pathname] ?? 'Krepton Analytics';
+  const pageTitle = resolvePageTitle(location.pathname);
 
   return (
     <header className={`${styles.header} ${isSidebarExpanded ? styles.sidebarExpanded : ''}`}>
@@ -73,7 +93,11 @@ export function AppHeader({
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
 
-        <button type="button" className={styles.iconButton} aria-label="Notifications">
+        <button
+          type="button"
+          className={`${styles.iconButton} ${styles.notificationsButton}`}
+          aria-label="Notifications"
+        >
           <Bell size={16} />
           {hasUnreadNotifications && <span className={styles.notificationDot} />}
         </button>

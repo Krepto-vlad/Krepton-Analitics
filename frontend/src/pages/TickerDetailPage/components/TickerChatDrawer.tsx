@@ -9,6 +9,7 @@ import {
   type ReactElement,
 } from 'react';
 import { CircleHelp, Loader2, MessageSquare, SendHorizontal, X } from 'lucide-react';
+import { loadTickerChatSession, saveTickerChatSession } from '../../../utils/tickerChatSession';
 import { fetchTickerChatQuota, sendTickerChatMessage } from '../../../api/portfolioApi';
 import { ChatMarkdown } from '../../../components/ChatMarkdown/ChatMarkdown';
 import {
@@ -51,6 +52,7 @@ interface TickerChatDrawerProps {
   onOpenChange: (isOpen: boolean) => void;
   onWidthChange: (widthPx: number) => void;
   onResizingChange: (isResizing: boolean) => void;
+  openButtonLabel?: string;
 }
 
 const HISTORY_TRUNCATION_SUFFIX = '…';
@@ -195,7 +197,8 @@ function readElementTranslateX(element: HTMLElement): number {
 
 /**
  * Fixed AI chat panel for a ticker page.
- * Conversation is ephemeral (in-memory only) and scoped to the current ticker.
+ * Each ticker keeps its own thread in this browser tab (sessionStorage).
+ * Closing the panel hides it. The thread is not written to the server.
  */
 export function TickerChatDrawer({
   ticker,
@@ -205,6 +208,7 @@ export function TickerChatDrawer({
   onOpenChange,
   onWidthChange,
   onResizingChange,
+  openButtonLabel,
 }: TickerChatDrawerProps) {
   const titleId = useId();
   const drawerRef = useRef<HTMLElement>(null);
@@ -217,8 +221,9 @@ export function TickerChatDrawer({
   const [areSuggestionsPaused, setAreSuggestionsPaused] = useState(false);
   const resizeSessionRef = useRef<{ startX: number; startWidthPx: number } | null>(null);
 
-  const [messages, setMessages] = useState<TickerChatUiMessage[]>([]);
-  const [draftMessage, setDraftMessage] = useState('');
+  const [restoredSession] = useState(() => loadTickerChatSession(ticker));
+  const [messages, setMessages] = useState(restoredSession.messages);
+  const [draftMessage, setDraftMessage] = useState(restoredSession.draft);
   const [quota, setQuota] = useState<AiQuotaStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
@@ -253,6 +258,10 @@ export function TickerChatDrawer({
       cancelled = true;
     };
   }, [isOpen, ticker]);
+
+  useEffect(() => {
+    saveTickerChatSession(ticker, messages, draftMessage);
+  }, [ticker, messages, draftMessage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -322,9 +331,14 @@ export function TickerChatDrawer({
     setAreSuggestionsPaused(false);
     pendingPauseScrollLeftRef.current = null;
     pendingResumeDelaySecRef.current = null;
-    setMessages([]);
     setError(null);
     onOpenChange(false);
+  }
+
+  function handleStartNewChat(): void {
+    setMessages([]);
+    setDraftMessage('');
+    setError(null);
   }
 
   useFocusTrap({
@@ -460,7 +474,8 @@ export function TickerChatDrawer({
         }}
         tabIndex={isOpen ? -1 : undefined}
         aria-hidden={isOpen}
-        aria-label={`Open AI chat about ${ticker}`}
+        aria-label={openButtonLabel ?? `Open AI chat about ${ticker}`}
+        title={openButtonLabel}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls={titleId}
@@ -516,6 +531,16 @@ export function TickerChatDrawer({
                 </span>
               ) : (
                 <span className={styles.quotaBadge}>{formatQuotaLabel(quota)}</span>
+              )}
+              {messages.length > 0 && (
+                <button
+                  type="button"
+                  className={styles.newChatButton}
+                  onClick={handleStartNewChat}
+                  disabled={isSending}
+                >
+                  New chat
+                </button>
               )}
               <button
                 type="button"
@@ -582,8 +607,8 @@ export function TickerChatDrawer({
                 </div>
                 <p className={styles.placeholderTitle}>Ask about {ticker}</p>
                 <p className={styles.placeholderText}>
-                  Pick a suggestion above or type your own question. History stays on this page
-                  only.
+                  Pick a suggestion above or type your own question. This thread stays in the
+                  browser tab while you look at other pages.
                 </p>
               </div>
             ) : (
