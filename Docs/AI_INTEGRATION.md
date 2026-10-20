@@ -168,8 +168,9 @@ Grounding включается только если **и** env flag `true`, **�
 | `AI_NEWS_SUMMARY_MAX_TICKERS` | 5 | Максимум тикеров в одном запросе |
 | `AI_NEWS_SUMMARY_MIN_TICKERS` | 1 | Минимум тикеров |
 | `AI_NEWS_SUMMARY_FREE_DAILY_LIMIT` | 3 | Запросов к Gemini в день на пользователя |
-| `GEMINI_MODEL` | `gemini-3.1-flash-lite` | Актуальная free-tier модель (2.0-* может отдавать 429) |
-| `GEMINI_MAX_OUTPUT_TOKENS` | 2048 | Потолок длины ответа (v2 briefing длиннее v1) |
+| `GEMINI_MODEL` | `gemini-3.8-flash` | Одна модель на все AI-вызовы. Стабильный Flash выше 3.6 |
+| `GEMINI_THINKING_LEVEL` | `low` | Минимум для 3.8: thinking-токены входят в maxOutputTokens |
+| `GEMINI_MAX_OUTPUT_TOKENS` | 8192 | Потолок briefing JSON вместе с thinking-токенами |
 | `GEMINI_REQUEST_TIMEOUT_MS` | 30 000 | Таймаут без grounding |
 | `GEMINI_GROUNDING_REQUEST_TIMEOUT_MS` | 90 000 | Таймаут с Google Search grounding |
 | `AI_BRIEFING_CACHE_VERSION` | `v2` | Версия cache key — инвалидирует v1 кэш |
@@ -519,9 +520,9 @@ curl -b cookies.txt -X POST http://localhost:3001/api/portfolio/news/summary \
 | Симптом | Причина | Решение |
 |---|---|---|
 | «AI summarization is not configured» | Пустой `GEMINI_API_KEY` | Добавить ключ в `.env`, перезапустить backend |
-| «AI service is unavailable» | Невалидный ключ / модель недоступна | Проверить ключ в AI Studio, модель `gemini-3.1-flash-lite` |
+| «AI service is unavailable» | Невалидный ключ / модель недоступна | Проверить ключ в AI Studio, модель `gemini-3.8-flash` |
 | «Gemini quota or billing limit reached» | Grounding без billing / spend cap | Отключить grounding или привязать card + spend cap |
-| «AI service is temporarily busy» / quota exhausted | Старая модель `gemini-2.0-*` без квоты на ключе | Переключить `GEMINI_MODEL` на `gemini-3.1-flash-lite` в `constants.ts` |
+| «AI service is temporarily busy» / quota exhausted | Квота или биллинг Gemini | Проверить prepaid-баланс и что `GEMINI_MODEL` = `gemini-3.8-flash` |
 | 500 на quota/summary | Миграция не применена | `npm run migrate:up` |
 | Summary generic / empty | Yahoo не вернул headlines | Нормально для illiquid tickers; проверить `/portfolio/news` |
 | Quota не сбрасывается | UTC midnight | Лимит считается по UTC, не local time |

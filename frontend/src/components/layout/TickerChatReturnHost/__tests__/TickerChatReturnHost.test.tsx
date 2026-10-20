@@ -1,9 +1,23 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { ROUTES, buildTickerDetailPath } from '../../../../constants';
+import {
+  APP_SHELL_ELEMENT_ATTRIBUTE,
+  BEGINNER_TUTORIAL_CHAT_OPEN_VALUE,
+  BEGINNER_TUTORIAL_CHAT_QUERY,
+  CHAT_DRAWER_INSET_VARIABLE,
+  CHAT_DRAWER_RESIZING_ATTRIBUTE,
+  ROUTES,
+  TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX,
+  buildTickerDetailPath,
+} from '../../../../constants';
 import { fetchTickerChatQuota } from '../../../../api/portfolioApi';
-import { saveActiveTickerChat, saveTickerChatSession } from '../../../../utils/tickerChatSession';
+import {
+  loadChatScreenContext,
+  saveActiveTickerChat,
+  saveAppChatSession,
+  savePortfolioChatScreen,
+} from '../../../../utils/tickerChatSession';
 import { TickerChatReturnHost } from '../TickerChatReturnHost';
 
 jest.mock('../../../../api/portfolioApi', () => ({
@@ -20,11 +34,13 @@ const SAVED_REPLY = 'Services revenue grew.';
 
 function renderReturnHost(routePath: string) {
   return render(
-    <MemoryRouter initialEntries={[routePath]}>
-      <Routes>
-        <Route path="*" element={<TickerChatReturnHost />} />
-      </Routes>
-    </MemoryRouter>
+    <div {...{ [APP_SHELL_ELEMENT_ATTRIBUTE]: '' }}>
+      <MemoryRouter initialEntries={[routePath]}>
+        <Routes>
+          <Route path="*" element={<TickerChatReturnHost />} />
+        </Routes>
+      </MemoryRouter>
+    </div>
   );
 }
 
@@ -40,33 +56,41 @@ describe('TickerChatReturnHost', () => {
     });
   });
 
-  it('shows nothing until a ticker chat exists in this tab', () => {
-    renderReturnHost(ROUTES.NEWS);
-    expect(screen.queryByRole('button', { name: /chat/i })).not.toBeInTheDocument();
-  });
-
-  it('reopens the last ticker thread from another page', async () => {
+  it('opens the same chat from any page', async () => {
     const user = userEvent.setup();
-    saveActiveTickerChat(APPLE_TICKER, 'Apple Inc.');
-    saveTickerChatSession(
-      APPLE_TICKER,
-      [{ id: 'reply-1', role: 'assistant', content: SAVED_REPLY }],
-      ''
-    );
+    saveAppChatSession([{ id: 'reply-1', role: 'assistant', content: SAVED_REPLY }], '');
 
     renderReturnHost(ROUTES.NEWS);
-    const backToChatButton = await screen.findByRole('button', {
-      name: `Back to ${APPLE_TICKER} chat`,
-    });
-    await user.click(backToChatButton);
+    await user.click(await screen.findByRole('button', { name: 'Open AI chat' }));
 
     expect(await screen.findByText(SAVED_REPLY)).toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('This page')).toBeInTheDocument();
+    expect(document.querySelector(`[${APP_SHELL_ELEMENT_ATTRIBUTE}]`)).toHaveStyle({
+      [CHAT_DRAWER_INSET_VARIABLE]: `${TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX}px`,
+    });
+    expect(document.querySelector(`[${APP_SHELL_ELEMENT_ATTRIBUTE}]`)).not.toHaveAttribute(
+      CHAT_DRAWER_RESIZING_ATTRIBUTE
+    );
   });
 
-  it('leaves the ticker page button to the ticker page itself', () => {
+  it('keeps the chat open on a ticker page and names that ticker', async () => {
     saveActiveTickerChat(APPLE_TICKER, 'Apple Inc.');
-    renderReturnHost(buildTickerDetailPath(APPLE_TICKER));
-    expect(screen.queryByRole('button', { name: /chat/i })).not.toBeInTheDocument();
+    renderReturnHost(
+      `${buildTickerDetailPath(APPLE_TICKER)}?${BEGINNER_TUTORIAL_CHAT_QUERY}=${BEGINNER_TUTORIAL_CHAT_OPEN_VALUE}`
+    );
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText(`${APPLE_TICKER} · Apple Inc.`)).toBeInTheDocument();
+  });
+
+  it('drops the previous page snapshot on profile and keeps it on a data page', () => {
+    savePortfolioChatScreen('USD');
+    renderReturnHost(ROUTES.PROFILE);
+    expect(loadChatScreenContext()).toBeNull();
+
+    sessionStorage.clear();
+    savePortfolioChatScreen('USD');
+    renderReturnHost(ROUTES.NEWS);
+    expect(loadChatScreenContext()).toEqual({ kind: 'portfolio', displayCurrency: 'USD' });
   });
 });

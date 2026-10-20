@@ -5,6 +5,7 @@ import {
   AI_TICKER_CHAT_MAX_HISTORY_MESSAGES,
   AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS,
   AI_TICKER_CHAT_MAX_MESSAGE_CHARS,
+  AI_TICKER_CHAT_PAGE_SUBJECT,
 } from '../constants.js';
 import { AppError } from '../middleware/errorHandler.js';
 import {
@@ -30,6 +31,7 @@ import {
   buildEmptyTickerChatFactCheck,
   buildSnapshotTickerChatFactCheck,
 } from './tickerChatFactCheck.js';
+import { resolveTickerChatScreenContext } from './tickerChatScreenContext.js';
 import {
   applyTickerChatOutputGuardrails,
   evaluateTickerChatInputScope,
@@ -133,8 +135,24 @@ function normalizeHistory(rawHistory: unknown): TickerChatHistoryMessage[] {
   return trimHistoryToTotalBudget(normalizedHistory);
 }
 
+function readOptionalTicker(rawTicker: unknown): string | null {
+  if (rawTicker === undefined || rawTicker === null || rawTicker === '') {
+    return null;
+  }
+
+  if (typeof rawTicker !== 'string') {
+    throw new AppError(400, TICKER_FORMAT_ERROR_MESSAGE);
+  }
+
+  try {
+    return assertValidTickerSymbol(rawTicker);
+  } catch {
+    throw new AppError(400, TICKER_FORMAT_ERROR_MESSAGE);
+  }
+}
+
 function normalizeTickerChatDto(rawBody: unknown): {
-  ticker: string;
+  ticker: string | null;
   message: string;
   history: TickerChatHistoryMessage[];
   includeHoldingContext: boolean;
@@ -145,15 +163,8 @@ function normalizeTickerChatDto(rawBody: unknown): {
 
   const body = rawBody as GenerateTickerChatDto;
 
-  let ticker: string;
-  try {
-    ticker = assertValidTickerSymbol(body.ticker);
-  } catch {
-    throw new AppError(400, TICKER_FORMAT_ERROR_MESSAGE);
-  }
-
   return {
-    ticker,
+    ticker: readOptionalTicker(body.ticker),
     message: normalizeMessageContent(body.message, 'message'),
     history: normalizeHistory(body.history),
     includeHoldingContext: body.includeHoldingContext === true,
@@ -206,6 +217,10 @@ export async function sendTickerChatMessage(
   rawBody: unknown
 ): Promise<TickerChatResponse> {
   const { ticker, message, history, includeHoldingContext } = normalizeTickerChatDto(rawBody);
+  if (!ticker) {
+    return sendPageChatMessage(userId, message, history, rawBody);
+  }
+
   const scopeDecision = evaluateTickerChatInputScope(ticker, message);
 
   if (scopeDecision.kind === 'soft_redirect') {
@@ -218,6 +233,7 @@ export async function sendTickerChatMessage(
       sources: [],
       groundingEnabled: false,
       factCheck: buildEmptyTickerChatFactCheck(),
+      displayBlocks: [],
     };
   }
 
@@ -231,6 +247,11 @@ export async function sendTickerChatMessage(
   const holding = includeHoldingContext
     ? await resolveHoldingContext(userId, ticker, quote.price)
     : null;
+  const screenContext = await resolveTickerChatScreenContext(
+    userId,
+    (rawBody as { screenContext?: unknown }).screenContext,
+    ticker
+  );
 
   const promptContext: TickerChatPromptContext = {
     ticker,
@@ -244,6 +265,7 @@ export async function sendTickerChatMessage(
     includeHoldingContext,
     history,
     userMessage: scopeDecision.userMessage,
+    screenContextText: screenContext?.promptText ?? null,
   };
 
   const generation = await generateTickerChatReplyWithGemini(promptContext);
@@ -272,6 +294,7 @@ export async function sendTickerChatMessage(
         currency: quote.currency || 'USD',
         changePercent: quote.changePercent,
         holding,
+        referencePrices: screenContext?.referencePrices ?? [],
       });
 
   const deliveredReply = stripTickerChatOutboundLinks(factChecked.reply);
@@ -290,5 +313,77 @@ export async function sendTickerChatMessage(
     sources: [],
     groundingEnabled: blocked ? false : generation.groundingEnabled,
     factCheck: factChecked.factCheck,
+    displayBlocks: screenContext?.displayBlocks ?? [],
+  };
+}
+
+async function sendPageChatMessage(
+  userId: string,
+  message: string,
+  history: TickerChatHistoryMessage[],
+  rawBody: unknown
+): Promise<TickerChatResponse> {
+  const scopeDecision = evaluateTickerChatInputScope(AI_TICKER_CHAT_PAGE_SUBJECT, message);
+
+  if (scopeDecision.kind === 'soft_redirect') {
+    const quota = await getAiQuotaStatus(userId, TICKER_CHAT_FEATURE);
+    return {
+      ticker: '',
+      reply: scopeDecision.reply,
+      disclaimer: AI_TICKER_CHAT_DISCLAIMER,
+      quota,
+      sources: [],
+      groundingEnabled: false,
+      factCheck: buildEmptyTickerChatFactCheck(),
+      displayBlocks: [],
+    };
+  }
+
+  await assertAiQuotaAvailable(userId, TICKER_CHAT_FEATURE);
+
+  const screenContext = await resolveTickerChatScreenContext(
+    userId,
+    (rawBody as { screenContext?: unknown }).screenContext,
+    ''
+  );
+
+  const promptContext: TickerChatPromptContext = {
+    ticker: '',
+    companyName: AI_TICKER_CHAT_PAGE_SUBJECT,
+    currency: 'USD',
+    price: 0,
+    changePercent: 0,
+    marketState: null,
+    exchange: null,
+    holding: null,
+    includeHoldingContext: false,
+    history,
+    userMessage: scopeDecision.userMessage,
+    screenContextText: screenContext?.promptText ?? null,
+  };
+
+  const generation = await generateTickerChatReplyWithGemini(promptContext);
+  const guardrail = applyTickerChatOutputGuardrails(
+    AI_TICKER_CHAT_PAGE_SUBJECT,
+    scopeDecision.userMessage,
+    generation.reply
+  );
+  const deliveredReply = stripTickerChatOutboundLinks(guardrail.reply);
+  if (deliveredReply.length === 0) {
+    throw new AppError(502, AI_EMPTY_REPLY_ERROR_MESSAGE);
+  }
+
+  await recordAiUsage(userId, TICKER_CHAT_FEATURE);
+  const quota = await getAiQuotaStatus(userId, TICKER_CHAT_FEATURE);
+
+  return {
+    ticker: '',
+    reply: deliveredReply,
+    disclaimer: AI_TICKER_CHAT_DISCLAIMER,
+    quota,
+    sources: [],
+    groundingEnabled: guardrail.blockedReason === 'none' && generation.groundingEnabled,
+    factCheck: buildEmptyTickerChatFactCheck(),
+    displayBlocks: screenContext?.displayBlocks ?? [],
   };
 }

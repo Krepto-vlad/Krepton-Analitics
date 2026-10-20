@@ -14,6 +14,7 @@ import type { StockCompareItem } from '../../types/stock.types';
 import { TickerPickerBar } from './components/TickerPickerBar/TickerPickerBar';
 import { ComparisonMatrix } from './components/ComparisonMatrix/ComparisonMatrix';
 import { MarketMoversPanel } from './components/MarketMoversPanel/MarketMoversPanel';
+import { saveCompareChatScreen, saveMoversChatScreen } from '../../utils/tickerChatSession';
 import type { SelectedCompareTicker } from './utils/compareMatrix';
 import styles from './ScreenerPage.module.scss';
 
@@ -28,6 +29,14 @@ export function ScreenerPage() {
   const [isCompareLoading, setIsCompareLoading] = useState(false);
   const [compareError, setCompareError] = useState<string | null>(null);
   const canAddTickers = selectedTickers.length < STOCK_COMPARE_MAX_TICKERS;
+
+  useEffect(() => {
+    if (selectedTickers.length >= STOCK_COMPARE_MIN_TICKERS) {
+      return;
+    }
+
+    saveMoversChatScreen();
+  }, [selectedTickers.length]);
 
   // Fetch exactly once per session using the hydration flag (not items.length): for
   // accounts with a genuinely empty watchlist, items.length stays 0 forever, which
@@ -71,6 +80,7 @@ export function ScreenerPage() {
 
       const nextTickers = [...current, ticker];
       void refreshComparison(nextTickers);
+      saveCompareChatScreen(nextTickers);
       return nextTickers;
     });
   }
@@ -79,6 +89,7 @@ export function ScreenerPage() {
     setSelectedTickers((current) => {
       const nextTickers = current.filter((item) => item.ticker !== ticker);
       void refreshComparison(nextTickers);
+      saveCompareChatScreen(nextTickers);
       return nextTickers;
     });
   }

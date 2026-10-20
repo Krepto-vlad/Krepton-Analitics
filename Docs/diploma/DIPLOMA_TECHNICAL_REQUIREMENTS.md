@@ -445,7 +445,7 @@ Node.js / Express подходит как «modern framework».
 
 **Скип**
 
-- [ ] **− skip** 2+ модели / routing / fallback на Claude — один `gemini-3.1-flash-lite`; 503 при 429 Google, не мульти-LLM
+- [ ] **− skip** 2+ модели / routing / fallback на Claude — один `gemini-3.8-flash`; 503 при 429 Google, не мульти-LLM
 - [ ] **− skip** RAG (векторная БД, ≥ 100 документов, precision/recall) — нет своего корпуса; grounding Google ≠ RAG
 - [ ] **− skip** Tool use / MCP ≥ 3 инструментов — четыре поверхности (briefing / chat / alignment / import) это продукт, не Gemini tools; grounding = один vendor tool
 - [ ] **− skip** История между сессиями / сжатие контекста / персонализация в БД — ephemeral drawer это privacy (анонимный OLTP, чат не пишем)

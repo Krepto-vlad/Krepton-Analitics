@@ -15,6 +15,8 @@ export interface TickerChatFactCheckInput {
   currency: string;
   changePercent: number;
   holding: TickerChatHoldingContext | null;
+  /** Other Krepton prices attached for this turn, such as a comparison on screen. */
+  referencePrices?: number[];
 }
 
 export interface TickerChatFactCheckResult {
@@ -50,6 +52,14 @@ function relativeError(actual: number, expected: number): number {
 
 function isNearPrice(actual: number, expected: number): boolean {
   return relativeError(actual, expected) <= AI_CHAT_FACT_CHECK_PRICE_RELATIVE_TOLERANCE;
+}
+
+function isAllowedPrice(actual: number, focusPrice: number, referencePrices: number[]): boolean {
+  if (isNearPrice(actual, focusPrice)) {
+    return true;
+  }
+
+  return referencePrices.some((price) => isNearPrice(actual, price));
 }
 
 function isNearShares(actual: number, expected: number): boolean {
@@ -164,7 +174,10 @@ export function applyTickerChatFactCheck(
     ...collectCapturedNumbers(input.reply, CURRENT_PRICE_CLAIM_PATTERN),
     ...collectTickerAtPrices(input.ticker, input.reply),
   ];
-  const quoteVerified = statedPrices.every((value) => isNearPrice(value, input.price));
+  const referencePrices = input.referencePrices ?? [];
+  const quoteVerified = statedPrices.every((value) =>
+    isAllowedPrice(value, input.price, referencePrices)
+  );
 
   const holding = input.holding;
   const statedShares = collectCapturedNumbers(input.reply, SHARES_CLAIM_PATTERN);

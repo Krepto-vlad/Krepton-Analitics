@@ -39,6 +39,7 @@ import {
   stepStrategyAllocationWeight,
   type StrategyBucketAllocation,
 } from './utils/rebalancingAllocations';
+import { saveRebalancingChatScreen } from '../../utils/tickerChatSession';
 import styles from './RebalancingPage.module.scss';
 
 type RebalancingTabId = 'technical' | 'ai';
@@ -172,6 +173,14 @@ export function RebalancingPage() {
       cancelled = true;
     };
   }, [displayCurrency]);
+
+  useEffect(() => {
+    if (!analysis) {
+      return;
+    }
+
+    saveRebalancingChatScreen(displayCurrency);
+  }, [analysis, displayCurrency]);
 
   const persistStrategySelection = useCallback(
     async (strategyId: RebalancingStrategyId) => {

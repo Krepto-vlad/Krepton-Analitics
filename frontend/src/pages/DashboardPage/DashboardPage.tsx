@@ -14,6 +14,7 @@ import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { ErrorBanner } from '../../components/ui';
 import { toCssCustomProperties } from '../../utils/cssCustomProperties';
 import { DASHBOARD_PANEL_HEIGHT_PX, BEGINNER_TUTORIAL_ANCHORS } from '../../constants';
+import { savePortfolioChatScreen } from '../../utils/tickerChatSession';
 import { PortfolioHealthCard } from './components/PortfolioHealthCard/PortfolioHealthCard';
 import { PortfolioEquityCard } from './components/PortfolioEquityCard/PortfolioEquityCard';
 import { PositionsTable } from './components/PositionsTable/PositionsTable';
@@ -69,6 +70,14 @@ export function DashboardPage() {
 
     void dispatch(fetchPortfolioNewsThunk());
   }, [dispatch, holdingsTickerKey]);
+
+  useEffect(() => {
+    if (isDashboardBootstrapping) {
+      return;
+    }
+
+    savePortfolioChatScreen(currency);
+  }, [currency, isDashboardBootstrapping]);
 
   function handleRetryNews() {
     void dispatch(fetchPortfolioNewsThunk());

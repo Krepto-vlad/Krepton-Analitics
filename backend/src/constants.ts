@@ -226,7 +226,8 @@ export const IMPORT_HEADER_SCAN_MAX_ROWS = 40;
  */
 export const IMPORT_AI_SCHEMA_SAMPLE_ROWS = 20;
 export const IMPORT_AI_SCHEMA_MAX_CELL_CHARS = 48;
-export const IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS = 512;
+/** Includes Gemini thinking tokens. The mapping JSON itself stays small. */
+export const IMPORT_AI_SCHEMA_MAX_OUTPUT_TOKENS = 2048;
 export const IMPORT_AI_SCHEMA_FREE_DAILY_LIMIT = 10;
 export const IMPORT_AI_SCHEMA_PAID_DAILY_LIMIT = 50;
 export const IMPORT_AI_SCHEMA_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -265,16 +266,19 @@ export const AI_EXPLAIN_ALIGNMENT_DISCLAIMER =
   'AI-generated explanation for informational purposes only. Not financial advice. No buy/sell recommendations. False-diversification notes are qualitative (no ETF look-through holdings data).';
 export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AI_EXPLAIN_ALIGNMENT_RATE_LIMIT_MAX_REQUESTS = 10;
-export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 1400;
+/** Includes Gemini thinking tokens, not only the JSON explanation. */
+export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 4096;
 
 export const AI_TICKER_CHAT_FREE_DAILY_LIMIT = 20;
 export const AI_TICKER_CHAT_PAID_DAILY_LIMIT = 200;
 export const AI_TICKER_CHAT_DISCLAIMER =
-  'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
+  'AI chat for informational purposes only. Not financial advice. Answers stay on the current page.';
+export const AI_TICKER_CHAT_PAGE_SUBJECT = 'this page';
 export const AI_EMPTY_REPLY_ERROR_MESSAGE = 'AI returned an empty response. Please try again.';
 export const AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 export const AI_TICKER_CHAT_RATE_LIMIT_MAX_REQUESTS = 30;
-export const AI_TICKER_CHAT_MAX_OUTPUT_TOKENS = 1024;
+/** Includes Gemini thinking tokens. The prompt still asks for a short reply. */
+export const AI_TICKER_CHAT_MAX_OUTPUT_TOKENS = 4096;
 /** Soft cap for the current user message (composer input). */
 export const AI_TICKER_CHAT_MAX_MESSAGE_CHARS = 1000;
 /** Per-message cap for history items (assistant replies are often longer than user input). */
@@ -301,10 +305,16 @@ export const AI_BRIEFING_MACRO_TICKERS = [
 export const AI_BRIEFING_SP500_TICKER = 'SPY';
 
 export const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
-export const GEMINI_MODEL = 'gemini-3.1-flash-lite';
+export const GEMINI_MODEL = 'gemini-3.8-flash';
+/**
+ * Gemini 3.8 thinks by default (`medium`), and those tokens count against maxOutputTokens.
+ * `low` is the supported minimum and keeps chat plus JSON inside the request timeout.
+ */
+export const GEMINI_THINKING_LEVEL = 'low';
 export const GEMINI_REQUEST_TIMEOUT_MS = 30_000;
 export const GEMINI_GROUNDING_REQUEST_TIMEOUT_MS = 90_000;
-export const GEMINI_MAX_OUTPUT_TOKENS = 2048;
+/** Includes Gemini thinking tokens for the news briefing JSON. */
+export const GEMINI_MAX_OUTPUT_TOKENS = 8192;
 
 // ─── Stock history / fundamentals (ticker detail) ──────────────────────────────
 export const STOCK_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -315,6 +325,36 @@ export const STOCK_FUNDAMENTALS_BROWSER_CACHE_TTL_S = 60;
 export const STOCK_COMPARE_MAX_TICKERS = 4;
 export const STOCK_COMPARE_MIN_TICKERS = 2;
 export const STOCK_COMPARE_CACHE_TTL_MS = 5 * 60 * 1000;
+/** Metrics the chat draws itself when the user is on the comparison matrix. */
+export const TICKER_CHAT_COMPARE_BAR_METRICS = [
+  { key: 'peRatio', title: 'P/E', unit: 'multiple' },
+  { key: 'revenueGrowth', title: 'Revenue growth', unit: 'percent' },
+  { key: 'profitMargin', title: 'Profit margin', unit: 'percent' },
+] as const;
+/** Ticker-to-bucket lines included in a rebalancing chat prompt. */
+export const TICKER_CHAT_REBALANCING_MAX_MAPPINGS = 12;
+/** Upcoming dividend rows included in a dividend-calendar chat prompt. */
+export const TICKER_CHAT_SCREEN_MAX_PAYMENTS = 12;
+/** Rows kept on a chat screen card: weights, headlines, or watchlist quotes. */
+export const TICKER_CHAT_SCREEN_MAX_ROWS = 12;
+export const TICKER_CHAT_SCREEN_HEADLINE_MAX_CHARS = 180;
+export const TICKER_CHAT_WEIGHT_PERCENT_SCALE = 10;
+/** Chart periods the ticker page can show. History is refetched for the chat. */
+export const TICKER_CHAT_CHART_PERIODS = ['7d', '1mo', '3mo', '6mo', '1y', '2y', '5y'] as const;
+export const TICKER_CHAT_CHART_PERIOD_LABELS: Record<
+  (typeof TICKER_CHAT_CHART_PERIODS)[number],
+  string
+> = {
+  '7d': '1W',
+  '1mo': '1M',
+  '3mo': '3M',
+  '6mo': '6M',
+  '1y': '1Y',
+  '2y': '2Y',
+  '5y': '5Y',
+};
+export const TICKER_CHAT_CHART_INTERVAL = HISTORICAL_DATA_INTERVALS.ONE_DAY;
+export const TICKER_CHAT_PAIR_TOPICS = ['metrics', 'returns', 'paths'] as const;
 
 // ─── Market movers (Yahoo screener) ────────────────────────────────────────────
 export const MARKET_MOVERS_COUNT = 10;

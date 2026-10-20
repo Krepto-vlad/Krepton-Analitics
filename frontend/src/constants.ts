@@ -186,6 +186,8 @@ export const STOCK_PERIODS = [
   { label: '5Y', value: '5y' },
 ] as const;
 
+export type StockChartPeriod = (typeof STOCK_PERIODS)[number]['value'];
+
 export const CHART_COLORS = {
   UP: '#26a69a',
   DOWN: '#f87171',
@@ -225,13 +227,100 @@ export const TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 12000;
 export const TICKER_CHAT_MAX_HISTORY_MESSAGES = 12;
 /** Keep in sync with backend AI_TICKER_CHAT_DISCLAIMER. */
 export const TICKER_CHAT_DISCLAIMER =
-  'AI chat for informational purposes only. Not financial advice. Answers are scoped to the selected ticker.';
+  'AI chat for informational purposes only. Not financial advice. Answers stay on the current page.';
+export const TICKER_CHAT_PAGE_SUBJECT = 'this page';
+export const TICKER_CHAT_PAGE_SUBTITLE = 'This page';
+export const TICKER_CHAT_PAGE_PLACEHOLDER = 'Ask about this page…';
+export const TICKER_CHAT_PAGE_MESSAGE_LABEL = 'Message about this page';
 export const TICKER_CHAT_QUOTE_CHECKED_LABEL = 'Krepton quote';
 export const TICKER_CHAT_FACT_CHECK_CORRECTED_LABEL = 'Numbers aligned to the Krepton quote';
 export const TICKER_CHAT_WEB_SEARCH_LABEL = 'Web search';
 export const TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY = 'krepton_ticker_chat_include_holding_v1';
 /** Browser-tab transcript. Cleared when the tab closes, on logout, or via New chat. Not sent to the API store. */
 export const TICKER_CHAT_SESSION_STORAGE_KEY = 'krepton_ticker_chat_session_v1';
+/** Fired when the page snapshot attached to chat changes. */
+export const TICKER_CHAT_SCREEN_CONTEXT_EVENT = 'krepton-chat-screen-context';
+export const TICKER_CHAT_SCREEN_COMPARE_KIND = 'compare';
+export const TICKER_CHAT_SCREEN_REBALANCING_KIND = 'rebalancing';
+export const TICKER_CHAT_SCREEN_MOVERS_KIND = 'movers';
+export const TICKER_CHAT_SCREEN_BACKTEST_KIND = 'backtest';
+export const TICKER_CHAT_SCREEN_DIVIDENDS_KIND = 'dividends';
+export const TICKER_CHAT_SCREEN_TICKER_KIND = 'ticker';
+export const TICKER_CHAT_SCREEN_PORTFOLIO_KIND = 'portfolio';
+export const TICKER_CHAT_SCREEN_NEWS_KIND = 'news';
+export const TICKER_CHAT_SCREEN_WATCHLIST_KIND = 'watchlist';
+export const TICKER_CHAT_PAIR_KIND = 'pair';
+export const TICKER_CHAT_PAIR_METRICS_TOPIC = 'metrics' as const;
+export const TICKER_CHAT_PAIR_RETURNS_TOPIC = 'returns' as const;
+export const TICKER_CHAT_PAIR_PATHS_TOPIC = 'paths' as const;
+export const TICKER_CHAT_PAIR_METRICS_LABEL = 'Compare the metrics';
+export const TICKER_CHAT_PAIR_RETURNS_LABEL = 'Compare the {period} moves';
+export const TICKER_CHAT_PAIR_PATHS_LABEL = 'Describe the {period} paths';
+export const TICKER_CHAT_PAIR_METRICS_MESSAGE =
+  'Compare {other} and {ticker} on valuation, revenue growth, and profit margin.';
+export const TICKER_CHAT_PAIR_RETURNS_MESSAGE =
+  'Compare the {period} price moves of {other} and {ticker}.';
+export const TICKER_CHAT_PAIR_PATHS_MESSAGE =
+  'Describe the {period} price paths of {other} and {ticker}, including the price structure in Wyckoff terms.';
+/** Pages that attach their own snapshot. Every other app page drops the previous one. */
+export const TICKER_CHAT_SCREEN_ROUTES = [
+  ROUTES.DASHBOARD,
+  ROUTES.PORTFOLIO,
+  ROUTES.REBALANCING,
+  ROUTES.SCREENER,
+  ROUTES.BACKTESTING,
+  ROUTES.DIVIDENDS,
+  ROUTES.NEWS,
+  ROUTES.TICKER,
+] as const;
+export const TICKER_CHAT_SCREEN_HEADLINE_MAX_CHARS = 180;
+export const TICKER_CHAT_SCREEN_MAX_ROWS = 12;
+export const TICKER_CHAT_COMPARE_BAR_METRIC_KEYS = [
+  'peRatio',
+  'revenueGrowth',
+  'profitMargin',
+] as const;
+export const TICKER_CHAT_COMPARE_BAR_UNITS = ['multiple', 'percent'] as const;
+export const TICKER_CHAT_DISPLAY_BLOCK_MAX_TITLE_CHARS = 80;
+/** A ticker chart card has one company. A comparison card has more. */
+export const TICKER_CHAT_COMPARE_BAR_MIN_ROWS = 1;
+/** Kept in the model prompt only. Never shown in the chat thread. */
+export const TICKER_CHAT_MODEL_ONLY_SENTENCE = 'Do not recommend a trade.';
+export const TICKER_CHAT_SCREEN_EXPLAIN_MESSAGE =
+  'Explain the comparison on screen. Describe how these companies differ.';
+export const TICKER_CHAT_SCREEN_DIFFERENCES_MESSAGE =
+  'How do valuation, revenue growth, and profit margin differ for the companies on screen?';
+export const TICKER_CHAT_SCREEN_REBALANCING_EXPLAIN_MESSAGE =
+  'Explain how this portfolio differs from the selected target mix. Describe the drift.';
+export const TICKER_CHAT_SCREEN_REBALANCING_NEAREST_MESSAGE =
+  'Which sleeves are nearest the selected target, and which are furthest?';
+export const TICKER_CHAT_SCREEN_MOVERS_EXPLAIN_MESSAGE = "Explain today's top gainers and losers.";
+export const TICKER_CHAT_SCREEN_MOVERS_STANDOUT_MESSAGE =
+  'What stands out among the gainers and losers on screen?';
+export const TICKER_CHAT_SCREEN_BACKTEST_EXPLAIN_MESSAGE =
+  'Explain this backtest. Describe the result and how the holdings contributed.';
+export const TICKER_CHAT_SCREEN_BACKTEST_BENCHMARK_MESSAGE =
+  'How did this backtest compare with the S&P 500?';
+export const TICKER_CHAT_SCREEN_DIVIDENDS_EXPLAIN_MESSAGE =
+  'Explain the dividend calendar on screen. Describe the projected income.';
+export const TICKER_CHAT_SCREEN_DIVIDENDS_MONTHS_MESSAGE =
+  'Which months show the largest payouts on screen?';
+export const TICKER_CHAT_SCREEN_TICKER_EXPLAIN_MESSAGE =
+  'Explain the price chart period on screen. Describe the move.';
+export const TICKER_CHAT_SCREEN_TICKER_FUNDAMENTALS_MESSAGE =
+  'What do the valuation, revenue growth, and profit margin on screen say about this company?';
+export const TICKER_CHAT_SCREEN_PORTFOLIO_EXPLAIN_MESSAGE =
+  'Explain the portfolio weights on screen. Describe how the value is spread.';
+export const TICKER_CHAT_SCREEN_PORTFOLIO_LARGEST_MESSAGE =
+  'Which holdings are the largest share of this portfolio?';
+export const TICKER_CHAT_SCREEN_NEWS_EXPLAIN_MESSAGE =
+  'Explain the headlines on screen. Say which holdings they mention.';
+export const TICKER_CHAT_SCREEN_NEWS_MENTIONS_MESSAGE =
+  'Which headlines mention more than one holding?';
+export const TICKER_CHAT_SCREEN_WATCHLIST_EXPLAIN_MESSAGE =
+  'Explain the watchlist on screen. Describe the day moves.';
+export const TICKER_CHAT_SCREEN_WATCHLIST_MOVED_MESSAGE =
+  'Which names on the watchlist moved the most today?';
 export const TICKER_CHAT_SESSION_MAX_TICKERS = 8;
 export const TICKER_CHAT_SESSION_MAX_MESSAGES = 40;
 export const TICKER_CHAT_SESSION_MAX_MESSAGE_CHARS = 8000;
@@ -262,6 +351,8 @@ export const APP_SHELL_HEADER_HEIGHT_PX = 60;
 export const APP_SHELL_ELEMENT_ATTRIBUTE = 'data-app-shell';
 export const APP_SHELL_HEADER_HEIGHT_VARIABLE = '--app-header-height';
 export const APP_SHELL_BOTTOM_INSET_VARIABLE = '--app-bottom-inset';
+export const CHAT_DRAWER_INSET_VARIABLE = '--chat-drawer-inset';
+export const CHAT_DRAWER_RESIZING_ATTRIBUTE = 'data-chat-resizing';
 
 /** Yahoo marketState → UI labels (exchange hours already baked into Yahoo's state). */
 export const STOCK_MARKET_SESSION_LABELS = {

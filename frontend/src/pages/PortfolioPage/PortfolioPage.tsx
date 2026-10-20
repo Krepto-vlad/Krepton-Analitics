@@ -6,7 +6,18 @@ import type { LivePollingScope } from '../../features/livePolling/livePollingSli
 import { PositionsPanel } from './components/PositionsPanel/PositionsPanel';
 import { WatchlistPanel } from './components/WatchlistPanel/WatchlistPanel';
 import { BrokerImporterPanel } from './components/BrokerImporterPanel/BrokerImporterPanel';
-import { BEGINNER_TUTORIAL_ANCHORS } from '../../constants';
+import {
+  BEGINNER_TUTORIAL_ANCHORS,
+  TICKER_CHAT_SCREEN_PORTFOLIO_KIND,
+  TICKER_CHAT_SCREEN_WATCHLIST_KIND,
+} from '../../constants';
+import { useAppSelector } from '../../hooks/useAppSelector';
+import {
+  loadChatScreenContext,
+  saveChatScreenContext,
+  savePortfolioChatScreen,
+  saveWatchlistChatScreen,
+} from '../../utils/tickerChatSession';
 import styles from './PortfolioPage.module.scss';
 
 type PortfolioSection = 'positions' | 'watchlist' | 'importer';
@@ -38,6 +49,7 @@ function parsePortfolioSection(value: string | null): PortfolioSection {
 
 export function PortfolioPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const displayCurrency = useAppSelector((state) => state.ui.currency);
   const activeSection = parsePortfolioSection(searchParams.get('section'));
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const mainContentRef = useRef<HTMLElement>(null);
@@ -49,6 +61,26 @@ export function PortfolioPage() {
   }, [activeSection]);
 
   useLivePollingScope(activePollingScope);
+
+  useEffect(() => {
+    if (activeSection === 'positions') {
+      savePortfolioChatScreen(displayCurrency);
+      return;
+    }
+
+    if (activeSection === 'watchlist') {
+      saveWatchlistChatScreen();
+      return;
+    }
+
+    const screenKind = loadChatScreenContext()?.kind;
+    if (
+      screenKind === TICKER_CHAT_SCREEN_PORTFOLIO_KIND ||
+      screenKind === TICKER_CHAT_SCREEN_WATCHLIST_KIND
+    ) {
+      saveChatScreenContext(null);
+    }
+  }, [activeSection, displayCurrency]);
 
   useEffect(() => {
     const scrollContainer = mainContentRef.current;

@@ -4,6 +4,7 @@ import { fetchStockBacktest } from '../../../api/stockApi';
 import { ERROR_MESSAGES, LOADING_MESSAGES } from '../../../constants';
 import { renderWithProviders } from '../../../__tests__/renderWithProviders';
 import type { StockBacktestResponse } from '../../../types/stock.types';
+import { loadChatScreenContext, saveBacktestChatScreen } from '../../../utils/tickerChatSession';
 import { BacktestingPage } from '../BacktestingPage';
 
 jest.mock('../../../api/stockApi', () => ({
@@ -40,6 +41,9 @@ jest.mock('../components/BacktestInputPanel/BacktestInputPanel', () => ({
       </button>
       <button type="button" onClick={() => props.onRemoveTicker('MSFT')}>
         Remove MSFT
+      </button>
+      <button type="button" onClick={() => props.onRemoveTicker('AAPL')}>
+        Remove AAPL
       </button>
       <button type="button" onClick={() => props.onWeightChange('AAPL', 60)}>
         Weight AAPL
@@ -103,6 +107,7 @@ const applePosition = {
 describe('BacktestingPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it('shows the empty state and hydrates watchlist/portfolio when needed', () => {
@@ -427,5 +432,155 @@ describe('BacktestingPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Load portfolio' }));
     expect(screen.getByText('Selected: AAPL')).toBeInTheDocument();
+  });
+
+  it('saves a successful backtest for chat and clears it when calculation fails', async () => {
+    jest.mocked(fetchStockBacktest).mockResolvedValueOnce(backtestResponse);
+    const user = userEvent.setup();
+    renderWithProviders(<BacktestingPage />, {
+      preloadedState: {
+        watchlist: {
+          items: [],
+          isLoading: false,
+          hasHydrated: true,
+          isSubmitting: false,
+          error: null,
+        },
+        portfolio: {
+          positions: [],
+          positionsTotal: 0,
+          positionsHasMore: false,
+          isLoadingMorePositions: false,
+          summaryPositions: [],
+          investmentSummary: { totalInvested: 0, totalWithdrawn: 0 },
+          transactions: [],
+          transactionsTotal: 0,
+          transactionsHasMore: false,
+          isLoadingTransactions: false,
+          isLoadingMoreTransactions: false,
+          stats: {
+            totalValue: 0,
+            totalPnl: 0,
+            unrealizedPnl: 0,
+            realizedPnl: 0,
+            dayPnl: 0,
+            totalPnlPercent: 0,
+            dayPnlPercent: 0,
+          },
+          sectorAllocations: [],
+          news: [],
+          isLoadingNews: false,
+          newsError: null,
+          hasHydratedNews: true,
+          equityHistory: [],
+          isLoadingEquityHistory: false,
+          hasHydratedSummary: true,
+          hasHydratedEquityHistory: true,
+          portfolioHealth: {
+            alignmentScore: null,
+            strategyId: null,
+            strategyName: null,
+            deviations: [],
+            isLoading: false,
+            hasHydrated: true,
+            error: null,
+          },
+          isLoading: false,
+          error: null,
+        },
+      },
+    });
+
+    expect(loadChatScreenContext()).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Add AAPL' }));
+    await user.click(screen.getByRole('button', { name: 'Calculate' }));
+
+    expect(await screen.findByText('Results 3 Years')).toBeInTheDocument();
+    expect(loadChatScreenContext()).toEqual({
+      kind: 'backtest',
+      period: '3y',
+      amount: 1000,
+      displayCurrency: 'USD',
+      allocations: [{ ticker: 'AAPL', name: 'Apple', weightPercent: 100 }],
+    });
+
+    jest.mocked(fetchStockBacktest).mockRejectedValueOnce({});
+    await user.click(screen.getByRole('button', { name: 'Calculate' }));
+    expect(await screen.findByText(ERROR_MESSAGES.STOCK_BACKTEST_FAILED)).toBeInTheDocument();
+    expect(loadChatScreenContext()).toBeNull();
+  });
+
+  it('clears the saved backtest when the last ticker is removed', async () => {
+    saveBacktestChatScreen({
+      kind: 'backtest',
+      period: '3y',
+      amount: 1000,
+      displayCurrency: 'USD',
+      allocations: [{ ticker: 'AAPL', name: 'Apple', weightPercent: 100 }],
+    });
+    jest.mocked(fetchStockBacktest).mockResolvedValue(backtestResponse);
+    const user = userEvent.setup();
+    renderWithProviders(<BacktestingPage />, {
+      preloadedState: {
+        watchlist: {
+          items: [],
+          isLoading: false,
+          hasHydrated: true,
+          isSubmitting: false,
+          error: null,
+        },
+        portfolio: {
+          positions: [],
+          positionsTotal: 0,
+          positionsHasMore: false,
+          isLoadingMorePositions: false,
+          summaryPositions: [],
+          investmentSummary: { totalInvested: 0, totalWithdrawn: 0 },
+          transactions: [],
+          transactionsTotal: 0,
+          transactionsHasMore: false,
+          isLoadingTransactions: false,
+          isLoadingMoreTransactions: false,
+          stats: {
+            totalValue: 0,
+            totalPnl: 0,
+            unrealizedPnl: 0,
+            realizedPnl: 0,
+            dayPnl: 0,
+            totalPnlPercent: 0,
+            dayPnlPercent: 0,
+          },
+          sectorAllocations: [],
+          news: [],
+          isLoadingNews: false,
+          newsError: null,
+          hasHydratedNews: true,
+          equityHistory: [],
+          isLoadingEquityHistory: false,
+          hasHydratedSummary: true,
+          hasHydratedEquityHistory: true,
+          portfolioHealth: {
+            alignmentScore: null,
+            strategyId: null,
+            strategyName: null,
+            deviations: [],
+            isLoading: false,
+            hasHydrated: true,
+            error: null,
+          },
+          isLoading: false,
+          error: null,
+        },
+      },
+    });
+
+    expect(loadChatScreenContext()?.kind).toBe('backtest');
+    await user.click(screen.getByRole('button', { name: 'Add AAPL' }));
+    await user.click(screen.getByRole('button', { name: 'Calculate' }));
+    expect(await screen.findByText('Results 3 Years')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Remove AAPL' }));
+    expect(loadChatScreenContext()).toBeNull();
+    expect(screen.queryByText('Results 3 Years')).not.toBeInTheDocument();
   });
 });

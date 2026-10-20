@@ -49,6 +49,16 @@ $transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   flex-direction: column;
   // height: 0 + flex: 1 establishes a definite height so children can use height: 100%
   height: 0;
+  padding-right: var(--chat-drawer-inset, 0px);
+  transition: padding-right $transition-smooth;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  @include mobile {
+    padding-right: 0;
+  }
 
   // A flex item, not padding: padding on this scroller is not part of the
   // scroll height, so the last rows sit under the fixed bottom nav.
@@ -56,4 +66,8 @@ $transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     content: '';
     flex: 0 0 var(--app-bottom-inset);
   }
+}
+
+.shell[data-chat-resizing='true'] .content {
+  transition: none;
 }

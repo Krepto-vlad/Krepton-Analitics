@@ -4,7 +4,13 @@ import {
   NEWS_PAGE_INITIAL_VISIBLE,
   NEWS_PAGE_LOAD_MORE_STEP,
   BEGINNER_TUTORIAL_ANCHORS,
+  TICKER_CHAT_SCREEN_NEWS_KIND,
 } from '../../constants';
+import {
+  loadChatScreenContext,
+  saveChatScreenContext,
+  saveNewsChatScreen,
+} from '../../utils/tickerChatSession';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import {
@@ -55,6 +61,30 @@ export function NewsPage() {
 
     void dispatch(fetchPortfolioNewsThunk());
   }, [dispatch, holdingsTickerKey]);
+
+  useEffect(() => {
+    if (!hasHydratedSummary) {
+      return;
+    }
+
+    if (summaryPositions.length === 0) {
+      saveNewsChatScreen();
+      return;
+    }
+
+    if (!hasHydratedNews) {
+      return;
+    }
+
+    if (newsError && loadChatScreenContext()?.kind === TICKER_CHAT_SCREEN_NEWS_KIND) {
+      saveChatScreenContext(null);
+      return;
+    }
+
+    if (!newsError) {
+      saveNewsChatScreen();
+    }
+  }, [hasHydratedNews, hasHydratedSummary, newsError, summaryPositions.length]);
 
   function handleRetryNews() {
     void dispatch(fetchPortfolioNewsThunk());

@@ -1,7 +1,8 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { fetchPortfolioNews, fetchPortfolioRebalancing } from '../../../api/portfolioApi';
 import { renderWithProviders } from '../../../__tests__/renderWithProviders';
+import { loadChatScreenContext } from '../../../utils/tickerChatSession';
 import { DashboardPage } from '../DashboardPage';
 
 jest.mock('../../../hooks/useLivePollingScope', () => ({
@@ -85,9 +86,10 @@ const applePosition = {
 describe('DashboardPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
   });
 
-  it('renders dashboard panels for an empty account', () => {
+  it('renders dashboard panels for an empty account', async () => {
     renderWithProviders(<DashboardPage />, {
       preloadedState: {
         watchlist: {
@@ -147,6 +149,9 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Positions none')).toBeInTheDocument();
     expect(screen.getByText('News empty')).toBeInTheDocument();
     expect(fetchPortfolioNews).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(loadChatScreenContext()).toEqual({ kind: 'portfolio', displayCurrency: 'USD' });
+    });
   });
 
   it('loads news for holdings, shows errors, and retries', async () => {

@@ -9,11 +9,27 @@ import {
   TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY,
   TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP,
   TICKER_CHAT_QUOTE_CHECKED_LABEL,
+  TICKER_CHAT_SCREEN_BACKTEST_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_DIVIDENDS_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_NEWS_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_PORTFOLIO_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_TICKER_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_WATCHLIST_EXPLAIN_MESSAGE,
   TICKER_CHAT_SUGGESTION_PROMPTS,
   TICKER_CHAT_WEB_SEARCH_LABEL,
 } from '../../../../constants';
 import { fetchTickerChatQuota, sendTickerChatMessage } from '../../../../api/portfolioApi';
 import type { AiQuotaStatus, TickerChatResponse } from '../../../../types/ai.types';
+import {
+  saveBacktestChatScreen,
+  saveCompareChatScreen,
+  saveDividendsChatScreen,
+  saveNewsChatScreen,
+  savePortfolioChatScreen,
+  saveTickerChatScreen,
+  saveWatchlistChatScreen,
+} from '../../../../utils/tickerChatSession';
 import { TickerChatDrawer } from '../TickerChatDrawer';
 
 jest.mock('../../../../api/portfolioApi', () => ({
@@ -118,7 +134,7 @@ describe('TickerChatDrawer', () => {
     const onWidthChange = jest.fn();
     renderDrawer({ isOpen: false, onOpenChange, onWidthChange });
 
-    await user.click(screen.getByRole('button', { name: `Open AI chat about ${APPLE_TICKER}` }));
+    await user.click(screen.getByRole('button', { name: 'Open AI chat' }));
     expect(onOpenChange).toHaveBeenCalledWith(true);
     expect(onWidthChange).toHaveBeenCalledWith(TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX);
   });
@@ -274,6 +290,246 @@ describe('TickerChatDrawer', () => {
     expect(screen.queryByText(ASSISTANT_REPLY)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'New chat' })).not.toBeInTheDocument();
     view.unmount();
+  });
+
+  it('sends the on-screen comparison and draws the returned bars', async () => {
+    saveCompareChatScreen([
+      { ticker: 'AAPL', name: 'Apple' },
+      { ticker: 'MSFT', name: 'Microsoft' },
+    ]);
+    jest.mocked(sendTickerChatMessage).mockResolvedValue({
+      ...chatResponse,
+      reply: 'Margins differ. Not a trade recommendation.',
+      displayBlocks: [
+        {
+          kind: 'compare-bars',
+          metricKey: 'peRatio',
+          title: 'P/E',
+          unit: 'multiple',
+          rows: [
+            { ticker: 'AAPL', name: 'Apple', value: 28.4 },
+            { ticker: 'MSFT', name: 'Microsoft', value: 35.2 },
+          ],
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Comparison: AAPL, MSFT')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Explain this comparison' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: TICKER_CHAT_SCREEN_EXPLAIN_MESSAGE,
+          screenContext: { kind: 'compare', tickers: ['AAPL', 'MSFT'] },
+        })
+      );
+    });
+    expect(await screen.findByText('28.4x')).toBeInTheDocument();
+    expect(screen.getByText('35.2x')).toBeInTheDocument();
+  });
+
+  it('sends the calculated backtest and draws its return bars', async () => {
+    saveBacktestChatScreen({
+      kind: 'backtest',
+      period: '3y',
+      amount: 1000,
+      displayCurrency: 'USD',
+      allocations: [{ ticker: 'AAPL', name: 'Apple', weightPercent: 100 }],
+    });
+    jest.mocked(sendTickerChatMessage).mockResolvedValue({
+      ...chatResponse,
+      reply: 'The backtest beat the benchmark. Not a trade recommendation.',
+      displayBlocks: [
+        {
+          kind: 'backtest-bars',
+          title: '3 Years',
+          rows: [
+            { label: 'Portfolio', returnPercent: 42 },
+            { label: 'S&P 500', returnPercent: 30 },
+            { label: 'AAPL', returnPercent: 42 },
+          ],
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Backtest: AAPL 100% · 3Y')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Explain this backtest' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: TICKER_CHAT_SCREEN_BACKTEST_EXPLAIN_MESSAGE,
+          screenContext: {
+            kind: 'backtest',
+            period: '3y',
+            amount: 1000,
+            displayCurrency: 'USD',
+            allocations: [{ ticker: 'AAPL', weightPercent: 100 }],
+          },
+        })
+      );
+    });
+    expect(await screen.findAllByText('+42.0%')).toHaveLength(2);
+    expect(screen.getByText('+30.0%')).toBeInTheDocument();
+  });
+
+  it('sends the dividend calendar and draws the monthly payouts', async () => {
+    saveDividendsChatScreen('USD');
+    jest.mocked(sendTickerChatMessage).mockResolvedValue({
+      ...chatResponse,
+      reply: 'January is the largest month. Not a trade recommendation.',
+      displayBlocks: [
+        {
+          kind: 'payout-bars',
+          title: '2026 payouts',
+          currency: 'USD',
+          rows: [{ label: 'Jan', amount: 12 }],
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Dividend calendar')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Explain this calendar' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: TICKER_CHAT_SCREEN_DIVIDENDS_EXPLAIN_MESSAGE,
+          screenContext: { kind: 'dividends', displayCurrency: 'USD' },
+        })
+      );
+    });
+    expect(await screen.findByText('12.00')).toBeInTheDocument();
+  });
+
+  it('sends the chart period the ticker page is showing', async () => {
+    saveTickerChatScreen('1y');
+    jest.mocked(sendTickerChatMessage).mockResolvedValue(chatResponse);
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Chart: 1Y')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Explain this chart' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: TICKER_CHAT_SCREEN_TICKER_EXPLAIN_MESSAGE,
+          screenContext: { kind: 'ticker', period: '1y' },
+        })
+      );
+    });
+  });
+
+  it('sends portfolio weights and draws them', async () => {
+    savePortfolioChatScreen('USD');
+    jest.mocked(sendTickerChatMessage).mockResolvedValue({
+      ...chatResponse,
+      reply: 'Apple is the whole portfolio. Not a trade recommendation.',
+      displayBlocks: [
+        {
+          kind: 'weight-bars',
+          title: 'Portfolio weights',
+          rows: [{ label: 'AAPL', weightPercent: 100 }],
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Portfolio weights')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Explain these weights' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: TICKER_CHAT_SCREEN_PORTFOLIO_EXPLAIN_MESSAGE,
+          screenContext: { kind: 'portfolio', displayCurrency: 'USD' },
+        })
+      );
+    });
+    expect(await screen.findByText('100.0%')).toBeInTheDocument();
+  });
+
+  it('sends the portfolio headlines', async () => {
+    saveNewsChatScreen();
+    jest.mocked(sendTickerChatMessage).mockResolvedValue({
+      ...chatResponse,
+      reply: 'The headline mentions Apple. Not a trade recommendation.',
+      displayBlocks: [
+        {
+          kind: 'headline-list',
+          title: 'Headlines',
+          rows: [{ ticker: 'AAPL', headline: 'Apple updates a product line' }],
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Portfolio news')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Explain these headlines' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: TICKER_CHAT_SCREEN_NEWS_EXPLAIN_MESSAGE,
+          screenContext: { kind: 'news' },
+        })
+      );
+    });
+    expect(await screen.findByText('Apple updates a product line')).toBeInTheDocument();
+  });
+
+  it('sends the watchlist', async () => {
+    saveWatchlistChatScreen();
+    jest.mocked(sendTickerChatMessage).mockResolvedValue(chatResponse);
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Watchlist')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Explain this watchlist' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: TICKER_CHAT_SCREEN_WATCHLIST_EXPLAIN_MESSAGE,
+          screenContext: { kind: 'watchlist' },
+        })
+      );
+    });
+  });
+
+  it('attaches the current page snapshot to a typed question', async () => {
+    saveWatchlistChatScreen();
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Watchlist')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Stop using this screen' })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Compare with/)).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(`Message about ${APPLE_TICKER}`), USER_QUESTION);
+    await user.click(screen.getByRole('button', { name: 'Send message' }));
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith({
+        ticker: APPLE_TICKER,
+        message: USER_QUESTION,
+        history: [],
+        includeHoldingContext: false,
+        screenContext: { kind: 'watchlist' },
+      });
+    });
   });
 
   it('shows the quota skeleton while quota is loading', () => {
