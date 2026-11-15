@@ -8,10 +8,6 @@ import {
   ROUTES,
   STOCK_MARKET_SESSION_LABELS,
   STOCK_PERIODS,
-  BEGINNER_TUTORIAL_ANCHORS,
-  TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX,
-  BEGINNER_TUTORIAL_CHAT_QUERY,
-  BEGINNER_TUTORIAL_CHAT_OPEN_VALUE,
   buildTickerDetailPath,
 } from '../../../constants';
 import { renderWithProviders } from '../../../__tests__/renderWithProviders';
@@ -32,6 +28,7 @@ import {
 import type { PortfolioPosition } from '../../../types/portfolio.types';
 import type { StockCompareItem, StockQuote } from '../../../types/stock.types';
 import type { WatchlistItem } from '../../../types/watchlist.types';
+import { loadChatScreenContext, saveTickerChatScreen } from '../../../utils/tickerChatSession';
 import { TickerDetailPage } from '../TickerDetailPage';
 
 jest.mock('../../../api/fxApi', () => ({
@@ -60,44 +57,6 @@ jest.mock('../../../api/watchlistApi', () => ({
 jest.mock('../components/TickerPriceChartPanel', () => ({
   TickerPriceChartPanel: ({ isLoading }: { isLoading: boolean }) => (
     <div>{isLoading ? 'Chart loading' : 'Price chart mock'}</div>
-  ),
-}));
-
-jest.mock('../components/TickerChatDrawer', () => ({
-  TickerChatDrawer: ({
-    ticker,
-    companyName,
-    isOpen,
-    onOpenChange,
-    onWidthChange,
-    onResizingChange,
-  }: {
-    ticker: string;
-    companyName: string;
-    isOpen: boolean;
-    onOpenChange: (isOpen: boolean) => void;
-    onWidthChange: (widthPx: number) => void;
-    onResizingChange: (isResizing: boolean) => void;
-  }) => (
-    <div>
-      <button type="button" onClick={() => onOpenChange(true)}>
-        Open chat mock
-      </button>
-      <button type="button" onClick={() => onOpenChange(false)}>
-        Close chat mock
-      </button>
-      <button type="button" onClick={() => onWidthChange(TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX)}>
-        Resize chat mock
-      </button>
-      <button type="button" onClick={() => onResizingChange(true)}>
-        Start chat resize
-      </button>
-      {isOpen ? (
-        <p data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.tickerChat}>
-          Chat open for {ticker} {companyName}
-        </p>
-      ) : null}
-    </div>
   ),
 }));
 
@@ -217,6 +176,7 @@ function renderTickerPage(
 describe('TickerDetailPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
     jest.mocked(fetchStockQuote).mockResolvedValue(appleQuote);
     jest.mocked(fetchStockFundamentals).mockResolvedValue(appleFundamentals);
     jest.mocked(fetchStockHistory).mockResolvedValue({
@@ -238,10 +198,14 @@ describe('TickerDetailPage', () => {
     jest.mocked(deleteWatchlistItem).mockResolvedValue(undefined);
   });
 
-  it('shows an invalid-ticker banner', () => {
+  it('shows an invalid-ticker banner', async () => {
+    saveTickerChatScreen('1y');
     renderTickerPage('!!!');
 
     expect(screen.getByText(ERROR_MESSAGES.STOCK_INVALID_TICKER)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(loadChatScreenContext()).toBeNull();
+    });
     expect(screen.getByRole('link', { name: /Back to dashboard/ })).toHaveAttribute(
       'href',
       ROUTES.DASHBOARD
@@ -272,10 +236,12 @@ describe('TickerDetailPage', () => {
       `${ROUTES.PORTFOLIO}?section=positions`
     );
     expect(screen.getByText('Price chart mock')).toBeInTheDocument();
+    expect(loadChatScreenContext()).toEqual({ kind: 'ticker', period: '1y' });
     expect(screen.getByText('Key statistics')).toBeInTheDocument();
     expect(screen.getByText('52-Week Range')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: STOCK_PERIODS[0].label }));
+    expect(loadChatScreenContext()).toEqual({ kind: 'ticker', period: STOCK_PERIODS[0].value });
     expect(fetchStockHistory).toHaveBeenCalledWith(
       APPLE_TICKER,
       STOCK_PERIODS[0].value,
@@ -325,35 +291,6 @@ describe('TickerDetailPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Add to watchlist' }));
     expect(await screen.findByText(ERROR_MESSAGES.WATCHLIST_ADD_FAILED)).toBeInTheDocument();
-  });
-
-  it('wires the chat drawer open, close, and resize callbacks', async () => {
-    const user = userEvent.setup();
-    renderTickerPage();
-    expect(await screen.findByRole('heading', { name: APPLE_TICKER })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Open chat mock' }));
-    expect(
-      screen.getByText(`Chat open for ${APPLE_TICKER} ${APPLE_COMPANY_NAME}`)
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Resize chat mock' }));
-    await user.click(screen.getByRole('button', { name: 'Start chat resize' }));
-    await user.click(screen.getByRole('button', { name: 'Close chat mock' }));
-    expect(
-      screen.queryByText(`Chat open for ${APPLE_TICKER} ${APPLE_COMPANY_NAME}`)
-    ).not.toBeInTheDocument();
-  });
-
-  it('opens ticker chat from the tutorial query', async () => {
-    renderTickerPage(
-      APPLE_TICKER,
-      {},
-      `${buildTickerDetailPath(APPLE_TICKER)}?${BEGINNER_TUTORIAL_CHAT_QUERY}=${BEGINNER_TUTORIAL_CHAT_OPEN_VALUE}`
-    );
-
-    expect(
-      await screen.findByText(`Chat open for ${APPLE_TICKER} ${APPLE_COMPANY_NAME}`)
-    ).toBeInTheDocument();
   });
 
   it('shows a quote skeleton while the quote is still loading', async () => {

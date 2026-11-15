@@ -46,7 +46,7 @@ UI (NewsPage / TickerChatDrawer)
   → geminiClient (prompts, optional grounding)
 ```
 
-Sequence diagrams: keep the mermaid from the engineering note when shortening that file; experts can also read `Docs/AI_INTEGRATION.md` until that content is fully inlined here.
+The flow above is the diploma description of the assistant.
 
 ### Key Implementation Decisions
 
@@ -87,7 +87,6 @@ Sequence diagrams: keep the mermaid from the engineering note when shortening th
 ## References
 
 - `backend/src/services/geminiClient.ts`, `tickerChatScope`, `newsSummaryService`
-- Working (internal): `Docs/AI_INTEGRATION.md`
 - Dialogs: [ai-dialogs.md](../../appendices/ai-dialogs.md)
 - Lab latency: [ai-lab-latency.md](../../appendices/ai-lab-latency.md)
 - User guide: [ai-assistant.md](../../03-user-guide/ai-assistant.md)

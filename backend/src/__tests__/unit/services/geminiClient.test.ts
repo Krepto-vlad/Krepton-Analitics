@@ -32,6 +32,7 @@ jest.mock('../../../utils/logger.js', () => ({
   },
 }));
 
+import { AI_TICKER_CHAT_MAX_OUTPUT_TOKENS, GEMINI_THINKING_LEVEL } from '../../../constants.js';
 import {
   generateAlignmentExplanationWithGemini,
   generateBriefingWithGemini,
@@ -460,6 +461,58 @@ describe('geminiClient', () => {
           reply: expect.stringMatching(/position/i),
           groundingEnabled: false,
         })
+      );
+    });
+
+    it('drops thought parts and asks Gemini 3.8 for low thinking', async () => {
+      mockPost.mockResolvedValue({
+        data: {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  { thought: true, text: 'internal reasoning about Apple' },
+                  { text: 'Apple moved with the broader market.' },
+                ],
+              },
+            },
+          ],
+        },
+      });
+
+      await expect(generateTickerChatReplyWithGemini(chatContext())).resolves.toEqual({
+        reply: 'Apple moved with the broader market.',
+        sources: [],
+        groundingEnabled: false,
+      });
+
+      expect(mockPost.mock.calls[0]?.[1]).toEqual(
+        expect.objectContaining({
+          generationConfig: {
+            maxOutputTokens: AI_TICKER_CHAT_MAX_OUTPUT_TOKENS,
+            thinkingConfig: { thinkingLevel: GEMINI_THINKING_LEVEL },
+          },
+        })
+      );
+    });
+
+    it('puts the Krepton screen comparison into the system instruction', async () => {
+      mockPost.mockResolvedValue(geminiTextResponse('Margins differ. Not a trade recommendation.'));
+
+      await generateTickerChatReplyWithGemini(
+        chatContext({
+          screenContextText: 'SCREEN THE USER IS LOOKING AT — MSFT and AAPL.',
+        })
+      );
+
+      const requestBody = mockPost.mock.calls[0]?.[1] as {
+        systemInstruction?: { parts?: Array<{ text?: string }> };
+      };
+      expect(requestBody.systemInstruction?.parts?.[0]?.text).toContain(
+        'SCREEN THE USER IS LOOKING AT'
+      );
+      expect(requestBody.systemInstruction?.parts?.[0]?.text).toContain(
+        'Tickers named in the Krepton screen context are in scope.'
       );
     });
 

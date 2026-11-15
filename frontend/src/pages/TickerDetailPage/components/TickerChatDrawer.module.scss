@@ -2,7 +2,6 @@
 @use '../../../styles/mixins' as *;
 
 $fab-size: 48px;
-$transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 $resize-handle-width: 6px;
 
 .fab {
@@ -23,8 +22,8 @@ $resize-handle-width: 6px;
   cursor: pointer;
   transform: translateY(-50%);
   transition:
-    opacity $transition,
-    transform $transition,
+    opacity $transition-smooth,
+    transform $transition-smooth,
     background 0.15s ease,
     border-color 0.15s ease;
 
@@ -72,9 +71,9 @@ $resize-handle-width: 6px;
   box-shadow: $shadow-lg;
   transform: translateX(100%);
   transition:
-    width $transition,
-    transform $transition,
-    border-color $transition;
+    width $transition-smooth,
+    transform $transition-smooth,
+    border-color $transition-smooth;
 
   &:focus {
     outline: none;
@@ -227,22 +226,9 @@ $resize-handle-width: 6px;
 }
 
 .closeButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @include modal-close-button;
   width: 32px;
   height: 32px;
-  border: 1px solid $color-border;
-  border-radius: $radius-md;
-  background: transparent;
-  color: $color-foreground-muted;
-  cursor: pointer;
-  flex-shrink: 0;
-
-  &:hover {
-    color: $color-foreground;
-    border-color: $color-foreground-muted;
-  }
 }
 
 .suggestions {
@@ -307,7 +293,7 @@ $resize-handle-width: 6px;
   padding: $space-2 $space-3;
   border: 1px solid $color-border;
   border-radius: $radius-full;
-  background: rgba(255, 255, 255, 0.04);
+  background: $color-overlay;
   color: $color-foreground-muted;
   font: inherit;
   font-size: $font-size-xs;
@@ -656,6 +642,57 @@ $resize-handle-width: 6px;
 
   &:hover:not(:disabled) {
     background: $color-primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.screenContext {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin: $space-3 $space-4 $space-3;
+  padding: $space-3;
+  border: 1px solid $color-primary-border;
+  border-radius: $radius-md;
+  background: $color-surface-elevated;
+}
+
+.screenContextLabel {
+  margin: 0;
+  color: $color-primary-on-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.screenContextActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.screenContextButton {
+  padding: $space-1 $space-2;
+  border: 1px solid $color-primary-border;
+  border-radius: $radius-full;
+  background: $color-primary-muted;
+  color: $color-primary-on-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    border-color: $color-primary-solid;
+    background: $color-primary-solid;
+    color: $color-on-primary;
   }
 
   &:disabled {

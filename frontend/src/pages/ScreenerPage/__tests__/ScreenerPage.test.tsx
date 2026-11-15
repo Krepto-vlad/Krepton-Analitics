@@ -4,6 +4,7 @@ import { fetchStockCompare } from '../../../api/stockApi';
 import { ERROR_MESSAGES } from '../../../constants';
 import { renderWithProviders } from '../../../__tests__/renderWithProviders';
 import type { StockCompareItem } from '../../../types/stock.types';
+import { loadChatScreenContext } from '../../../utils/tickerChatSession';
 import { ScreenerPage } from '../ScreenerPage';
 
 jest.mock('../../../api/stockApi', () => ({
@@ -101,6 +102,7 @@ function compareItem(ticker: string): StockCompareItem {
 describe('ScreenerPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it('does not compare until two tickers are selected', async () => {
@@ -145,8 +147,16 @@ describe('ScreenerPage', () => {
     await user.click(screen.getByRole('button', { name: 'Add MSFT' }));
 
     expect(await screen.findByText('Compared AAPL,MSFT')).toBeInTheDocument();
+    expect(loadChatScreenContext()).toEqual({
+      kind: 'compare',
+      tickers: [
+        { ticker: 'AAPL', name: 'Apple' },
+        { ticker: 'MSFT', name: 'Microsoft' },
+      ],
+    });
     await user.click(screen.getByRole('button', { name: 'Remove AAPL' }));
     await waitFor(() => expect(screen.getByText('Picked: MSFT')).toBeInTheDocument());
+    expect(loadChatScreenContext()).toEqual({ kind: 'movers' });
   });
 
   it('shows a compare error', async () => {

@@ -6,8 +6,14 @@ import {
   BACKTEST_MAX_TICKERS,
   ERROR_MESSAGES,
   LOADING_MESSAGES,
+  TICKER_CHAT_SCREEN_BACKTEST_KIND,
   type BacktestPeriod,
 } from '../../constants';
+import {
+  loadChatScreenContext,
+  saveBacktestChatScreen,
+  saveChatScreenContext,
+} from '../../utils/tickerChatSession';
 import { fetchStockBacktest } from '../../api/stockApi';
 import { getRejectedMessage } from '../../utils/apiError';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
@@ -85,8 +91,22 @@ export function BacktestingPage() {
       });
       setBacktestData(response);
       setSelectedTickers(normalizedAllocations);
+      saveBacktestChatScreen({
+        kind: TICKER_CHAT_SCREEN_BACKTEST_KIND,
+        period,
+        amount,
+        displayCurrency,
+        allocations: normalizedAllocations.map((item) => ({
+          ticker: item.ticker,
+          name: item.name,
+          weightPercent: item.weightPercent,
+        })),
+      });
     } catch (calculateError) {
       setBacktestData(null);
+      if (loadChatScreenContext()?.kind === TICKER_CHAT_SCREEN_BACKTEST_KIND) {
+        saveChatScreenContext(null);
+      }
       setError(getRejectedMessage(calculateError, ERROR_MESSAGES.STOCK_BACKTEST_FAILED));
     } finally {
       setIsCalculating(false);
@@ -104,9 +124,18 @@ export function BacktestingPage() {
   }
 
   function handleRemoveTicker(ticker: string) {
-    setSelectedTickers((current) =>
-      rebalanceEqualWeights(current.filter((item) => item.ticker !== ticker))
+    const remainingTickers = rebalanceEqualWeights(
+      selectedTickers.filter((item) => item.ticker !== ticker)
     );
+    setSelectedTickers(remainingTickers);
+    if (remainingTickers.length > 0) {
+      return;
+    }
+
+    setBacktestData(null);
+    if (loadChatScreenContext()?.kind === TICKER_CHAT_SCREEN_BACKTEST_KIND) {
+      saveChatScreenContext(null);
+    }
   }
 
   function handleWeightChange(ticker: string, weightPercent: number) {

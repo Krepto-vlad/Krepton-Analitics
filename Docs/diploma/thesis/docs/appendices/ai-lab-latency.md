@@ -2,7 +2,7 @@
 
 # Appendix: AI lab latency
 
-**Not a production SLA.** Measured on a developer machine against Google Gemini (`gemini-3.1-flash-lite`) through `generateTickerChatReplyWithGemini` (same gateway as ticker chat). No Azure URL yet. Re-run on staging before the Cloud/AI expert slot.
+**Not a production SLA.** The 2026-08-19 numbers below were measured on a developer machine against `gemini-3.1-flash-lite` through `generateTickerChatReplyWithGemini`. Production now calls `gemini-3.8-flash` (`GEMINI_THINKING_LEVEL=low`). Re-run on staging before the Cloud/AI expert slot.
 
 Command (from `backend/`):
 

@@ -35,7 +35,7 @@ No Redis, Kafka, or extra microservice — those would be other criteria we are 
 
 ### Drizzle instead of Prisma
 
-See [ADR-001](../../../ADR-001-drizzle-orm.md) (working note) and [Backend criterion](criteria/backend.md). Prisma would hide the HMAC join that the privacy model depends on.
+Drizzle covers the typed tables. The HMAC portfolio stays raw SQL so the anonymity boundary stays visible. See [Backend criterion](criteria/backend.md). Prisma would hide that join.
 
 ### In-memory quote cache instead of Redis
 

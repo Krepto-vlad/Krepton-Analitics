@@ -14,7 +14,7 @@ backend or the database.
 cd backend
 cp .env.example .env   # first time only
 npm run migrate:up
-npm run seed:demo      # creates demo@krepton.local / DemoPassw0rd! with sample holdings
+npm run seed:demo      # creates demo@krepton.local when missing; password is SEED_DEMO_PASSWORD
 npm run dev
 
 # Terminal 2 — e2e

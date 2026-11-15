@@ -1,8 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarRange } from 'lucide-react';
-import { ERROR_MESSAGES, LOADING_MESSAGES, type Currency } from '../../constants';
+import {
+  ERROR_MESSAGES,
+  LOADING_MESSAGES,
+  TICKER_CHAT_SCREEN_DIVIDENDS_KIND,
+  type Currency,
+} from '../../constants';
 import { fetchPortfolioDividends } from '../../api/portfolioApi';
 import { getRejectedMessage } from '../../utils/apiError';
+import {
+  loadChatScreenContext,
+  saveChatScreenContext,
+  saveDividendsChatScreen,
+} from '../../utils/tickerChatSession';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchPortfolioSummaryThunk } from '../../features/portfolio/portfolioSlice';
@@ -45,12 +55,16 @@ export function DividendsPage() {
           setCalendarData(response);
           setLoadedForCurrency(displayCurrency);
           setError(null);
+          saveDividendsChatScreen(displayCurrency);
         }
       } catch (loadError) {
         if (!cancelled) {
           setCalendarData(null);
           setLoadedForCurrency(displayCurrency);
           setError(getRejectedMessage(loadError, ERROR_MESSAGES.DIVIDEND_CALENDAR_FAILED));
+          if (loadChatScreenContext()?.kind === TICKER_CHAT_SCREEN_DIVIDENDS_KIND) {
+            saveChatScreenContext(null);
+          }
         }
       }
     })();

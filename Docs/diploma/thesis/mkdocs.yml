@@ -89,7 +89,7 @@ nav:
     - API Reference: appendices/api-reference.md
     - AI dialogs: appendices/ai-dialogs.md
     - AI lab latency: appendices/ai-lab-latency.md
-    - Database Schema: appendices/db-schema.md
+    - Database pack: appendices/db-schema.md
 
 extra:
   social:

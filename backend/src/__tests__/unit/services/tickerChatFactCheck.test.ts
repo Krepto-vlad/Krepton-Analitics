@@ -68,6 +68,22 @@ describe('tickerChatFactCheck', () => {
     expect(result.reply).toContain('no open TTWO position');
   });
 
+  it('accepts a price from the comparison on screen', () => {
+    const result = applyTickerChatFactCheck({
+      ticker: 'MSFT',
+      userMessage: 'Explain the comparison on screen.',
+      reply: 'AAPL is trading at $190 while MSFT is at 420.',
+      price: 420,
+      currency: 'USD',
+      changePercent: 0.4,
+      holding: null,
+      referencePrices: [190],
+    });
+
+    expect(result.factCheck.quoteVerified).toBe(true);
+    expect(result.factCheck.corrected).toBe(false);
+  });
+
   it('uses a Russian appendix when the thread is in Russian', () => {
     const result = applyTickerChatFactCheck({
       ticker: 'TTWO',

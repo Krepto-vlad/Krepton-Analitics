@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Moon, Star, Sun } from 'lucide-react';
 import {
   DEFAULT_INTERVAL,
@@ -8,15 +8,18 @@ import {
   LOADING_MESSAGES,
   ROUTES,
   STOCK_PERIODS,
-  TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX,
+  TICKER_CHAT_SCREEN_TICKER_KIND,
   TICKER_FORMAT_PATTERN,
-  BEGINNER_TUTORIAL_CHAT_QUERY,
-  BEGINNER_TUTORIAL_CHAT_OPEN_VALUE,
   type Currency,
 } from '../../constants';
 import { fetchLiveFxRates } from '../../api/fxApi';
 import { fetchTickerTransactions, type PortfolioTransaction } from '../../api/portfolioApi';
-import { saveActiveTickerChat } from '../../utils/tickerChatSession';
+import {
+  loadChatScreenContext,
+  saveActiveTickerChat,
+  saveChatScreenContext,
+  saveTickerChatScreen,
+} from '../../utils/tickerChatSession';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchPortfolioSummaryThunk } from '../../features/portfolio/portfolioSlice';
@@ -54,7 +57,6 @@ import {
   getTodayIsoDate,
 } from '../../utils/moneyDisplay';
 import { aggregateTickerHoldings } from '../../utils/tickerHoldings';
-import { toCssCustomProperties } from '../../utils/cssCustomProperties';
 import { buildTradeChartMarkers } from '../../utils/tradeChartMarkers';
 import type { OhlcvCandle } from '../../types/stock.types';
 import {
@@ -64,7 +66,6 @@ import {
   formatCompareMetricValue,
   getCompareMetricSecondaryValue,
 } from '../ScreenerPage/utils/compareMatrix';
-import { TickerChatDrawer } from './components/TickerChatDrawer';
 import { TickerNewsPanel } from './components/TickerNewsPanel';
 import { TickerPriceChartPanel } from './components/TickerPriceChartPanel';
 import styles from './TickerDetailPage.module.scss';
@@ -127,15 +128,12 @@ function convertCandlesToDisplayCurrency(
 
 export function TickerDetailPage() {
   const { ticker: rawTicker = '' } = useParams<{ ticker: string }>();
-  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const displayCurrency = useAppSelector((state) => state.ui.currency);
 
   const ticker = resolveTickerFromRouteParam(rawTicker);
   const isValidTicker = TICKER_FORMAT_PATTERN.test(ticker);
   const sessionTooltipId = useId();
-  const shouldOpenChatFromQuery =
-    searchParams.get(BEGINNER_TUTORIAL_CHAT_QUERY) === BEGINNER_TUTORIAL_CHAT_OPEN_VALUE;
 
   const [selectedPeriod, setSelectedPeriod] = useState<StockPeriodValue>(
     DEFAULT_PERIOD as StockPeriodValue
@@ -157,33 +155,6 @@ export function TickerDetailPage() {
     ticker: string;
     items: PortfolioTransaction[];
   }>({ ticker: '', items: [] });
-  const [chatDrawerState, setChatDrawerState] = useState<{
-    ticker: string;
-    isOpen: boolean;
-  }>({ ticker, isOpen: shouldOpenChatFromQuery });
-  const [chatDrawerWidthPx, setChatDrawerWidthPx] = useState(TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX);
-  const [isChatDrawerResizing, setIsChatDrawerResizing] = useState(false);
-
-  if (chatDrawerState.ticker !== ticker) {
-    setChatDrawerState({ ticker, isOpen: shouldOpenChatFromQuery });
-  }
-
-  const isChatOpen = chatDrawerState.ticker === ticker && chatDrawerState.isOpen;
-
-  const handleChatOpenChange = useCallback(
-    (nextIsOpen: boolean) => {
-      setChatDrawerState({ ticker, isOpen: nextIsOpen });
-    },
-    [ticker]
-  );
-
-  const handleChatWidthChange = useCallback((nextWidthPx: number) => {
-    setChatDrawerWidthPx(nextWidthPx);
-  }, []);
-
-  const handleChatResizingChange = useCallback((nextIsResizing: boolean) => {
-    setIsChatDrawerResizing(nextIsResizing);
-  }, []);
 
   const watchlistActionError =
     watchlistActionErrorState?.ticker === ticker ? watchlistActionErrorState.message : null;
@@ -274,6 +245,17 @@ export function TickerDetailPage() {
 
     saveActiveTickerChat(ticker, quote.name || ticker);
   }, [isValidTicker, quote, ticker]);
+
+  useEffect(() => {
+    if (!isValidTicker) {
+      if (loadChatScreenContext()?.kind === TICKER_CHAT_SCREEN_TICKER_KIND) {
+        saveChatScreenContext(null);
+      }
+      return;
+    }
+
+    saveTickerChatScreen(selectedPeriod);
+  }, [isValidTicker, selectedPeriod]);
 
   useEffect(() => {
     if (!isValidTicker) {
@@ -482,12 +464,7 @@ export function TickerDetailPage() {
 
   return (
     <div className={styles.layout}>
-      <div
-        className={`${styles.mainColumn} ${isChatDrawerResizing ? styles.mainColumnResizing : ''}`}
-        style={toCssCustomProperties({
-          '--chat-drawer-inset': isChatOpen ? `${chatDrawerWidthPx}px` : '0px',
-        })}
-      >
+      <div className={styles.mainColumn}>
         <div className={styles.page}>
           <div className={styles.topBar}>
             <Link to={ROUTES.DASHBOARD} className={styles.backLink}>
@@ -783,19 +760,6 @@ export function TickerDetailPage() {
           )}
         </div>
       </div>
-
-      {!isInitialLoading && quote ? (
-        <TickerChatDrawer
-          key={ticker}
-          ticker={ticker}
-          companyName={companyName}
-          isOpen={isChatOpen}
-          widthPx={chatDrawerWidthPx}
-          onOpenChange={handleChatOpenChange}
-          onWidthChange={handleChatWidthChange}
-          onResizingChange={handleChatResizingChange}
-        />
-      ) : null}
     </div>
   );
 }

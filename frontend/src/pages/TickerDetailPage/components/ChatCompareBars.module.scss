@@ -1,0 +1,113 @@
+@use '../../../styles/variables' as *;
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  width: 100%;
+  margin-top: $space-2;
+}
+
+.card {
+  padding: $space-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.title {
+  margin: 0 0 $space-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-muted;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row,
+.backtestRow,
+.payoutRow {
+  display: grid;
+  gap: $space-2;
+  align-items: center;
+  justify-items: stretch;
+  width: 100%;
+}
+
+.row,
+.backtestRow {
+  grid-template-columns: 4.5rem minmax(0, 1fr) 5.5rem;
+}
+
+.payoutRow {
+  grid-template-columns: 3.5rem minmax(0, 1fr) max-content;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.headlineText {
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}
+
+.allocationRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 3rem minmax(0, 1fr) 3rem;
+  gap: $space-1;
+  align-items: center;
+}
+
+.ticker,
+.value {
+  font-size: $font-size-xs;
+  font-variant-numeric: tabular-nums;
+}
+
+.value {
+  text-align: right;
+}
+
+.track {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  height: 8px;
+  overflow: hidden;
+  border-radius: $radius-full;
+  background: $color-primary-muted;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  margin-right: auto;
+  border-radius: $radius-full;
+  background: $color-primary;
+}
+
+.barNegative {
+  background: $color-danger;
+}
+
+.barTarget {
+  background: $color-benchmark;
+}
+
+.legend {
+  margin: $space-2 0 0;
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}

@@ -9,9 +9,16 @@ import {
   type ReactElement,
 } from 'react';
 import { CircleHelp, Loader2, MessageSquare, SendHorizontal, X } from 'lucide-react';
-import { loadTickerChatSession, saveTickerChatSession } from '../../../utils/tickerChatSession';
+import {
+  loadAppChatSession,
+  loadChatScreenContext,
+  saveAppChatSession,
+  toVisibleTickerChatMessage,
+  type ChatScreenContext,
+} from '../../../utils/tickerChatSession';
 import { fetchTickerChatQuota, sendTickerChatMessage } from '../../../api/portfolioApi';
 import { ChatMarkdown } from '../../../components/ChatMarkdown/ChatMarkdown';
+import { ChatCompareBars } from './ChatCompareBars';
 import {
   APP_SHELL_HEADER_HEIGHT_PX,
   ERROR_MESSAGES,
@@ -26,7 +33,32 @@ import {
   TICKER_CHAT_MAX_HISTORY_MESSAGES,
   TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS,
   TICKER_CHAT_MAX_MESSAGE_CHARS,
+  TICKER_CHAT_PAGE_MESSAGE_LABEL,
+  TICKER_CHAT_PAGE_PLACEHOLDER,
+  TICKER_CHAT_PAGE_SUBJECT,
+  TICKER_CHAT_PAGE_SUBTITLE,
   TICKER_CHAT_QUOTE_CHECKED_LABEL,
+  BACKTEST_PERIODS,
+  STOCK_PERIODS,
+  TICKER_CHAT_SCREEN_BACKTEST_BENCHMARK_MESSAGE,
+  TICKER_CHAT_SCREEN_BACKTEST_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_CONTEXT_EVENT,
+  TICKER_CHAT_SCREEN_DIFFERENCES_MESSAGE,
+  TICKER_CHAT_SCREEN_DIVIDENDS_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_DIVIDENDS_MONTHS_MESSAGE,
+  TICKER_CHAT_SCREEN_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_NEWS_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_NEWS_MENTIONS_MESSAGE,
+  TICKER_CHAT_SCREEN_PORTFOLIO_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_PORTFOLIO_LARGEST_MESSAGE,
+  TICKER_CHAT_SCREEN_MOVERS_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_MOVERS_STANDOUT_MESSAGE,
+  TICKER_CHAT_SCREEN_REBALANCING_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_REBALANCING_NEAREST_MESSAGE,
+  TICKER_CHAT_SCREEN_TICKER_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_TICKER_FUNDAMENTALS_MESSAGE,
+  TICKER_CHAT_SCREEN_WATCHLIST_EXPLAIN_MESSAGE,
+  TICKER_CHAT_SCREEN_WATCHLIST_MOVED_MESSAGE,
   TICKER_CHAT_SUGGESTION_PROMPTS,
   TICKER_CHAT_SUGGESTIONS_MARQUEE_DURATION_SEC,
   TICKER_CHAT_WEB_SEARCH_LABEL,
@@ -34,6 +66,7 @@ import {
 } from '../../../constants';
 import type {
   AiQuotaStatus,
+  GenerateTickerChatPayload,
   TickerChatFactCheck,
   TickerChatHistoryMessage,
   TickerChatUiMessage,
@@ -44,9 +77,137 @@ import { useFocusTrap } from '../../../hooks/useFocusTrap';
 import { AiGeneratedNotice, Skeleton } from '../../../components/ui';
 import styles from './TickerChatDrawer.module.scss';
 
+function formatAllocationWeight(weightPercent: number): string {
+  const roundedWeight = Math.round(weightPercent * 10) / 10;
+  return Number.isInteger(roundedWeight) ? `${roundedWeight}%` : `${roundedWeight.toFixed(1)}%`;
+}
+
+function screenContextView(screenContext: ChatScreenContext): {
+  label: string;
+  actions: Array<{ label: string; message: string }>;
+} {
+  if (screenContext.kind === 'compare') {
+    return {
+      label: `Comparison: ${screenContext.tickers.map((item) => item.ticker).join(', ')}`,
+      actions: [
+        { label: 'Explain this comparison', message: TICKER_CHAT_SCREEN_EXPLAIN_MESSAGE },
+        { label: 'Explain the differences', message: TICKER_CHAT_SCREEN_DIFFERENCES_MESSAGE },
+      ],
+    };
+  }
+
+  if (screenContext.kind === 'backtest') {
+    const periodLabel =
+      BACKTEST_PERIODS.find((period) => period.value === screenContext.period)?.label ??
+      screenContext.period;
+    const allocationLabel = screenContext.allocations
+      .map(
+        (allocation) => `${allocation.ticker} ${formatAllocationWeight(allocation.weightPercent)}`
+      )
+      .join(' · ');
+
+    return {
+      label: `Backtest: ${allocationLabel} · ${periodLabel}`,
+      actions: [
+        { label: 'Explain this backtest', message: TICKER_CHAT_SCREEN_BACKTEST_EXPLAIN_MESSAGE },
+        {
+          label: 'How did it compare with the S&P 500',
+          message: TICKER_CHAT_SCREEN_BACKTEST_BENCHMARK_MESSAGE,
+        },
+      ],
+    };
+  }
+
+  if (screenContext.kind === 'dividends') {
+    return {
+      label: 'Dividend calendar',
+      actions: [
+        {
+          label: 'Explain this calendar',
+          message: TICKER_CHAT_SCREEN_DIVIDENDS_EXPLAIN_MESSAGE,
+        },
+        {
+          label: 'Which months pay the most',
+          message: TICKER_CHAT_SCREEN_DIVIDENDS_MONTHS_MESSAGE,
+        },
+      ],
+    };
+  }
+
+  if (screenContext.kind === 'ticker') {
+    const periodLabel =
+      STOCK_PERIODS.find((period) => period.value === screenContext.period)?.label ??
+      screenContext.period;
+    return {
+      label: `Chart: ${periodLabel}`,
+      actions: [
+        { label: 'Explain this chart', message: TICKER_CHAT_SCREEN_TICKER_EXPLAIN_MESSAGE },
+        {
+          label: 'What do the fundamentals say',
+          message: TICKER_CHAT_SCREEN_TICKER_FUNDAMENTALS_MESSAGE,
+        },
+      ],
+    };
+  }
+
+  if (screenContext.kind === 'portfolio') {
+    return {
+      label: 'Portfolio weights',
+      actions: [
+        { label: 'Explain these weights', message: TICKER_CHAT_SCREEN_PORTFOLIO_EXPLAIN_MESSAGE },
+        {
+          label: 'Which holdings are largest',
+          message: TICKER_CHAT_SCREEN_PORTFOLIO_LARGEST_MESSAGE,
+        },
+      ],
+    };
+  }
+
+  if (screenContext.kind === 'news') {
+    return {
+      label: 'Portfolio news',
+      actions: [
+        { label: 'Explain these headlines', message: TICKER_CHAT_SCREEN_NEWS_EXPLAIN_MESSAGE },
+        { label: 'What mentions my holdings', message: TICKER_CHAT_SCREEN_NEWS_MENTIONS_MESSAGE },
+      ],
+    };
+  }
+
+  if (screenContext.kind === 'watchlist') {
+    return {
+      label: 'Watchlist',
+      actions: [
+        { label: 'Explain this watchlist', message: TICKER_CHAT_SCREEN_WATCHLIST_EXPLAIN_MESSAGE },
+        { label: 'What moved today', message: TICKER_CHAT_SCREEN_WATCHLIST_MOVED_MESSAGE },
+      ],
+    };
+  }
+
+  if (screenContext.kind === 'rebalancing') {
+    return {
+      label: 'Rebalancing target',
+      actions: [
+        { label: 'Explain this drift', message: TICKER_CHAT_SCREEN_REBALANCING_EXPLAIN_MESSAGE },
+        {
+          label: 'What is nearest the target',
+          message: TICKER_CHAT_SCREEN_REBALANCING_NEAREST_MESSAGE,
+        },
+      ],
+    };
+  }
+
+  return {
+    label: 'Market movers',
+    actions: [
+      { label: "Explain today's movers", message: TICKER_CHAT_SCREEN_MOVERS_EXPLAIN_MESSAGE },
+      { label: 'What stands out', message: TICKER_CHAT_SCREEN_MOVERS_STANDOUT_MESSAGE },
+    ],
+  };
+}
+
 interface TickerChatDrawerProps {
-  ticker: string;
-  companyName: string;
+  ticker?: string;
+  companyName?: string;
   isOpen: boolean;
   widthPx: number;
   onOpenChange: (isOpen: boolean) => void;
@@ -156,7 +317,10 @@ function truncateChatText(content: string, maxChars: number): string {
 function buildRequestHistory(messages: TickerChatUiMessage[]): TickerChatHistoryMessage[] {
   const recentMessages = messages.slice(-TICKER_CHAT_MAX_HISTORY_MESSAGES).map((message) => ({
     role: message.role,
-    content: truncateChatText(message.content, TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS),
+    content: truncateChatText(
+      message.role === 'user' ? toVisibleTickerChatMessage(message.content) : message.content,
+      TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS
+    ),
   }));
 
   const keptNewestFirst: TickerChatHistoryMessage[] = [];
@@ -174,6 +338,68 @@ function buildRequestHistory(messages: TickerChatUiMessage[]): TickerChatHistory
   }
 
   return keptNewestFirst.reverse();
+}
+
+function buildScreenContextPayload(
+  screenContext: ChatScreenContext
+): GenerateTickerChatPayload['screenContext'] {
+  if (screenContext.kind === 'compare') {
+    return {
+      kind: 'compare',
+      tickers: screenContext.tickers.map((item) => item.ticker),
+    };
+  }
+
+  if (screenContext.kind === 'rebalancing') {
+    return {
+      kind: 'rebalancing',
+      displayCurrency: screenContext.displayCurrency,
+    };
+  }
+
+  if (screenContext.kind === 'movers') {
+    return { kind: 'movers' };
+  }
+
+  if (screenContext.kind === 'backtest') {
+    return {
+      kind: 'backtest',
+      period: screenContext.period,
+      amount: screenContext.amount,
+      displayCurrency: screenContext.displayCurrency,
+      allocations: screenContext.allocations.map((allocation) => ({
+        ticker: allocation.ticker,
+        weightPercent: allocation.weightPercent,
+      })),
+    };
+  }
+
+  if (screenContext.kind === 'dividends') {
+    return {
+      kind: 'dividends',
+      displayCurrency: screenContext.displayCurrency,
+    };
+  }
+
+  if (screenContext.kind === 'ticker') {
+    return {
+      kind: 'ticker',
+      period: screenContext.period,
+    };
+  }
+
+  if (screenContext.kind === 'portfolio') {
+    return {
+      kind: 'portfolio',
+      displayCurrency: screenContext.displayCurrency,
+    };
+  }
+
+  if (screenContext.kind === 'news') {
+    return { kind: 'news' };
+  }
+
+  return { kind: 'watchlist' };
 }
 
 function buildSuggestionPrompts(ticker: string): string[] {
@@ -221,17 +447,21 @@ export function TickerChatDrawer({
   const [areSuggestionsPaused, setAreSuggestionsPaused] = useState(false);
   const resizeSessionRef = useRef<{ startX: number; startWidthPx: number } | null>(null);
 
-  const [restoredSession] = useState(() => loadTickerChatSession(ticker));
+  const [restoredSession] = useState(loadAppChatSession);
   const [messages, setMessages] = useState(restoredSession.messages);
   const [draftMessage, setDraftMessage] = useState(restoredSession.draft);
   const [quota, setQuota] = useState<AiQuotaStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [includeHoldingContext, setIncludeHoldingContext] = useState(readIncludeHoldingContext);
+  const [screenContext, setScreenContext] = useState<ChatScreenContext | null>(
+    loadChatScreenContext
+  );
   const holdingHelpTooltipId = `${titleId}-holding-help`;
   const isQuotaPending = quota === null && error === null;
 
-  const suggestionPrompts = buildSuggestionPrompts(ticker);
+  const suggestionPrompts = ticker ? buildSuggestionPrompts(ticker) : [];
+  const chatSubject = ticker ?? TICKER_CHAT_PAGE_SUBJECT;
   /** Duplicate for a seamless CSS marquee loop. */
   const marqueePrompts = [...suggestionPrompts, ...suggestionPrompts];
 
@@ -257,11 +487,22 @@ export function TickerChatDrawer({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, ticker]);
+  }, [isOpen]);
 
   useEffect(() => {
-    saveTickerChatSession(ticker, messages, draftMessage);
-  }, [ticker, messages, draftMessage]);
+    saveAppChatSession(messages, draftMessage);
+  }, [messages, draftMessage]);
+
+  useEffect(() => {
+    function refreshScreenContext(): void {
+      setScreenContext(loadChatScreenContext());
+    }
+
+    window.addEventListener(TICKER_CHAT_SCREEN_CONTEXT_EVENT, refreshScreenContext);
+    return () => {
+      window.removeEventListener(TICKER_CHAT_SCREEN_CONTEXT_EVENT, refreshScreenContext);
+    };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -388,7 +629,10 @@ export function TickerChatDrawer({
   }
 
   async function sendChatMessage(rawMessage: string): Promise<void> {
-    const trimmedMessage = rawMessage.trim().slice(0, TICKER_CHAT_MAX_MESSAGE_CHARS);
+    const trimmedMessage = toVisibleTickerChatMessage(rawMessage).slice(
+      0,
+      TICKER_CHAT_MAX_MESSAGE_CHARS
+    );
     if (!trimmedMessage) {
       setError(ERROR_MESSAGES.AI_TICKER_CHAT_EMPTY_MESSAGE);
       return;
@@ -416,13 +660,20 @@ export function TickerChatDrawer({
     setError(null);
     setIsSending(true);
 
+    const payload: GenerateTickerChatPayload = {
+      message: trimmedMessage,
+      history,
+      includeHoldingContext: Boolean(ticker) && includeHoldingContext,
+    };
+    if (ticker) {
+      payload.ticker = ticker;
+    }
+    if (screenContext) {
+      payload.screenContext = buildScreenContextPayload(screenContext);
+    }
+
     try {
-      const response = await sendTickerChatMessage({
-        ticker,
-        message: trimmedMessage,
-        history,
-        includeHoldingContext,
-      });
+      const response = await sendTickerChatMessage(payload);
 
       setMessages((current) => [
         ...current,
@@ -432,6 +683,7 @@ export function TickerChatDrawer({
           content: response.reply,
           groundingEnabled: response.groundingEnabled,
           factCheck: response.factCheck,
+          displayBlocks: response.displayBlocks,
         },
       ]);
       setQuota(response.quota);
@@ -474,7 +726,7 @@ export function TickerChatDrawer({
         }}
         tabIndex={isOpen ? -1 : undefined}
         aria-hidden={isOpen}
-        aria-label={openButtonLabel ?? `Open AI chat about ${ticker}`}
+        aria-label={openButtonLabel ?? 'Open AI chat'}
         title={openButtonLabel}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
@@ -517,7 +769,7 @@ export function TickerChatDrawer({
                 AI chat
               </h2>
               <p className={styles.subtitle}>
-                {ticker} · {companyName}
+                {ticker ? `${ticker} · ${companyName || ticker}` : TICKER_CHAT_PAGE_SUBTITLE}
               </p>
             </div>
             <div className={styles.headerMeta}>
@@ -553,51 +805,72 @@ export function TickerChatDrawer({
             </div>
           </header>
 
-          <div
-            ref={suggestionsViewportRef}
-            className={`${styles.suggestions} ${isOpen && areSuggestionsPaused ? styles.suggestionsPaused : ''}`}
-            aria-label="Suggested questions"
-            onPointerEnter={handleSuggestionsPointerEnter}
-            onPointerLeave={handleSuggestionsPointerLeave}
-            onWheel={(event) => {
-              if (!areSuggestionsPaused) {
-                return;
-              }
+          {suggestionPrompts.length > 0 && (
+            <div
+              ref={suggestionsViewportRef}
+              className={`${styles.suggestions} ${isOpen && areSuggestionsPaused ? styles.suggestionsPaused : ''}`}
+              aria-label="Suggested questions"
+              onPointerEnter={handleSuggestionsPointerEnter}
+              onPointerLeave={handleSuggestionsPointerLeave}
+              onWheel={(event) => {
+                if (!areSuggestionsPaused) {
+                  return;
+                }
 
-              const viewport = event.currentTarget;
-              if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
-                return;
-              }
+                const viewport = event.currentTarget;
+                if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+                  return;
+                }
 
-              if (viewport.scrollWidth <= viewport.clientWidth) {
-                return;
-              }
+                if (viewport.scrollWidth <= viewport.clientWidth) {
+                  return;
+                }
 
-              event.preventDefault();
-              viewport.scrollLeft += event.deltaY;
-            }}
-          >
-            <div ref={suggestionsTrackRef} className={styles.suggestionsTrack}>
-              {marqueePrompts.map((prompt, index) => {
-                const isDuplicateChip = index >= suggestionPrompts.length;
+                event.preventDefault();
+                viewport.scrollLeft += event.deltaY;
+              }}
+            >
+              <div ref={suggestionsTrackRef} className={styles.suggestionsTrack}>
+                {marqueePrompts.map((prompt, index) => {
+                  const isDuplicateChip = index >= suggestionPrompts.length;
 
-                return (
-                  <button
-                    key={`${prompt}-${index}`}
-                    type="button"
-                    className={styles.suggestionChip}
-                    onClick={() => handleSuggestionClick(prompt)}
-                    disabled={isSending}
-                    title={prompt}
-                    tabIndex={isDuplicateChip ? -1 : undefined}
-                    aria-hidden={isDuplicateChip}
-                  >
-                    {prompt}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={`${prompt}-${index}`}
+                      type="button"
+                      className={styles.suggestionChip}
+                      onClick={() => handleSuggestionClick(prompt)}
+                      disabled={isSending}
+                      title={prompt}
+                      tabIndex={isDuplicateChip ? -1 : undefined}
+                      aria-hidden={isDuplicateChip}
+                    >
+                      {prompt}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {screenContext && (
+            <div className={styles.screenContext}>
+              <p className={styles.screenContextLabel}>{screenContextView(screenContext).label}</p>
+              <div className={styles.screenContextActions}>
+                {screenContextView(screenContext).actions.map((action) => (
+                  <button
+                    key={action.label}
+                    type="button"
+                    className={styles.screenContextButton}
+                    onClick={() => handleSuggestionClick(action.message)}
+                    disabled={isSending}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className={styles.messages}>
             {messages.length === 0 && !isSending ? (
@@ -605,7 +878,7 @@ export function TickerChatDrawer({
                 <div className={styles.placeholderIcon} aria-hidden>
                   <MessageSquare size={22} />
                 </div>
-                <p className={styles.placeholderTitle}>Ask about {ticker}</p>
+                <p className={styles.placeholderTitle}>Ask about {chatSubject}</p>
                 <p className={styles.placeholderText}>
                   Pick a suggestion above or type your own question. This thread stays in the
                   browser tab while you look at other pages.
@@ -625,7 +898,12 @@ export function TickerChatDrawer({
                   {message.role === 'assistant' ? (
                     <ChatMarkdown content={message.content} />
                   ) : (
-                    <p className={styles.messageContent}>{message.content}</p>
+                    <p className={styles.messageContent}>
+                      {toVisibleTickerChatMessage(message.content)}
+                    </p>
+                  )}
+                  {message.role === 'assistant' && message.displayBlocks && (
+                    <ChatCompareBars blocks={message.displayBlocks} />
                   )}
                   <AssistantMessageMeta message={message} />
                 </div>
@@ -653,47 +931,49 @@ export function TickerChatDrawer({
           {error && <p className={styles.errorText}>{error}</p>}
 
           <form className={styles.composer} onSubmit={(event) => void handleSubmit(event)}>
-            <div className={styles.contextToggleRow}>
-              <label className={styles.contextToggle}>
-                <input
-                  type="checkbox"
-                  checked={includeHoldingContext}
-                  onChange={(event) => {
-                    const nextValue = event.target.checked;
-                    setIncludeHoldingContext(nextValue);
-                    writeIncludeHoldingContext(nextValue);
-                  }}
-                  disabled={isSending}
-                />
-                <span>{TICKER_CHAT_INCLUDE_HOLDING_LABEL}</span>
-              </label>
-              <span className={styles.contextToggleHelpWrap}>
-                <button
-                  type="button"
-                  className={styles.contextToggleHelpButton}
-                  aria-label="Position sharing help"
-                  aria-describedby={holdingHelpTooltipId}
-                >
-                  <CircleHelp size={16} />
-                </button>
-                <span
-                  id={holdingHelpTooltipId}
-                  role="tooltip"
-                  className={styles.contextToggleTooltip}
-                >
-                  {TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP}
+            {ticker && (
+              <div className={styles.contextToggleRow}>
+                <label className={styles.contextToggle}>
+                  <input
+                    type="checkbox"
+                    checked={includeHoldingContext}
+                    onChange={(event) => {
+                      const nextValue = event.target.checked;
+                      setIncludeHoldingContext(nextValue);
+                      writeIncludeHoldingContext(nextValue);
+                    }}
+                    disabled={isSending}
+                  />
+                  <span>{TICKER_CHAT_INCLUDE_HOLDING_LABEL}</span>
+                </label>
+                <span className={styles.contextToggleHelpWrap}>
+                  <button
+                    type="button"
+                    className={styles.contextToggleHelpButton}
+                    aria-label="Position sharing help"
+                    aria-describedby={holdingHelpTooltipId}
+                  >
+                    <CircleHelp size={16} />
+                  </button>
+                  <span
+                    id={holdingHelpTooltipId}
+                    role="tooltip"
+                    className={styles.contextToggleTooltip}
+                  >
+                    {TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP}
+                  </span>
                 </span>
-              </span>
-            </div>
+              </div>
+            )}
             <textarea
               className={styles.input}
               value={draftMessage}
               onChange={(event) => setDraftMessage(event.target.value)}
-              placeholder={`Ask something about ${ticker}…`}
+              placeholder={ticker ? `Ask something about ${ticker}…` : TICKER_CHAT_PAGE_PLACEHOLDER}
               maxLength={TICKER_CHAT_MAX_MESSAGE_CHARS}
               rows={3}
               disabled={isSending}
-              aria-label={`Message about ${ticker}`}
+              aria-label={ticker ? `Message about ${ticker}` : TICKER_CHAT_PAGE_MESSAGE_LABEL}
             />
             <div className={styles.composerFooter}>
               <span className={styles.charCount}>
