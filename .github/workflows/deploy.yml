@@ -103,6 +103,42 @@ jobs:
               --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
               --image ${{ env.IMAGE_NAME }}:${{ env.DEPLOY_SHA }}
 
+      - name: Wait until the new revision is running
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            set -eu
+            for i in $(seq 1 36); do
+              rev=$(az containerapp show \
+                --name ${{ env.CONTAINER_APP_NAME }} \
+                --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+                --query properties.latestRevisionName \
+                --output tsv)
+              state=$(az containerapp revision show \
+                --name ${{ env.CONTAINER_APP_NAME }} \
+                --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+                --revision "$rev" \
+                --query properties.runningState \
+                --output tsv)
+              echo "revision $rev state $state (attempt $i)"
+              if [ "$state" = "Running" ]; then
+                exit 0
+              fi
+              case "$state" in
+                Failed|Degraded|Stopped)
+                  az containerapp logs show \
+                    --name ${{ env.CONTAINER_APP_NAME }} \
+                    --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+                    --revision "$rev" \
+                    --tail 80 || true
+                  exit 1
+                  ;;
+              esac
+              sleep 5
+            done
+            echo "New revision did not become Running" >&2
+            exit 1
+
       - name: Wait until live API is healthy
         run: |
           for i in $(seq 1 36); do
