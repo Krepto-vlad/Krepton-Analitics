@@ -1,0 +1,31 @@
+@startsalt
+skinparam dpi 200
+{+
+{/ <b>Dashboard</b> | <b>Portfolio</b> | Rebalancing | Screener | Dividends | News | Profile }
+--
+<b>Import a statement</b>
+CSV or XLSX, up to 5 MB. The file is read in memory and is not stored.
+.
+{ [ Choose file ] | "broker_statement.csv" | [ Upload ] }
+.
+<b>Preview (expires in 15 minutes)</b>
+{#
+  Ticker | Date | Side | Quantity | Price | Currency
+  VOO | 2025-03-14 | Buy | 4 | 512.30 | USD
+  BND | 2025-03-14 | Buy | 20 | 72.45 | USD
+  GLD | 2025-05-02 | Buy | 3 | 246.10 | USD
+  VWCE | 2025-06-20 | Buy | 6 | 118.90 | EUR
+}
+.
+{+
+  <b>Warnings</b>
+  Columns were mapped with AI from a masked sample (headers and up to
+  5 rows, every value replaced by NUMBER, DATE or TEXT). Please check them.
+  <b>Skipped rows (2)</b>
+  Row 14: quantity is not a number
+  Row 27: unknown side "Transfer"
+}
+.
+{ [ Confirm import ] | [ Cancel ] }
+}
+@endsalt

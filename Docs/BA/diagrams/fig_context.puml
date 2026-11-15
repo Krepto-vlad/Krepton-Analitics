@@ -1,0 +1,43 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam ArrowColor #44546A
+skinparam rectangle {
+  BackgroundColor #EAF1FB
+  BorderColor #44546A
+}
+skinparam cloud {
+  BackgroundColor #F2F2F2
+  BorderColor #7F7F7F
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #44546A
+}
+
+actor "Visitor" as Visitor
+actor "Investor" as Investor
+
+rectangle "Krepton Analytics\n(browser application,\nserver application, database)" as System
+
+cloud "Yahoo Finance\nquotes, history, news,\ndividends, fundamentals" as Yahoo
+cloud "SEC EDGAR\nlatest 10-K and 10-Q" as Edgar
+cloud "Google Gemini (paid tier)\nexplanations, summaries,\ncolumn mapping" as Gemini
+cloud "SnapTrade\nread-only holdings" as SnapTrade
+cloud "Google sign-in\n(optional)" as GoogleAuth
+cloud "Email service\n(Resend)" as Email
+cloud "Frankfurter API\nUSD/EUR rates" as Frankfurter
+
+Visitor --> System : reads Security, Terms\nand Privacy Policy
+Investor --> System : registers, uploads statements,\nselects a target, reads results
+System --> Yahoo : market data requests
+System --> Edgar : report requests
+System --> Gemini : minimal prompts,\nmasked statement sample
+System --> SnapTrade : read-only holdings
+System --> GoogleAuth : identity check
+System --> Email : confirmation, reset links
+System --> Frankfurter : exchange rates
+@enduml

@@ -1,0 +1,65 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam ArrowColor #44546A
+skinparam usecase {
+  BackgroundColor #EAF1FB
+  BorderColor #44546A
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #44546A
+}
+skinparam linetype ortho
+left to right direction
+
+actor "Visitor" as Visitor
+actor "Investor" as Investor
+actor "Yahoo Finance" as Yahoo
+actor "SEC EDGAR" as Edgar
+actor "Google Gemini" as Gemini
+actor "SnapTrade" as SnapTrade
+actor "Google sign-in" as Google
+actor "Email service" as Email
+
+rectangle "Krepton Analytics" {
+  usecase "Manage account\nand privacy" as UC_Account
+  usecase "Add and edit positions" as UC_Manual
+  usecase "Import a statement\n(CSV, XLSX)" as UC_Import
+  usecase "Connect a broker\n(read-only)" as UC_Broker
+  usecase "Select a target allocation" as UC_Target
+  usecase "Check drift and\nalignment score" as UC_Drift
+  usecase "See portfolio risk" as UC_Risk
+  usecase "Research, compare\nand watch tickers" as UC_Research
+  usecase "Get AI explanation\nor summary" as UC_AI
+  usecase "Get a summary of the\nlatest company report" as UC_Report
+}
+
+Visitor --> UC_Account
+Investor --> UC_Account
+Google --> UC_Account
+Email --> UC_Account
+Investor --> UC_Manual
+Investor --> UC_Import
+Investor --> UC_Broker
+Investor --> UC_Target
+Investor --> UC_Drift
+Investor --> UC_Risk
+Investor --> UC_Research
+Investor --> UC_AI
+Investor --> UC_Report
+
+UC_Drift ..> UC_Target : <<include>>
+UC_Drift ..> UC_Manual : <<include>>
+UC_Research --> Yahoo
+UC_Drift --> Yahoo
+UC_Risk --> Yahoo
+UC_AI --> Gemini
+UC_Import --> Gemini
+UC_Report --> Gemini
+UC_Report --> Edgar
+UC_Broker --> SnapTrade
+@enduml

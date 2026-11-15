@@ -1,0 +1,23 @@
+@startsalt
+skinparam dpi 200
+{+
+{/ <b>Dashboard</b> | <b>Portfolio</b> | <b>Rebalancing</b> | Screener | Dividends | News | Profile }
+--
+<b>Explain this result</b>
+{+
+  <b>AI-generated, informational</b>
+  Your large-cap stocks are about 22 percentage points above the All-Weather
+  target and long-term bonds are 22 points below it.
+  This is the main reason the score is 76 out of 100.
+  .
+  <b>Hidden concentration: moderate</b>
+  Several funds may hold the same large companies, so the
+  real stock exposure can be higher than the table shows.
+  .
+  <i>This text does not tell you to buy or sell anything.</i>
+}
+.
+{ Requests left: 8 of 10 | . | Resets in 11 min }
+{ [ Explain again ] | [ Close ] }
+}
+@endsalt
