@@ -1,0 +1,43 @@
+@startuml
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam wrapWidth 140
+skinparam shadowing false
+skinparam ArrowColor #44546A
+skinparam activity {
+  BackgroundColor #EAF1FB
+  BorderColor #44546A
+}
+skinparam swimlane {
+  BorderColor #8497B0
+  TitleBackgroundColor #D9E2F3
+}
+
+|Investor|
+start
+:Decide to review the portfolio (about once a month);
+|Broker app|
+:Log in, open the positions list;
+:Read tickers, quantities and values **(P1)**;
+|Investor|
+:Export a statement or copy positions **(P3)**;
+|Spreadsheet|
+:Paste positions into the sheet;
+:Update prices by hand or by a formula;
+:Type target weights copied from a book or an article **(P2)**;
+:Calculate current weights and deviation;
+|Investor|
+:Judge the gap, decide what to add;
+|Websites and chatbot|
+:Open price, news, dividend and fundamentals pages per ticker **(P4)**;
+|Investor|
+if (Needs an explanation?) then (yes)
+  |Websites and chatbot|
+  :Paste the portfolio into a general chatbot **(P5)**;
+  |Investor|
+else (no)
+endif
+:Place the order at the broker;
+stop
+@enduml

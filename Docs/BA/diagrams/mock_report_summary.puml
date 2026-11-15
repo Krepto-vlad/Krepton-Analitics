@@ -1,0 +1,25 @@
+@startsalt
+skinparam dpi 200
+{+
+{/ <b>Dashboard</b> | <b>Portfolio</b> | Rebalancing | Screener | Dividends | News | Profile }
+--
+<b>Latest report: Example Corp (EXMP)</b>
+{
+  Form 10-K | . | Fiscal year ended 2025-12-31 | . | Filed 2026-02-14
+  [ Open the original on SEC EDGAR ] | . | . | . | .
+}
+.
+{+
+  <b>AI-generated summary, informational</b>
+  Revenue rose 6% compared with the previous year.
+  Operating margin fell by 1.2 points because of higher costs.
+  A new risk factor describes dependence on two suppliers.
+  The company states that it expects moderate growth next year.
+  .
+  <i>Built only from the filing. Does not tell you to buy, sell or hold.</i>
+}
+.
+{ Requests left: 9 of 10 | . | Resets in 8 min }
+{ [ Summarise again ] | [ Close ] }
+}
+@endsalt

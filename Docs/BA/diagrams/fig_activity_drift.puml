@@ -1,0 +1,53 @@
+@startuml
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam ArrowColor #44546A
+skinparam activity {
+  BackgroundColor #EAF1FB
+  BorderColor #44546A
+  DiamondBackgroundColor #FFF2CC
+  DiamondBorderColor #BF9000
+}
+
+start
+:Investor opens the rebalancing page;
+if (Target allocation chosen?) then (no)
+  :Show "Choose a target allocation\nto see drift";
+  stop
+else (yes)
+endif
+if (Holdings loaded?) then (no)
+  :Show target weights and an empty state;
+  stop
+else (yes)
+endif
+:Load the chosen target allocation;
+:Request current prices from Yahoo Finance\n(cached for up to 30 seconds);
+if (Prices available for all holdings?) then (yes)
+else (no)
+  :Mark holdings without a price\nand exclude them from the weights;
+endif
+:Assign each holding to an allocation part\n(reference table, then instrument type);
+if (Every holding assigned?) then (yes)
+else (no)
+  :Show unmapped holdings, exclude them\nand warn that the score covers the rest;
+endif
+:Calculate current weight of each part;
+:Calculate deviation = current weight - target weight;
+:Mark each part: overweight, underweight\nor on target (within 2 percentage points);
+:Calculate the alignment score (0 to 100);
+:Calculate volatility, maximum drawdown\nand concentration;
+:Show chart, parts table, score and risk figures;
+if (Investor asks for an explanation?) then (yes)
+  :Send weights and score to Google Gemini;
+  if (Answer within 30 seconds and\nwithout a buy or sell instruction?) then (yes)
+    :Show the explanation with an AI label;
+  else (no)
+    :Show an error message,\nkeep the numbers on screen;
+  endif
+else (no)
+endif
+stop
+@enduml

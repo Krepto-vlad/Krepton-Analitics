@@ -1,0 +1,44 @@
+@startuml
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #44546A
+  LifeLineBorderColor #8497B0
+  ParticipantBackgroundColor #EAF1FB
+  ParticipantBorderColor #44546A
+  ActorBackgroundColor #FFFFFF
+  ActorBorderColor #44546A
+}
+skinparam note {
+  BackgroundColor #FFF2CC
+  BorderColor #BF9000
+}
+autonumber
+
+actor Investor
+participant "Krepton Analytics\n(system)" as System
+participant "Google Gemini" as Gemini
+
+Investor -> System : upload statement file (CSV or XLSX)
+System -> System : check type and limits\n(5 MB, 5,000 rows, 40 columns, 3 sheets)
+alt file type or size not accepted
+  System --> Investor : reject with the reason
+else file accepted
+  System -> System : read the file in memory,\ndetect columns from headers
+  opt headers not recognized
+    System -> Gemini : masked sample: headers and up to\n5 rows, values replaced by their type
+    Gemini --> System : suggested column mapping
+    note right of System : No file content leaves the\nserver, only the masked sample
+  end
+  System --> Investor : preview: trades to import,\nwarnings, skipped rows with reasons
+  alt investor confirms within 15 minutes
+    Investor -> System : confirm import
+    System -> System : save trades with source "import"
+    System --> Investor : import result (added, skipped)
+  else investor cancels or preview expires
+    System --> Investor : nothing is saved
+  end
+end
+@enduml

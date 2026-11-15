@@ -1,0 +1,41 @@
+@startsalt
+skinparam dpi 200
+{+
+{/ <b>Dashboard</b> | <b>Portfolio</b> | <b>Rebalancing</b> | Screener | Dividends | News | Profile }
+--
+<b>Alignment with Ray Dalio All-Weather</b>
+{
+  <b>Alignment score</b> | . | <b>76 / 100</b>
+  (100 means every part equals its target) | . | .
+}
+.
+{#
+  Part | Current | Target | Deviation | Status
+  Large-Cap Stocks | 51.7 % | 30.0 % | +21.7 pp | Overweight
+  Long-term bonds | 18.0 % | 40.0 % | -22.0 pp | Underweight
+  Intermediate bonds | 15.5 % | 15.0 % | +0.5 pp | On target
+  Gold | 9.0 % | 7.5 % | +1.5 pp | On target
+  Commodities | 5.8 % | 7.5 % | -1.7 pp | On target
+}
+.
+{+
+  Chart: current vs target weight per part
+  Large-Cap Stocks    ██████████████████████████  52 %
+                      ███████████████  target 30 %
+  Long-term bonds     █████████  18 %
+                      ████████████████████  target 40 %
+}
+.
+{+
+  <b>Portfolio risk</b> (last 12 months, from current holdings)
+  Volatility, annualised | 14.2 %
+  Maximum drawdown | -18.6 %
+  Largest position | 24 %
+  Three largest positions | 61 %
+  <i>Describes the past. Not a forecast and not advice.</i>
+}
+.
+{ [ Explain this result (AI) ] | [ Change target ] }
+<i>Measures drift from the selected target. Does not tell you to buy or sell.</i>
+}
+@endsalt

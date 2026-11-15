@@ -1,0 +1,32 @@
+@startsalt
+skinparam dpi 200
+{+
+{/ <b>Dashboard</b> | <b>Portfolio</b> | <b>Rebalancing</b> | Screener | Dividends | News | Profile }
+--
+<b>Target allocation</b>
+Choose a published allocation or set your own weights.
+.
+{
+  { () Warren Buffett 90/10 | (X) Ray Dalio All-Weather | () Bogleheads three-fund | () Harry Browne Permanent | () Custom }
+}
+<i>Nothing is pre-selected. A template opens when you click it and is saved only after "Use this allocation".</i>
+.
+{+
+  <b>Ray Dalio All-Weather</b>
+  Balanced across growth, inflation and recession.
+  Horizon: long term
+  .
+  {#
+    Part | Target weight
+    Large-Cap Stocks | 30 %
+    Long-term bonds | 40 %
+    Intermediate bonds | 15 %
+    Gold | 7.5 %
+    Commodities | 7.5 %
+  }
+}
+.
+{ [ Use this allocation ] | [ Edit weights ] }
+<i>Informational tool. Not investment advice.</i>
+}
+@endsalt
