@@ -51,8 +51,7 @@ Document Krepton as a **privacy-first analytics hub**: in-scope import/dashboard
 | Limitation | Impact | Plan |
 |------------|--------|------|
 | KPIs still qualitative | Weaker BA-max grade | Add measurable targets when staging exists |
-| Working notes in Russian in `Docs/` | Not for reviewers | Do not submit `Docs/STARTUP_ROADMAP.md` |
 
 ## References
 
-- Course rubric: `Docs/diploma/course-diploma-projects-docs-main/04-technical-requirements/04a-business-and-docs/business-analysis.md` (gitignored dump)
+- `Docs/BA/` — analysis pack and diagrams

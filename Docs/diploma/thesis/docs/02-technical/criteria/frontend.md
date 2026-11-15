@@ -131,11 +131,11 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 | 4 | Global state | ✅ | Redux Toolkit |
 | 5 | Typed API client | ✅ | TypeScript + `api/` |
 | 6 | Forms + validation, lists, filter/search | ✅ | Auth, import, screener/search |
-| 7 | Responsive desktop + mobile | ⚠️ | Tokens/mixins; **+ диплом** screenshots TBD |
+| 7 | Responsive desktop + mobile | ⚠️ | Tokens/mixins; screenshots still to capture for the thesis |
 | 8 | ESLint + Prettier | ✅ | |
 | 9 | Global errors + user-visible messages | ✅ | Interceptor, ErrorBanner, AppErrorBoundary |
 | 10 | Skeleton/loading on async fetches | ✅ | `Skeleton`, `AsyncStatePanel` presets; search/auth keep button spinners |
-| 11 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | RTL done; **+ продукт** Playwright smoke |
+| 11 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | React Testing Library is in place; Playwright smoke is the product check |
 | 12 | No tokens in code | ✅ | |
 | 13 | Max: lazy routes + RTK + charts/theme | ✅ | Three directions already in code |
 | 14 | Max: performance evidence | ⚠️ | Lighthouse walkthrough 2026-08-21 (`vite preview`); bundle visualizer TBD; dashboard Performance 90 not claimed |
@@ -154,5 +154,4 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 
 ## References
 
-- Engineering copy: `Docs/ARCHITECTURE_FRONTEND.md` (not in the final zip)
 - `frontend/src/router`, `store`, `api`, `app/AppErrorBoundary.tsx`

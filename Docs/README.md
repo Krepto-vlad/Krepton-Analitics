@@ -1,10 +1,12 @@
 # Docs
 
-| Папка | Что здесь | В финальный дипломный репозиторий |
-|-------|-----------|-----------------------------------|
-| **[diploma/thesis/](./diploma/thesis/)** | Пояснительная записка (EN, шаблон курса) | **Да** — это сдаваемый документ |
-| **[diploma/](./diploma/)** (roadmap, ADR, audit) | Рабочие заметки сдачи | Нет |
-| **diploma/course-diploma-projects-docs-main/** | Дамп рубрик курса | Нет (уже в `.gitignore`) |
-| **Этот каталог** (`ARCHITECTURE_*`, GDPR, startup, фичи) | Продуктовые/инженерные черновики | Нет |
+The project guide, including how to run the stack, is the repository [README](../README.md).
 
-Новые главы для комиссии и экспертов писать только в `diploma/thesis/docs/`.
+| Path | Contents |
+|------|----------|
+| [database/](./database/) | Dictionary, ER diagram, query plans, roles |
+| [diploma/thesis/](./diploma/thesis/) | Thesis |
+| [BA/](./BA/) | Business analysis documents and diagrams |
+| [Privacy-Policy_EN.pdf](./Privacy-Policy_EN.pdf) | Privacy policy |
+
+DDL scripts: `backend/src/migrations/`.

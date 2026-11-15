@@ -32,7 +32,7 @@ PostgreSQL, 3NF transactional model, migrations in Git. `portfolio_accounts.owne
 
 ## Implementation Details
 
-See [Database schema appendix](../../appendices/db-schema.md).
+See the database pack: [logical schema](../../../../../database/logical-schema.md), [data dictionary](../../../../../database/data-dictionary.md).
 
 ### Key Implementation Decisions
 
@@ -48,20 +48,20 @@ See [Database schema appendix](../../appendices/db-schema.md).
 
 | # | Requirement | Status | Evidence |
 |---|-------------|--------|----------|
-| 1 | Data dictionary | ✅ | [db-schema appendix](../../appendices/db-schema.md) |
+| 1 | Data dictionary | ✅ | [data dictionary](../../../../../database/data-dictionary.md) |
 | 2 | Integrity + transactions | ✅ | CHECK migration + `portfolioRepository` transactions |
-| 3 | Logical / ER diagram | ✅ | mermaid ER in the appendix |
+| 3 | Logical / ER diagram | ✅ | [logical schema](../../../../../database/logical-schema.md) |
 | 4 | DDL in Git | ✅ | `backend/src/migrations/` |
-| 5 | Modern RDBMS + 3NF | ✅ | PostgreSQL; 3NF table in appendix |
+| 5 | Modern RDBMS + 3NF | ✅ | PostgreSQL; 3NF table in the logical schema |
 | 6 | Keys, types, constraints | ✅ | PK/FK/UNIQUE/CHECK |
 | 7 | Test / seed data | ✅ | `npm run seed:demo` |
-| 8 | DB roles, not superuser | ✅ | `app_read` / `app_write` / `app_admin`; [`\du` screenshot](../../assets/screenshots/db-du-roles.png) on Azure PostgreSQL Flexible Server |
+| 8 | DB roles, not superuser | ✅ | [roles](../../../../../database/roles.md); `\du` on Azure PostgreSQL Flexible Server |
 | 9 | Password hashing | ✅ | bcrypt, not plaintext |
-| 10 | Indexes justified | ✅ | appendix “Indexes (why)” |
+| 10 | Indexes justified | ✅ | Index table in the data dictionary |
 | 11 | Max: schema migrations | ✅ | `node-pg-migrate` |
 | 12 | Max: PII masking | ✅ | HMAC `owner_token`, no portfolio→users FK |
-| 13 | Max: `\du` + `app_write` on staging | ✅ | [`\du` screenshot](../../assets/screenshots/db-du-roles.png) on Azure; API `DATABASE_URL` = `app_write`, `npm run migrate:up` run as the Postgres admin |
-| 14 | Max: EXPLAIN appendix | ❌ | `owner_token` / `email` lookup |
+| 13 | Max: `\du` + `app_write` on staging | ✅ | [roles screenshot](../../../../../database/roles.md) on Azure; API `DATABASE_URL` = `app_write`, `npm run migrate:up` run as the Postgres admin |
+| 14 | Max: EXPLAIN appendix | ✅ | [query plans](../../../../../database/query-plans.md): index scan on `owner_token`; email seq scan on 5 rows, btree proven with `enable_seqscan=off` |
 | 15 | Max skip | — | No Timescale/ClickHouse, DWH, triggers, matviews, shards, Redis-as-DB |
 
 ## Known Limitations
@@ -69,12 +69,13 @@ See [Database schema appendix](../../appendices/db-schema.md).
 | Limitation | Impact | Plan |
 |------------|--------|------|
 | Local still uses owner URL | Fine for inner loop | Staging `DATABASE_URL` = `app_write` (done) |
-| No `EXPLAIN` appendix yet | Max evidence gap, not a functionality gap | Capture before the defense (D4 evidence pass) |
+| Email plan is a seq scan at 5 rows | Looks unused until the table grows | Documented in [query plans](../../../../../database/query-plans.md); UNIQUE btree exists |
 | No second DBMS / no triggers / no views | Expert may ask the max list | ADR: Yahoo+TTL, GDPR deletes transactions, aggregations need live prices |
 
 ## References
 
 - `backend/src/migrations/`
 - `backend/src/db/schema.ts`
-- `Docs/diploma/DATABASE_ROLES.md` (working note, not in the final zip)
-- [`\du` screenshot](../../assets/screenshots/db-du-roles.png)
+- [Data dictionary](../../../../../database/data-dictionary.md)
+- [Query plans](../../../../../database/query-plans.md)
+- [Roles](../../../../../database/roles.md)

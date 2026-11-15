@@ -76,7 +76,7 @@ This is not a Java inheritance hierarchy. The expert gets one example per letter
 
 ### Diagrams
 
-See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_BACKEND.md` (engineering copy; this ADR is the diploma copy).
+See [architecture](../index.md). This page is the diploma description of the layers.
 
 ## Requirements Checklist
 
@@ -93,7 +93,7 @@ See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_B
 | 9 | Production deploy | ✅ | `https://api.kreptonanalytics.com` (Azure Container Apps) |
 | 10 | Unit tests ≥ 70% | ✅ | Jest `coverageThreshold` **80%** statements/lines/functions; HTML+lcov artifact in CI |
 | 11 | JSON, Git, secrets in env, no custom JWT | ✅ | |
-| 12 | `npm audit` | ✅ | CI job + `Docs/diploma/NPM_AUDIT_BACKEND.md` (xlsx high accepted) |
+| 12 | `npm audit` | ✅ | CI job `audit` in `.github/workflows/ci.yml`. Critical advisories fail the pipeline. Direct `xlsx` high is accepted: no patched community release. |
 | 13 | OpenAPI valid + in sync | ❌ | Spectral in CI (D2) |
 | 14 | Drizzle on remaining non-HMAC tables | ✅ | `ai_news_summaries`, `ai_usage_events`; keep `owner_token` SQL (ADR) |
 | 15 | Max: CD image → registry | ✅ | GHCR + Container Apps after green CI |
@@ -115,4 +115,3 @@ See [architecture](../index.md). Layer rules match internal `Docs/ARCHITECTURE_B
 
 - `backend/src/index.ts`, `middleware/errorHandler.ts`, `utils/logger.ts`, `db/schema.ts`
 - `backend/openapi.yaml`
-- Working ADR: `Docs/diploma/ADR-001-drizzle-orm.md`

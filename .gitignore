@@ -62,7 +62,23 @@ Design/
 tmp/
 temp/
 
-# Internal docs (not for public repo)
+# Internal docs (kept on disk, not in the review repo)
 Docs/SECURITY.md
 Docs/statements
+Docs/AI_DIALOG_EXAMPLES.md
+Docs/AI_INTEGRATION.md
+Docs/ARCHITECTURE_BACKEND.md
+Docs/ARCHITECTURE_FRONTEND.md
+Docs/GDPR_ITD.md
+Docs/MAYBE-STARTUP.md
+Docs/STARTUP_ROADMAP.md
+Docs/ВозможныеФичи.md
+Docs/course-diploma-projects-docs-main.zip
 Docs/diploma/course-diploma-projects-docs-main
+Docs/diploma/ADR-001-drizzle-orm.md
+Docs/diploma/DATABASE_ROLES.md
+Docs/diploma/DIPLOMA_OFFICIAL_RUBRIC.md
+Docs/diploma/DIPLOMA_ROADMAP.md
+Docs/diploma/DIPLOMA_TECHNICAL_REQUIREMENTS.md
+Docs/diploma/NPM_AUDIT_BACKEND.md
+Docs/diploma/thesis/docs/02-technical/criteria/_template.md
