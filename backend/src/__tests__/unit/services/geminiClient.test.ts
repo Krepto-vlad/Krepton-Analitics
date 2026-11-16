@@ -509,10 +509,13 @@ describe('geminiClient', () => {
         systemInstruction?: { parts?: Array<{ text?: string }> };
       };
       expect(requestBody.systemInstruction?.parts?.[0]?.text).toContain(
-        'SCREEN THE USER IS LOOKING AT'
+        'Answer the user question first'
       );
       expect(requestBody.systemInstruction?.parts?.[0]?.text).toContain(
-        'Tickers named in the Krepton screen context are in scope.'
+        'SCREEN CONTEXT — background only'
+      );
+      expect(requestBody.systemInstruction?.parts?.[0]?.text).not.toContain(
+        'Making another ticker the main topic'
       );
     });
 

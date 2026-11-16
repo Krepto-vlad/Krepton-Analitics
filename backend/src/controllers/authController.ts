@@ -13,6 +13,7 @@ import {
   extendAccessSession,
   verifyEmailWithToken,
   resendVerificationEmail,
+  setAiPersonalDataEnabled,
 } from '../services/authService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { env } from '../config/env.js';
@@ -151,6 +152,25 @@ export async function getMe(req: Request, res: Response<AuthResponse>): Promise<
     throw new AppError(401, 'Unauthorized');
   }
 
+  res.json({ success: true, data: withSessionExpiry(user, accessToken) });
+}
+
+export async function updateAiPersonalData(
+  req: Request,
+  res: Response<AuthResponse>
+): Promise<void> {
+  const userId = req.userId;
+  const accessToken = req.accessToken;
+  if (!userId || !accessToken) {
+    throw new AppError(401, 'Unauthorized');
+  }
+
+  const enabled = (req.body as { enabled?: unknown } | undefined)?.enabled;
+  if (typeof enabled !== 'boolean') {
+    throw new AppError(400, 'enabled must be a boolean');
+  }
+
+  const user = await setAiPersonalDataEnabled(userId, enabled);
   res.json({ success: true, data: withSessionExpiry(user, accessToken) });
 }
 

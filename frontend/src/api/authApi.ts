@@ -58,6 +58,14 @@ export async function apiLogout(): Promise<void> {
   await authClient.post('/logout');
 }
 
+export async function apiUpdateAiPersonalData(enabled: boolean): Promise<AuthUser> {
+  const { data } = await authClient.patch<ApiSuccessResponse<AuthUser> | ApiErrorResponse>(
+    '/ai-personal-data',
+    { enabled }
+  );
+  return normalizeAuthUser(assertSuccess(data));
+}
+
 export async function apiGetMe(): Promise<AuthUser> {
   const { data } = await authClient.get<ApiSuccessResponse<AuthUser> | ApiErrorResponse>('/me');
   return normalizeAuthUser(assertSuccess(data));

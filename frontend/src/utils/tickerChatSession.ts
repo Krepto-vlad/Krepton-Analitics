@@ -26,6 +26,7 @@ import {
   TICKER_CHAT_SCREEN_REBALANCING_KIND,
   TICKER_CHAT_SCREEN_TICKER_KIND,
   TICKER_CHAT_SCREEN_WATCHLIST_KIND,
+  TICKER_CHAT_ARCHIVED_THREAD_LIMIT,
   TICKER_CHAT_SESSION_MAX_COMPANY_NAME_CHARS,
   TICKER_CHAT_SESSION_MAX_MESSAGE_CHARS,
   TICKER_CHAT_SESSION_MAX_MESSAGE_ID_CHARS,
@@ -137,6 +138,7 @@ export interface TickerChatActiveTarget {
 interface StoredTickerChatSession {
   threads: Record<string, StoredTickerChatThread>;
   appThread?: StoredTickerChatThread;
+  archivedThreads?: StoredTickerChatThread[];
   activeTicker?: string;
   activeCompanyName?: string;
   screenContext?: ChatScreenContext;
@@ -250,6 +252,13 @@ function readMessage(value: unknown): TickerChatUiMessage | null {
   const displayBlocks = readDisplayBlocks(message.displayBlocks);
   if (displayBlocks.length > 0) {
     restoredMessage.displayBlocks = displayBlocks;
+  }
+
+  if (typeof message.chartTicker === 'string') {
+    const chartTicker = readTickerSymbol(message.chartTicker);
+    if (chartTicker) {
+      restoredMessage.chartTicker = chartTicker;
+    }
   }
 
   return restoredMessage;
@@ -829,6 +838,7 @@ function readStore(): StoredTickerChatSession {
       parsedSession.compareOfferTicker,
       parsedSession.compareOfferCompanyName
     );
+    const archivedThreads = readArchivedThreads(parsedSession.archivedThreads);
 
     return {
       threads,
@@ -840,6 +850,7 @@ function readStore(): StoredTickerChatSession {
           : undefined,
       ...(screenContext ? { screenContext } : {}),
       ...(appThread ? { appThread } : {}),
+      ...(archivedThreads.length > 0 ? { archivedThreads } : {}),
       ...(lastVisited
         ? {
             lastVisitedTicker: lastVisited.ticker,
@@ -881,6 +892,7 @@ function writeStore(store: StoredTickerChatSession): void {
     !store.activeTicker &&
     !store.screenContext &&
     !store.appThread &&
+    !store.archivedThreads?.length &&
     !store.lastVisitedTicker &&
     !store.compareOfferTicker
   ) {
@@ -889,6 +901,107 @@ function writeStore(store: StoredTickerChatSession): void {
   }
 
   sessionStorage.setItem(TICKER_CHAT_SESSION_STORAGE_KEY, JSON.stringify(store));
+}
+
+function readArchivedThreads(value: unknown): StoredTickerChatThread[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const threads: StoredTickerChatThread[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object') {
+      continue;
+    }
+
+    const candidate = item as StoredTickerChatThread;
+    const messages = readStoredMessages(candidate.messages);
+    if (messages.length === 0) {
+      continue;
+    }
+
+    threads.push({
+      messages,
+      draft: readStoredDraft(candidate.draft),
+      updatedAtMs: typeof candidate.updatedAtMs === 'number' ? candidate.updatedAtMs : Date.now(),
+    });
+
+    if (threads.length >= TICKER_CHAT_ARCHIVED_THREAD_LIMIT) {
+      break;
+    }
+  }
+
+  return threads;
+}
+
+function toStoredThread(messages: TickerChatUiMessage[], draft: string): StoredTickerChatThread {
+  return {
+    messages: readStoredMessages(messages),
+    draft: readStoredDraft(draft),
+    updatedAtMs: Date.now(),
+  };
+}
+
+export function loadArchivedAppChatCount(): number {
+  return readStore().archivedThreads?.length ?? 0;
+}
+
+/** Keeps the current thread in this tab, then the caller starts an empty one. */
+export function archiveCurrentAppChat(messages: TickerChatUiMessage[], draft: string): void {
+  const storedMessages = readStoredMessages(messages);
+  if (storedMessages.length === 0) {
+    return;
+  }
+
+  updateStoredSession((store) => {
+    const archivedThreads = store.archivedThreads ?? [];
+    store.archivedThreads = [toStoredThread(storedMessages, draft), ...archivedThreads].slice(
+      0,
+      TICKER_CHAT_ARCHIVED_THREAD_LIMIT
+    );
+    delete store.appThread;
+  });
+}
+
+/** Opens the newest archived thread and archives the current one when it has messages. */
+export function restoreNewestArchivedAppChat(
+  messages: TickerChatUiMessage[],
+  draft: string
+): TickerChatSessionSnapshot | null {
+  const archivedThreads = readStore().archivedThreads ?? [];
+  const newestThread = archivedThreads[0];
+  if (!newestThread) {
+    return null;
+  }
+
+  const currentMessages = readStoredMessages(messages);
+  const remainingThreads = archivedThreads.slice(1);
+  const nextArchivedThreads =
+    currentMessages.length > 0
+      ? [toStoredThread(currentMessages, draft), ...remainingThreads].slice(
+          0,
+          TICKER_CHAT_ARCHIVED_THREAD_LIMIT
+        )
+      : remainingThreads;
+
+  updateStoredSession((store) => {
+    if (nextArchivedThreads.length > 0) {
+      store.archivedThreads = nextArchivedThreads;
+    } else {
+      delete store.archivedThreads;
+    }
+
+    store.appThread = {
+      messages: newestThread.messages,
+      draft: newestThread.draft,
+      updatedAtMs: newestThread.updatedAtMs,
+    };
+  });
+
+  return {
+    messages: readStoredMessages(newestThread.messages),
+    draft: readStoredDraft(newestThread.draft),
+  };
 }
 
 export function loadAppChatSession(): TickerChatSessionSnapshot {

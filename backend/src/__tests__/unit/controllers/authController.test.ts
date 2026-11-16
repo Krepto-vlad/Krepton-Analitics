@@ -72,6 +72,7 @@ const user = {
   hasPassword: true,
   hasGoogle: false,
   isAdmin: false,
+  aiPersonalDataEnabled: true,
   subscription: createFreeSubscriptionSummary(),
 };
 

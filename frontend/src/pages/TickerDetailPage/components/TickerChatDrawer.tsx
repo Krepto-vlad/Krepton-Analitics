@@ -1,17 +1,31 @@
 import {
+  lazy,
+  Suspense,
   useEffect,
   useId,
   useLayoutEffect,
   useRef,
   useState,
   type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
 } from 'react';
-import { CircleHelp, Loader2, MessageSquare, SendHorizontal, X } from 'lucide-react';
 import {
+  ChevronDown,
+  ChevronUp,
+  CircleHelp,
+  Loader2,
+  MessageSquare,
+  SendHorizontal,
+  X,
+} from 'lucide-react';
+import {
+  archiveCurrentAppChat,
   loadAppChatSession,
+  loadArchivedAppChatCount,
   loadChatScreenContext,
+  restoreNewestArchivedAppChat,
   saveAppChatSession,
   toVisibleTickerChatMessage,
   type ChatScreenContext,
@@ -19,6 +33,12 @@ import {
 import { fetchTickerChatQuota, sendTickerChatMessage } from '../../../api/portfolioApi';
 import { ChatMarkdown } from '../../../components/ChatMarkdown/ChatMarkdown';
 import { ChatCompareBars } from './ChatCompareBars';
+
+const ChatTickerChartCard = lazy(() =>
+  import('./ChatTickerChartCard').then((module) => ({
+    default: module.ChatTickerChartCard,
+  }))
+);
 import {
   APP_SHELL_HEADER_HEIGHT_PX,
   ERROR_MESSAGES,
@@ -29,6 +49,9 @@ import {
   TICKER_CHAT_INCLUDE_HOLDING_LABEL,
   TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY,
   TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP,
+  TICKER_CHAT_PERSONAL_DATA_DISABLED_HINT,
+  TICKER_CHAT_PERSONAL_SCREEN_KINDS,
+  TICKER_CHAT_PREVIOUS_CHAT_LABEL,
   TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS,
   TICKER_CHAT_MAX_HISTORY_MESSAGES,
   TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS,
@@ -37,6 +60,10 @@ import {
   TICKER_CHAT_PAGE_PLACEHOLDER,
   TICKER_CHAT_PAGE_SUBJECT,
   TICKER_CHAT_PAGE_SUBTITLE,
+  TICKER_CHAT_DISMISS_SCREEN_SUGGESTIONS_LABEL,
+  TICKER_CHAT_HIDE_COMPOSER_LABEL,
+  TICKER_CHAT_SHOW_COMPOSER_LABEL,
+  TICKER_CHAT_COMPOSER_COLLAPSED_HINT,
   TICKER_CHAT_QUOTE_CHECKED_LABEL,
   BACKTEST_PERIODS,
   STOCK_PERIODS,
@@ -214,6 +241,8 @@ interface TickerChatDrawerProps {
   onWidthChange: (widthPx: number) => void;
   onResizingChange: (isResizing: boolean) => void;
   openButtonLabel?: string;
+  /** Profile kill switch. The composer checkbox cannot override this. */
+  isPersonalDataDisabled?: boolean;
 }
 
 const HISTORY_TRUNCATION_SUFFIX = '…';
@@ -240,18 +269,27 @@ function formatQuotaLabel(quota: AiQuotaStatus | null): string {
 
 function readIncludeHoldingContext(): boolean {
   try {
-    return sessionStorage.getItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY) === 'true';
+    const storedValue = localStorage.getItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY);
+    if (storedValue === null) {
+      return true;
+    }
+
+    return storedValue === 'true';
   } catch {
-    return false;
+    return true;
   }
 }
 
 function writeIncludeHoldingContext(value: boolean): void {
   try {
-    sessionStorage.setItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY, value ? 'true' : 'false');
+    localStorage.setItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY, value ? 'true' : 'false');
   } catch {
     // Private-mode storage can throw; the in-memory checkbox still works.
   }
+}
+
+function isPersonalScreen(screenContext: ChatScreenContext): boolean {
+  return (TICKER_CHAT_PERSONAL_SCREEN_KINDS as readonly string[]).includes(screenContext.kind);
 }
 
 function formatChatMoney(currency: string, amount: number): string {
@@ -435,6 +473,7 @@ export function TickerChatDrawer({
   onWidthChange,
   onResizingChange,
   openButtonLabel,
+  isPersonalDataDisabled = false,
 }: TickerChatDrawerProps) {
   const titleId = useId();
   const drawerRef = useRef<HTMLElement>(null);
@@ -454,6 +493,10 @@ export function TickerChatDrawer({
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [includeHoldingContext, setIncludeHoldingContext] = useState(readIncludeHoldingContext);
+  const [archivedChatCount, setArchivedChatCount] = useState(loadArchivedAppChatCount);
+  const [areScreenSuggestionsDismissed, setAreScreenSuggestionsDismissed] = useState(false);
+  const [isComposerCollapsed, setIsComposerCollapsed] = useState(false);
+  const sharePersonalData = !isPersonalDataDisabled && includeHoldingContext;
   const [screenContext, setScreenContext] = useState<ChatScreenContext | null>(
     loadChatScreenContext
   );
@@ -577,9 +620,28 @@ export function TickerChatDrawer({
   }
 
   function handleStartNewChat(): void {
+    archiveCurrentAppChat(messages, draftMessage);
     setMessages([]);
     setDraftMessage('');
     setError(null);
+    setAreScreenSuggestionsDismissed(false);
+    setIsComposerCollapsed(false);
+    setArchivedChatCount(loadArchivedAppChatCount());
+  }
+
+  function handleRestorePreviousChat(): void {
+    const restoredChat = restoreNewestArchivedAppChat(messages, draftMessage);
+    if (!restoredChat) {
+      setArchivedChatCount(0);
+      return;
+    }
+
+    setMessages(restoredChat.messages);
+    setDraftMessage(restoredChat.draft);
+    setError(null);
+    setAreScreenSuggestionsDismissed(false);
+    setIsComposerCollapsed(false);
+    setArchivedChatCount(loadArchivedAppChatCount());
   }
 
   useFocusTrap({
@@ -663,12 +725,12 @@ export function TickerChatDrawer({
     const payload: GenerateTickerChatPayload = {
       message: trimmedMessage,
       history,
-      includeHoldingContext: Boolean(ticker) && includeHoldingContext,
+      includeHoldingContext: Boolean(ticker) && sharePersonalData,
     };
     if (ticker) {
       payload.ticker = ticker;
     }
-    if (screenContext) {
+    if (screenContext && (sharePersonalData || !isPersonalScreen(screenContext))) {
       payload.screenContext = buildScreenContextPayload(screenContext);
     }
 
@@ -684,6 +746,7 @@ export function TickerChatDrawer({
           groundingEnabled: response.groundingEnabled,
           factCheck: response.factCheck,
           displayBlocks: response.displayBlocks,
+          ...(response.chartTicker ? { chartTicker: response.chartTicker } : {}),
         },
       ]);
       setQuota(response.quota);
@@ -713,6 +776,19 @@ export function TickerChatDrawer({
 
   const canSend =
     !isSending && draftMessage.trim().length > 0 && (quota == null || quota.remaining > 0);
+
+  function handleComposerKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>): void {
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) {
+      return;
+    }
+
+    event.preventDefault();
+    if (!canSend) {
+      return;
+    }
+
+    void sendChatMessage(draftMessage);
+  }
 
   return (
     <>
@@ -784,6 +860,16 @@ export function TickerChatDrawer({
               ) : (
                 <span className={styles.quotaBadge}>{formatQuotaLabel(quota)}</span>
               )}
+              {archivedChatCount > 0 && (
+                <button
+                  type="button"
+                  className={styles.newChatButton}
+                  onClick={handleRestorePreviousChat}
+                  disabled={isSending}
+                >
+                  {TICKER_CHAT_PREVIOUS_CHAT_LABEL}
+                </button>
+              )}
               {messages.length > 0 && (
                 <button
                   type="button"
@@ -853,9 +939,21 @@ export function TickerChatDrawer({
             </div>
           )}
 
-          {screenContext && (
+          {screenContext && !areScreenSuggestionsDismissed && (
             <div className={styles.screenContext}>
-              <p className={styles.screenContextLabel}>{screenContextView(screenContext).label}</p>
+              <div className={styles.screenContextHeader}>
+                <p className={styles.screenContextLabel}>
+                  {screenContextView(screenContext).label}
+                </p>
+                <button
+                  type="button"
+                  className={styles.screenContextDismiss}
+                  aria-label={TICKER_CHAT_DISMISS_SCREEN_SUGGESTIONS_LABEL}
+                  onClick={() => setAreScreenSuggestionsDismissed(true)}
+                >
+                  <X size={14} />
+                </button>
+              </div>
               <div className={styles.screenContextActions}>
                 {screenContextView(screenContext).actions.map((action) => (
                   <button
@@ -905,6 +1003,16 @@ export function TickerChatDrawer({
                   {message.role === 'assistant' && message.displayBlocks && (
                     <ChatCompareBars blocks={message.displayBlocks} />
                   )}
+                  {message.role === 'assistant' &&
+                    message.chartTicker &&
+                    message.chartTicker !== ticker && (
+                      <Suspense fallback={null}>
+                        <ChatTickerChartCard
+                          key={message.chartTicker}
+                          ticker={message.chartTicker}
+                        />
+                      </Suspense>
+                    )}
                   <AssistantMessageMeta message={message} />
                 </div>
               ))
@@ -928,73 +1036,114 @@ export function TickerChatDrawer({
             <div ref={messagesEndRef} />
           </div>
 
-          {error && <p className={styles.errorText}>{error}</p>}
+          <div
+            className={`${styles.composerShell} ${
+              isComposerCollapsed ? styles.composerShellCollapsed : ''
+            }`}
+          >
+            <button
+              type="button"
+              className={`${styles.composerToggle} ${
+                isComposerCollapsed ? styles.composerToggleCollapsed : ''
+              }`}
+              aria-expanded={!isComposerCollapsed}
+              aria-controls={`${titleId}-composer`}
+              aria-label={
+                isComposerCollapsed
+                  ? TICKER_CHAT_SHOW_COMPOSER_LABEL
+                  : TICKER_CHAT_HIDE_COMPOSER_LABEL
+              }
+              onClick={() => setIsComposerCollapsed((isCollapsed) => !isCollapsed)}
+            >
+              {isComposerCollapsed ? (
+                <>
+                  <ChevronUp size={18} />
+                  <span>{TICKER_CHAT_COMPOSER_COLLAPSED_HINT}</span>
+                </>
+              ) : (
+                <ChevronDown size={18} />
+              )}
+            </button>
+            <div
+              id={`${titleId}-composer`}
+              className={`${styles.composerCollapse} ${
+                isComposerCollapsed ? styles.composerCollapseClosed : ''
+              }`}
+            >
+              <div className={styles.composerCollapseInner} inert={isComposerCollapsed}>
+                {error && <p className={styles.errorText}>{error}</p>}
 
-          <form className={styles.composer} onSubmit={(event) => void handleSubmit(event)}>
-            {ticker && (
-              <div className={styles.contextToggleRow}>
-                <label className={styles.contextToggle}>
-                  <input
-                    type="checkbox"
-                    checked={includeHoldingContext}
-                    onChange={(event) => {
-                      const nextValue = event.target.checked;
-                      setIncludeHoldingContext(nextValue);
-                      writeIncludeHoldingContext(nextValue);
-                    }}
+                <form className={styles.composer} onSubmit={(event) => void handleSubmit(event)}>
+                  <div className={styles.contextToggleRow}>
+                    <label className={styles.contextToggle}>
+                      <input
+                        type="checkbox"
+                        checked={sharePersonalData}
+                        onChange={(event) => {
+                          const nextValue = event.target.checked;
+                          setIncludeHoldingContext(nextValue);
+                          writeIncludeHoldingContext(nextValue);
+                        }}
+                        disabled={isSending || isPersonalDataDisabled}
+                      />
+                      <span>{TICKER_CHAT_INCLUDE_HOLDING_LABEL}</span>
+                    </label>
+                    <span className={styles.contextToggleHelpWrap}>
+                      <button
+                        type="button"
+                        className={styles.contextToggleHelpButton}
+                        aria-label="Position sharing help"
+                        aria-describedby={holdingHelpTooltipId}
+                      >
+                        <CircleHelp size={16} />
+                      </button>
+                      <span
+                        id={holdingHelpTooltipId}
+                        role="tooltip"
+                        className={styles.contextToggleTooltip}
+                      >
+                        {isPersonalDataDisabled
+                          ? TICKER_CHAT_PERSONAL_DATA_DISABLED_HINT
+                          : TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP}
+                      </span>
+                    </span>
+                  </div>
+                  <textarea
+                    className={styles.input}
+                    value={draftMessage}
+                    onChange={(event) => setDraftMessage(event.target.value)}
+                    placeholder={
+                      ticker ? `Ask something about ${ticker}…` : TICKER_CHAT_PAGE_PLACEHOLDER
+                    }
+                    maxLength={TICKER_CHAT_MAX_MESSAGE_CHARS}
+                    rows={3}
                     disabled={isSending}
+                    aria-label={ticker ? `Message about ${ticker}` : TICKER_CHAT_PAGE_MESSAGE_LABEL}
+                    onKeyDown={handleComposerKeyDown}
                   />
-                  <span>{TICKER_CHAT_INCLUDE_HOLDING_LABEL}</span>
-                </label>
-                <span className={styles.contextToggleHelpWrap}>
-                  <button
-                    type="button"
-                    className={styles.contextToggleHelpButton}
-                    aria-label="Position sharing help"
-                    aria-describedby={holdingHelpTooltipId}
-                  >
-                    <CircleHelp size={16} />
-                  </button>
-                  <span
-                    id={holdingHelpTooltipId}
-                    role="tooltip"
-                    className={styles.contextToggleTooltip}
-                  >
-                    {TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP}
-                  </span>
-                </span>
+                  <div className={styles.composerFooter}>
+                    <span className={styles.charCount}>
+                      {draftMessage.length}/{TICKER_CHAT_MAX_MESSAGE_CHARS}
+                    </span>
+                    <button
+                      type="submit"
+                      className={styles.sendButton}
+                      disabled={!canSend}
+                      aria-label="Send message"
+                    >
+                      {isSending ? (
+                        <Loader2 size={16} className={styles.spinner} />
+                      ) : (
+                        <SendHorizontal size={16} />
+                      )}
+                      Send
+                    </button>
+                  </div>
+                  <AiGeneratedNotice />
+                </form>
               </div>
-            )}
-            <textarea
-              className={styles.input}
-              value={draftMessage}
-              onChange={(event) => setDraftMessage(event.target.value)}
-              placeholder={ticker ? `Ask something about ${ticker}…` : TICKER_CHAT_PAGE_PLACEHOLDER}
-              maxLength={TICKER_CHAT_MAX_MESSAGE_CHARS}
-              rows={3}
-              disabled={isSending}
-              aria-label={ticker ? `Message about ${ticker}` : TICKER_CHAT_PAGE_MESSAGE_LABEL}
-            />
-            <div className={styles.composerFooter}>
-              <span className={styles.charCount}>
-                {draftMessage.length}/{TICKER_CHAT_MAX_MESSAGE_CHARS}
-              </span>
-              <button
-                type="submit"
-                className={styles.sendButton}
-                disabled={!canSend}
-                aria-label="Send message"
-              >
-                {isSending ? (
-                  <Loader2 size={16} className={styles.spinner} />
-                ) : (
-                  <SendHorizontal size={16} />
-                )}
-                Send
-              </button>
             </div>
-            <AiGeneratedNotice />
-          </form>
+          </div>
         </div>
       </aside>
     </>

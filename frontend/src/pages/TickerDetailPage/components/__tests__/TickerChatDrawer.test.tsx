@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event';
 import {
   ERROR_MESSAGES,
   LOADING_MESSAGES,
+  TICKER_CHAT_DISMISS_SCREEN_SUGGESTIONS_LABEL,
+  TICKER_CHAT_HIDE_COMPOSER_LABEL,
+  TICKER_CHAT_SHOW_COMPOSER_LABEL,
   TICKER_CHAT_DRAWER_DEFAULT_WIDTH_PX,
   TICKER_CHAT_FACT_CHECK_CORRECTED_LABEL,
   TICKER_CHAT_INCLUDE_HOLDING_LABEL,
@@ -111,6 +114,7 @@ describe('TickerChatDrawer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     sessionStorage.clear();
+    localStorage.clear();
     uuidCounter = 0;
     jest.spyOn(globalThis.crypto, 'randomUUID').mockImplementation(() => {
       uuidCounter += 1;
@@ -173,7 +177,7 @@ describe('TickerChatDrawer', () => {
       ticker: APPLE_TICKER,
       message: USER_QUESTION,
       history: [],
-      includeHoldingContext: false,
+      includeHoldingContext: true,
     });
   });
 
@@ -182,8 +186,9 @@ describe('TickerChatDrawer', () => {
     renderDrawer();
     await screen.findByText('9/10 left today');
 
+    expect(screen.getByRole('checkbox', { name: TICKER_CHAT_INCLUDE_HOLDING_LABEL })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: TICKER_CHAT_INCLUDE_HOLDING_LABEL }));
-    expect(sessionStorage.getItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY)).toBe('true');
+    expect(localStorage.getItem(TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY)).toBe('false');
 
     const suggestion = TICKER_CHAT_SUGGESTION_PROMPTS[0].replaceAll('{ticker}', APPLE_TICKER);
     await user.click(screen.getAllByRole('button', { name: suggestion })[0]);
@@ -193,7 +198,7 @@ describe('TickerChatDrawer', () => {
         expect.objectContaining({
           ticker: APPLE_TICKER,
           message: suggestion,
-          includeHoldingContext: true,
+          includeHoldingContext: false,
         })
       );
     });
@@ -428,6 +433,64 @@ describe('TickerChatDrawer', () => {
     });
   });
 
+  it('hides screen suggestions until a new chat', async () => {
+    saveTickerChatScreen('1y');
+    const user = userEvent.setup();
+    renderDrawer();
+
+    expect(await screen.findByText('Chart: 1Y')).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', { name: TICKER_CHAT_DISMISS_SCREEN_SUGGESTIONS_LABEL })
+    );
+
+    expect(screen.queryByText('Chart: 1Y')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Explain this chart' })).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(`Message about ${APPLE_TICKER}`), USER_QUESTION);
+    await user.click(screen.getByRole('button', { name: 'Send message' }));
+    expect(await screen.findByText(ASSISTANT_REPLY)).toBeInTheDocument();
+    expect(screen.queryByText('Chart: 1Y')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'New chat' }));
+    expect(await screen.findByText('Chart: 1Y')).toBeInTheDocument();
+  });
+
+  it('collapses the message box and brings it back', async () => {
+    const user = userEvent.setup();
+    renderDrawer();
+    await screen.findByText('9/10 left today');
+
+    const toggle = screen.getByRole('button', { name: TICKER_CHAT_HIDE_COMPOSER_LABEL });
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    const panelId = toggle.getAttribute('aria-controls');
+    const panel = panelId ? document.getElementById(panelId) : null;
+    expect(panel?.className).toContain('composerCollapseClosed');
+    expect(panel?.firstElementChild).toHaveAttribute('inert');
+
+    await user.click(screen.getByRole('button', { name: TICKER_CHAT_SHOW_COMPOSER_LABEL }));
+    expect(panel?.className).not.toContain('composerCollapseClosed');
+    expect(panel?.firstElementChild).not.toHaveAttribute('inert');
+  });
+
+  it('sends the draft when Enter is pressed', async () => {
+    const user = userEvent.setup();
+    renderDrawer();
+    await screen.findByText('9/10 left today');
+
+    const composer = screen.getByLabelText(`Message about ${APPLE_TICKER}`);
+    await user.type(composer, `${USER_QUESTION}{Enter}`);
+
+    await waitFor(() => {
+      expect(sendTickerChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: USER_QUESTION,
+        })
+      );
+    });
+  });
+
   it('sends portfolio weights and draws them', async () => {
     savePortfolioChatScreen('USD');
     jest.mocked(sendTickerChatMessage).mockResolvedValue({
@@ -526,7 +589,7 @@ describe('TickerChatDrawer', () => {
         ticker: APPLE_TICKER,
         message: USER_QUESTION,
         history: [],
-        includeHoldingContext: false,
+        includeHoldingContext: true,
         screenContext: { kind: 'watchlist' },
       });
     });

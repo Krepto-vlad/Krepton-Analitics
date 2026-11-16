@@ -181,7 +181,7 @@
   grid-template-columns: 1fr 1fr;
   gap: $space-4;
 
-  @include tablet {
+  @include when-layout-compact {
     grid-template-columns: 1fr;
   }
 }

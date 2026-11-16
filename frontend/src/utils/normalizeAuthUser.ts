@@ -9,6 +9,7 @@ export function normalizeAuthUser(user: AuthUser): AuthUser {
   return {
     ...user,
     isAdmin: Boolean(user.isAdmin),
+    aiPersonalDataEnabled: user.aiPersonalDataEnabled !== false,
     subscription: user.subscription ?? FREE_SUBSCRIPTION_SUMMARY,
   };
 }

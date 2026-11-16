@@ -514,6 +514,28 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+.aiDataToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  color: $color-foreground;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+
+  input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: $color-primary;
+  }
+
+  &:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
 .dataActionCopy {
   display: flex;
   flex-direction: column;

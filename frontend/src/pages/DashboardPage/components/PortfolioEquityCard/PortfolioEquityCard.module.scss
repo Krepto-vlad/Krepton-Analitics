@@ -156,6 +156,20 @@
   color: $color-chart-down;
 }
 
+@container app-content (max-width: 760px) {
+  .cardHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .periodSelectorSlot {
+    min-width: 0;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+}
+
 @include mobile {
   .card {
     padding: $space-3;

@@ -123,6 +123,11 @@ const authSlice = createSlice({
     clearAuthInfoMessage(state) {
       state.infoMessage = null;
     },
+    setAiPersonalDataEnabled(state, action: { payload: boolean }) {
+      if (state.user) {
+        state.user.aiPersonalDataEnabled = action.payload;
+      }
+    },
     expireSession(state) {
       state.user = null;
       state.isInitialized = true;
@@ -235,5 +240,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError, clearAuthInfoMessage, expireSession } = authSlice.actions;
+export const { clearAuthError, clearAuthInfoMessage, expireSession, setAiPersonalDataEnabled } =
+  authSlice.actions;
 export const authReducer = authSlice.reducer;

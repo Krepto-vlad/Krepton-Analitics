@@ -584,13 +584,85 @@ $resize-handle-width: 6px;
     transform 0.15s ease;
 }
 
+.composerShell {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-top: 1px solid $color-border;
+  background: $color-surface;
+  position: relative;
+  z-index: 1;
+}
+
+.composerShellCollapsed {
+  padding: $space-3 $space-4;
+}
+
+.composerToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  padding: $space-2 $space-4;
+  border: 0;
+  background: transparent;
+  color: $color-foreground-muted;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-foreground;
+    background: $color-surface-elevated;
+    outline: none;
+  }
+}
+
+.composerToggleCollapsed {
+  min-height: 48px;
+  justify-content: flex-start;
+  gap: $space-3;
+  padding: 0 $space-4;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-background;
+  color: $color-foreground-subtle;
+  font-size: $font-size-sm;
+  text-align: left;
+
+  svg {
+    flex-shrink: 0;
+    color: $color-primary;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-primary-border;
+    color: $color-foreground;
+    background: $color-background;
+  }
+}
+
+.composerCollapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.22s ease;
+}
+
+.composerCollapseClosed {
+  grid-template-rows: 0fr;
+}
+
+.composerCollapseInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .composer {
   display: flex;
   flex-direction: column;
   gap: $space-2;
-  padding: $space-4 $space-5 $space-5;
-  border-top: 1px solid $color-border;
-  flex-shrink: 0;
+  padding: $space-3 $space-5 $space-5;
 }
 
 .input {
@@ -659,6 +731,17 @@ $resize-handle-width: 6px;
   border: 1px solid $color-primary-border;
   border-radius: $radius-md;
   background: $color-surface-elevated;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.screenContextHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
 }
 
 .screenContextLabel {
@@ -666,6 +749,26 @@ $resize-handle-width: 6px;
   color: $color-primary-on-muted;
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
+}
+
+.screenContextDismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-foreground-muted;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    color: $color-foreground;
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
 
 .screenContextActions {
@@ -699,4 +802,90 @@ $resize-handle-width: 6px;
     opacity: 0.5;
     cursor: not-allowed;
   }
+}
+
+.inlineChart {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin-top: $space-3;
+  padding: $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.inlineChartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.inlineChartTicker {
+  margin: 0;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.04em;
+}
+
+.inlineChartPrice {
+  margin: 2px 0 0;
+  color: $color-foreground;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.inlineChartChangeUp,
+.inlineChartChangeDown {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.inlineChartChangeUp {
+  color: $color-success;
+}
+
+.inlineChartChangeDown {
+  color: $color-danger;
+}
+
+.inlineChartPeriods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+}
+
+.inlineChartPeriod {
+  height: 28px;
+  padding: 0 $space-2;
+  border: 1px solid transparent;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-foreground;
+  }
+}
+
+.inlineChartPeriodActive {
+  border-color: $color-border;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-foreground;
+}
+
+.inlineChartCanvas {
+  width: 100%;
+  height: var(--chat-inline-chart-height, 180px);
+}
+
+.inlineChartStatus {
+  margin: 0;
+  color: $color-foreground-muted;
+  font-size: $font-size-xs;
 }

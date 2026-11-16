@@ -223,11 +223,11 @@ export const TICKER_CHAT_DRAWER_MAX_WIDTH_PX = 640;
 /** Keep in sync with backend AI_TICKER_CHAT_* history/message limits. */
 export const TICKER_CHAT_MAX_MESSAGE_CHARS = 1000;
 export const TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS = 4000;
-export const TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 12000;
-export const TICKER_CHAT_MAX_HISTORY_MESSAGES = 12;
+export const TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 6000;
+export const TICKER_CHAT_MAX_HISTORY_MESSAGES = 6;
 /** Keep in sync with backend AI_TICKER_CHAT_DISCLAIMER. */
 export const TICKER_CHAT_DISCLAIMER =
-  'AI chat for informational purposes only. Not financial advice. Answers stay on the current page.';
+  'AI chat for informational purposes only. Not financial advice.';
 export const TICKER_CHAT_PAGE_SUBJECT = 'this page';
 export const TICKER_CHAT_PAGE_SUBTITLE = 'This page';
 export const TICKER_CHAT_PAGE_PLACEHOLDER = 'Ask about this page…';
@@ -236,6 +236,18 @@ export const TICKER_CHAT_QUOTE_CHECKED_LABEL = 'Krepton quote';
 export const TICKER_CHAT_FACT_CHECK_CORRECTED_LABEL = 'Numbers aligned to the Krepton quote';
 export const TICKER_CHAT_WEB_SEARCH_LABEL = 'Web search';
 export const TICKER_CHAT_INCLUDE_HOLDING_STORAGE_KEY = 'krepton_ticker_chat_include_holding_v1';
+/** Previous app threads kept in this tab after New chat. Not sent to the API store. */
+export const TICKER_CHAT_ARCHIVED_THREAD_LIMIT = 2;
+/** Height of the price chart drawn inside an assistant message. */
+export const TICKER_CHAT_INLINE_CHART_HEIGHT_PX = 180;
+/** Keep in sync with backend AI_TICKER_CHAT_PERSONAL_SCREEN_KINDS. */
+export const TICKER_CHAT_PERSONAL_SCREEN_KINDS = [
+  'portfolio',
+  'rebalancing',
+  'watchlist',
+  'dividends',
+  'backtest',
+] as const;
 /** Browser-tab transcript. Cleared when the tab closes, on logout, or via New chat. Not sent to the API store. */
 export const TICKER_CHAT_SESSION_STORAGE_KEY = 'krepton_ticker_chat_session_v1';
 /** Fired when the page snapshot attached to chat changes. */
@@ -326,10 +338,21 @@ export const TICKER_CHAT_SESSION_MAX_MESSAGES = 40;
 export const TICKER_CHAT_SESSION_MAX_MESSAGE_CHARS = 8000;
 export const TICKER_CHAT_SESSION_MAX_MESSAGE_ID_CHARS = 80;
 export const TICKER_CHAT_SESSION_MAX_COMPANY_NAME_CHARS = 120;
-export const TICKER_CHAT_INCLUDE_HOLDING_LABEL =
-  'Include my position (shares, avg price, unrealized P/L)';
+export const TICKER_CHAT_INCLUDE_HOLDING_LABEL = 'Share my portfolio data with this chat';
 export const TICKER_CHAT_INCLUDE_HOLDING_TOOLTIP =
-  'Adds your position size, average buy price, and unrealized P/L for this ticker to the AI prompt. Off by default. No email, account IDs, or other personal information is sent.';
+  'Sends positions, weights, dividends, watchlist, and backtest inputs with the question. Public quotes stay available when this is off. On by default. No email or account numbers are sent.';
+export const TICKER_CHAT_PERSONAL_DATA_DISABLED_HINT =
+  'Portfolio sharing is off in Profile. This chat uses public market data only.';
+export const TICKER_CHAT_PREVIOUS_CHAT_LABEL = 'Previous chat';
+export const TICKER_CHAT_DISMISS_SCREEN_SUGGESTIONS_LABEL = 'Hide screen suggestions';
+export const TICKER_CHAT_HIDE_COMPOSER_LABEL = 'Hide message box';
+export const TICKER_CHAT_SHOW_COMPOSER_LABEL = 'Show message box';
+export const TICKER_CHAT_COMPOSER_COLLAPSED_HINT = 'Write a message';
+export const PROFILE_AI_PERSONAL_DATA_TITLE = 'Send my data to AI chat';
+export const PROFILE_AI_PERSONAL_DATA_HINT =
+  'On by default. Turn this off to stop the chat from receiving your portfolio, positions, watchlist, dividends, and backtest inputs. The chat checkbox is disabled and the chat uses public market data only.';
+export const PROFILE_AI_PERSONAL_DATA_ERROR =
+  'Unable to update the AI data setting. Please try again.';
 /**
  * Suggestion chips above the chat thread. `{ticker}` is replaced at render time.
  * Keep exactly 8 for a balanced marquee loop.

@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { createTestStore } from '../../../../__tests__/renderWithProviders';
 import {
   APP_SHELL_ELEMENT_ATTRIBUTE,
   BEGINNER_TUTORIAL_CHAT_OPEN_VALUE,
@@ -34,13 +36,15 @@ const SAVED_REPLY = 'Services revenue grew.';
 
 function renderReturnHost(routePath: string) {
   return render(
-    <div {...{ [APP_SHELL_ELEMENT_ATTRIBUTE]: '' }}>
-      <MemoryRouter initialEntries={[routePath]}>
-        <Routes>
-          <Route path="*" element={<TickerChatReturnHost />} />
-        </Routes>
-      </MemoryRouter>
-    </div>
+    <Provider store={createTestStore()}>
+      <div {...{ [APP_SHELL_ELEMENT_ATTRIBUTE]: '' }}>
+        <MemoryRouter initialEntries={[routePath]}>
+          <Routes>
+            <Route path="*" element={<TickerChatReturnHost />} />
+          </Routes>
+        </MemoryRouter>
+      </div>
+    </Provider>
   );
 }
 

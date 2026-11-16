@@ -69,6 +69,18 @@ export async function createGoogleUser(email: string, googleSub: string): Promis
   return toUserRow(rows[0]);
 }
 
+export async function updateUserAiPersonalDataEnabled(
+  userId: string,
+  enabled: boolean
+): Promise<UserRow | null> {
+  const rows = await db
+    .update(users)
+    .set({ ai_personal_data_enabled: enabled })
+    .where(eq(users.id, userId))
+    .returning();
+  return rows[0] ? toUserRow(rows[0]) : null;
+}
+
 export async function updateUserPasswordHash(
   userId: string,
   passwordHash: string

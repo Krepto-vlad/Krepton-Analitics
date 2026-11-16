@@ -32,6 +32,23 @@ $breakpoint-xl: 1280px;
   }
 }
 
+// The chat drawer narrows `.content` without changing the viewport.
+@mixin content-compact {
+  @container app-content (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
+@mixin when-layout-compact {
+  @include tablet {
+    @content;
+  }
+
+  @include content-compact {
+    @content;
+  }
+}
+
 @mixin desktop-up {
   @media (min-width: $breakpoint-lg) {
     @content;

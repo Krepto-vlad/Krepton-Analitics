@@ -21,6 +21,7 @@ jest.mock('../../../repositories/userRepository.js', () => ({
   markEmailVerified: jest.fn(),
   setEmailVerificationToken: jest.fn(),
   setPasswordResetToken: jest.fn(),
+  updateUserAiPersonalDataEnabled: jest.fn(),
   updateUserPasswordHash: jest.fn(),
 }));
 
@@ -139,6 +140,7 @@ function buildUser(overrides: Partial<UserRow> = {}): UserRow {
     email_verification_expires_at: null,
     password_reset_token_hash: null,
     password_reset_expires_at: null,
+    ai_personal_data_enabled: true,
     created_at: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
   };
@@ -293,6 +295,7 @@ describe('authService', () => {
         hasPassword: true,
         hasGoogle: false,
         isAdmin: false,
+        aiPersonalDataEnabled: true,
         subscription: {
           isPaid: false,
           plan: 'free',
@@ -414,6 +417,7 @@ describe('authService', () => {
         hasPassword: true,
         hasGoogle: false,
         isAdmin: false,
+        aiPersonalDataEnabled: true,
         subscription: {
           isPaid: false,
           plan: 'free' as const,

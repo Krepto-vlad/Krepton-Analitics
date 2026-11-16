@@ -53,6 +53,7 @@ describe('billingCheckoutService', () => {
       email_verification_expires_at: null,
       password_reset_token_hash: null,
       password_reset_expires_at: null,
+      ai_personal_data_enabled: true,
       created_at: new Date(),
     });
     mockedFindCustomer.mockResolvedValue({

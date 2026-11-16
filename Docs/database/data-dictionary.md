@@ -21,6 +21,7 @@ Login identity. No legal name, phone, or broker account number.
 | email_verification_expires_at | timestamptz | nullable |
 | password_reset_token_hash | varchar(64) | nullable |
 | password_reset_expires_at | timestamptz | nullable |
+| ai_personal_data_enabled | boolean | NOT NULL, default true. Profile switch for sending portfolio data to AI chat |
 | created_at | timestamptz | NOT NULL, default `now()` |
 
 CHECK: `password_hash IS NOT NULL OR google_sub IS NOT NULL`.

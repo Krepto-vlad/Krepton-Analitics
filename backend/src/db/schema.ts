@@ -33,6 +33,7 @@ export const users = pgTable('users', {
     withTimezone: true,
     mode: 'date',
   }),
+  ai_personal_data_enabled: boolean('ai_personal_data_enabled').notNull().default(true),
   created_at: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
 
