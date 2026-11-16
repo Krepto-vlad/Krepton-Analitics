@@ -49,6 +49,10 @@ function renderReturnHost(routePath: string) {
 }
 
 describe('TickerChatReturnHost', () => {
+  beforeAll(async () => {
+    await import('../../../../pages/TickerDetailPage/components/TickerChatDrawer');
+  });
+
   beforeEach(() => {
     sessionStorage.clear();
     Element.prototype.scrollIntoView = jest.fn();
