@@ -130,6 +130,7 @@ export function RebalancingPage() {
         description: `Custom allocation based on ${savedCustomStrategy.baseStrategyName}.`,
         philosophy: 'Personalized target weights derived from a pre-built strategy template.',
         investmentHorizon: 'User-defined',
+        guideBaseName: savedCustomStrategy.baseStrategyName,
       },
     ];
   }, [savedCustomStrategy, strategies]);

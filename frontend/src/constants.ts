@@ -664,6 +664,13 @@ export const ERROR_MESSAGES = {
 
 export const AI_ALIGNMENT_EXPLAIN_SESSION_STORAGE_KEY = 'krepton_ai_alignment_explain_v1';
 export const STRATEGY_DRIFT_ALERT_SESSION_STORAGE_KEY = 'krepton_strategy_drift_alert_dismissed_v1';
+export const REBALANCING_STRATEGY_GUIDE_OPEN_LABEL = 'Read about this strategy';
+export const REBALANCING_STRATEGY_GUIDE_CLOSE_LABEL = 'Close';
+export const REBALANCING_STRATEGY_GUIDE_KICKER = 'Published model';
+export const REBALANCING_STRATEGY_GUIDE_SWITCH_LABEL = 'Choose a model to read';
+export const REBALANCING_STRATEGY_GUIDE_SOURCE_PREFIX = 'Original publication';
+export const REBALANCING_STRATEGY_GUIDE_DISCLAIMER =
+  'This describes a published allocation model by its author. It is not a Krepton strategy, and it is not a recommendation to buy, sell, or hold any security.';
 
 export {
   AI_GENERATED_HALLUCINATION_CAVEAT,
