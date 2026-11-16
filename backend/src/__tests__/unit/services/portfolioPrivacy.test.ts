@@ -162,6 +162,7 @@ describe('portfolioService privacy actions', () => {
         hasPassword: true,
         hasGoogle: false,
         isAdmin: false,
+        aiPersonalDataEnabled: true,
         subscription: createFreeSubscriptionSummary(),
       });
       mockedGetPositions.mockResolvedValue([positionRow]);

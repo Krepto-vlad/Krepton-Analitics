@@ -1,9 +1,14 @@
-import { Minus, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { BookOpen, Minus, Plus } from 'lucide-react';
 import { Select } from '../../../../components/ui';
-import { resolveRebalancingDisplayColor } from '../../../../constants';
+import {
+  REBALANCING_STRATEGY_GUIDE_OPEN_LABEL,
+  resolveRebalancingDisplayColor,
+} from '../../../../constants';
 import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import type { RebalancingStrategyId } from '../../../../types/rebalancing.types';
 import type { StrategyBucketAllocation } from '../../utils/rebalancingAllocations';
+import { StrategyGuideDialog } from '../StrategyGuideDialog/StrategyGuideDialog';
 import styles from './StrategyPanel.module.scss';
 
 export interface StrategyPanelOption {
@@ -12,6 +17,7 @@ export interface StrategyPanelOption {
   description: string;
   philosophy: string;
   investmentHorizon: string;
+  guideBaseName?: string;
 }
 
 interface StrategyPanelProps {
@@ -41,6 +47,7 @@ export function StrategyPanel({
   onStepAllocation,
   onSaveAsCustom,
 }: StrategyPanelProps) {
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const selectedStrategy = strategyOptions.find((strategy) => strategy.id === selectedStrategyId);
   const selectOptions = strategyOptions.map((strategy) => ({
     value: strategy.id,
@@ -65,7 +72,18 @@ export function StrategyPanel({
           <p className={styles.meta}>
             {selectedStrategy.philosophy} · Horizon: {selectedStrategy.investmentHorizon}
           </p>
+          <button type="button" className={styles.guideButton} onClick={() => setIsGuideOpen(true)}>
+            <BookOpen size={16} />
+            {REBALANCING_STRATEGY_GUIDE_OPEN_LABEL}
+          </button>
         </>
+      )}
+      {isGuideOpen && selectedStrategy && (
+        <StrategyGuideDialog
+          strategyOptions={strategyOptions}
+          initialStrategyId={selectedStrategyId}
+          onClose={() => setIsGuideOpen(false)}
+        />
       )}
 
       <div className={styles.allocations}>

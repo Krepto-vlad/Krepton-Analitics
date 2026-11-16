@@ -8,6 +8,8 @@ export interface AuthUser {
   hasPassword: boolean;
   hasGoogle: boolean;
   isAdmin: boolean;
+  /** Omitted by older sessions. Missing means sharing is still allowed. */
+  aiPersonalDataEnabled?: boolean;
   subscription: SubscriptionSummary;
   /** ISO timestamp of the HttpOnly JWT `exp`. */
   sessionExpiresAt: string;

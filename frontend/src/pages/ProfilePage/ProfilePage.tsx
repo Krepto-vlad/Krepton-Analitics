@@ -23,18 +23,25 @@ import {
   ERROR_MESSAGES,
   PORTFOLIO_DATA_DELETE_CONFIRMATION,
   PORTFOLIO_IMPORTER_PATH,
+  PROFILE_AI_PERSONAL_DATA_ERROR,
+  PROFILE_AI_PERSONAL_DATA_HINT,
+  PROFILE_AI_PERSONAL_DATA_TITLE,
   ROUTES,
   type PortfolioExportFormat,
 } from '../../constants';
 import { PRICING_PLAN_DEFINITIONS } from '../../constants/pricingPlans';
 import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
-import { apiChangePassword, apiDeleteAccount } from '../../api/authApi';
+import { apiChangePassword, apiDeleteAccount, apiUpdateAiPersonalData } from '../../api/authApi';
 import { deletePortfolioData, exportPortfolioData } from '../../api/portfolioApi';
 import { BrokerConnectionsList } from '../../components/broker/BrokerConnectionsList';
 import { BEGINNER_TUTORIAL_REPLAY_LABEL } from '../../content/beginnerTutorial';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { fetchCurrentUserThunk, logoutThunk } from '../../features/auth/authSlice';
+import {
+  fetchCurrentUserThunk,
+  logoutThunk,
+  setAiPersonalDataEnabled,
+} from '../../features/auth/authSlice';
 import {
   fetchInvestmentSummaryThunk,
   fetchPortfolioEquityHistoryThunk,
@@ -150,6 +157,9 @@ export function ProfilePage() {
   );
   const [isExportingData, setIsExportingData] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isSavingAiPersonalData, setIsSavingAiPersonalData] = useState(false);
+  const [aiPersonalDataError, setAiPersonalDataError] = useState<string | null>(null);
+  const aiPersonalDataEnabled = user?.aiPersonalDataEnabled !== false;
   const [exportMessage, setExportMessage] = useState<string | null>(null);
 
   const maskedEmail = user ? maskEmail(user.email) : '—';
@@ -201,6 +211,20 @@ export function ProfilePage() {
     setExportGoogleIdToken(null);
     setExportFormat(DEFAULT_PORTFOLIO_EXPORT_FORMAT);
     setExportError(null);
+  }
+
+  async function handleAiPersonalDataChange(enabled: boolean): Promise<void> {
+    setAiPersonalDataError(null);
+    setIsSavingAiPersonalData(true);
+
+    try {
+      const updatedUser = await apiUpdateAiPersonalData(enabled);
+      dispatch(setAiPersonalDataEnabled(updatedUser.aiPersonalDataEnabled !== false));
+    } catch (error) {
+      setAiPersonalDataError(getRejectedMessage(error, PROFILE_AI_PERSONAL_DATA_ERROR));
+    } finally {
+      setIsSavingAiPersonalData(false);
+    }
   }
 
   async function handleChangePassword() {
@@ -544,6 +568,25 @@ export function ProfilePage() {
           <p className={styles.cardLabel}>Privacy</p>
           <h2 className={styles.cardTitle}>Privacy &amp; Data</h2>
         </div>
+
+        <div className={styles.dataActionRow}>
+          <div className={styles.dataActionCopy}>
+            <p className={styles.securityTitle}>{PROFILE_AI_PERSONAL_DATA_TITLE}</p>
+            <p className={styles.securityHint}>{PROFILE_AI_PERSONAL_DATA_HINT}</p>
+          </div>
+          <label className={styles.aiDataToggle}>
+            <input
+              type="checkbox"
+              checked={aiPersonalDataEnabled}
+              disabled={isSavingAiPersonalData}
+              onChange={(event) => {
+                void handleAiPersonalDataChange(event.target.checked);
+              }}
+            />
+            <span>{aiPersonalDataEnabled ? 'On' : 'Off'}</span>
+          </label>
+        </div>
+        {aiPersonalDataError && <p className={styles.statusMessage}>{aiPersonalDataError}</p>}
 
         <div className={styles.legalLinks}>
           <Link to={ROUTES.LEGAL} className={styles.legalLink}>

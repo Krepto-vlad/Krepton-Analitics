@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useState } from 'react';
+import { useAppSelector } from '../../../hooks/useAppSelector';
 import { matchPath, useLocation } from 'react-router-dom';
 import {
   APP_SHELL_ELEMENT_ATTRIBUTE,
@@ -80,6 +81,9 @@ function shouldOpenChatFromSearch(search: string): boolean {
  */
 export function TickerChatReturnHost() {
   const { pathname, search } = useLocation();
+  const isPersonalDataDisabled = useAppSelector(
+    (state) => state.auth.user?.aiPersonalDataEnabled === false
+  );
   clearScreenContextOutsideDataPages(pathname);
 
   const pageTicker = readPageTicker(pathname);
@@ -129,6 +133,7 @@ export function TickerChatReturnHost() {
         }}
         onWidthChange={setDrawerWidthPx}
         onResizingChange={setIsChatResizing}
+        isPersonalDataDisabled={isPersonalDataDisabled}
       />
     </Suspense>
   );

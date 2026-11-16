@@ -17,6 +17,11 @@ jest.mock('../../../services/stockService.js', () => ({
   getStockCompare: jest.fn(),
   getStockFundamentals: jest.fn(),
   getStockHistory: jest.fn(),
+  searchStocks: jest.fn().mockResolvedValue([]),
+}));
+
+jest.mock('../../../repositories/userRepository.js', () => ({
+  findUserById: jest.fn().mockResolvedValue({ ai_personal_data_enabled: true }),
 }));
 
 jest.mock('../../../services/marketMoversService.js', () => ({
@@ -52,6 +57,7 @@ import {
   findOrCreatePortfolioAccount,
   getPositionsByPortfolioId,
 } from '../../../repositories/portfolioRepository.js';
+import { findUserById } from '../../../repositories/userRepository.js';
 import {
   assertAiQuotaAvailable,
   getAiQuotaStatus,
@@ -107,6 +113,7 @@ const mockedFindOrCreate = findOrCreatePortfolioAccount as jest.MockedFunction<
 const mockedGetPositions = getPositionsByPortfolioId as jest.MockedFunction<
   typeof getPositionsByPortfolioId
 >;
+const mockedFindUser = findUserById as jest.MockedFunction<typeof findUserById>;
 
 const quotaStatus = {
   used: 1,
@@ -139,6 +146,7 @@ describe('tickerChatService', () => {
     mockedRecord.mockResolvedValue(undefined);
     mockedFindOrCreate.mockResolvedValue('pf-1');
     mockedGetPositions.mockResolvedValue([]);
+    mockedQuotes.mockResolvedValue([]);
   });
 
   it('returns quota for the ticker_chat feature', async () => {
@@ -183,6 +191,69 @@ describe('tickerChatService', () => {
     expect(result.ticker).toBe('');
     expect(result.factCheck.livePrice).toBeNull();
     expect(result.reply).toBe('The page has no attached figures.');
+    expect(result.chartTicker).toBeNull();
+  });
+
+  it('answers a named company from fresh quotes instead of the open page', async () => {
+    mockedQuotes.mockResolvedValue([
+      {
+        ...buildEmptyStockQuote('MSFT'),
+        name: 'Microsoft',
+        price: 420,
+        currency: 'USD',
+        changePercent: 1.5,
+      },
+    ]);
+    mockedGemini.mockResolvedValue({
+      reply: 'Microsoft is trading at 420.00 today.',
+      sources: [],
+      groundingEnabled: false,
+    });
+
+    const result = await sendTickerChatMessage('user-1', {
+      message: 'как поживает макрософт сегодня?',
+    });
+
+    expect(mockedQuote).not.toHaveBeenCalled();
+    expect(mockedGemini).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ticker: '',
+        questionContextText: expect.stringContaining('MSFT (Microsoft)'),
+      })
+    );
+    expect(result.chartTicker).toBe('MSFT');
+    expect(result.factCheck.livePrice).toBe(420);
+  });
+
+  it('drops personal screen context when the profile forbids it', async () => {
+    mockedFindUser.mockResolvedValueOnce({ ai_personal_data_enabled: false } as never);
+    mockedQuote.mockResolvedValue({
+      ...buildEmptyStockQuote('AAPL'),
+      price: 190,
+      currency: 'USD',
+      changePercent: 1,
+    });
+    mockedGemini.mockResolvedValue({
+      reply: 'Public quotes only.',
+      sources: [],
+      groundingEnabled: false,
+    });
+
+    await sendTickerChatMessage('user-1', {
+      ticker: 'AAPL',
+      message: 'Explain these weights.',
+      includeHoldingContext: true,
+      screenContext: { kind: 'portfolio', displayCurrency: 'USD' },
+    });
+
+    expect(mockedPositions).not.toHaveBeenCalled();
+    expect(mockedGetPositions).not.toHaveBeenCalled();
+    expect(mockedGemini).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includeHoldingContext: false,
+        screenContextText: null,
+      })
+    );
   });
 
   it('rejects a ticker screen when no ticker is open', async () => {

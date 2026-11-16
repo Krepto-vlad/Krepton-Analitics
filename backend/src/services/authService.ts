@@ -16,6 +16,7 @@ import {
   markEmailVerified,
   setEmailVerificationToken,
   setPasswordResetToken,
+  updateUserAiPersonalDataEnabled,
   updateUserPasswordHash,
 } from '../repositories/userRepository.js';
 import {
@@ -66,6 +67,7 @@ async function mapUserRowToAuthUser(user: UserRow): Promise<AuthUserProfile> {
     hasPassword: Boolean(user.password_hash),
     hasGoogle: Boolean(user.google_sub),
     isAdmin: isAdminEmail(user.email),
+    aiPersonalDataEnabled: user.ai_personal_data_enabled,
     subscription,
   };
 }
@@ -246,6 +248,18 @@ export async function getUserById(userId: string): Promise<AuthUserProfile> {
     throw new AppError(401, 'User not found');
   }
   return await mapUserRowToAuthUser(user);
+}
+
+export async function setAiPersonalDataEnabled(
+  userId: string,
+  enabled: boolean
+): Promise<AuthUserProfile> {
+  const updatedUser = await updateUserAiPersonalDataEnabled(userId, enabled);
+  if (!updatedUser) {
+    throw new AppError(404, 'User not found');
+  }
+
+  return await mapUserRowToAuthUser(updatedUser);
 }
 
 /**

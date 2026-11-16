@@ -201,8 +201,10 @@ export interface TickerChatPromptContext {
   includeHoldingContext: boolean;
   history: TickerChatHistoryMessage[];
   userMessage: string;
-  /** Verified text for the screen the user is looking at. Omitted when no screen is attached. */
+  /** Verified text for the screen the user is looking at. Background only. */
   screenContextText?: string | null;
+  /** Fresh quotes for companies named in this message. The subject of the answer. */
+  questionContextText?: string | null;
 }
 
 export interface TickerChatCompareScreenRequest {
@@ -401,4 +403,6 @@ export interface TickerChatResponse {
   groundingEnabled: boolean;
   factCheck: TickerChatFactCheck;
   displayBlocks: TickerChatDisplayBlock[];
+  /** Ticker to chart in the reply when that chart is not already on the open page. */
+  chartTicker: string | null;
 }

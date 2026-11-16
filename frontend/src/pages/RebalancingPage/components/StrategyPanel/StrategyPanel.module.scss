@@ -41,6 +41,29 @@
   line-height: 1.5;
 }
 
+.guideButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  align-self: flex-start;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-foreground;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-primary-border;
+    color: $color-primary-on-muted;
+    outline: none;
+  }
+}
+
 .allocations {
   display: flex;
   flex-direction: column;

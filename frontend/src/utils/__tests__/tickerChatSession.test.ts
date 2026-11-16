@@ -13,6 +13,9 @@ import {
   loadTickerChatSession,
   rememberTickerVisit,
   saveActiveTickerChat,
+  archiveCurrentAppChat,
+  loadArchivedAppChatCount,
+  restoreNewestArchivedAppChat,
   saveAppChatSession,
   saveBacktestChatScreen,
   saveCompareChatScreen,
@@ -355,6 +358,40 @@ describe('tickerChatSession', () => {
 
     saveTickerChatSession('MSFT', [createStoredChatMessage('3', 'other')], '');
     expect(loadAppChatSession().messages[0]?.content).toBe('shared');
+  });
+
+  it('archives the current chat and restores it from this tab', () => {
+    saveAppChatSession([createStoredChatMessage('1', 'first chat')], '');
+    archiveCurrentAppChat(loadAppChatSession().messages, '');
+
+    expect(loadAppChatSession().messages).toEqual([]);
+    expect(loadArchivedAppChatCount()).toBe(1);
+
+    saveAppChatSession([createStoredChatMessage('2', 'second chat')], 'draft');
+    const restoredChat = restoreNewestArchivedAppChat(loadAppChatSession().messages, 'draft');
+
+    expect(restoredChat?.messages[0]?.content).toBe('first chat');
+    expect(loadAppChatSession().messages[0]?.content).toBe('first chat');
+    expect(loadArchivedAppChatCount()).toBe(1);
+    expect(loadAppChatSession().messages).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ content: 'second chat' })])
+    );
+
+    const swappedBack = restoreNewestArchivedAppChat(loadAppChatSession().messages, '');
+    expect(swappedBack?.messages[0]?.content).toBe('second chat');
+  });
+
+  it('keeps only two archived chats', () => {
+    archiveCurrentAppChat([createStoredChatMessage('1', 'one')], '');
+    archiveCurrentAppChat([createStoredChatMessage('2', 'two')], '');
+    archiveCurrentAppChat([createStoredChatMessage('3', 'three')], '');
+
+    expect(loadArchivedAppChatCount()).toBe(2);
+    const newest = restoreNewestArchivedAppChat([], '');
+    expect(newest?.messages[0]?.content).toBe('three');
+    const older = restoreNewestArchivedAppChat([], '');
+    expect(older?.messages[0]?.content).toBe('two');
+    expect(restoreNewestArchivedAppChat([], '')).toBeNull();
   });
 
   it('offers the previous ticker after another page is opened', () => {

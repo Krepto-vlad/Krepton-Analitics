@@ -107,8 +107,8 @@ export function buildTickerChatCompareScreen(items: StockCompareItem[]): Resolve
   }));
 
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — a comparison they selected in Krepton.',
-    'These tickers are in scope for this turn. Explain the differences.',
+    'OPEN PAGE SNAPSHOT — a comparison they selected in Krepton.',
+    'Background only. Use these figures only if the user asked about this comparison.',
     'Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton data. Bar cards in the chat use the same P/E, revenue growth, and profit margin.',
     'Do not invent different values.',
@@ -175,7 +175,7 @@ export function buildTickerChatDividendScreen(
         });
 
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — the dividend calendar for this portfolio in Krepton.',
+    'OPEN PAGE SNAPSHOT — the dividend calendar for this portfolio in Krepton.',
     'Explain the projected income. Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton data. The bar card uses the same monthly totals.',
     'Do not invent different values.',
@@ -214,8 +214,8 @@ export function buildTickerChatTickerScreen(params: {
   const name = params.fundamentals.name.trim() || params.ticker;
   const currency = params.fundamentals.currency || 'USD';
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — the price chart and fundamentals for one company in Krepton.',
-    'This ticker is in scope for this turn. Explain the chart period and the figures.',
+    'OPEN PAGE SNAPSHOT — the price chart and fundamentals for one company in Krepton.',
+    'Background only. Use these figures only if the user asked about this chart.',
     'Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton data. Bar cards use the same period return, P/E, revenue growth, and profit margin.',
     'Do not invent different values. Do not describe a zoom level or a drawing that is not listed here.',
@@ -291,7 +291,7 @@ export function buildTickerChatRebalancingScreen(
     .map((item) => `- ${item.ticker} → ${item.bucketLabel}`);
 
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — the Krepton rebalancing calculator.',
+    'OPEN PAGE SNAPSHOT — the Krepton rebalancing calculator.',
     'The target mix was selected by the user. Explain the percentage drift.',
     'Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton data. The chat draws the same current and target bars.',
@@ -348,8 +348,8 @@ export function buildTickerChatMoversScreen(
   losers: MarketMoverItem[]
 ): ResolvedTickerChatScreen {
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — US day gainers and losers shown in Krepton.',
-    'These tickers are in scope for this turn. Explain the moves.',
+    'OPEN PAGE SNAPSHOT — US day gainers and losers shown in Krepton.',
+    'Background only. Use these figures only if the user asked about these movers.',
     'Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton data. Bar cards use the same day change.',
     'Do not invent different values.',
@@ -382,7 +382,7 @@ export function buildTickerChatBacktestScreen(
   );
 
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — a backtest the user calculated in Krepton.',
+    'OPEN PAGE SNAPSHOT — a backtest the user calculated in Krepton.',
     'Explain the result. Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton data. The bar card uses the same returns.',
     'Do not invent different values.',
@@ -553,7 +553,7 @@ export function buildTickerChatPortfolioScreen(
         });
 
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — portfolio weights in Krepton.',
+    'OPEN PAGE SNAPSHOT — portfolio weights in Krepton.',
     'Explain how the market value is spread. Do not tell the user to buy, sell, or size a trade.',
     'The figures below are weights only. Share counts and average buy prices are not included.',
     'Do not invent different weights.',
@@ -595,8 +595,8 @@ export function buildTickerChatNewsScreen(items: PortfolioNewsItem[]): ResolvedT
       : visibleHeadlines.map((item) => `- ${item.ticker}: ${item.headline} (${item.source}).`);
 
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — headlines for this portfolio in Krepton.',
-    'Tickers named below are in scope for this turn. Explain the headlines.',
+    'OPEN PAGE SNAPSHOT — headlines for this portfolio in Krepton.',
+    'Background only. Use these headlines only if the user asked about this page.',
     'Do not tell the user to buy, sell, or size a trade.',
     'Do not invent headlines, and do not add links.',
     'Headlines:',
@@ -635,8 +635,8 @@ export function buildTickerChatWatchlistScreen(
         });
 
   const promptText = [
-    'SCREEN THE USER IS LOOKING AT — the watchlist in Krepton.',
-    'These tickers are in scope for this turn. Explain the day moves.',
+    'OPEN PAGE SNAPSHOT — the watchlist in Krepton.',
+    'Background only. Use these figures only if the user asked about this watchlist.',
     'Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton quotes. The bar card uses the same day change.',
     'Do not invent different prices.',
@@ -803,8 +803,8 @@ export function buildTickerChatPairPathScreen(params: {
       : 'Explain the two returns. The bar card uses the same percentages.';
 
   const promptText = [
-    `SCREEN THE USER IS LOOKING AT — ${params.periodLabel} prices for two tickers in Krepton.`,
-    'Both tickers are in scope for this turn.',
+    `OPEN PAGE SNAPSHOT — ${params.periodLabel} prices for two tickers in Krepton.`,
+    'Background only. Use these figures only if the user asked about this pair.',
     'Do not tell the user to buy, sell, or size a trade.',
     'The figures below are Krepton closes. Do not invent different prices or returns.',
     pathNote,

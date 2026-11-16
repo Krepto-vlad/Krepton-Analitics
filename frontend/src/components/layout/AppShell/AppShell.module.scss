@@ -50,6 +50,7 @@ $transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   // height: 0 + flex: 1 establishes a definite height so children can use height: 100%
   height: 0;
   padding-right: var(--chat-drawer-inset, 0px);
+  container: app-content / inline-size;
   transition: padding-right $transition-smooth;
 
   @media (prefers-reduced-motion: reduce) {

@@ -272,7 +272,7 @@ export const AI_EXPLAIN_ALIGNMENT_MAX_OUTPUT_TOKENS = 4096;
 export const AI_TICKER_CHAT_FREE_DAILY_LIMIT = 20;
 export const AI_TICKER_CHAT_PAID_DAILY_LIMIT = 200;
 export const AI_TICKER_CHAT_DISCLAIMER =
-  'AI chat for informational purposes only. Not financial advice. Answers stay on the current page.';
+  'AI chat for informational purposes only. Not financial advice.';
 export const AI_TICKER_CHAT_PAGE_SUBJECT = 'this page';
 export const AI_EMPTY_REPLY_ERROR_MESSAGE = 'AI returned an empty response. Please try again.';
 export const AI_TICKER_CHAT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -284,8 +284,46 @@ export const AI_TICKER_CHAT_MAX_MESSAGE_CHARS = 1000;
 /** Per-message cap for history items (assistant replies are often longer than user input). */
 export const AI_TICKER_CHAT_MAX_HISTORY_MESSAGE_CHARS = 4000;
 /** Total history char budget sent to the model; oldest messages are dropped first. */
-export const AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 12000;
-export const AI_TICKER_CHAT_MAX_HISTORY_MESSAGES = 12;
+export const AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS = 6000;
+export const AI_TICKER_CHAT_MAX_HISTORY_MESSAGES = 6;
+/** Companies named in one question. Keeps Yahoo calls and the prompt small. */
+export const AI_TICKER_CHAT_QUESTION_MAX_TICKERS = 3;
+/** Name lookups after the alias list. Explicit symbols do not count toward this. */
+export const AI_TICKER_CHAT_QUESTION_MAX_SEARCHES = 2;
+/** Screen kinds that contain the user's own portfolio, not public market data. */
+export const AI_TICKER_CHAT_PERSONAL_SCREEN_KINDS = [
+  'portfolio',
+  'rebalancing',
+  'watchlist',
+  'dividends',
+  'backtest',
+] as const;
+/** Chart period tokens that look like tickers but are not symbols. */
+export const AI_TICKER_CHAT_IGNORED_SYMBOLS = [
+  '1D',
+  '1W',
+  '1M',
+  '3M',
+  '6M',
+  '1Y',
+  '2Y',
+  '5Y',
+  'MAX',
+] as const;
+/**
+ * Common company names, including Russian spellings, resolved without a search call.
+ * Unknown English names still go through ticker search.
+ */
+export const AI_TICKER_CHAT_COMPANY_ALIASES = [
+  { ticker: 'MSFT', names: ['microsoft', 'майкрософт', 'микрософт', 'макрософт'] },
+  { ticker: 'GOOGL', names: ['google', 'alphabet', 'гугл', 'гугла', 'гугле', 'алфавит'] },
+  { ticker: 'AAPL', names: ['apple', 'эпл', 'эппл'] },
+  { ticker: 'AMZN', names: ['amazon', 'амазон', 'амазона'] },
+  { ticker: 'NVDA', names: ['nvidia', 'нвидиа', 'нвидия', 'энвидиа'] },
+  { ticker: 'TSLA', names: ['tesla', 'тесла', 'теслы', 'теслу'] },
+  { ticker: 'META', names: ['meta', 'facebook', 'мета', 'фейсбук'] },
+  { ticker: 'NFLX', names: ['netflix', 'нетфликс'] },
+] as const;
 export const AI_CHAT_TICKER_TYPO_MAX_DISTANCE = 2;
 export const AI_CHAT_TICKER_TYPO_MIN_TICKER_LENGTH = 3;
 /** Relative error vs Krepton quote before a stated price is treated as a hallucination. */

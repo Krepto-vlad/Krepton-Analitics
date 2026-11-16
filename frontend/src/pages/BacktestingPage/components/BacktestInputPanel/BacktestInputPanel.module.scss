@@ -129,7 +129,7 @@
   gap: $space-4;
   align-items: end;
 
-  @include tablet {
+  @include when-layout-compact {
     grid-template-columns: 1fr;
   }
 }

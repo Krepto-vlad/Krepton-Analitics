@@ -11,6 +11,7 @@ export interface UserRow {
   email_verification_expires_at: Date | null;
   password_reset_token_hash: string | null;
   password_reset_expires_at: Date | null;
+  ai_personal_data_enabled: boolean;
   created_at: Date;
 }
 
@@ -28,6 +29,8 @@ export interface AuthUser {
   /** ISO timestamp of the HttpOnly JWT `exp` — not stored in the anonymous DB. */
   sessionExpiresAt: string;
   isAdmin: boolean;
+  /** When false, AI chat receives public market data only. */
+  aiPersonalDataEnabled: boolean;
   subscription: SubscriptionSummary;
 }
 

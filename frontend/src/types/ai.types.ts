@@ -281,6 +281,8 @@ export interface TickerChatResponse {
   groundingEnabled: boolean;
   factCheck: TickerChatFactCheck;
   displayBlocks?: TickerChatDisplayBlock[];
+  /** Set when the reply is about a ticker whose chart is not already on the page. */
+  chartTicker?: string | null;
 }
 
 export interface TickerChatUiMessage {
@@ -290,4 +292,5 @@ export interface TickerChatUiMessage {
   groundingEnabled?: boolean;
   factCheck?: TickerChatFactCheck;
   displayBlocks?: TickerChatDisplayBlock[];
+  chartTicker?: string;
 }

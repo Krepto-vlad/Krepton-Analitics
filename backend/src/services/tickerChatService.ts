@@ -6,15 +6,18 @@ import {
   AI_TICKER_CHAT_MAX_HISTORY_TOTAL_CHARS,
   AI_TICKER_CHAT_MAX_MESSAGE_CHARS,
   AI_TICKER_CHAT_PAGE_SUBJECT,
+  AI_TICKER_CHAT_PERSONAL_SCREEN_KINDS,
 } from '../constants.js';
 import { AppError } from '../middleware/errorHandler.js';
 import {
   findOrCreatePortfolioAccount,
   getPositionsByPortfolioId,
 } from '../repositories/portfolioRepository.js';
+import { findUserById } from '../repositories/userRepository.js';
 import type {
   AiQuotaStatus,
   GenerateTickerChatDto,
+  TickerChatDisplayBlock,
   TickerChatHistoryMessage,
   TickerChatHoldingContext,
   TickerChatPromptContext,
@@ -31,6 +34,7 @@ import {
   buildEmptyTickerChatFactCheck,
   buildSnapshotTickerChatFactCheck,
 } from './tickerChatFactCheck.js';
+import { resolveQuestionMarket } from './tickerChatQuestionContext.js';
 import { resolveTickerChatScreenContext } from './tickerChatScreenContext.js';
 import {
   applyTickerChatOutputGuardrails,
@@ -40,6 +44,41 @@ import {
 
 const TICKER_CHAT_FEATURE = 'ticker_chat' as const;
 const HISTORY_TRUNCATION_SUFFIX = '…';
+const PERSONAL_SCREEN_KINDS = new Set<string>(AI_TICKER_CHAT_PERSONAL_SCREEN_KINDS);
+
+function omitPersonalScreenContext(rawScreenContext: unknown): unknown {
+  if (
+    !rawScreenContext ||
+    typeof rawScreenContext !== 'object' ||
+    Array.isArray(rawScreenContext)
+  ) {
+    return rawScreenContext;
+  }
+
+  const kind = (rawScreenContext as { kind?: unknown }).kind;
+  if (typeof kind === 'string' && PERSONAL_SCREEN_KINDS.has(kind)) {
+    return undefined;
+  }
+
+  return rawScreenContext;
+}
+
+function mergeDisplayBlocks(
+  questionBlocks: TickerChatDisplayBlock[],
+  screenBlocks: TickerChatDisplayBlock[]
+): TickerChatDisplayBlock[] {
+  if (questionBlocks.length === 0) {
+    return screenBlocks;
+  }
+
+  const screenWithoutCompare = screenBlocks.filter((block) => block.kind !== 'compare-bars');
+  return [...questionBlocks, ...screenWithoutCompare];
+}
+
+async function profileAllowsPersonalData(userId: string): Promise<boolean> {
+  const user = await findUserById(userId);
+  return user?.ai_personal_data_enabled !== false;
+}
 
 function truncateChatText(content: string, maxChars: number): string {
   if (content.length <= maxChars) {
@@ -234,6 +273,7 @@ export async function sendTickerChatMessage(
       groundingEnabled: false,
       factCheck: buildEmptyTickerChatFactCheck(),
       displayBlocks: [],
+      chartTicker: null,
     };
   }
 
@@ -244,14 +284,16 @@ export async function sendTickerChatMessage(
 
   await assertAiQuotaAvailable(userId, TICKER_CHAT_FEATURE);
 
-  const holding = includeHoldingContext
-    ? await resolveHoldingContext(userId, ticker, quote.price)
-    : null;
+  const allowPersonalData = await profileAllowsPersonalData(userId);
+  const shareHolding = allowPersonalData && includeHoldingContext;
+  const rawScreenContext = (rawBody as { screenContext?: unknown }).screenContext;
+  const holding = shareHolding ? await resolveHoldingContext(userId, ticker, quote.price) : null;
   const screenContext = await resolveTickerChatScreenContext(
     userId,
-    (rawBody as { screenContext?: unknown }).screenContext,
+    allowPersonalData ? rawScreenContext : omitPersonalScreenContext(rawScreenContext),
     ticker
   );
+  const questionMarket = await resolveQuestionMarket(scopeDecision.userMessage, ticker);
 
   const promptContext: TickerChatPromptContext = {
     ticker,
@@ -262,10 +304,11 @@ export async function sendTickerChatMessage(
     marketState: quote.marketState,
     exchange: quote.exchange,
     holding,
-    includeHoldingContext,
+    includeHoldingContext: shareHolding,
     history,
     userMessage: scopeDecision.userMessage,
     screenContextText: screenContext?.promptText ?? null,
+    questionContextText: questionMarket.promptText,
   };
 
   const generation = await generateTickerChatReplyWithGemini(promptContext);
@@ -294,7 +337,10 @@ export async function sendTickerChatMessage(
         currency: quote.currency || 'USD',
         changePercent: quote.changePercent,
         holding,
-        referencePrices: screenContext?.referencePrices ?? [],
+        referencePrices: [
+          ...(screenContext?.referencePrices ?? []),
+          ...questionMarket.referencePrices,
+        ],
       });
 
   const deliveredReply = stripTickerChatOutboundLinks(factChecked.reply);
@@ -313,7 +359,11 @@ export async function sendTickerChatMessage(
     sources: [],
     groundingEnabled: blocked ? false : generation.groundingEnabled,
     factCheck: factChecked.factCheck,
-    displayBlocks: screenContext?.displayBlocks ?? [],
+    displayBlocks: mergeDisplayBlocks(
+      questionMarket.displayBlocks,
+      screenContext?.displayBlocks ?? []
+    ),
+    chartTicker: questionMarket.chartTicker,
   };
 }
 
@@ -336,16 +386,20 @@ async function sendPageChatMessage(
       groundingEnabled: false,
       factCheck: buildEmptyTickerChatFactCheck(),
       displayBlocks: [],
+      chartTicker: null,
     };
   }
 
   await assertAiQuotaAvailable(userId, TICKER_CHAT_FEATURE);
 
+  const allowPersonalData = await profileAllowsPersonalData(userId);
+  const rawScreenContext = (rawBody as { screenContext?: unknown }).screenContext;
   const screenContext = await resolveTickerChatScreenContext(
     userId,
-    (rawBody as { screenContext?: unknown }).screenContext,
+    allowPersonalData ? rawScreenContext : omitPersonalScreenContext(rawScreenContext),
     ''
   );
+  const questionMarket = await resolveQuestionMarket(scopeDecision.userMessage, null);
 
   const promptContext: TickerChatPromptContext = {
     ticker: '',
@@ -360,6 +414,7 @@ async function sendPageChatMessage(
     history,
     userMessage: scopeDecision.userMessage,
     screenContextText: screenContext?.promptText ?? null,
+    questionContextText: questionMarket.promptText,
   };
 
   const generation = await generateTickerChatReplyWithGemini(promptContext);
@@ -373,17 +428,40 @@ async function sendPageChatMessage(
     throw new AppError(502, AI_EMPTY_REPLY_ERROR_MESSAGE);
   }
 
+  const factChecked =
+    guardrail.blockedReason !== 'none' ||
+    questionMarket.focusTicker === null ||
+    questionMarket.focusPrice === null
+      ? { factCheck: buildEmptyTickerChatFactCheck(), reply: deliveredReply }
+      : applyTickerChatFactCheck({
+          ticker: questionMarket.focusTicker,
+          reply: deliveredReply,
+          userMessage: scopeDecision.userMessage,
+          price: questionMarket.focusPrice,
+          currency: questionMarket.focusCurrency ?? 'USD',
+          changePercent: questionMarket.focusChangePercent ?? 0,
+          holding: null,
+          referencePrices: [
+            ...(screenContext?.referencePrices ?? []),
+            ...questionMarket.referencePrices,
+          ],
+        });
+
   await recordAiUsage(userId, TICKER_CHAT_FEATURE);
   const quota = await getAiQuotaStatus(userId, TICKER_CHAT_FEATURE);
 
   return {
     ticker: '',
-    reply: deliveredReply,
+    reply: factChecked.reply,
     disclaimer: AI_TICKER_CHAT_DISCLAIMER,
     quota,
     sources: [],
     groundingEnabled: guardrail.blockedReason === 'none' && generation.groundingEnabled,
-    factCheck: buildEmptyTickerChatFactCheck(),
-    displayBlocks: screenContext?.displayBlocks ?? [],
+    factCheck: factChecked.factCheck,
+    displayBlocks: mergeDisplayBlocks(
+      questionMarket.displayBlocks,
+      screenContext?.displayBlocks ?? []
+    ),
+    chartTicker: questionMarket.chartTicker,
   };
 }

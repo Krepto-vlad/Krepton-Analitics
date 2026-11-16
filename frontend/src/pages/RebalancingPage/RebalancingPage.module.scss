@@ -91,6 +91,10 @@
   @media (max-width: 1100px) {
     grid-template-columns: 1fr;
   }
+
+  @include content-compact {
+    grid-template-columns: 1fr;
+  }
 }
 
 .disclaimer {

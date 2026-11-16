@@ -5,6 +5,7 @@ import {
   googleLogin,
   logout,
   getMe,
+  updateAiPersonalData,
   changePassword,
   deleteAccount,
   forgotPassword,
@@ -37,6 +38,7 @@ router.post('/forgot-password', authLimiter, asyncHandler(forgotPassword));
 router.post('/reset-password', authLimiter, asyncHandler(resetPassword));
 router.post('/logout', logout);
 router.get('/me', authMiddleware, asyncHandler(getMe));
+router.patch('/ai-personal-data', authMiddleware, asyncHandler(updateAiPersonalData));
 router.post('/extend', authMiddleware, asyncHandler(extendSession));
 router.put('/password', authMiddleware, authLimiter, asyncHandler(changePassword));
 router.delete('/account', authMiddleware, authLimiter, asyncHandler(deleteAccount));

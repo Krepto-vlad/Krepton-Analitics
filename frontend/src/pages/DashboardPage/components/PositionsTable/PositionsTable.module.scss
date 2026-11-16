@@ -85,6 +85,17 @@
   }
 }
 
+@include content-compact {
+  .tableWrapper {
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 40rem;
+    table-layout: auto;
+  }
+}
+
 .th {
   padding: $space-2 $space-2;
   font-size: $font-size-xs;
