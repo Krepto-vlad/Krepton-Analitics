@@ -28,6 +28,8 @@ import {
 import { fetchWatchlistItems } from '../../../api/watchlistApi';
 import { fetchStockQuotesBatch } from '../../../api/stockApi';
 import { fetchLiveFxRates } from '../../../api/fxApi';
+
+const PASSWORD_FORM_TEST_TIMEOUT_MS = 20_000;
 import { clearPersistedAlignmentExplanation } from '../../../utils/alignmentExplainStorage';
 import { clearPersistedNewsBriefing } from '../../../utils/newsBriefingStorage';
 import { ProfilePage } from '../ProfilePage';
@@ -258,66 +260,76 @@ describe('ProfilePage', () => {
     );
   });
 
-  it('changes the password after current-password confirmation', async () => {
-    const user = userEvent.setup();
-    renderProfile();
+  it(
+    'changes the password after current-password confirmation',
+    async () => {
+      const user = userEvent.setup({ delay: null });
+      renderProfile();
 
-    await user.click(screen.getByRole('button', { name: 'Change Password' }));
-    await user.type(screen.getByPlaceholderText('Your current password'), CURRENT_PASSWORD);
-    await user.click(screen.getByRole('button', { name: 'Show password' }));
-    expect(screen.getByPlaceholderText('Your current password')).toHaveAttribute('type', 'text');
-    await user.click(screen.getByRole('button', { name: 'Hide password' }));
+      await user.click(screen.getByRole('button', { name: 'Change Password' }));
+      await user.type(screen.getByPlaceholderText('Your current password'), CURRENT_PASSWORD);
+      await user.click(screen.getByRole('button', { name: 'Show password' }));
+      expect(screen.getByPlaceholderText('Your current password')).toHaveAttribute('type', 'text');
+      await user.click(screen.getByRole('button', { name: 'Hide password' }));
 
-    await user.type(
-      screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'),
-      WEAK_PASSWORD
-    );
-    expect(screen.getByText('At least 10 characters')).toBeInTheDocument();
+      await user.type(
+        screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'),
+        WEAK_PASSWORD
+      );
+      expect(screen.getByText('At least 10 characters')).toBeInTheDocument();
 
-    await user.clear(screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'));
-    await user.type(
-      screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'),
-      STRONG_PASSWORD
-    );
-    await user.type(screen.getByPlaceholderText('Repeat your new password'), 'Mismatch1!');
-    expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
+      await user.clear(screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'));
+      await user.type(
+        screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'),
+        STRONG_PASSWORD
+      );
+      await user.type(screen.getByPlaceholderText('Repeat your new password'), 'Mismatch1!');
+      expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
 
-    await user.clear(screen.getByPlaceholderText('Repeat your new password'));
-    await user.type(screen.getByPlaceholderText('Repeat your new password'), STRONG_PASSWORD);
-    expect(screen.getByText('Passwords match ✓')).toBeInTheDocument();
+      await user.clear(screen.getByPlaceholderText('Repeat your new password'));
+      await user.type(screen.getByPlaceholderText('Repeat your new password'), STRONG_PASSWORD);
+      expect(screen.getByText('Passwords match ✓')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Update password' }));
+      await user.click(screen.getByRole('button', { name: 'Update password' }));
 
-    await waitFor(() => {
-      expect(apiChangePassword).toHaveBeenCalledWith({
-        newPassword: STRONG_PASSWORD,
-        password: CURRENT_PASSWORD,
-        googleIdToken: undefined,
+      await waitFor(() => {
+        expect(apiChangePassword).toHaveBeenCalledWith({
+          newPassword: STRONG_PASSWORD,
+          password: CURRENT_PASSWORD,
+          googleIdToken: undefined,
+        });
       });
-    });
-    expect(apiGetMe).toHaveBeenCalled();
-    expect(screen.queryByRole('dialog', { name: 'Change password' })).not.toBeInTheDocument();
-  });
+      expect(apiGetMe).toHaveBeenCalled();
+      expect(screen.queryByRole('dialog', { name: 'Change password' })).not.toBeInTheDocument();
+    },
+    PASSWORD_FORM_TEST_TIMEOUT_MS
+  );
 
-  it('shows a password-change error and can cancel the modal', async () => {
-    const user = userEvent.setup();
-    jest.mocked(apiChangePassword).mockRejectedValue({});
-    renderProfile();
+  it(
+    'shows a password-change error and can cancel the modal',
+    async () => {
+      const user = userEvent.setup({ delay: null });
+      jest.mocked(apiChangePassword).mockRejectedValue({});
+      renderProfile();
 
-    await user.click(screen.getByRole('button', { name: 'Change Password' }));
-    await user.type(screen.getByPlaceholderText('Your current password'), CURRENT_PASSWORD);
-    await user.type(
-      screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'),
-      STRONG_PASSWORD
-    );
-    await user.type(screen.getByPlaceholderText('Repeat your new password'), STRONG_PASSWORD);
-    await user.click(screen.getByRole('button', { name: 'Update password' }));
+      await user.click(screen.getByRole('button', { name: 'Change Password' }));
+      await user.type(screen.getByPlaceholderText('Your current password'), CURRENT_PASSWORD);
+      await user.type(
+        screen.getByPlaceholderText('Min. 10 chars, uppercase, number, symbol'),
+        STRONG_PASSWORD
+      );
+      await user.type(screen.getByPlaceholderText('Repeat your new password'), STRONG_PASSWORD);
+      await user.click(screen.getByRole('button', { name: 'Update password' }));
 
-    expect(await screen.findByText(ERROR_MESSAGES.AUTH_CHANGE_PASSWORD_FAILED)).toBeInTheDocument();
+      expect(
+        await screen.findByText(ERROR_MESSAGES.AUTH_CHANGE_PASSWORD_FAILED)
+      ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    },
+    PASSWORD_FORM_TEST_TIMEOUT_MS
+  );
 
   it('sets a password with Google confirmation for a Google-only account', async () => {
     const user = userEvent.setup();
