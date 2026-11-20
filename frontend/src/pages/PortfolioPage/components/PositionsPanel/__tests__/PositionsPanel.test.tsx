@@ -252,6 +252,7 @@ function mockPortfolioRefreshApis() {
     targetAllocations: [],
     deviations: [],
     tickerMappings: [],
+    includePermanentCash: true,
   });
   jest.mocked(fetchStockQuotesBatch).mockResolvedValue([]);
   jest.mocked(fetchLiveFxRates).mockResolvedValue({ USD: 1, EUR: 1 });

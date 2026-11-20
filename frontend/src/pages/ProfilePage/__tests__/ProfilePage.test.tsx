@@ -143,6 +143,7 @@ function mockPortfolioRefreshApis() {
     targetAllocations: [],
     deviations: [],
     tickerMappings: [],
+    includePermanentCash: true,
   });
   jest.mocked(fetchWatchlistItems).mockResolvedValue([]);
   jest.mocked(fetchStockQuotesBatch).mockResolvedValue([]);
