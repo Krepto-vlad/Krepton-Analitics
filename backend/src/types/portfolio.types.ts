@@ -9,6 +9,7 @@ export interface PortfolioAccountRow {
   rebalancing_strategy_id?: string;
   rebalancing_custom_allocations?: Record<string, number> | null;
   rebalancing_custom_base_strategy_id?: string | null;
+  rebalancing_include_permanent_cash?: boolean;
   created_at: Date;
 }
 
@@ -86,6 +87,8 @@ export interface PositionResponse {
   currency: string;
   sector: string | null;
   entryDate: string | null;
+  /** False for crypto, options, currencies, indexes, and futures. They stay stored, outside analysis. */
+  includedInAnalysis: boolean;
   createdAt: string;
   updatedAt: string;
   displayCurrency?: 'USD' | 'EUR';
@@ -153,6 +156,7 @@ export interface PortfolioDataExport {
     strategyId: string;
     customBaseStrategyId: string | null;
     customAllocations: Record<string, number> | null;
+    includePermanentCash: boolean;
   };
   brokerageConnections: PortfolioExportBrokerageConnection[];
 }

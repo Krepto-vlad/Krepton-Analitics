@@ -100,6 +100,7 @@ function analysis(
       },
     ],
     ...overrides,
+    includePermanentCash: overrides.includePermanentCash ?? true,
   };
 }
 

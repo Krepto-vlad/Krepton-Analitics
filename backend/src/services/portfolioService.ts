@@ -34,6 +34,7 @@ import {
   deleteTransactionsBySource,
   insertPositionFromLedger,
   getPortfolioRebalancingStrategy,
+  updatePortfolioPermanentCashInclusion,
   updatePortfolioRebalancingStrategy,
   deleteAllPortfolioData,
   getTransactionHistory,
@@ -67,6 +68,7 @@ import {
 } from './currencyConversionService.js';
 import { getFxRateFromLookup, preloadFxRates } from './fxRateService.js';
 import { getTodayIsoDate, parseDisplayCurrency } from '../utils/displayCurrency.js';
+import { findTickersOutsideAnalysis } from './portfolioAnalysisScope.js';
 import {
   COMPANY_NAME_MAX_LENGTH,
   MAX_SHARES,
@@ -122,6 +124,7 @@ function mapRowToResponse(row: PositionRow): PositionResponse {
     currency: row.currency,
     sector: row.sector ?? null,
     entryDate: row.entry_date,
+    includedInAnalysis: true,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
   };
@@ -132,6 +135,21 @@ function normalizeDbDate(value: string | Date | null): string | null {
   const parsed = new Date(value as string | Date);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed.toISOString().slice(0, 10);
+}
+
+async function applyAnalysisScope(items: PositionResponse[]): Promise<PositionResponse[]> {
+  const outsideTickers = await findTickersOutsideAnalysis(items.map((item) => item.ticker));
+
+  return items.map((item) => ({
+    ...item,
+    includedInAnalysis: !outsideTickers.has(item.ticker.toUpperCase()),
+  }));
+}
+
+async function keepRowsInsideAnalysis<T extends { ticker: string }>(rows: T[]): Promise<T[]> {
+  const outsideTickers = await findTickersOutsideAnalysis(rows.map((row) => row.ticker));
+
+  return rows.filter((row) => !outsideTickers.has(row.ticker.toUpperCase()));
 }
 
 function mapTransactionRowToResponse(row: TransactionRow): TransactionResponse {
@@ -400,7 +418,7 @@ export async function getUserPositions(
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getPositionsByPortfolioId(portfolioId);
   const enrichedRows = await enrichPositionsWithSectors(portfolioId, rows);
-  const items = enrichedRows.map(mapRowToResponse);
+  const items = await applyAnalysisScope(enrichedRows.map(mapRowToResponse));
   const lookup = await buildDisplayLookupForPositions(enrichedRows, displayCurrency);
 
   return Promise.all(
@@ -427,7 +445,7 @@ export async function getUserPositionsPaginated(
   ]);
 
   const enrichedRows = await enrichPositionsWithSectors(portfolioId, rows);
-  const mappedItems = enrichedRows.map(mapRowToResponse);
+  const mappedItems = await applyAnalysisScope(enrichedRows.map(mapRowToResponse));
   const lookup = await buildDisplayLookupForPositions(enrichedRows, displayCurrency);
   const items = await Promise.all(
     mappedItems.map((item, index) =>
@@ -472,7 +490,7 @@ export async function getInvestmentSummary(
   const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
-  const transactions = await getAllTransactionsForDedup(portfolioId);
+  const transactions = await keepRowsInsideAnalysis(await getAllTransactionsForDedup(portfolioId));
   const nativeTotals = computeNativeInvestmentTotals(transactions);
 
   const response: InvestmentSummaryResponse = {
@@ -547,7 +565,8 @@ export async function createPosition(userId: string, rawDto: unknown): Promise<P
 
   // Upsert the aggregated position (insert new or recalculate weighted avg)
   const row = await upsertPosition(portfolioId, dto);
-  return mapRowToResponse(row);
+  const [created] = await applyAnalysisScope([mapRowToResponse(row)]);
+  return created;
 }
 
 export async function editPosition(
@@ -566,7 +585,8 @@ export async function editPosition(
     throw new AppError(404, 'Position not found');
   }
 
-  return mapRowToResponse(row);
+  const [updated] = await applyAnalysisScope([mapRowToResponse(row)]);
+  return updated;
 }
 
 const SHARES_EPSILON = 0.000001;
@@ -759,7 +779,7 @@ export async function getPortfolioEquityHistory(
   const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
-  const rows = await getPositionsByPortfolioId(portfolioId);
+  const rows = await keepRowsInsideAnalysis(await getPositionsByPortfolioId(portfolioId));
 
   logger.info({ portfolioId, positionCount: rows.length }, 'Building equity history');
 
@@ -958,7 +978,8 @@ export async function closePosition(
     throw new AppError(500, 'Failed to update position');
   }
 
-  return mapRowToResponse(updatedRow);
+  const [reduced] = await applyAnalysisScope([mapRowToResponse(updatedRow)]);
+  return reduced;
 }
 
 export async function confirmImportedTrades(
@@ -1092,7 +1113,7 @@ export async function confirmSnaptradeHoldings(
 export async function getUserPortfolioNews(userId: string): Promise<PortfolioNewsItem[]> {
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
-  const rows = await getPositionsByPortfolioId(portfolioId);
+  const rows = await keepRowsInsideAnalysis(await getPositionsByPortfolioId(portfolioId));
   const tickers = rows.map((row) => row.ticker);
 
   return getPortfolioNews(tickers);
@@ -1105,7 +1126,7 @@ export async function getUserPortfolioDividendCalendar(
   const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
-  const rows = await getPositionsByPortfolioId(portfolioId);
+  const rows = await keepRowsInsideAnalysis(await getPositionsByPortfolioId(portfolioId));
 
   return buildPortfolioDividendCalendar(rows, displayCurrency);
 }
@@ -1113,12 +1134,14 @@ export async function getUserPortfolioDividendCalendar(
 function mapSavedRebalancingStrategy(
   strategyId: string,
   customBaseStrategyId: string | null,
-  customAllocations: Record<string, number> | null
+  customAllocations: Record<string, number> | null,
+  includePermanentCash: boolean
 ): SavedRebalancingStrategy {
   return {
     strategyId: (strategyId as RebalancingStrategyId) ?? REBALANCING_DEFAULT_STRATEGY_ID,
     customBaseStrategyId: (customBaseStrategyId as RebalancingPrebuiltStrategyId | null) ?? null,
     customAllocations,
+    includePermanentCash,
   };
 }
 
@@ -1130,7 +1153,9 @@ export async function getUserPortfolioRebalancingAnalysis(
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const [rows, savedStrategy] = await Promise.all([
-    getPositionsByPortfolioId(portfolioId),
+    getPositionsByPortfolioId(portfolioId).then((positionRows) =>
+      keepRowsInsideAnalysis(positionRows)
+    ),
     getPortfolioRebalancingStrategy(portfolioId),
   ]);
 
@@ -1139,7 +1164,8 @@ export async function getUserPortfolioRebalancingAnalysis(
     mapSavedRebalancingStrategy(
       savedStrategy.strategyId,
       savedStrategy.customBaseStrategyId,
-      savedStrategy.customAllocations
+      savedStrategy.customAllocations,
+      savedStrategy.includePermanentCash
     ),
     displayCurrency
   );
@@ -1165,6 +1191,10 @@ export async function updateUserPortfolioRebalancingStrategy(
     await updatePortfolioRebalancingStrategy(portfolioId, {
       strategyId: dto.strategyId,
     });
+  }
+
+  if (typeof dto.includePermanentCash === 'boolean') {
+    await updatePortfolioPermanentCashInclusion(portfolioId, dto.includePermanentCash);
   }
 
   return getUserPortfolioRebalancingAnalysis(userId, rawDisplayCurrency);
@@ -1234,7 +1264,7 @@ export async function exportUserPortfolioData(
       email: account.email,
       memberSince: account.createdAt,
     },
-    positions: positionRows.map(mapRowToResponse),
+    positions: await applyAnalysisScope(positionRows.map(mapRowToResponse)),
     transactions: transactionRows.map(mapTransactionRowToExport),
     watchlist: watchlistRows.map((row) => ({
       id: row.id,
@@ -1246,6 +1276,7 @@ export async function exportUserPortfolioData(
       strategyId: rebalancing.strategyId,
       customBaseStrategyId: rebalancing.customBaseStrategyId,
       customAllocations: rebalancing.customAllocations,
+      includePermanentCash: rebalancing.includePermanentCash !== false,
     },
     brokerageConnections,
   };

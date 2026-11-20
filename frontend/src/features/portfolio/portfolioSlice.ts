@@ -90,6 +90,7 @@ async function enrichStoredPositions(
       entryDate: storedPosition.entryDate,
       currentPrice: displayCurrentPrice,
       logoUrl: quote?.logoUrl ?? null,
+      includedInAnalysis: storedPosition.includedInAnalysis !== false,
     };
   });
 }

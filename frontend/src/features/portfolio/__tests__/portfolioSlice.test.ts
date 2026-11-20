@@ -108,6 +108,7 @@ const rebalancing: RebalancingAnalysisResponse = {
   investmentHorizon: 'Long term',
   customBaseStrategyId: null,
   savedCustomStrategy: null,
+  includePermanentCash: true,
   displayCurrency: 'USD',
   alignmentScore: 80,
   totalPortfolioValue: 300,

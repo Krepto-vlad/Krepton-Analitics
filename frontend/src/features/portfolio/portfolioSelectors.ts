@@ -1,6 +1,7 @@
 import type { RootState } from '../../store';
 import type { PortfolioStats, SectorAllocation } from '../../types/portfolio.types';
 import { resolveInvestmentSummaryForDisplay } from '../../utils/moneyDisplay';
+import { isIncludedInPortfolioAnalysis } from '../../utils/portfolioAnalysisScope';
 
 const SECTOR_COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
 
@@ -32,12 +33,13 @@ function buildSectorAllocations(
 export function selectPortfolioStats(state: RootState): PortfolioStats {
   const { summaryPositions, investmentSummary } = state.portfolio;
   const displayCurrency = state.ui.currency;
+  const analyzedPositions = summaryPositions.filter(isIncludedInPortfolioAnalysis);
 
-  const costBasisOpen = summaryPositions.reduce(
+  const costBasisOpen = analyzedPositions.reduce(
     (sum, position) => sum + position.shares * position.avgBuyPrice,
     0
   );
-  const totalMarketValue = summaryPositions.reduce(
+  const totalMarketValue = analyzedPositions.reduce(
     (sum, position) => sum + position.shares * position.currentPrice,
     0
   );
@@ -67,7 +69,9 @@ export function selectPortfolioStats(state: RootState): PortfolioStats {
 }
 
 export function selectSectorAllocations(state: RootState): SectorAllocation[] {
-  return buildSectorAllocations(state.portfolio.summaryPositions);
+  return buildSectorAllocations(
+    state.portfolio.summaryPositions.filter(isIncludedInPortfolioAnalysis)
+  );
 }
 
 /**
@@ -87,7 +91,7 @@ export function selectIsDashboardBootstrapping(state: RootState): boolean {
   } = state.portfolio;
   const { isLoading: isWatchlistLoading, hasHydrated: hasHydratedWatchlist } = state.watchlist;
 
-  const hasPortfolioHoldings = summaryPositions.length > 0;
+  const hasPortfolioHoldings = summaryPositions.some(isIncludedInPortfolioAnalysis);
   const needsNewsHydration = hasHydratedSummary && hasPortfolioHoldings;
 
   const waitingForCore =

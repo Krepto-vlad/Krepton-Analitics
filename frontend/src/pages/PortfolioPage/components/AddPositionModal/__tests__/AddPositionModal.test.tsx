@@ -42,6 +42,7 @@ jest.mock('../../../../../api/portfolioApi', () => ({
     currentAllocations: [],
     deviations: [],
     tickerMappings: [],
+    includePermanentCash: true,
   }),
 }));
 

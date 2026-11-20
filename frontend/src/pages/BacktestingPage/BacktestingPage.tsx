@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BACKTEST_ALLOCATION_TOLERANCE,
   BACKTEST_ALLOCATION_TOTAL_PERCENT,
@@ -20,6 +20,7 @@ import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { fetchWatchlistThunk } from '../../features/watchlist/watchlistSlice';
 import { fetchPortfolioSummaryThunk } from '../../features/portfolio/portfolioSlice';
+import { isIncludedInPortfolioAnalysis } from '../../utils/portfolioAnalysisScope';
 import { ContentSkeleton, ErrorBanner } from '../../components/ui';
 import type { StockBacktestResponse } from '../../types/stock.types';
 import { BacktestInputPanel } from './components/BacktestInputPanel/BacktestInputPanel';
@@ -39,6 +40,10 @@ export function BacktestingPage() {
   const watchlistItems = useAppSelector((state) => state.watchlist.items);
   const hasHydratedWatchlist = useAppSelector((state) => state.watchlist.hasHydrated);
   const summaryPositions = useAppSelector((state) => state.portfolio.summaryPositions);
+  const analyzedPositions = useMemo(
+    () => summaryPositions.filter(isIncludedInPortfolioAnalysis),
+    [summaryPositions]
+  );
   const hasHydratedSummary = useAppSelector((state) => state.portfolio.hasHydratedSummary);
   const displayCurrency = useAppSelector((state) => state.ui.currency);
 
@@ -144,7 +149,7 @@ export function BacktestingPage() {
 
   function handleLoadFromPortfolio() {
     const allocations = buildAllocationsFromPortfolioPositions(
-      summaryPositions.map((position) => ({
+      analyzedPositions.map((position) => ({
         ticker: position.ticker,
         companyName: position.companyName,
         shares: position.shares,
@@ -178,7 +183,7 @@ export function BacktestingPage() {
         amount={amount}
         displayCurrency={displayCurrency}
         isCalculating={isCalculating}
-        canLoadFromPortfolio={summaryPositions.length > 0}
+        canLoadFromPortfolio={analyzedPositions.length > 0}
         onAddTicker={handleAddTicker}
         onRemoveTicker={handleRemoveTicker}
         onWeightChange={handleWeightChange}

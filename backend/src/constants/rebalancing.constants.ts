@@ -5,6 +5,12 @@ export const REBALANCING_ASSET_CLASSES = [
   'gold',
   'commodities',
   'cash',
+  'sp500',
+  'us_total',
+  'intl_stock',
+  'core_bond',
+  'tbill',
+  'other',
 ] as const;
 
 export type RebalancingAssetClass = (typeof REBALANCING_ASSET_CLASSES)[number];
@@ -58,39 +64,30 @@ export interface RebalancingStrategyDefinition {
   buckets: RebalancingStrategyBucketDefinition[];
 }
 
-const EMERGING_MARKET_TICKERS = ['VWO', 'IEMG', 'EEM', 'SCHE', 'VXEM'] as const;
-const US_WORLD_INDEX_TICKERS = ['VTI', 'VOO', 'SPY', 'IVV', 'VT', 'VXUS', 'ACWI'] as const;
-const SHORT_TERM_TREASURY_TICKERS = ['SHY', 'BIL', 'SHV', 'VGSH', 'SPTS'] as const;
-const CASH_TICKERS = ['BIL', 'SHV', 'SGOV', 'VMFXX', 'SPRXX'] as const;
-const BOND_INDEX_TICKERS = ['BND', 'AGG', 'VBTLX', 'IEF', 'VGIT', 'TLT', 'VGLT', 'EDV'] as const;
+/** Permanent-portfolio cash sleeve. Other models do not use this id. */
+export const REBALANCING_PERMANENT_CASH_BUCKET_ID = 'cash';
 
 export const REBALANCING_PREBUILT_STRATEGIES: RebalancingStrategyDefinition[] = [
   {
     id: 'warren-buffett-9010',
     name: 'Warren Buffett 90/10',
-    description: 'Large-cap equities with a short-term treasury sleeve for crisis liquidity.',
+    description: 'A low-cost S&P 500 index fund with a short-term government bond reserve.',
     philosophy: 'Buy wonderful businesses at fair prices and hold for decades.',
     investmentHorizon: 'Decades',
     buckets: [
       {
         id: 'large-cap-equities',
-        label: 'Large-Cap Equities',
+        label: 'S&P 500',
         targetPercent: 90,
         color: '#10b981',
-        mapping: {
-          assetClasses: ['equities'],
-          excludeTickers: [...SHORT_TERM_TREASURY_TICKERS, ...CASH_TICKERS, ...BOND_INDEX_TICKERS],
-        },
+        mapping: { assetClasses: ['sp500'] },
       },
       {
         id: 'short-term-treasuries',
         label: 'Short-Term Treasuries',
         targetPercent: 10,
         color: '#6366f1',
-        mapping: {
-          tickers: SHORT_TERM_TREASURY_TICKERS,
-          assetClasses: ['it_bonds', 'cash'],
-        },
+        mapping: { assetClasses: ['cash', 'tbill'] },
       },
     ],
   },
@@ -106,7 +103,7 @@ export const REBALANCING_PREBUILT_STRATEGIES: RebalancingStrategyDefinition[] = 
         label: 'Large-Cap Stocks',
         targetPercent: 30,
         color: '#10b981',
-        mapping: { assetClasses: ['equities'] },
+        mapping: { assetClasses: ['equities', 'sp500', 'us_total', 'intl_stock'] },
       },
       {
         id: 'long-term-bonds',
@@ -141,39 +138,31 @@ export const REBALANCING_PREBUILT_STRATEGIES: RebalancingStrategyDefinition[] = 
   {
     id: 'bogleheads-three-fund',
     name: 'Bogleheads Three-Fund',
-    description: 'Simple passive portfolio built from broad index funds and high-quality bonds.',
+    description:
+      'A total US stock-market fund, a total international stock fund, and a US total bond-market fund.',
     philosophy: 'Minimize cost, stay diversified, and let compounding work over long horizons.',
     investmentHorizon: '10+ years',
     buckets: [
       {
         id: 'us-world-stocks',
-        label: 'US / World Stock Index',
+        label: 'US Total Stock Market',
         targetPercent: 60,
         color: '#10b981',
-        mapping: {
-          tickers: US_WORLD_INDEX_TICKERS,
-          assetClasses: ['equities'],
-          excludeTickers: EMERGING_MARKET_TICKERS,
-        },
+        mapping: { assetClasses: ['us_total'] },
       },
       {
         id: 'emerging-markets',
-        label: 'Emerging Markets',
+        label: 'Total International Stocks',
         targetPercent: 20,
         color: '#14b8a6',
-        mapping: {
-          tickers: EMERGING_MARKET_TICKERS,
-        },
+        mapping: { assetClasses: ['intl_stock'] },
       },
       {
         id: 'investment-grade-bonds',
-        label: 'Investment-Grade Bonds',
+        label: 'US Total Bond Market',
         targetPercent: 20,
         color: '#6366f1',
-        mapping: {
-          tickers: BOND_INDEX_TICKERS,
-          assetClasses: ['lt_bonds', 'it_bonds'],
-        },
+        mapping: { assetClasses: ['core_bond'] },
       },
     ],
   },
@@ -189,7 +178,7 @@ export const REBALANCING_PREBUILT_STRATEGIES: RebalancingStrategyDefinition[] = 
         label: 'Stocks',
         targetPercent: 25,
         color: '#10b981',
-        mapping: { assetClasses: ['equities'] },
+        mapping: { assetClasses: ['equities', 'sp500', 'us_total', 'intl_stock'] },
       },
       {
         id: 'long-bonds',
@@ -206,123 +195,62 @@ export const REBALANCING_PREBUILT_STRATEGIES: RebalancingStrategyDefinition[] = 
         mapping: { assetClasses: ['gold'] },
       },
       {
-        id: 'cash',
+        id: REBALANCING_PERMANENT_CASH_BUCKET_ID,
         label: 'Cash / T-Bills',
         targetPercent: 25,
         color: '#94a3b8',
-        mapping: {
-          tickers: CASH_TICKERS,
-          assetClasses: ['cash'],
-        },
+        mapping: { assetClasses: ['tbill'] },
       },
     ],
   },
 ];
 
-export const REBALANCING_TICKER_ASSET_CLASS: Readonly<Record<string, RebalancingAssetClass>> = {
-  SPY: 'equities',
-  QQQ: 'equities',
-  VTI: 'equities',
-  VOO: 'equities',
-  IVV: 'equities',
-  IWM: 'equities',
-  DIA: 'equities',
-  VWO: 'equities',
-  IEMG: 'equities',
-  EEM: 'equities',
-  GLD: 'gold',
-  IAU: 'gold',
-  SGOL: 'gold',
-  BAR: 'gold',
-  OUNZ: 'gold',
-  TLT: 'lt_bonds',
-  VGLT: 'lt_bonds',
-  EDV: 'lt_bonds',
-  IEF: 'it_bonds',
-  VGIT: 'it_bonds',
-  IEI: 'it_bonds',
-  SHY: 'it_bonds',
-  BND: 'lt_bonds',
-  AGG: 'lt_bonds',
-  DBC: 'commodities',
-  GSG: 'commodities',
-  PDBC: 'commodities',
-  USO: 'commodities',
-  UNG: 'commodities',
-  BIL: 'cash',
-  SHV: 'cash',
-  SGOV: 'cash',
-  'GC=F': 'gold',
-  'MGC=F': 'gold',
-  'QO=F': 'gold',
-  'SI=F': 'commodities',
-  'CL=F': 'commodities',
-  'XAUT-USD': 'gold',
-  'PAXG-USD': 'gold',
-  PAXG: 'gold',
-  XAUT: 'gold',
-  'XAGX-USD': 'commodities',
-  'XAG-USD': 'commodities',
-  SLV: 'commodities',
-  SIVR: 'commodities',
-};
+/** Morningstar categories Yahoo returns on fundProfile.categoryName. */
+export const REBALANCING_FUND_CATEGORY_LONG_GOVERNMENT = 'long government';
+export const REBALANCING_FUND_CATEGORY_INTERMEDIATE_GOVERNMENT = 'intermediate government';
+export const REBALANCING_FUND_CATEGORY_SHORT_GOVERNMENT = 'short government';
+export const REBALANCING_FUND_CATEGORY_ULTRASHORT_BOND = 'ultrashort bond';
+export const REBALANCING_FUND_CATEGORY_INTERMEDIATE_CORE_BOND = 'intermediate core bond';
+export const REBALANCING_FUND_CATEGORY_COMMODITIES_BROAD_BASKET = 'commodities broad basket';
+export const REBALANCING_FUND_CATEGORY_COMMODITIES_FOCUSED = 'commodities focused';
+export const REBALANCING_FUND_CATEGORY_MONEY_MARKET_MARKER = 'money market';
 
-const REBALANCING_GOLD_TICKER_PATTERNS: readonly RegExp[] = [
-  /^GC=F$/,
-  /^MGC=F$/,
-  /^QO=F$/,
-  /^XAUT(-USD)?$/,
-  /^PAXG(-USD)?$/,
-];
+/** A fund with at least this share of stocks is a stock fund even before the category name is read. */
+export const REBALANCING_FUND_EQUITY_MIN_STOCK_POSITION = 0.5;
 
-const REBALANCING_SILVER_TICKER_PATTERNS: readonly RegExp[] = [
-  /^SI=F$/,
-  /^XAGX(-USD)?$/,
-  /^XAG(-USD)?$/,
-];
+/** Yahoo calls both 20+ year and 7-10 year treasury funds "Long Government". The name carries the tenor. */
+export const REBALANCING_FUND_NAME_SEVEN_TO_TEN_YEAR_PATTERN = /7\s*-\s*10|7\s+TO\s+10/;
+export const REBALANCING_FUND_NAME_TEN_TO_TWENTY_YEAR_PATTERN = /10\s*-\s*20/;
+export const REBALANCING_FUND_NAME_SHORT_TREASURY_PATTERN = /3\s*-\s*7|1\s*-\s*3|1\s*-\s*5/;
+export const REBALANCING_FUND_NAME_INTERMEDIATE_TREASURY_PATTERN = /INTERMEDIATE/;
+export const REBALANCING_FUND_NAME_PHYSICAL_GOLD_PATTERN = /\bGOLD\b/;
+export const REBALANCING_FUND_NAME_GOLD_MINER_PATTERN = /MINER/;
+/** Vanguard and Fidelity name the S&P 500 fund "500 Index". Leveraged and inverse products stay out. */
+export const REBALANCING_FUND_NAME_SP500_PATTERN = /\bS&P\s*500\b|\b500 INDEX\b/;
+/** Total international, including the wiki's All-World ex-US pair. Emerging-only and small-cap completion funds stay out. */
+export const REBALANCING_FUND_NAME_TOTAL_INTERNATIONAL_PATTERN =
+  /\bTOTAL INTERNATIONAL\b|\bALL-WORLD EX-?US\b|\bALL WORLD EX-?US\b/;
+export const REBALANCING_FUND_NAME_EMERGING_MARKET_PATTERN = /\bEMERGING\b/;
+export const REBALANCING_FUND_NAME_SMALL_CAP_PATTERN = /\bSMALL[ -]?CAP\b/;
+/** Whole US market. "Total Market Index" covers Fidelity's name. International and world funds are excluded separately. */
+export const REBALANCING_FUND_NAME_US_TOTAL_MARKET_PATTERN =
+  /\bTOTAL STOCK MARKET\b|\bTOTAL U\.?S\.? STOCK MARKET\b|\bU\.?S\.? BROAD MARKET\b|\bS&P\s*1500\b|\bTOTAL MARKET INDEX\b/;
+export const REBALANCING_FUND_NAME_NOT_US_TOTAL_PATTERN =
+  /\bINTERNATIONAL\b|\bEMERGING\b|\bEX-?US\b|\bWORLD\b|\bFOREIGN\b/;
+/** T-bills and Treasury money-market funds. Applied only to ultrashort and money-market funds. */
+export const REBALANCING_FUND_NAME_TREASURY_BILL_PATTERN =
+  /\bT-?BILLS?\b|\bTREASURY\b|\b0\s*-\s*3\s*MONTHS?\b|\b1\s*-\s*3\s*MONTHS?\b/;
+export const REBALANCING_FUND_NAME_LEVERAGED_OR_INVERSE_PATTERN =
+  /ULTRA|LEVERAGED|INVERSE|\bBEAR\b|\bSHORT\b|[23]X/;
+export const REBALANCING_FUND_LEVERAGED_CATEGORY_PATTERN = /leverag|inverse|trading/;
 
-export function inferRebalancingAssetClassFromTicker(ticker: string): RebalancingAssetClass | null {
-  const upperTicker = ticker.toUpperCase();
+/** Categories that are not the All-Weather stock sleeve. Matched after the specific cases above. */
+export const REBALANCING_FUND_NON_EQUITY_CATEGORY_PATTERN =
+  /bond|inflation-protected|municipal|bank loan|preferred stock|commodit/;
 
-  if (REBALANCING_GOLD_TICKER_PATTERNS.some((pattern) => pattern.test(upperTicker))) {
-    return 'gold';
-  }
-
-  if (REBALANCING_SILVER_TICKER_PATTERNS.some((pattern) => pattern.test(upperTicker))) {
-    return 'commodities';
-  }
-
-  return null;
-}
-
-export const REBALANCING_GOLD_TICKERS: readonly string[] = [
-  'NEM',
-  'GOLD',
-  'AEM',
-  'FNV',
-  'WPM',
-  'RGLD',
-  'KGC',
-  'GFI',
-];
-
-export const REBALANCING_SECTOR_ASSET_CLASS: Readonly<Record<string, RebalancingAssetClass>> = {
-  Energy: 'commodities',
-  'Basic Materials': 'commodities',
-  'Consumer Cyclical': 'equities',
-  'Consumer Defensive': 'equities',
-  'Financial Services': 'equities',
-  Financials: 'equities',
-  Healthcare: 'equities',
-  'Health Care': 'equities',
-  Industrials: 'equities',
-  'Real Estate': 'equities',
-  Technology: 'equities',
-  'Information Technology': 'equities',
-  'Communication Services': 'equities',
-  'Telecommunication Services': 'equities',
-  Utilities: 'equities',
-};
+export const REBALANCING_EQUITY_QUOTE_TYPE = 'EQUITY';
+export const REBALANCING_MONEY_MARKET_QUOTE_TYPE = 'MONEYMARKET';
+export const REBALANCING_FUND_QUOTE_TYPES = ['ETF', 'MUTUALFUND'] as const;
 
 export function getPrebuiltStrategyDefinitionById(
   strategyId: RebalancingPrebuiltStrategyId

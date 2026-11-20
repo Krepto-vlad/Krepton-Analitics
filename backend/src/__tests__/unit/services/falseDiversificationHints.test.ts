@@ -23,6 +23,7 @@ function buildAnalysis(
     currentAllocations: [],
     deviations: [],
     tickerMappings: mappings,
+    includePermanentCash: true,
   };
 }
 

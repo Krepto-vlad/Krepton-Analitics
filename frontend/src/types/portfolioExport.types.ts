@@ -46,6 +46,7 @@ export interface PortfolioDataExport {
     strategyId: string;
     customBaseStrategyId: string | null;
     customAllocations: Record<string, number> | null;
+    includePermanentCash?: boolean;
   };
   brokerageConnections: PortfolioExportBrokerageConnection[];
 }

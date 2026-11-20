@@ -1,3 +1,7 @@
+jest.mock('../../../services/quoteCacheService.js', () => ({
+  getCachedStockQuotes: jest.fn().mockResolvedValue([]),
+}));
+
 jest.mock('../../../services/stockService.js', () => ({
   getStockSector: jest.fn(),
   getStockHistory: jest.fn(),

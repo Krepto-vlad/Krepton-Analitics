@@ -35,6 +35,7 @@ interface YahooFinanceQuoteRow {
   marketState?: string;
   fullExchangeName?: string;
   exchange?: string;
+  quoteType?: string;
   preMarketPrice?: number;
   preMarketChange?: number;
   preMarketChangePercent?: number;
@@ -61,6 +62,7 @@ const YAHOO_QUOTE_FIELDS = [
   'marketState',
   'fullExchangeName',
   'exchange',
+  'quoteType',
   'preMarketPrice',
   'preMarketChange',
   'preMarketChangePercent',
@@ -133,6 +135,7 @@ function mapYahooRowToStockQuote(row: YahooFinanceQuoteRow, fallbackTicker: stri
     logoUrl: resolveLogoUrl(row, ticker),
     marketState: row.marketState?.trim() || null,
     exchange: row.fullExchangeName?.trim() || row.exchange?.trim() || null,
+    quoteType: row.quoteType?.trim() || null,
     preMarketPrice: toNullableFiniteNumber(row.preMarketPrice),
     preMarketChange: toNullableFiniteNumber(row.preMarketChange),
     preMarketChangePercent: toNullableFiniteNumber(row.preMarketChangePercent),
@@ -228,7 +231,8 @@ async function fetchTickersFromYahoo(tickers: string[]): Promise<void> {
 
         const quote = mapYahooRowToStockQuote(row, ticker);
         if (quote.price <= 0) {
-          cacheQuoteMissOrStale(ticker, now);
+          const emptyQuote = buildEmptyStockQuote(ticker);
+          setCachedQuote(ticker, { ...emptyQuote, quoteType: quote.quoteType }, now);
           continue;
         }
 

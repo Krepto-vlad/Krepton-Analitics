@@ -59,6 +59,10 @@ export const WS_MAX_SUBSCRIPTIONS_PER_CLIENT = 5;
 // Tune TTL to balance freshness vs. Yahoo rate limits (unofficial API, IP-based).
 export const YAHOO_QUOTE_CACHE_TTL_MS = 30_000;
 
+/** Fund category changes rarely. Rebalancing reads it from this cache instead of Yahoo on every view. */
+export const FUND_PROFILE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+export const FUND_PROFILE_MISS_CACHE_TTL_MS = 5 * 60 * 1000;
+
 // Max symbols per Yahoo batch request (watchlist cap matches MAX_WATCHLIST_ITEMS).
 export const YAHOO_QUOTE_BATCH_MAX_SIZE = 50;
 
@@ -126,6 +130,21 @@ export const PORTFOLIO_READ_RATE_LIMIT_MAX_REQUESTS = 120;
 // Portfolio input validation limits
 export const TICKER_MAX_LENGTH = 10;
 export const TICKER_FORMAT_PATTERN = /^[A-Z0-9.\-=^]{1,10}$/;
+
+/** Yahoo quote types that stay on the account but stay out of portfolio math and AI. */
+export const OUTSIDE_PORTFOLIO_ANALYSIS_QUOTE_TYPES = [
+  'CRYPTOCURRENCY',
+  'OPTION',
+  'CURRENCY',
+  'INDEX',
+  'FUTURE',
+  'ECNQUOTE',
+  'ALTSYMBOL',
+  'NONE',
+] as const;
+
+/** Yahoo crypto pairs look like XAUT-USD. Stock tickers such as BRK-B do not use these suffixes. */
+export const OUTSIDE_PORTFOLIO_ANALYSIS_PAIR_SUFFIXES = ['USD', 'EUR', 'GBP', 'USDT'] as const;
 export const COMPANY_NAME_MAX_LENGTH = 255;
 export const MAX_SHARES = 999_999_999;
 export const MAX_PRICE = 999_999_999;

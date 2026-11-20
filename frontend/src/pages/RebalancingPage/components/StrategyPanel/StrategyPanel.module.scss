@@ -103,6 +103,69 @@
   color: $color-foreground;
 }
 
+.helpAnchor {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid $color-border;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $color-foreground-muted;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-primary-border;
+    color: $color-primary-on-muted;
+    outline: none;
+  }
+}
+
+.helpText {
+  position: absolute;
+  top: calc(100% + #{$space-2});
+  left: 0;
+  z-index: $z-dropdown;
+  width: 16rem;
+  margin: 0;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface-elevated;
+  box-shadow: $shadow-md;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-foreground;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.helpAnchor:hover .helpText,
+.helpAnchor:focus-within .helpText {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.includeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: $font-size-sm;
+  color: $color-foreground;
+  cursor: pointer;
+}
+
 .controls {
   display: inline-flex;
   align-items: center;
@@ -196,6 +259,33 @@
 
 .totalInvalid {
   color: $color-warning;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-left: auto;
+}
+
+.cancelButton {
+  padding: $space-2 $space-4;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-on-primary;
+  background: $color-health-high;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.92);
+  }
 }
 
 .applyButton {

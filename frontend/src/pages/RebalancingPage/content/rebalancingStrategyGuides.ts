@@ -45,7 +45,7 @@ const PREBUILT_GUIDES: Record<RebalancingPrebuiltStrategyId, StrategyGuide> = {
       {
         heading: 'How this page uses it',
         paragraphs: [
-          'This page groups holdings into large-cap equities and short-term treasuries so you can see how far a portfolio sits from that 90/10 shape. The shape stays Buffett’s. If you move the sliders, you are no longer looking at his instruction. You are looking at your own target.',
+          'This page puts a plain S&P 500 index fund in the 90% sleeve and short-term government bonds in the 10% sleeve. A single company, even one that sits inside the index, stays outside both sleeves, and so does a longer bond fund. The shape stays Buffett’s. If you move the sliders, you are no longer looking at his instruction. You are looking at your own target.',
         ],
       },
     ],
@@ -94,10 +94,10 @@ const PREBUILT_GUIDES: Record<RebalancingPrebuiltStrategyId, StrategyGuide> = {
         ],
       },
       {
-        heading: 'How this page’s numbers differ',
+        heading: 'How this page uses it',
         paragraphs: [
-          'The classic write-up is a total US stock fund, a total international stock fund, and a total bond market fund. Emerging markets sit inside the international fund. There is no required percentage. People pick their own stock and bond shares.',
-          'The numbers on this page are one teaching illustration: 60% in a US or world stock index, 20% in emerging markets, and 20% in investment-grade bonds. That separate emerging-markets sleeve is not a rule from the Bogleheads page. If you change the sliders, you are writing your own three-way split.',
+          'This page puts a total US stock-market fund in the 60% sleeve, a total international stock fund in the 20% sleeve, and a US aggregate bond fund in the other 20%. A single company stays outside. An S&P 500 fund stays outside, because it is not the whole US market. A fund that holds only emerging markets, only developed markets, or the whole world in one ticker stays outside. A long treasury fund stays outside the bond sleeve.',
+          'The 60/20/20 weights are one illustration so the chart has a shape. The Bogleheads page does not require these percentages. If you move the sliders, you are writing your own split.',
         ],
       },
     ],
@@ -121,6 +121,12 @@ const PREBUILT_GUIDES: Record<RebalancingPrebuiltStrategyId, StrategyGuide> = {
         paragraphs: [
           'The portfolio is “permanent” because the recipe does not change when the news changes. You do not sell the gold because inflation looks quiet, and you do not drop the cash because stocks look strong. Once a year, or when a sleeve has drifted far from 25%, you move money back to equal weight. That rebalance is the whole active decision.',
           'Browne wrote this for someone who wanted to protect purchasing power without forecasting. It is a defensive arrangement. A long bull market in stocks will leave it behind a stock-heavy portfolio, and that lag is the cost of holding the other three seasons in size.',
+        ],
+      },
+      {
+        heading: 'How this page uses it',
+        paragraphs: [
+          'Stocks on this page are company shares and stock funds. Long-term bonds are treasury funds of about 20 years and longer. Gold is a physical gold fund. Cash is a Treasury bill fund the app can see, such as a 0–3 month T-bill ETF or a Treasury money-market fund. Money kept in a bank is not in the portfolio. The cash row can be left out of the score. The other three sleeves are then measured as the whole 100%.',
         ],
       },
     ],

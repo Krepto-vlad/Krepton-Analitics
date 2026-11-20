@@ -1,5 +1,5 @@
 import { formatMoneyWhole } from '../../../../utils/moneyDisplay';
-import type { Currency } from '../../../../constants';
+import { REBALANCING_MAPPING_EXCLUDED_LABEL, type Currency } from '../../../../constants';
 import type { RebalancingTickerMappingItem } from '../../../../types/rebalancing.types';
 import styles from './TickerMappingPanel.module.scss';
 
@@ -13,6 +13,7 @@ function formatMappingSource(source: RebalancingTickerMappingItem['mappingSource
   if (source === 'asset_class') return 'Asset class rule';
   if (source === 'sector') return 'Sector inference';
   if (source === 'unmapped') return 'Unmapped';
+  if (source === 'excluded') return REBALANCING_MAPPING_EXCLUDED_LABEL;
   return 'Default (Equities)';
 }
 

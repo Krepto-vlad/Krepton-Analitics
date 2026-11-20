@@ -16,6 +16,7 @@ export function buildEmptyStockQuote(ticker: string): StockQuote {
     logoUrl: null,
     marketState: null,
     exchange: null,
+    quoteType: null,
     preMarketPrice: null,
     preMarketChange: null,
     preMarketChangePercent: null,

@@ -1,4 +1,5 @@
 import {
+  adjustStrategyAllocationWeight,
   allocationsToTargetItems,
   areStrategyAllocationsEqual,
   buildAllocationsFromItems,
@@ -6,6 +7,7 @@ import {
   buildCustomAllocationPayload,
   getTotalStrategyWeight,
   isStrategyAllocationValid,
+  previewStrategyTargetAllocations,
   stepStrategyAllocationWeight,
 } from '../rebalancingAllocations';
 import type { StrategyBucketAllocation } from '../rebalancingAllocations';
@@ -46,5 +48,41 @@ describe('rebalancingAllocations', () => {
     expect(areStrategyAllocationsEqual(allocations, allocations)).toBe(true);
     expect(areStrategyAllocationsEqual(allocations, allocations.slice(0, 1))).toBe(false);
     expect(allocationsToTargetItems(allocations)[0]?.bucketId).toBe('equities');
+  });
+
+  it('keeps every custom sleeve and a 100 total when one slider is raised', () => {
+    const permanentDraft: StrategyBucketAllocation[] = [
+      { bucketId: 'stocks', label: 'Stocks', color: '#10b981', weightPercent: 40 },
+      { bucketId: 'long-bonds', label: 'Long-Term Bonds', color: '#6366f1', weightPercent: 30 },
+      { bucketId: 'gold', label: 'Gold', color: '#f59e0b', weightPercent: 20 },
+      { bucketId: 'cash', label: 'Cash / T-Bills', color: '#94a3b8', weightPercent: 10 },
+    ];
+
+    const dragged = adjustStrategyAllocationWeight(permanentDraft, 'stocks', 55);
+
+    expect(dragged.map((item) => item.bucketId)).toEqual(['stocks', 'long-bonds', 'gold', 'cash']);
+    expect(getTotalStrategyWeight(dragged)).toBe(100);
+    expect(isStrategyAllocationValid(getTotalStrategyWeight(dragged))).toBe(true);
+    expect(buildCustomAllocationPayload(dragged)).toEqual({
+      stocks: 55,
+      'long-bonds': 25,
+      gold: 15,
+      cash: 5,
+    });
+  });
+
+  it('previews a dirty custom draft without the cash sleeve when that sleeve is off', () => {
+    const permanentDraft: StrategyBucketAllocation[] = [
+      { bucketId: 'stocks', label: 'Stocks', color: '#10b981', weightPercent: 40 },
+      { bucketId: 'long-bonds', label: 'Long-Term Bonds', color: '#6366f1', weightPercent: 30 },
+      { bucketId: 'gold', label: 'Gold', color: '#f59e0b', weightPercent: 20 },
+      { bucketId: 'cash', label: 'Cash / T-Bills', color: '#94a3b8', weightPercent: 10 },
+    ];
+
+    const preview = previewStrategyTargetAllocations(permanentDraft, [], true, false);
+
+    expect(preview.map((item) => item.bucketId)).toEqual(['stocks', 'long-bonds', 'gold']);
+    expect(preview.reduce((sum, item) => sum + item.weightPercent, 0)).toBe(100);
+    expect(buildCustomAllocationPayload(permanentDraft).cash).toBe(10);
   });
 });

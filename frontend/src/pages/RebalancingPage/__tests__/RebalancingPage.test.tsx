@@ -104,6 +104,7 @@ function analysis(
     investmentHorizon: 'Long-term',
     customBaseStrategyId: null,
     savedCustomStrategy: null,
+    includePermanentCash: true,
     displayCurrency: 'USD',
     totalPortfolioValue: 25000,
     alignmentScore: 72.4,

@@ -18,6 +18,7 @@ import {
   fetchPortfolioSummaryThunk,
 } from '../../features/portfolio/portfolioSlice';
 import { buildLogoByTicker } from '../../utils/tickerLogos';
+import { isIncludedInPortfolioAnalysis } from '../../utils/portfolioAnalysisScope';
 import { NewsFeed } from '../DashboardPage/components/NewsFeed/NewsFeed';
 import { NewsSummaryPanel } from './components/NewsSummaryPanel/NewsSummaryPanel';
 import styles from './NewsPage.module.scss';
@@ -31,17 +32,22 @@ export function NewsPage() {
   const isLoadingNews = useAppSelector((state) => state.portfolio.isLoadingNews);
   const newsError = useAppSelector((state) => state.portfolio.newsError);
 
-  const holdingsTickerKey = useMemo(
-    () =>
-      summaryPositions
-        .map((position) => position.ticker)
-        .sort()
-        .join(','),
+  const analyzedPositions = useMemo(
+    () => summaryPositions.filter(isIncludedInPortfolioAnalysis),
     [summaryPositions]
   );
 
-  const newsLogoByTicker = useMemo(() => buildLogoByTicker(summaryPositions), [summaryPositions]);
-  const hasPortfolioHoldings = summaryPositions.length > 0;
+  const holdingsTickerKey = useMemo(
+    () =>
+      analyzedPositions
+        .map((position) => position.ticker)
+        .sort()
+        .join(','),
+    [analyzedPositions]
+  );
+
+  const newsLogoByTicker = useMemo(() => buildLogoByTicker(analyzedPositions), [analyzedPositions]);
+  const hasPortfolioHoldings = analyzedPositions.length > 0;
   const isHoldingsLoading = !hasHydratedSummary;
   const isNewsFeedLoading =
     isHoldingsLoading || isLoadingNews || (hasPortfolioHoldings && !hasHydratedNews);
@@ -67,7 +73,7 @@ export function NewsPage() {
       return;
     }
 
-    if (summaryPositions.length === 0) {
+    if (analyzedPositions.length === 0) {
       saveNewsChatScreen();
       return;
     }
@@ -84,7 +90,7 @@ export function NewsPage() {
     if (!newsError) {
       saveNewsChatScreen();
     }
-  }, [hasHydratedNews, hasHydratedSummary, newsError, summaryPositions.length]);
+  }, [analyzedPositions.length, hasHydratedNews, hasHydratedSummary, newsError]);
 
   function handleRetryNews() {
     void dispatch(fetchPortfolioNewsThunk());
@@ -105,7 +111,7 @@ export function NewsPage() {
       <div data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.news}>
         <NewsSummaryPanel
           key={holdingsTickerKey}
-          holdings={summaryPositions}
+          holdings={analyzedPositions}
           holdingsKey={holdingsTickerKey}
           isHoldingsLoading={isHoldingsLoading}
         />

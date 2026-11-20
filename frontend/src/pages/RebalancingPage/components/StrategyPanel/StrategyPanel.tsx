@@ -1,7 +1,12 @@
-import { useState } from 'react';
-import { BookOpen, Minus, Plus } from 'lucide-react';
+import { useId, useState } from 'react';
+import { BookOpen, CircleHelp, Minus, Plus } from 'lucide-react';
 import { Select } from '../../../../components/ui';
 import {
+  REBALANCING_ALLOCATION_CANCEL_LABEL,
+  REBALANCING_CASH_SLEEVE_HELP_LABEL,
+  REBALANCING_CASH_SLEEVE_HELP_TEXT,
+  REBALANCING_CASH_SLEEVE_INCLUDE_LABEL,
+  REBALANCING_PERMANENT_CASH_BUCKET_ID,
   REBALANCING_STRATEGY_GUIDE_OPEN_LABEL,
   resolveRebalancingDisplayColor,
 } from '../../../../constants';
@@ -31,7 +36,11 @@ interface StrategyPanelProps {
   onStrategyChange: (strategyId: RebalancingStrategyId) => void;
   onAllocationChange: (bucketId: string, weightPercent: number) => void;
   onStepAllocation: (bucketId: string, delta: number) => void;
+  onCancelDraft: () => void;
   onSaveAsCustom: () => void;
+  showPermanentCashControls?: boolean;
+  includePermanentCash?: boolean;
+  onIncludePermanentCashChange?: (included: boolean) => void;
 }
 
 export function StrategyPanel({
@@ -45,9 +54,14 @@ export function StrategyPanel({
   onStrategyChange,
   onAllocationChange,
   onStepAllocation,
+  onCancelDraft,
   onSaveAsCustom,
+  showPermanentCashControls = false,
+  includePermanentCash = true,
+  onIncludePermanentCashChange,
 }: StrategyPanelProps) {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const cashHelpId = useId();
   const selectedStrategy = strategyOptions.find((strategy) => strategy.id === selectedStrategyId);
   const selectOptions = strategyOptions.map((strategy) => ({
     value: strategy.id,
@@ -89,6 +103,9 @@ export function StrategyPanel({
       <div className={styles.allocations}>
         {allocations.map((allocation) => {
           const fillPercent = `${allocation.weightPercent}%`;
+          const isPermanentCashRow =
+            showPermanentCashControls &&
+            allocation.bucketId === REBALANCING_PERMANENT_CASH_BUCKET_ID;
 
           return (
             <div
@@ -102,6 +119,21 @@ export function StrategyPanel({
                 <div className={styles.assetLabelGroup}>
                   <span className={styles.assetDot} aria-hidden="true" />
                   <span className={styles.assetLabel}>{allocation.label}</span>
+                  {isPermanentCashRow && (
+                    <span className={styles.helpAnchor}>
+                      <button
+                        type="button"
+                        className={styles.helpButton}
+                        aria-describedby={cashHelpId}
+                        aria-label={REBALANCING_CASH_SLEEVE_HELP_LABEL}
+                      >
+                        <CircleHelp size={14} />
+                      </button>
+                      <p id={cashHelpId} role="tooltip" className={styles.helpText}>
+                        {REBALANCING_CASH_SLEEVE_HELP_TEXT}
+                      </p>
+                    </span>
+                  )}
                 </div>
                 <div className={styles.controls}>
                   <button
@@ -139,6 +171,17 @@ export function StrategyPanel({
                 }
                 aria-label={`${allocation.label} allocation`}
               />
+              {isPermanentCashRow && (
+                <label className={styles.includeToggle}>
+                  <input
+                    type="checkbox"
+                    checked={includePermanentCash}
+                    disabled={isSaving}
+                    onChange={(event) => onIncludePermanentCashChange?.(event.target.checked)}
+                  />
+                  {REBALANCING_CASH_SLEEVE_INCLUDE_LABEL}
+                </label>
+              )}
             </div>
           );
         })}
@@ -151,14 +194,24 @@ export function StrategyPanel({
           >
             Total: {totalWeight.toFixed(1)}% {isAllocationValid ? '' : '(must equal 100%)'}
           </span>
-          <button
-            type="button"
-            className={styles.applyButton}
-            disabled={!isAllocationValid || isSaving}
-            onClick={onSaveAsCustom}
-          >
-            {isSaving ? 'Saving…' : 'Save as Custom'}
-          </button>
+          <div className={styles.footerActions}>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              disabled={isSaving}
+              onClick={onCancelDraft}
+            >
+              {REBALANCING_ALLOCATION_CANCEL_LABEL}
+            </button>
+            <button
+              type="button"
+              className={styles.applyButton}
+              disabled={!isAllocationValid || isSaving}
+              onClick={onSaveAsCustom}
+            >
+              {isSaving ? 'Saving…' : 'Save as Custom'}
+            </button>
+          </div>
         </div>
       )}
     </section>

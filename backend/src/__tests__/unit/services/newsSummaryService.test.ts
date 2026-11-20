@@ -17,6 +17,10 @@ jest.mock('../../../repositories/aiRepository.js', () => ({
   saveNewsSummaryCache: jest.fn(),
 }));
 
+jest.mock('../../../services/quoteCacheService.js', () => ({
+  getCachedStockQuotes: jest.fn().mockResolvedValue([]),
+}));
+
 jest.mock('../../../repositories/portfolioRepository.js', () => ({
   findOrCreatePortfolioAccount: jest.fn(),
   getPositionsByPortfolioId: jest.fn(),

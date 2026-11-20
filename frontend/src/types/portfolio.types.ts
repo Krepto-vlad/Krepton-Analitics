@@ -11,6 +11,8 @@ export interface PortfolioPosition {
   currency: string;
   sector: string | null;
   logoUrl: string | null;
+  /** False for crypto, options, currencies, indexes, and futures. Missing means included. */
+  includedInAnalysis?: boolean;
 }
 
 export interface PortfolioStats {

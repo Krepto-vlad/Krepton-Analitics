@@ -5,6 +5,7 @@ import {
   LEGAL_REBALANCING_DISCLAIMER,
   LOADING_MESSAGES,
   BEGINNER_TUTORIAL_ANCHORS,
+  REBALANCING_PERMANENT_STRATEGY_ID,
   type Currency,
 } from '../../constants';
 import {
@@ -29,13 +30,13 @@ import { TickerMappingPanel } from './components/TickerMappingPanel/TickerMappin
 import { AlignmentExplainPanel } from './components/AlignmentExplainPanel/AlignmentExplainPanel';
 import {
   adjustStrategyAllocationWeight,
-  allocationsToTargetItems,
   areStrategyAllocationsEqual,
   buildAllocationsFromItems,
   buildAllocationsFromStrategyBuckets,
   buildCustomAllocationPayload,
   getTotalStrategyWeight,
   isStrategyAllocationValid,
+  previewStrategyTargetAllocations,
   stepStrategyAllocationWeight,
   type StrategyBucketAllocation,
 } from './utils/rebalancingAllocations';
@@ -105,8 +106,13 @@ export function RebalancingPage() {
 
   const previewTargetAllocations = useMemo(
     () =>
-      isDirty ? allocationsToTargetItems(draftAllocations) : (analysis?.targetAllocations ?? []),
-    [analysis?.targetAllocations, draftAllocations, isDirty]
+      previewStrategyTargetAllocations(
+        draftAllocations,
+        analysis?.targetAllocations ?? [],
+        isDirty,
+        analysis?.includePermanentCash !== false
+      ),
+    [analysis?.includePermanentCash, analysis?.targetAllocations, draftAllocations, isDirty]
   );
 
   const strategyOptions = useMemo((): StrategyPanelOption[] => {
@@ -205,6 +211,28 @@ export function RebalancingPage() {
     [displayCurrency, strategies]
   );
 
+  const persistIncludePermanentCash = useCallback(
+    async (included: boolean) => {
+      setIsSaving(true);
+      setError(null);
+
+      try {
+        const response = await updatePortfolioRebalancingStrategy(
+          { strategyId: selectedStrategyId, includePermanentCash: included },
+          displayCurrency
+        );
+
+        setAnalysis(response);
+        setSelectedStrategyId(response.strategyId);
+      } catch (saveError) {
+        setError(getRejectedMessage(saveError, ERROR_MESSAGES.PORTFOLIO_REBALANCING_SAVE_FAILED));
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [displayCurrency, selectedStrategyId]
+  );
+
   const persistSaveAsCustom = useCallback(async () => {
     const customBaseStrategyId = resolveCustomBaseStrategyId(
       selectedStrategyId,
@@ -248,6 +276,11 @@ export function RebalancingPage() {
     selectedStrategyId,
     strategies,
   ]);
+
+  const showPermanentCashControls =
+    selectedStrategyId === REBALANCING_PERMANENT_STRATEGY_ID ||
+    (selectedStrategyId === 'custom' &&
+      savedCustomStrategy?.baseStrategyId === REBALANCING_PERMANENT_STRATEGY_ID);
 
   function handleStrategyChange(strategyId: RebalancingStrategyId) {
     setSelectedStrategyId(strategyId);
@@ -316,7 +349,15 @@ export function RebalancingPage() {
                 onStrategyChange={handleStrategyChange}
                 onAllocationChange={handleAllocationChange}
                 onStepAllocation={handleStepAllocation}
+                onCancelDraft={() =>
+                  setDraftAllocations(baselineAllocations.map((allocation) => ({ ...allocation })))
+                }
                 onSaveAsCustom={() => void persistSaveAsCustom()}
+                showPermanentCashControls={showPermanentCashControls}
+                includePermanentCash={analysis.includePermanentCash !== false}
+                onIncludePermanentCashChange={(included) =>
+                  void persistIncludePermanentCash(included)
+                }
               />
 
               <AllocationComparisonChart
