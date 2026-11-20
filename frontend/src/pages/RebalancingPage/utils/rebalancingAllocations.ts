@@ -1,6 +1,7 @@
 import {
   REBALANCING_ALLOCATION_TOLERANCE,
   REBALANCING_ALLOCATION_TOTAL_PERCENT,
+  REBALANCING_PERMANENT_CASH_BUCKET_ID,
 } from '../../../constants';
 import type {
   RebalancingAllocationItem,
@@ -124,4 +125,57 @@ export function allocationsToTargetItems(
     color: allocation.color,
     weightPercent: allocation.weightPercent,
   }));
+}
+
+function roundAllocationPercent(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function scaleAllocationsToTotal(items: RebalancingAllocationItem[]): RebalancingAllocationItem[] {
+  const rawTotal = items.reduce((sum, item) => sum + item.weightPercent, 0);
+  if (rawTotal <= 0) {
+    return items.map((item) => ({ ...item, weightPercent: 0 }));
+  }
+
+  let assigned = 0;
+  return items.map((item, index) => {
+    if (index === items.length - 1) {
+      return {
+        ...item,
+        weightPercent: roundAllocationPercent(REBALANCING_ALLOCATION_TOTAL_PERCENT - assigned),
+      };
+    }
+
+    const share = roundAllocationPercent(
+      (item.weightPercent / rawTotal) * REBALANCING_ALLOCATION_TOTAL_PERCENT
+    );
+    assigned = roundAllocationPercent(assigned + share);
+    return { ...item, weightPercent: share };
+  });
+}
+
+/** Chart target while a draft is open. Excluded permanent cash stays on the sliders, not on the chart. */
+export function previewStrategyTargetAllocations(
+  draftAllocations: StrategyBucketAllocation[],
+  savedTargets: RebalancingAllocationItem[],
+  isDirty: boolean,
+  includePermanentCash: boolean
+): RebalancingAllocationItem[] {
+  if (!isDirty) {
+    return savedTargets;
+  }
+
+  const draftTargets = allocationsToTargetItems(draftAllocations);
+  if (includePermanentCash) {
+    return draftTargets;
+  }
+
+  const withoutCash = draftTargets.filter(
+    (item) => item.bucketId !== REBALANCING_PERMANENT_CASH_BUCKET_ID
+  );
+  if (withoutCash.length === draftTargets.length) {
+    return draftTargets;
+  }
+
+  return scaleAllocationsToTotal(withoutCash);
 }

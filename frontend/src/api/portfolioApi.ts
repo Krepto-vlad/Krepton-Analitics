@@ -33,6 +33,8 @@ export interface StoredPosition {
   currency: string;
   sector: string | null;
   entryDate: string | null;
+  /** False for crypto, options, currencies, indexes, and futures. Missing means included. */
+  includedInAnalysis?: boolean;
   createdAt: string;
   updatedAt: string;
   displayCurrency?: 'USD' | 'EUR';

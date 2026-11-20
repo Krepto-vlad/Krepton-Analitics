@@ -11,6 +11,7 @@ import {
   selectPortfolioStats,
 } from '../../features/portfolio/portfolioSelectors';
 import { buildLogoByTicker } from '../../utils/tickerLogos';
+import { isIncludedInPortfolioAnalysis } from '../../utils/portfolioAnalysisScope';
 import { ErrorBanner } from '../../components/ui';
 import { toCssCustomProperties } from '../../utils/cssCustomProperties';
 import { DASHBOARD_PANEL_HEIGHT_PX, BEGINNER_TUTORIAL_ANCHORS } from '../../constants';
@@ -43,13 +44,18 @@ export function DashboardPage() {
     [portfolioError, watchlistError]
   );
 
+  const analyzedPositions = useMemo(
+    () => summaryPositions.filter(isIncludedInPortfolioAnalysis),
+    [summaryPositions]
+  );
+
   const holdingsTickerKey = useMemo(
     () =>
-      summaryPositions
+      analyzedPositions
         .map((position) => position.ticker)
         .sort()
         .join(','),
-    [summaryPositions]
+    [analyzedPositions]
   );
 
   const newsLogoByTicker = useMemo(
@@ -57,7 +63,7 @@ export function DashboardPage() {
     [summaryPositions, watchlist]
   );
 
-  const hasPortfolioHoldings = summaryPositions.length > 0;
+  const hasPortfolioHoldings = analyzedPositions.length > 0;
 
   useEffect(() => {
     void dispatch(fetchPortfolioRebalancingThunk());
@@ -116,7 +122,7 @@ export function DashboardPage() {
 
         <div className={styles.middleRow}>
           <PositionsTable
-            positions={summaryPositions}
+            positions={analyzedPositions}
             currency={currency}
             isLoading={isDashboardBootstrapping}
           />

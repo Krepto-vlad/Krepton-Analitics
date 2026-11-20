@@ -705,6 +705,10 @@ async function resolvePortfolioScreen(
   const holdings: PortfolioWeightInput[] = [];
 
   for (const position of positions) {
+    if (position.includedInAnalysis === false) {
+      continue;
+    }
+
     const quote = quoteByTicker.get(position.ticker);
     if (!quote) {
       continue;

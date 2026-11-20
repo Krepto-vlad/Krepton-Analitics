@@ -2,12 +2,11 @@ import {
   REBALANCING_ALLOCATION_TOTAL_PERCENT,
   REBALANCING_ALLOCATION_TOLERANCE,
   REBALANCING_DEVIATION_OPTIMAL_THRESHOLD,
-  REBALANCING_GOLD_TICKERS,
+  REBALANCING_EQUITY_QUOTE_TYPE,
+  REBALANCING_PERMANENT_CASH_BUCKET_ID,
+  REBALANCING_MONEY_MARKET_QUOTE_TYPE,
   REBALANCING_PREBUILT_STRATEGIES,
-  REBALANCING_SECTOR_ASSET_CLASS,
-  REBALANCING_TICKER_ASSET_CLASS,
   getPrebuiltStrategyDefinitionById,
-  inferRebalancingAssetClassFromTicker,
   isPrebuiltStrategyId,
   resolveEffectiveStrategyDefinition,
   type RebalancingAssetClass,
@@ -29,6 +28,8 @@ import type {
 import type { PositionRow } from '../types/portfolio.types.js';
 import type { DisplayCurrency } from '../types/fx.types.js';
 import { getCachedStockQuotes } from './quoteCacheService.js';
+import { getFundProfileSnapshots } from './fundProfileService.js';
+import { classifyRebalancingAssetClass } from './rebalancingClassification.js';
 import {
   collectConversionRequests,
   convertAmountForDisplay,
@@ -43,7 +44,6 @@ interface PositionInstrumentProfile {
   sector: string | null;
   marketValue: number;
   assetClass: RebalancingAssetClass;
-  assetClassSource: 'ticker' | 'sector' | 'default';
 }
 
 interface BucketAssignment {
@@ -135,6 +135,10 @@ export function resolveTargetBucketWeights(
 }
 
 export function validateUpdateRebalancingStrategyDto(dto: UpdateRebalancingStrategyDto): void {
+  if (dto.includePermanentCash !== undefined && typeof dto.includePermanentCash !== 'boolean') {
+    throw new AppError(400, 'Permanent cash inclusion must be true or false.');
+  }
+
   if (dto.strategyId === 'custom') {
     if (!dto.customAllocations) {
       return;
@@ -155,48 +159,12 @@ export function validateUpdateRebalancingStrategyDto(dto: UpdateRebalancingStrat
   }
 }
 
-function classifyTickerAssetClass(
-  ticker: string,
-  sector: string | null
-): Pick<PositionInstrumentProfile, 'assetClass' | 'assetClassSource'> {
-  const upperTicker = ticker.toUpperCase();
-
-  if (REBALANCING_TICKER_ASSET_CLASS[upperTicker]) {
-    return {
-      assetClass: REBALANCING_TICKER_ASSET_CLASS[upperTicker],
-      assetClassSource: 'ticker',
-    };
-  }
-
-  if (REBALANCING_GOLD_TICKERS.includes(upperTicker)) {
-    return {
-      assetClass: 'gold',
-      assetClassSource: 'ticker',
-    };
-  }
-
-  const inferredFromPattern = inferRebalancingAssetClassFromTicker(upperTicker);
-  if (inferredFromPattern) {
-    return {
-      assetClass: inferredFromPattern,
-      assetClassSource: 'ticker',
-    };
-  }
-
-  if (sector) {
-    const mappedClass = REBALANCING_SECTOR_ASSET_CLASS[sector];
-    if (mappedClass) {
-      return {
-        assetClass: mappedClass,
-        assetClassSource: 'sector',
-      };
-    }
-  }
-
-  return {
-    assetClass: 'equities',
-    assetClassSource: 'default',
-  };
+function profileSkipsFundCategory(quoteType: string | null): boolean {
+  const normalized = quoteType?.trim().toUpperCase() ?? '';
+  return (
+    normalized === REBALANCING_EQUITY_QUOTE_TYPE ||
+    normalized === REBALANCING_MONEY_MARKET_QUOTE_TYPE
+  );
 }
 
 function matchesBucketMapping(
@@ -241,6 +209,65 @@ function assignPositionToBucket(
     bucketLabel: 'Unmapped',
     bucketColor: '#64748b',
     mappingSource: 'unmapped',
+  };
+}
+
+function renormalizeBucketWeights(
+  bucketIds: string[],
+  weights: Record<string, number>
+): Record<string, number> {
+  const rawTotal = bucketIds.reduce((sum, bucketId) => sum + (weights[bucketId] ?? 0), 0);
+  const renormalized: Record<string, number> = {};
+
+  if (rawTotal <= 0) {
+    for (const bucketId of bucketIds) {
+      renormalized[bucketId] = 0;
+    }
+    return renormalized;
+  }
+
+  let assigned = 0;
+  bucketIds.forEach((bucketId, index) => {
+    if (index === bucketIds.length - 1) {
+      renormalized[bucketId] = roundMoney(REBALANCING_ALLOCATION_TOTAL_PERCENT - assigned);
+      return;
+    }
+
+    const share = roundMoney(
+      ((weights[bucketId] ?? 0) / rawTotal) * REBALANCING_ALLOCATION_TOTAL_PERCENT
+    );
+    renormalized[bucketId] = share;
+    assigned = roundMoney(assigned + share);
+  });
+
+  return renormalized;
+}
+
+function resolveScoredStrategy(
+  strategy: RebalancingStrategyDefinition,
+  targetWeights: Record<string, number>,
+  includePermanentCash: boolean
+): {
+  strategy: RebalancingStrategyDefinition;
+  targetWeights: Record<string, number>;
+  cashSleeveExcluded: boolean;
+} {
+  const hasCashSleeve = strategy.buckets.some(
+    (bucket) => bucket.id === REBALANCING_PERMANENT_CASH_BUCKET_ID
+  );
+  if (includePermanentCash || !hasCashSleeve) {
+    return { strategy, targetWeights, cashSleeveExcluded: false };
+  }
+
+  const buckets = strategy.buckets.filter(
+    (bucket) => bucket.id !== REBALANCING_PERMANENT_CASH_BUCKET_ID
+  );
+  const bucketIds = buckets.map((bucket) => bucket.id);
+
+  return {
+    strategy: { ...strategy, buckets },
+    targetWeights: renormalizeBucketWeights(bucketIds, targetWeights),
+    cashSleeveExcluded: true,
   };
 }
 
@@ -329,6 +356,11 @@ async function buildPositionProfiles(
   const tickers = rows.map((row) => row.ticker.toUpperCase());
   const quotes = await getCachedStockQuotes(tickers);
   const quoteByTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
+  const fundProfiles = await getFundProfileSnapshots(
+    tickers.filter(
+      (ticker) => !profileSkipsFundCategory(quoteByTicker.get(ticker)?.quoteType ?? null)
+    )
+  );
 
   const lookup = await createFxRateLookup(
     displayCurrency,
@@ -368,14 +400,19 @@ async function buildPositionProfiles(
       marketValue = converted.displayAmount;
     }
 
-    const classification = classifyTickerAssetClass(ticker, row.sector);
+    const fundProfile = fundProfiles.get(ticker);
+    const assetClass = classifyRebalancingAssetClass({
+      quoteType: quote?.quoteType ?? null,
+      categoryName: fundProfile?.categoryName ?? null,
+      stockPosition: fundProfile?.stockPosition ?? null,
+      fundName: quote?.name ?? row.company_name ?? ticker,
+    });
 
     profiles.push({
       ticker,
       sector: row.sector,
       marketValue: roundMoney(marketValue),
-      assetClass: classification.assetClass,
-      assetClassSource: classification.assetClassSource,
+      assetClass,
     });
   }
 
@@ -417,19 +454,48 @@ export async function buildRebalancingAnalysis(
 ): Promise<RebalancingAnalysisResponse> {
   const displayCurrency = parseDisplayCurrency(rawDisplayCurrency);
   const strategy = resolveSavedStrategyDefinition(savedStrategy);
-  const targetWeights = resolveTargetBucketWeights(savedStrategy);
+  const includePermanentCash = savedStrategy.includePermanentCash !== false;
+  const publishedTargetWeights = resolveTargetBucketWeights(savedStrategy);
+  const scored = resolveScoredStrategy(strategy, publishedTargetWeights, includePermanentCash);
   const profiles = await buildPositionProfiles(rows, displayCurrency);
-  const currentWeights = aggregateBucketWeights(strategy, profiles);
+  const scoredProfiles = scored.cashSleeveExcluded
+    ? profiles.filter(
+        (profile) =>
+          assignPositionToBucket(profile, strategy.buckets).bucketId !==
+          REBALANCING_PERMANENT_CASH_BUCKET_ID
+      )
+    : profiles;
+  const currentWeights = aggregateBucketWeights(scored.strategy, scoredProfiles);
   const totalPortfolioValue = roundMoney(
     profiles.reduce((sum, profile) => sum + profile.marketValue, 0)
   );
   const customBaseStrategyId = savedStrategy.customBaseStrategyId;
   const savedCustomStrategy = buildSavedCustomStrategySummary(savedStrategy);
-  const hasHoldings = profiles.length > 0 && totalPortfolioValue > 0;
+  const scoredValue = scoredProfiles.reduce((sum, profile) => sum + profile.marketValue, 0);
+  const hasHoldings = scoredProfiles.length > 0 && scoredValue > 0;
+  const tickerMappings: RebalancingTickerMappingItem[] = profiles.map((profile) => {
+    const assignment = assignPositionToBucket(profile, strategy.buckets);
+    const cashHoldingLeftOut =
+      scored.cashSleeveExcluded && assignment.bucketId === REBALANCING_PERMANENT_CASH_BUCKET_ID;
 
-  // Empty portfolio: keep strategy metadata/targets, but do not invent an alignment score or drift.
+    return {
+      ticker: profile.ticker,
+      sector: profile.sector,
+      marketValue: profile.marketValue,
+      bucketId: assignment.bucketId,
+      bucketLabel: assignment.bucketLabel,
+      inferredAssetClass: profile.assetClass,
+      mappingSource: cashHoldingLeftOut ? 'excluded' : assignment.mappingSource,
+    };
+  });
+
+  // No scored holdings: keep the target, but do not invent an alignment score or drift.
   if (!hasHoldings) {
-    const { targetAllocations } = buildVisibleAllocationItems(strategy, {}, targetWeights);
+    const { targetAllocations } = buildVisibleAllocationItems(
+      scored.strategy,
+      {},
+      scored.targetWeights
+    );
 
     return {
       strategyId: savedStrategy.strategyId,
@@ -439,35 +505,22 @@ export async function buildRebalancingAnalysis(
       investmentHorizon: strategy.investmentHorizon,
       customBaseStrategyId,
       savedCustomStrategy,
+      includePermanentCash,
       displayCurrency,
-      totalPortfolioValue: 0,
+      totalPortfolioValue,
       alignmentScore: 0,
       targetAllocations,
       currentAllocations: [],
       deviations: [],
-      tickerMappings: [],
+      tickerMappings,
     };
   }
 
   const { currentAllocations, targetAllocations } = buildVisibleAllocationItems(
-    strategy,
+    scored.strategy,
     currentWeights,
-    targetWeights
+    scored.targetWeights
   );
-
-  const tickerMappings: RebalancingTickerMappingItem[] = profiles.map((profile) => {
-    const assignment = assignPositionToBucket(profile, strategy.buckets);
-
-    return {
-      ticker: profile.ticker,
-      sector: profile.sector,
-      marketValue: profile.marketValue,
-      bucketId: assignment.bucketId,
-      bucketLabel: assignment.bucketLabel,
-      inferredAssetClass: profile.assetClass,
-      mappingSource: assignment.mappingSource,
-    };
-  });
 
   return {
     strategyId: savedStrategy.strategyId,
@@ -477,12 +530,13 @@ export async function buildRebalancingAnalysis(
     investmentHorizon: strategy.investmentHorizon,
     customBaseStrategyId,
     savedCustomStrategy,
+    includePermanentCash,
     displayCurrency,
     totalPortfolioValue,
-    alignmentScore: computeAlignmentScore(strategy, currentWeights, targetWeights),
+    alignmentScore: computeAlignmentScore(scored.strategy, currentWeights, scored.targetWeights),
     targetAllocations,
     currentAllocations,
-    deviations: buildDeviationItems(strategy, currentWeights, targetWeights),
+    deviations: buildDeviationItems(scored.strategy, currentWeights, scored.targetWeights),
     tickerMappings,
   };
 }

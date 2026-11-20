@@ -16,6 +16,7 @@ import {
   getPositionsByPortfolioId,
 } from '../repositories/portfolioRepository.js';
 import { computePortfolioOwnerToken } from '../utils/portfolioOwnerToken.js';
+import { findTickersOutsideAnalysis } from './portfolioAnalysisScope.js';
 import { assertValidTickerSymbol, TICKER_FORMAT_ERROR_MESSAGE } from '../utils/tickerValidation.js';
 import { getTodayIsoDate } from '../utils/displayCurrency.js';
 import type {
@@ -74,8 +75,13 @@ async function getUserPortfolioTickers(userId: string): Promise<string[]> {
   const ownerToken = computePortfolioOwnerToken(userId);
   const portfolioId = await findOrCreatePortfolioAccount(ownerToken);
   const rows = await getPositionsByPortfolioId(portfolioId);
+  const outsideTickers = await findTickersOutsideAnalysis(rows.map((row) => row.ticker));
 
-  return [...new Set(rows.map((row) => row.ticker.toUpperCase()))];
+  return [
+    ...new Set(
+      rows.map((row) => row.ticker.toUpperCase()).filter((ticker) => !outsideTickers.has(ticker))
+    ),
+  ];
 }
 
 function assertTickersBelongToPortfolio(

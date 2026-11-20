@@ -548,9 +548,11 @@ export async function getPortfolioRebalancingStrategy(portfolioId: string): Prom
   strategyId: string;
   customBaseStrategyId: string | null;
   customAllocations: Record<string, number> | null;
+  includePermanentCash: boolean;
 }> {
   const result = await pool.query<PortfolioAccountRow>(
-    `SELECT rebalancing_strategy_id, rebalancing_custom_base_strategy_id, rebalancing_custom_allocations
+    `SELECT rebalancing_strategy_id, rebalancing_custom_base_strategy_id, rebalancing_custom_allocations,
+            rebalancing_include_permanent_cash
      FROM portfolio_accounts
      WHERE id = $1`,
     [portfolioId]
@@ -566,7 +568,20 @@ export async function getPortfolioRebalancingStrategy(portfolioId: string): Prom
     strategyId: row.rebalancing_strategy_id ?? 'ray-dalio-all-weather',
     customBaseStrategyId: row.rebalancing_custom_base_strategy_id ?? null,
     customAllocations: row.rebalancing_custom_allocations ?? null,
+    includePermanentCash: row.rebalancing_include_permanent_cash !== false,
   };
+}
+
+export async function updatePortfolioPermanentCashInclusion(
+  portfolioId: string,
+  includePermanentCash: boolean
+): Promise<void> {
+  await pool.query(
+    `UPDATE portfolio_accounts
+     SET rebalancing_include_permanent_cash = $1
+     WHERE id = $2`,
+    [includePermanentCash, portfolioId]
+  );
 }
 
 export async function deleteAllPortfolioData(portfolioId: string): Promise<{
@@ -595,7 +610,8 @@ export async function deleteAllPortfolioData(portfolioId: string): Promise<{
       `UPDATE portfolio_accounts
        SET rebalancing_strategy_id = 'ray-dalio-all-weather',
            rebalancing_custom_base_strategy_id = NULL,
-           rebalancing_custom_allocations = NULL
+           rebalancing_custom_allocations = NULL,
+           rebalancing_include_permanent_cash = TRUE
        WHERE id = $1`,
       [portfolioId]
     );

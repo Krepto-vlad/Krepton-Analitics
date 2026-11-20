@@ -2,6 +2,7 @@ import { AI_BRIEFING_MACRO_TICKERS } from '../constants.js';
 import { isGeminiGroundingEnabled } from '../config/env.js';
 import { getPortfolioNews } from './newsService.js';
 import { getCachedStockQuotes } from './quoteCacheService.js';
+import { findTickersOutsideAnalysis } from './portfolioAnalysisScope.js';
 import {
   findOrCreatePortfolioAccount,
   getPositionsByPortfolioId,
@@ -72,6 +73,8 @@ export async function buildBriefingPromptContext(
   const rows = await getPositionsByPortfolioId(portfolioId);
   const selectedTickerSet = new Set(tickers.map((ticker) => ticker.toUpperCase()));
   const selectedRows = rows.filter((row) => selectedTickerSet.has(row.ticker.toUpperCase()));
+  const outsideTickers = await findTickersOutsideAnalysis(selectedRows.map((row) => row.ticker));
+  const analyzedRows = selectedRows.filter((row) => !outsideTickers.has(row.ticker.toUpperCase()));
 
   const macroTickers = AI_BRIEFING_MACRO_TICKERS.map((entry) => entry.ticker);
   const quoteTickers = [
@@ -90,7 +93,7 @@ export async function buildBriefingPromptContext(
     ])
   );
 
-  const holdings = selectedRows.map((row) =>
+  const holdings = analyzedRows.map((row) =>
     buildHoldingContext(row, quoteMap, includePortfolioContext)
   );
 

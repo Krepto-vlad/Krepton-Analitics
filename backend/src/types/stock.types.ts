@@ -23,6 +23,8 @@ export interface StockQuote {
   logoUrl: string | null;
   marketState: StockMarketState | null;
   exchange: string | null;
+  /** Yahoo instrument type, such as EQUITY or CRYPTOCURRENCY. Null when the quote did not say. */
+  quoteType: string | null;
   preMarketPrice: number | null;
   preMarketChange: number | null;
   preMarketChangePercent: number | null;

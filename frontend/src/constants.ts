@@ -169,6 +169,12 @@ export const NOT_FOUND_SMILEY_SRC = '/smile.svg';
 export const NOT_FOUND_CODE_LABEL = '404';
 export const CLIENT_ERROR_LOG_PREFIX = '[AppErrorBoundary]';
 
+export const OUTSIDE_ANALYSIS_HOLDINGS_TITLE = 'Not included in portfolio analysis';
+export const OUTSIDE_ANALYSIS_HOLDINGS_NOTE =
+  'These holdings stay on your account and keep a price. They are left out of portfolio value, sector allocation, rebalancing, dividends, news, and AI analysis.';
+export const OUTSIDE_ANALYSIS_ANALYZED_EMPTY =
+  'No analyzed holdings yet. Instruments below stay stored and are left out of the portfolio totals.';
+
 export const PORTFOLIO_DATA_DELETE_CONFIRMATION = 'DELETE';
 export const ACCOUNT_DELETE_CONFIRMATION = 'DELETE ACCOUNT';
 
@@ -664,6 +670,14 @@ export const ERROR_MESSAGES = {
 
 export const AI_ALIGNMENT_EXPLAIN_SESSION_STORAGE_KEY = 'krepton_ai_alignment_explain_v1';
 export const STRATEGY_DRIFT_ALERT_SESSION_STORAGE_KEY = 'krepton_strategy_drift_alert_dismissed_v1';
+export const REBALANCING_ALLOCATION_CANCEL_LABEL = 'Cancel';
+export const REBALANCING_PERMANENT_CASH_BUCKET_ID = 'cash';
+export const REBALANCING_PERMANENT_STRATEGY_ID = 'harry-browne-permanent';
+export const REBALANCING_CASH_SLEEVE_HELP_LABEL = 'How this cash sleeve is counted';
+export const REBALANCING_CASH_SLEEVE_HELP_TEXT =
+  'The app counts only Treasury bill funds it can see, such as a 0–3 month T-bill ETF or a Treasury money-market fund. Cash you keep yourself, in a bank or anywhere this portfolio cannot see, is not included. Turn this sleeve off if you hold that reserve yourself. The other three sleeves are then scored as the whole 100%.';
+export const REBALANCING_CASH_SLEEVE_INCLUDE_LABEL = 'Include in analysis';
+export const REBALANCING_MAPPING_EXCLUDED_LABEL = 'Not included in this analysis';
 export const REBALANCING_STRATEGY_GUIDE_OPEN_LABEL = 'Read about this strategy';
 export const REBALANCING_STRATEGY_GUIDE_CLOSE_LABEL = 'Close';
 export const REBALANCING_STRATEGY_GUIDE_KICKER = 'Published model';

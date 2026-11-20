@@ -30,7 +30,7 @@ export interface RebalancingTickerMappingItem {
   bucketId: string;
   bucketLabel: string;
   inferredAssetClass: string;
-  mappingSource: 'ticker' | 'asset_class' | 'sector' | 'default' | 'unmapped';
+  mappingSource: 'ticker' | 'asset_class' | 'sector' | 'default' | 'unmapped' | 'excluded';
 }
 
 export interface RebalancingStrategyBucketOption {
@@ -63,6 +63,7 @@ export interface RebalancingAnalysisResponse {
   investmentHorizon: string;
   customBaseStrategyId: RebalancingPrebuiltStrategyId | null;
   savedCustomStrategy: SavedCustomStrategySummary | null;
+  includePermanentCash: boolean;
   displayCurrency: string;
   totalPortfolioValue: number;
   alignmentScore: number;
@@ -76,6 +77,7 @@ export interface UpdateRebalancingStrategyPayload {
   strategyId: RebalancingStrategyId;
   customBaseStrategyId?: RebalancingPrebuiltStrategyId;
   customAllocations?: Record<string, number>;
+  includePermanentCash?: boolean;
 }
 
 export const REBALANCING_CUSTOM_STRATEGY_NAME = 'My Custom Strategy';

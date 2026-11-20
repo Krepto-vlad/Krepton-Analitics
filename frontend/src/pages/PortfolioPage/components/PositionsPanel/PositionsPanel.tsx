@@ -4,12 +4,16 @@ import { Plus, Trash2, HandCoins, Search, TrendingUp } from 'lucide-react';
 import { Button, AsyncStatePanel, ContentSkeleton, TickerAvatar } from '../../../../components/ui';
 import { buildLogoByTicker } from '../../../../utils/tickerLogos';
 import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
+import { isIncludedInPortfolioAnalysis } from '../../../../utils/portfolioAnalysisScope';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import {
   buildTickerDetailPath,
   PORTFOLIO_IMPORTER_PATH,
   EQUITY_PERIODS,
+  OUTSIDE_ANALYSIS_ANALYZED_EMPTY,
+  OUTSIDE_ANALYSIS_HOLDINGS_NOTE,
+  OUTSIDE_ANALYSIS_HOLDINGS_TITLE,
   HOLDINGS_TABLE_HEADER_HEIGHT_PX,
   HOLDINGS_TABLE_ROW_HEIGHT_PX,
   LOADING_MESSAGES,
@@ -359,7 +363,7 @@ export function PositionsPanel() {
   );
 
   const computedSummaryPositions = useMemo(() => {
-    return summaryPositions.map((position) => {
+    return summaryPositions.filter(isIncludedInPortfolioAnalysis).map((position) => {
       const invested = position.shares * position.avgBuyPrice;
       const marketValue = position.shares * position.currentPrice;
       const pnlAbs = marketValue - invested;
@@ -368,8 +372,17 @@ export function PositionsPanel() {
     });
   }, [summaryPositions]);
 
+  const outsideSummaryPositions = useMemo(() => {
+    return summaryPositions
+      .filter((position) => !isIncludedInPortfolioAnalysis(position))
+      .map((position) => ({
+        ...position,
+        marketValue: position.shares * position.currentPrice,
+      }));
+  }, [summaryPositions]);
+
   const computedTablePositions = useMemo(() => {
-    return positions.map((position) => {
+    return positions.filter(isIncludedInPortfolioAnalysis).map((position) => {
       const invested = position.shares * position.avgBuyPrice;
       const marketValue = position.shares * position.currentPrice;
       const pnlAbs = marketValue - invested;
@@ -652,6 +665,14 @@ export function PositionsPanel() {
                     </div>
                   </td>
                 </tr>
+              ) : filteredAndSorted.length === 0 && outsideSummaryPositions.length > 0 ? (
+                <tr className={styles.filterEmptyRow}>
+                  <td colSpan={9}>
+                    <div className={styles.filterEmptyState}>
+                      <p className={styles.filterEmptyText}>{OUTSIDE_ANALYSIS_ANALYZED_EMPTY}</p>
+                    </div>
+                  </td>
+                </tr>
               ) : (
                 filteredAndSorted.map((position) => {
                   const sectorLabel = position.sector ?? 'Other';
@@ -738,6 +759,57 @@ export function PositionsPanel() {
           </div>
         )}
       </div>
+
+      {outsideSummaryPositions.length > 0 && (
+        <div className={styles.holdingsSection}>
+          <div className={styles.holdingsHeader}>
+            <h2 className={styles.holdingsTitle}>{OUTSIDE_ANALYSIS_HOLDINGS_TITLE}</h2>
+          </div>
+          <p className={styles.outsideNote}>{OUTSIDE_ANALYSIS_HOLDINGS_NOTE}</p>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.thTicker}>TICKER</th>
+                  <th className={styles.thName}>NAME</th>
+                  <th className={styles.thNum}>SHARES</th>
+                  <th className={styles.thNum}>PRICE</th>
+                  <th className={styles.thNum}>MARKET VALUE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {outsideSummaryPositions.map((position) => (
+                  <tr key={position.id} className={styles.tableRow}>
+                    <td className={styles.tdTicker}>
+                      <Link
+                        to={buildTickerDetailPath(position.ticker.toUpperCase())}
+                        className={styles.tickerLink}
+                      >
+                        <TickerAvatar
+                          ticker={position.ticker}
+                          logoUrl={
+                            position.logoUrl ?? logoByTicker[position.ticker.toUpperCase()] ?? null
+                          }
+                          size="sm"
+                        />
+                        <span className={styles.tickerSymbol}>{position.ticker}</span>
+                      </Link>
+                    </td>
+                    <td>{position.companyName}</td>
+                    <td className={styles.tdNum}>{position.shares}</td>
+                    <td className={styles.tdNum}>
+                      {formatUsdDecimal(position.currentPrice, displayCurrency)}
+                    </td>
+                    <td className={styles.tdNum}>
+                      {formatMoneyWhole(position.marketValue, displayCurrency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* ── Transaction history ── */}
       <div className={styles.holdingsSection}>

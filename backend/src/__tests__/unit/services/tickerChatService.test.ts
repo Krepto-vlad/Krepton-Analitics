@@ -1043,6 +1043,56 @@ describe('tickerChatService', () => {
     );
   });
 
+  it('leaves a holding out of portfolio weights when analysis excludes it', async () => {
+    mockedQuote.mockResolvedValue({
+      ...buildEmptyStockQuote('AAPL'),
+      name: 'Apple',
+      price: 190,
+      changePercent: 0.4,
+      currency: 'USD',
+    });
+    mockedPositions.mockResolvedValue([
+      {
+        ticker: 'AAPL',
+        companyName: 'Apple',
+        shares: 10,
+        sector: 'Technology',
+        currency: 'USD',
+        includedInAnalysis: true,
+      },
+      {
+        ticker: 'BTC-USD',
+        companyName: 'Bitcoin',
+        shares: 1,
+        sector: null,
+        currency: 'USD',
+        includedInAnalysis: false,
+      },
+    ] as never);
+    mockedQuotes.mockResolvedValue([
+      { ...buildEmptyStockQuote('AAPL'), price: 100, currency: 'USD', changePercent: 1 },
+      { ...buildEmptyStockQuote('BTC-USD'), price: 100, currency: 'USD', changePercent: 1 },
+    ]);
+    mockedGemini.mockResolvedValue({
+      reply: 'Only the stock is in the weights.',
+      sources: [],
+      groundingEnabled: false,
+    });
+
+    const result = await sendTickerChatMessage('user-1', {
+      ticker: 'AAPL',
+      message: 'Explain these weights.',
+      screenContext: { kind: 'portfolio', displayCurrency: 'USD' },
+    });
+
+    expect(result.displayBlocks[0]).toEqual(
+      expect.objectContaining({
+        kind: 'weight-bars',
+        rows: [{ label: 'AAPL', weightPercent: 100 }],
+      })
+    );
+  });
+
   it('reloads portfolio headlines and leaves the article links out', async () => {
     mockedQuote.mockResolvedValue({
       ...buildEmptyStockQuote('AAPL'),

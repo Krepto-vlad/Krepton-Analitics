@@ -19,6 +19,7 @@ function exportPayload(overrides: Partial<PortfolioDataExport> = {}): PortfolioD
         currency: 'USD',
         sector: 'Technology',
         entryDate: '2026-01-10',
+        includedInAnalysis: true,
         createdAt: '2026-01-10T00:00:00.000Z',
         updatedAt: '2026-01-10T00:00:00.000Z',
       },
@@ -49,6 +50,7 @@ function exportPayload(overrides: Partial<PortfolioDataExport> = {}): PortfolioD
       strategyId: 'custom',
       customBaseStrategyId: 'warren-buffett-9010',
       customAllocations: { equities: 90, bonds: 10 },
+      includePermanentCash: true,
     },
     brokerageConnections: [
       {
@@ -78,6 +80,7 @@ describe('buildPortfolioExportXlsxBuffer', () => {
           strategyId: 'warren-buffett-9010',
           customBaseStrategyId: null,
           customAllocations: null,
+          includePermanentCash: true,
         },
       })
     );

@@ -18,6 +18,7 @@ jest.mock('../../../api/portfolioApi', () => ({
     investmentHorizon: '',
     customBaseStrategyId: null,
     savedCustomStrategy: null,
+    includePermanentCash: true,
     displayCurrency: 'USD',
     totalPortfolioValue: 1500,
     alignmentScore: 80,

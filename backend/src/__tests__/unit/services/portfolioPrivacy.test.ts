@@ -172,6 +172,7 @@ describe('portfolioService privacy actions', () => {
         strategyId: 'warren-buffett-9010',
         customBaseStrategyId: null,
         customAllocations: null,
+        includePermanentCash: true,
       });
 
       const exported = await exportUserPortfolioData(USER_ID, { password: 'secret' });
