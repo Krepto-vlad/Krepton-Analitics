@@ -31,7 +31,7 @@ Krepton Analytics sits **beside** the broker. It never places orders and never t
 | Aspect | Before | After |
 |--------|--------|-------|
 | Monthly review | 30+ min in Excel, prices pasted by hand | Import or add positions; dashboard uses cached quotes |
-| Rebalancing | Sell overweight names (tax) or guess deposit split | Math: how to allocate **new cash** without selling |
+| Rebalancing | Sell overweight names (tax) or guess a deposit split | See drift against a saved target. A deposit split is not calculated yet |
 | AI | Unscoped ChatGPT | News briefing + ticker chat with scope/output guardrails |
 | Privacy | Name, account numbers in the sheet or SaaS | Email + password hash; HMAC owner token; in-memory import |
 
@@ -42,35 +42,36 @@ Krepton Analytics sits **beside** the broker. It never places orders and never t
 | Trust | Investor can use the hub without KYC or account numbers | Delete account + export; Privacy Policy in the UI |
 | Clarity | Allocation and drift are visible in one session | Dashboard shows weights vs target |
 | Honesty | AI never presented as investment advice | Disclaimers + blocked buy/sell / jailbreak prompts |
-| Defendable product | Diploma complexity without fake brokers | Eight criteria with code + this document |
+| Scope | Holdings come from a file or manual entry | No bank connection |
 
 ## Objectives & Metrics
 
 | Objective | Metric | Current Value | Target Value | Timeline |
 |-----------|--------|---------------|--------------|----------|
-| Import reliability | Broker report → positions without disk persistence | Implemented for supported formats | Stable demo path | Defense |
-| Quote freshness | Cache TTL for quotes | ~30 s in-memory | Documented NFR, no fake WebSocket | Defense |
-| AI safety | Jailbreak / “buy AAPL” do not produce advice | Guardrails in code | ≥10 documented dialogs | Expert AI |
-| Availability | Public URL for reviewers | Localhost | Azure EU URL | Pre-defense |
+| Import reliability | Broker report → positions without disk persistence | Implemented for supported formats | Stable import path | Live |
+| Quote freshness | Cache TTL for quotes | ~30 s in memory on the API | Same cache in production | Live |
+| AI safety | Jailbreak / “buy AAPL” do not produce advice | Guardrails in code | Dialogs in the appendix | Live |
+| Availability | Public URL | `https://www.kreptonanalytics.com` and `https://api.kreptonanalytics.com` | Azure URL | Live since 2026-09-02 |
 
 ## Success Criteria
 
 ### Must Have
 
-- [ ] Authenticated user can import or enter positions and see allocation
-- [ ] Rebalancing suggestion for **new money** (no forced sells)
-- [ ] AI briefing and/or ticker chat with disclaimers and quota
-- [ ] GDPR minimum: Privacy Policy, export, hard-delete account
-- [ ] Public deploy + tests for the eight declared criteria
+- [x] Authenticated user can import or enter positions and see allocation
+- [x] Drift against a saved target, with no order sent to a broker
+- [ ] Rebalancing suggestion for **new money** (how to spend a deposit without selling)
+- [x] AI briefing and ticker chat with disclaimers and quota
+- [x] GDPR minimum: Privacy Policy, export, hard-delete account
+- [x] Public deploy + tests for the eight declared criteria
 
 ### Nice to Have
 
 - [ ] Deposit-based rebalancing as a polished monthly ritual
-- [ ] Extra broker formats via AI parser fallback
 
 ## Non-Goals
 
 - Brokerage, order routing, or bank/Open Banking integrations
+- More broker-file formats beyond the parsers already in the product
 - Personalized investment advice or portfolio management under MiFID
 - Training an in-house price-prediction ML model
 - Real-time tick stream with delay under 10 s (Yahoo free tier + polling)

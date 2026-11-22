@@ -10,14 +10,14 @@
 
 ### Context
 
-Experts want automatic lint, build, and tests on push/PR, with at least a simple CD path. Husky is local-only and does not count as CI.
+Lint, build, and tests run on push and on pull requests. Husky runs the same checks on the developer machine before a push.
 
 ### Decision
 
 GitHub Actions workflow `.github/workflows/ci.yml`:
 
 - **backend:** lint, Prettier check, `tsc`, Jest with **80% coverage gate**, upload `coverage/` (HTML + lcov).
-- **frontend:** lint, Prettier check, production build, Jest **coverage report** (no percent gate — SPA unit coverage is ~7%).
+- **frontend:** lint, Prettier check, production build, Jest coverage report.
 - **audit:** `npm audit --audit-level=critical` per package; JSON report uploaded.
 - **docker:** `docker compose config` plus `docker build` for API and web (no registry push).
 - **e2e:** Playwright against a real Postgres service.
@@ -33,21 +33,14 @@ CD is a separate workflow, `.github/workflows/deploy.yml`:
 - **deploy-frontend:** builds the SPA (with the production `VITE_API_URL`), deploys to Azure Static Web Apps, then waits until the public site responds.
 - Azure auth: a service-principal JSON in the `AZURE_CREDENTIALS` GitHub Secret (`az ad sp create-for-rbac --sdk-auth`, scoped to the resource group).
 
-This closes the CI/CD **min** hole that used to require phase D4.
-
 ### Alternatives Considered
 
 | Alternative | Why not |
 |-------------|---------|
-| Only Husky | Not CI; not visible to experts |
-| Manual FTP of `dist` | Forbidden by the rubric |
-| Full Kubernetes CD | Other criteria; YAGNI |
+| Only Husky | Checks also run in GitHub Actions |
+| Manual FTP of `dist` | GitHub Actions builds and deploys |
+| Full Kubernetes CD | The API runs as an Azure Container App |
 | Fail CI on every `npm audit` high | `xlsx` has no patched community build; we fail on **critical** and record high in the artifact |
-
-### Consequences
-
-**Positive:** Same CI pipeline serves Backend coverage + Auto tests logs; CD cannot ship a red build.  
-**Negative:** `pre-push` is slower (backend + frontend coverage). Frontend coverage is collected but not gated (~7%).
 
 ## Pipeline
 
@@ -86,15 +79,6 @@ flowchart LR
 | 7 | Fail on error | ✅ | Non-zero Jest/lint/build/docker build fails the job |
 | 8 | Secrets store, not YAML | ✅ | `AZURE_CREDENTIALS`, `AZURE_STATIC_WEB_APPS_API_TOKEN`, `VITE_GOOGLE_CLIENT_ID` in GitHub Secrets |
 | 9 | Security scan (`npm audit`) | ✅ | `audit` job + working note |
-
-## Known Limitations
-
-| Limitation | Impact | Plan |
-|------------|--------|------|
-| Backend branches ~62%, not gated | Not the diploma counter | Leave ungated |
-| Frontend coverage ~7%, not gated | Honest: RTL min, not an 80% SPA | Collect the report in CI; do not fake a threshold |
-| `workflow_dispatch` can deploy without a new CI run | Emergency Portal-fix path | Use rarely; default path is CI → CD |
-| No blue/green or automated rollback | A bad image replaces the previous revision | Container Apps keeps prior revisions; Portal rollback is documented |
 
 ## References
 

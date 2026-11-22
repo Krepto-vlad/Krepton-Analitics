@@ -2,7 +2,7 @@
 
 # 1. Project Overview
 
-This section is the Business Analysis package: problem, stakeholders, scope, and features.
+This section is the Business Analysis package: problem, stakeholders, scope, and features. The committee packet is submitted and kept in `Docs/BA/`.
 
 ## Contents
 
@@ -25,4 +25,4 @@ Krepton Analytics is a **proxy/hub**: the user authenticates, imports or enters 
 | **Solution** | Privacy-first analytics hub: import, allocation, rebalancing math, scoped AI |
 | **Target Users** | Self-directed retail investors (no KYC, no executed orders) |
 | **Key Features** | Auth, import, dashboard, rebalancing, news briefing, ticker AI chat, export/delete account |
-| **Tech Stack** | React (Vite) + Express + PostgreSQL + Azure (planned) + Gemini on the backend |
+| **Tech Stack** | React (Vite) + Express + PostgreSQL on Azure + Gemini on the backend |

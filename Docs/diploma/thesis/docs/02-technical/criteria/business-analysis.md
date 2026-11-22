@@ -4,13 +4,13 @@
 
 ### Status
 
-**Status:** Proposed (committee packet — fill remaining BA max items after topic approval)
+**Status:** Accepted. The committee packet is submitted.
 
-**Date:** 2026-08-18
+**Date:** 2026-08-18 (draft) → submitted
 
 ### Context
 
-The course requires a separate BA defense. The product exists as a POC; this section is the shared language for committee, experts, and the thesis. Without written scope, reviewers would treat bank-API or “AI advisor” expectations as in-scope.
+Krepton Analytics is a privacy-first hub: import, dashboard, rebalancing, and a scoped assistant. It does not connect to a bank and it does not tell the user what to buy.
 
 ### Decision
 
@@ -22,13 +22,7 @@ Document Krepton as a **privacy-first analytics hub**: in-scope import/dashboard
 |-------------|---------|
 | Broker-connected product | Forbidden by project rules; KYC and PSD2 |
 | “AI that tells you what to buy” | MiFID / ethics; we use guardrails instead |
-| Write BA only in Russian working notes | Thesis language is English; reviewers read this folder |
-
-### Consequences
-
-**Positive:** Clear non-goals reduce expert scope fights.  
-**Negative:** BA max (personas matrix, full user-story fields, MoSCoW everywhere) is not finished.  
-**Neutral:** Product docs in `Docs/` remain internal and are not the submission.
+| Write the scope only in Russian notes | The thesis is in English |
 
 ## Requirements Checklist
 
@@ -42,15 +36,9 @@ Document Krepton as a **privacy-first analytics hub**: in-scope import/dashboard
 | 6 | Proposed solution + landscape | ✅ | [02-technical/index.md](../index.md) |
 | 7 | Epics + user-story skeleton | ✅ | [features.md](../../01-project-overview/features.md) |
 | 8 | Non-functional requirements | ✅ | features.md NFR table |
-| 9 | Regulatory (GDPR, disclaimers) | ⚠️ | Overview here; legal PDFs live with the app |
-| 10 | Use case diagram | ✅ | features.md |
-| 11 | BA max (matrix, KPIs, full stories, MoSCoW, risks) | ❌ | After topic approval if targeting 10 |
-
-## Known Limitations
-
-| Limitation | Impact | Plan |
-|------------|--------|------|
-| KPIs still qualitative | Weaker BA-max grade | Add measurable targets when staging exists |
+| 9 | Regulatory (GDPR, disclaimers) | ✅ | Privacy Policy in the app; the same boundary is in the submitted packet |
+| 10 | Use case diagram | ✅ | features.md and `Docs/BA/diagrams/` |
+| 11 | BA max (matrix, KPIs, full stories, MoSCoW, risks) | ✅ | Submitted packet in `Docs/BA/` |
 
 ## References
 

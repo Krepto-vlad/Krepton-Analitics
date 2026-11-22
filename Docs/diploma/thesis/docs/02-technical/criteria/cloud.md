@@ -10,25 +10,19 @@
 
 ### Context
 
-Backend min and Cloud both require a URL reviewers can open. GDPR wants EU residency. Paid Azure is deferred until late (cost), not skipped.
+The site, the API, and the database run on Azure. Personal data stays in North Europe.
 
 ### Decision
 
-Azure in an EU region: host frontend + API, **Azure Database for PostgreSQL** as the managed service, secrets in App Settings / Key Vault. Reproduce steps in this chapter with redacted screenshots.
+The frontend is an Azure Static Web App. The API is an Azure Container App. The database is Azure Database for PostgreSQL. Secrets are in the Container App settings and in GitHub Secrets. The steps are in [deployment](../deployment.md).
 
 ### Alternatives Considered
 
 | Alternative | Why not |
 |-------------|---------|
-| Forever localhost | Fails Cloud + Backend deploy |
-| Render/Fly only | Azure is the course/stack choice already in architecture |
-| VMs left running empty | Cost penalty in the rubric |
-
-### Consequences
-
-**Positive:** One URL closes two criteria (Cloud + Backend production deploy); manual, guided Azure Portal setup doubled as a hands-on learning pass, not just a scripted `az` run.  
-**Negative:** Static Web Apps' free-tier region list forced East US 2 for the frontend (no EU option on the free SKU); mitigated because the frontend serves no personal data — API + database (where personal data lives) are both North Europe.  
-**Neutral:** IaC/Bicep is Cloud **max**, not attempted (manual Portal setup by design, for the learning value).
+| Forever localhost | The site and the API have public URLs |
+| Render/Fly only | The host is Azure |
+| VMs left running empty | Container Apps scale to zero when idle |
 
 ## Requirements Checklist
 
@@ -42,14 +36,6 @@ Azure in an EU region: host frontend + API, **Azure Database for PostgreSQL** as
 | 6 | Architecture of resources | ✅ | Live diagram in deployment.md |
 | 7 | Reachable + firewall | ✅ | Custom domains + SSL bound; Postgres firewall allows only Azure services / the Container App |
 | 8 | No idle paid waste | ✅ | Container Apps scale-to-zero; Static Web Apps free tier; smallest Postgres Burstable SKU; [cost/idle runbook](../deployment.md#cost--idle-runbook) |
-
-## Known Limitations
-
-| Limitation | Impact | Plan |
-|------------|--------|------|
-| Static Web Apps region is East US 2, not EU | Frontend static assets served outside EU | Acceptable — no personal data in the SPA bundle; documented in Privacy Policy |
-| No IaC (Bicep/Terraform) | Redeploy from scratch is manual Portal steps, not a script | Cloud **max** item, not claimed; steps are documented instead |
-| Azure Log stream / alert not yet captured for the thesis appendix | Evidence gap, not a functionality gap | Capture screenshot before the defense (D4 evidence pass) |
 
 ## References
 

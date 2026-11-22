@@ -2,8 +2,6 @@
 
 # Feature Walkthrough
 
-Add screenshots in `docs/assets/screenshots/` when recording the diploma video.
-
 ## Authentication
 
 Register or log in. The session cookie is HttpOnly; you cannot copy a JWT from DevTools Application → Local Storage. Logout clears the cookie.
@@ -16,7 +14,7 @@ Register or log in. The session cookie is HttpOnly; you cannot copy a JWT from D
 
 ## Dashboard and rebalancing
 
-Dashboard shows current mix vs target. Rebalancing computes how to allocate **new cash**. It does not place an order at a broker. Treat numbers as a plan you execute yourself.
+Dashboard and the rebalancing page show current weights against a published or saved target. They do not calculate how to spend a new deposit, and they do not place an order at a broker. Treat the score as a description of the gap, not as a trade.
 
 ## Market data and ticker page
 
@@ -28,7 +26,7 @@ On News, select tickers you already hold (limit applies). Generate today’s sum
 
 ## Ticker AI chat
 
-Open the drawer on a ticker page. Ask about **this** ticker (price, position, risks). Closing the drawer starts a new conversation. Jailbreaks and poems never reach Gemini.
+Open the drawer on a ticker page, or the same chat button on another page. Ask about the open screen. Closing the drawer only hides it. **New chat**, logout, or closing the tab starts a fresh conversation. Jailbreaks and poems never reach Gemini.
 
 How-to: [AI user guide](ai-assistant.md). Full examples: [dialog appendix](../appendices/ai-dialogs.md).
 

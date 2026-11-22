@@ -199,7 +199,9 @@ describe('portfolioSlice', () => {
 
     const state = store.getState();
     expect(state.portfolio.summaryPositions[0]?.currentPrice).toBe(150);
-    expect(selectPortfolioStats(state as never).totalValue).toBe(300);
+    const portfolioStats = selectPortfolioStats(state as never);
+    expect(portfolioStats.totalValue).toBe(300);
+    expect(selectPortfolioStats(state as never)).toBe(portfolioStats);
     expect(selectSectorAllocations(state as never)[0]?.sector).toBe('Technology');
     expect(state.portfolio.portfolioHealth.alignmentScore).toBe(80);
     expect(selectIsDashboardBootstrapping(state as never)).toBe(true);

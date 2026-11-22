@@ -62,7 +62,7 @@ A custom target keeps the sleeves of one published model and replaces only the p
 
 ## How a holding becomes a sleeve
 
-For each open position that is still inside the analysis, the server builds a market value, then one shared asset class, then a sleeve. The class rules are the same for every model. Each model only decides which classes it accepts. All-Weather and Buffett do not keep a ticker allowlist. The three-fund model and the permanent-portfolio cash sleeve still do, and those lists are written out below.
+For each open position that is still inside the analysis, the server builds a market value, then one shared asset class, then a sleeve. The class rules are the same for every model. Each model only decides which classes it accepts. No model keeps a ticker allowlist.
 
 Market value is shares times price. A positive live quote is used. If there is no positive quote, the average buy price is used. The amount is converted into the display currency selected in the app (USD or EUR). The portfolio total is the sum of those values.
 

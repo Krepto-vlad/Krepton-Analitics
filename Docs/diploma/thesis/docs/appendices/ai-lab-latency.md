@@ -2,7 +2,7 @@
 
 # Appendix: AI lab latency
 
-**Not a production SLA.** The 2026-08-19 numbers below were measured on a developer machine against `gemini-3.1-flash-lite` through `generateTickerChatReplyWithGemini`. Production now calls `gemini-3.8-flash` (`GEMINI_THINKING_LEVEL=low`). Re-run on staging before the Cloud/AI expert slot.
+The 2026-08-19 numbers below were measured on a developer machine against `gemini-3.1-flash-lite` through `generateTickerChatReplyWithGemini`. Production calls `gemini-3.8-flash` (`GEMINI_THINKING_LEVEL=low`).
 
 Command (from `backend/`):
 
@@ -12,7 +12,7 @@ npm run ai:lab-latency
 # AI_LAB_CONCURRENT_GEMINI=true npm run ai:lab-latency
 ```
 
-Diploma bar: standard reply **&lt; 10 000 ms**; at least **10** overlapping requests.
+The run records a standard reply under 10 seconds and at least 10 overlapping requests.
 
 ## Lab run — 2026-08-19
 

@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode } from 'react';
+import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
 import styles from './Input.module.scss';
 
 interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -20,6 +20,20 @@ export function Input({
   id,
   ...rest
 }: InputProps) {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const errorId = `${inputId}-error`;
+  const hintId = `${inputId}-hint`;
+  const successId = `${inputId}-success`;
+  const showsHint = Boolean(hint) && !error && !success;
+  const showsSuccess = Boolean(success) && !error;
+  const describedBy = [
+    error ? errorId : null,
+    showsHint ? hintId : null,
+    showsSuccess ? successId : null,
+  ]
+    .filter((describedById) => describedById !== null)
+    .join(' ');
   const wrapClass = [
     styles.inputWrap,
     error ? styles.error : '',
@@ -31,22 +45,36 @@ export function Input({
   return (
     <div className={styles.fieldGroup}>
       {label && (
-        <label className={styles.label} htmlFor={id}>
+        <label className={styles.label} htmlFor={inputId}>
           {label}
         </label>
       )}
       <div className={wrapClass}>
         <input
-          id={id}
-          className={styles.input}
-          onChange={(e) => onChange(e.target.value)}
           {...rest}
+          id={inputId}
+          className={styles.input}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy.length > 0 ? describedBy : undefined}
+          onChange={(event) => onChange(event.target.value)}
         />
         {rightElement}
       </div>
-      {hint && !error && !success && <span className={styles.hint}>{hint}</span>}
-      {error && <span className={styles.errorText}>{error}</span>}
-      {success && !error && <span className={styles.successText}>{success}</span>}
+      {showsHint && (
+        <span id={hintId} className={styles.hint}>
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span id={errorId} className={styles.errorText}>
+          {error}
+        </span>
+      )}
+      {showsSuccess && (
+        <span id={successId} className={styles.successText}>
+          {success}
+        </span>
+      )}
     </div>
   );
 }

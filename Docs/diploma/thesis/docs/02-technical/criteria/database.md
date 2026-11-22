@@ -20,15 +20,9 @@ PostgreSQL, 3NF transactional model, migrations in Git. `portfolio_accounts.owne
 
 | Alternative | Why not |
 |-------------|---------|
-| SQLite / JSON files | Not a diploma DBMS; no roles |
+| SQLite / JSON files | No roles and no managed server |
 | MongoDB | Relational integrity and migrations fit OLTP better |
 | `user_id` FK on positions | Would make the split-zone anonymity story weaker |
-
-### Consequences
-
-**Positive:** Integrity via PK/FK where it does not break anonymity; HMAC is auditable SQL.  
-**Negative:** Experts must be told why there is **no** FK from portfolio → users.  
-**Neutral:** No second analytical DBMS, no triggers/views for the rubric letter. Database max target is 7–8 via migrations + justified indexes + HMAC masking. Azure PITR is Cloud, not a second database.
 
 ## Implementation Details
 
@@ -41,7 +35,7 @@ See the database pack: [logical schema](../../../../../database/logical-schema.m
 | node-pg-migrate | Reproducible DDL |
 | HMAC owner_token | Anonymity without storing userId on portfolio rows |
 | CHECK constraints | Defense in depth for shares, currency, ticker, trade type |
-| Three DB roles, thin | Rubric + non-superuser API; one pool, no UX change |
+| Three DB roles | The API connects as `app_write`, not as a superuser |
 | Quotes not stored as source of truth | Live/cached API; DB is holdings + users + AI cache |
 
 ## Requirements Checklist
@@ -61,16 +55,7 @@ See the database pack: [logical schema](../../../../../database/logical-schema.m
 | 11 | Max: schema migrations | ✅ | `node-pg-migrate` |
 | 12 | Max: PII masking | ✅ | HMAC `owner_token`, no portfolio→users FK |
 | 13 | Max: `\du` + `app_write` on staging | ✅ | [roles screenshot](../../../../../database/roles.md) on Azure; API `DATABASE_URL` = `app_write`, `npm run migrate:up` run as the Postgres admin |
-| 14 | Max: EXPLAIN appendix | ✅ | [query plans](../../../../../database/query-plans.md): index scan on `owner_token`; email seq scan on 5 rows, btree proven with `enable_seqscan=off` |
-| 15 | Max skip | — | No Timescale/ClickHouse, DWH, triggers, matviews, shards, Redis-as-DB |
-
-## Known Limitations
-
-| Limitation | Impact | Plan |
-|------------|--------|------|
-| Local still uses owner URL | Fine for inner loop | Staging `DATABASE_URL` = `app_write` (done) |
-| Email plan is a seq scan at 5 rows | Looks unused until the table grows | Documented in [query plans](../../../../../database/query-plans.md); UNIQUE btree exists |
-| No second DBMS / no triggers / no views | Expert may ask the max list | ADR: Yahoo+TTL, GDPR deletes transactions, aggregations need live prices |
+| 14 | Max: EXPLAIN appendix | ✅ | [query plans](../../../../../database/query-plans.md) |
 
 ## References
 

@@ -39,6 +39,7 @@ One portfolio per HMAC owner token. No foreign key to `users`.
 | rebalancing_strategy_id | varchar(64) | NOT NULL, CHECK known strategy id |
 | rebalancing_custom_allocations | jsonb | nullable. Custom target weights, not a holdings dump |
 | rebalancing_custom_base_strategy_id | varchar(64) | nullable |
+| rebalancing_include_permanent_cash | boolean | NOT NULL, default true. When false, the permanent-portfolio cash sleeve is left out of the score and the other sleeves are scaled to 100. Saved custom weights are not rewritten |
 | created_at | timestamptz | NOT NULL |
 
 Indexes: UNIQUE btree `portfolio_accounts_owner_token_key`, plus btree `portfolio_accounts_owner_token_index`. Every authenticated portfolio request looks up this column.

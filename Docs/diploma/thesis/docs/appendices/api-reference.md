@@ -4,8 +4,6 @@
 
 **Source of truth:** [`backend/openapi.yaml`](../../../../../backend/openapi.yaml) (OpenAPI 3.0.3).
 
-This appendix is a map for the thesis, not a second spec. If the YAML and this page disagree, fix the YAML.
-
 ## Overview
 
 | Item | Value |

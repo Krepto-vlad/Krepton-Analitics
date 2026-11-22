@@ -8,7 +8,7 @@
 |---------|-------------|-----------|
 | Retail investor | Holds ETFs/stocks at a broker; reviews monthly | Allocation, drift, deposit plan, no KYC |
 | Privacy-conscious user | Will not upload account numbers to a random SaaS | Minimized PII, delete/export |
-| Diploma reviewers | Experts and committee | Runnable app, diagrams, honest limitations |
+| Committee | Reads the thesis and uses the running app | The site, the API, and these pages |
 
 The product has **no admin console** and no KYC operator role. Operators (the author) only run infrastructure.
 
@@ -42,16 +42,16 @@ The product has **no admin console** and no KYC operator role. Operators (the au
 
 - **Student / operator:** delivers the system and thesis
 - **Supervisor:** topic and complexity sign-off
-- **BA committee:** first mandatory defense
+- **BA committee:** reviews the business analysis
 
 ### High Influence / Low Interest
 
-- **Criterion experts (BE, FE, DB, AI, Cloud, CI, tests):** grade a slice, not the product vision
+- **Criterion readers:** each criterion page describes one part of the system
 - **Cloud vendor (Azure):** availability and EU region, no product input
 
 ### Low Influence / High Interest
 
-- **End users (friends / beta):** UX feedback; not a diploma stakeholder
+- **End users:** use the product and can send notes about the interface
 
 ### Low Influence / Low Interest
 
