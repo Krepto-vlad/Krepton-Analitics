@@ -35,13 +35,13 @@
 | 1 | Yahoo Finance remains usable as a public quote source | Need another free/paid provider | Medium |
 | 2 | Users can export a CSV/XLSX from their broker | Import epic shrinks to manual entry | Medium |
 | 3 | Email is enough identity (no legal name) | GDPR still applies to email | Low |
-| 4 | The live Azure bill stays on the smallest SKUs | A larger bill, or a region move, before defense | Low |
+| 4 | The live Azure bill stays on the smallest SKUs | A larger bill, or a region move | Low |
 
 ## Constraints
 
 | Constraint Type | Description | Mitigation |
 |-----------------|-------------|------------|
-| **Time** | Diploma calendar (BA → experts → pre-defense) | Eight criteria, not seventeen |
+| **Time** | The product scope is the live app described in this thesis | Import, dashboard, rebalancing, and the assistant |
 | **Budget** | Keep the live Azure bill small | Container Apps scale-to-zero; Static Web Apps free tier; smallest Postgres SKU |
 | **Technology** | No real bank integrations (course + product rule) | Public APIs only |
 | **Privacy** | Anonymous DB: no names, no account numbers | HMAC `owner_token`; in-memory uploads |
@@ -51,7 +51,7 @@
 
 | Dependency | Type | Owner | Status |
 |------------|------|-------|--------|
-| Yahoo Finance (yahoo-finance2) | External | Yahoo | ⚠️ unofficial, cached |
-| Google Gemini API | External | Google | ⚠️ key in env, quota in DB |
+| Yahoo Finance (yahoo-finance2) | External | Yahoo | Cached quotes |
+| Google Gemini API | External | Google | Key in env, quota in the database |
 | PostgreSQL | Technical | Azure Flexible Server, North Europe | ✅ production and local |
 | Google OAuth (optional login) | External | Google | ✅ |

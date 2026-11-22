@@ -29,13 +29,13 @@ Krepton Analytics is a privacy-first web hub for retail investors who already ho
 | # | Criterion | Status | Documentation |
 |---|-----------|--------|---------------|
 | 1 | Business Analysis | ✅ submitted | [business-analysis.md](02-technical/criteria/business-analysis.md) |
-| 2 | Backend | ✅ live. OpenAPI lint, log screenshot, and a 5xx alert are still open | [backend.md](02-technical/criteria/backend.md) |
-| 3 | Frontend | ✅ live. Thesis screenshots are still open | [frontend.md](02-technical/criteria/frontend.md) |
+| 2 | Backend | ✅ live | [backend.md](02-technical/criteria/backend.md) |
+| 3 | Frontend | ✅ live. Desktop and phone screenshots, plus a production Lighthouse run, are on the frontend page | [frontend.md](02-technical/criteria/frontend.md) |
 | 4 | Database | ✅ | [database.md](02-technical/criteria/database.md) |
-| 5 | AI Assistant / Chatbot | ✅ live. Chat and briefing screenshots, and a production latency run, are still open | [ai-assistant.md](02-technical/criteria/ai-assistant.md) |
+| 5 | AI Assistant / Chatbot | ✅ live | [ai-assistant.md](02-technical/criteria/ai-assistant.md) |
 | 6 | Cloud | ✅ live since 2026-09-02 | [cloud.md](02-technical/criteria/cloud.md) |
 | 7 | CI/CD | ✅ | [cicd.md](02-technical/criteria/cicd.md) |
-| 8 | Automated tests 70%+ | ✅ backend gate is 80%. A screenshot of green CI is still open | [automated-tests.md](02-technical/criteria/automated-tests.md) |
+| 8 | Automated tests 70%+ | ✅ backend gate is 80% | [automated-tests.md](02-technical/criteria/automated-tests.md) |
 
 
 
@@ -44,7 +44,7 @@ Krepton Analytics is a privacy-first web hub for retail investors who already ho
 - [Project Overview](01-project-overview/index.md) — business context, goals, and BA material
 - [Technical Implementation](02-technical/index.md) — architecture, stack, and criterion ADRs
 - [User Guide](03-user-guide/index.md) — how to use the application
-- [Retrospective](04-retrospective/index.md) — limitations and lessons (fill before defense)
+- [Retrospective](04-retrospective/index.md) — how the build went
 - [Appendices](appendices/index.md) — glossary, API, database schema
 
 ---

@@ -42,16 +42,16 @@ Krepton Analytics sits **beside** the broker. It never places orders and never t
 | Trust | Investor can use the hub without KYC or account numbers | Delete account + export; Privacy Policy in the UI |
 | Clarity | Allocation and drift are visible in one session | Dashboard shows weights vs target |
 | Honesty | AI never presented as investment advice | Disclaimers + blocked buy/sell / jailbreak prompts |
-| Defendable product | Diploma complexity without fake brokers | Eight criteria with code + this document |
+| Scope | Holdings come from a file or manual entry | No bank connection |
 
 ## Objectives & Metrics
 
 | Objective | Metric | Current Value | Target Value | Timeline |
 |-----------|--------|---------------|--------------|----------|
-| Import reliability | Broker report → positions without disk persistence | Implemented for supported formats | Stable demo path | Defense |
-| Quote freshness | Cache TTL for quotes | ~30 s in-memory | Documented NFR, no fake WebSocket | Defense |
-| AI safety | Jailbreak / “buy AAPL” do not produce advice | Guardrails in code | ≥10 documented dialogs | Expert AI |
-| Availability | Public URL for reviewers | `https://www.kreptonanalytics.com` and `https://api.kreptonanalytics.com` | Azure EU URL | Live since 2026-09-02 |
+| Import reliability | Broker report → positions without disk persistence | Implemented for supported formats | Stable import path | Live |
+| Quote freshness | Cache TTL for quotes | ~30 s in memory on the API | Same cache in production | Live |
+| AI safety | Jailbreak / “buy AAPL” do not produce advice | Guardrails in code | Dialogs in the appendix | Live |
+| Availability | Public URL | `https://www.kreptonanalytics.com` and `https://api.kreptonanalytics.com` | Azure URL | Live since 2026-09-02 |
 
 ## Success Criteria
 

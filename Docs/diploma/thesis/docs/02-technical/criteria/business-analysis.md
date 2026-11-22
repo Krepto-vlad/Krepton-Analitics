@@ -10,7 +10,7 @@
 
 ### Context
 
-The course requires a separate BA defense. The product exists as a POC; this section is the shared language for committee, experts, and the thesis. Without written scope, reviewers would treat bank-API or “AI advisor” expectations as in-scope.
+Krepton Analytics is a privacy-first hub: import, dashboard, rebalancing, and a scoped assistant. It does not connect to a bank and it does not tell the user what to buy.
 
 ### Decision
 
@@ -22,13 +22,7 @@ Document Krepton as a **privacy-first analytics hub**: in-scope import/dashboard
 |-------------|---------|
 | Broker-connected product | Forbidden by project rules; KYC and PSD2 |
 | “AI that tells you what to buy” | MiFID / ethics; we use guardrails instead |
-| Write BA only in Russian working notes | Thesis language is English; reviewers read this folder |
-
-### Consequences
-
-**Positive:** Clear non-goals reduce expert scope fights. The submitted packet is in `Docs/BA/`.  
-**Negative:** None.  
-**Neutral:** Section [01-project-overview](../../01-project-overview/index.md) restates the same scope.
+| Write the scope only in Russian notes | The thesis is in English |
 
 ## Requirements Checklist
 

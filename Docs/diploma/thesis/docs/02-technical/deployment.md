@@ -23,11 +23,11 @@ Live since 2026-09-02 (phase D4 done):
                                    ┌─────────────────────────┐
                                    │ Azure Database for       │
                                    │ PostgreSQL Flexible      │
-                                   │ Server (North Europe)    │  ← managed service (Cloud min)
+                                   │ Server (North Europe)    │
                                    └─────────────────────────┘
 ```
 
-Reviewers open the public URL directly — no local setup needed. Static Web Apps only has non-EU regions available on the free tier and serves no personal data (pure static assets), so it stays outside the GDPR EU-residency scope; the API and the database — where personal data actually lives — are both in North Europe (EU). **Containerization is not a declared criterion**, but the backend image is the real CI/Azure deploy contract now (Container Apps pulls it from GHCR after green CI on `main`); the daily dev loop is still `npm run dev`, not `docker compose up`.
+The public site is [https://www.kreptonanalytics.com](https://www.kreptonanalytics.com). The API is [https://api.kreptonanalytics.com](https://api.kreptonanalytics.com). The Static Web App is in East US 2 and serves the built SPA. The API and the database are in North Europe. After a green CI run on `main`, GitHub Actions pushes the API image to GHCR and updates the Container App. Local development is `npm run dev`.
 
 ### Environments
 

@@ -2,8 +2,8 @@
 
 # Appendix: AI dialog examples
 
-Diploma **AI Assistant min**: at least ten example dialogs, including incorrect requests.  
-Code under test: `backend/src/services/tickerChatScope.ts`, `tickerChatService.ts`, `newsSummaryService.ts`.
+Example dialogs for ticker chat and the news briefing.  
+Code: `backend/src/services/tickerChatScope.ts`, `tickerChatService.ts`, `newsSummaryService.ts`.
 
 **How to read this pack**
 
@@ -29,8 +29,6 @@ Quota (free tier): **20** ticker-chat turns / user / UTC day; **5** news briefin
 
 **Assistant (typical):** Short bullets on the latest session move, whether the user has a holding, and that the figure is Yahoo via Krepton — not a live tape. Ends with the disclaimer above.
 
-**Why it passes:** Suggestion prompt in `TICKER_CHAT_SUGGESTION_PROMPTS`. Input gate `allow`, unchanged message.
-
 ---
 
 ## 2. Risks in Russian (Cyrillic)
@@ -44,8 +42,6 @@ English: "What are the company's risks right now?"
 
 **Assistant (typical):** Answers in Russian about launch, multiple, and execution risk. No buy/sell line.
 
-**Why it passes:** Unit test `allows normal ticker questions unchanged`. Language matching is in the system prompt.
-
 ---
 
 ## 3. Position / P&amp;L
@@ -56,8 +52,6 @@ English: "What are the company's risks right now?"
 **User:** How is my position in MSFT doing?
 
 **Assistant (typical):** Uses shares, avg buy, and unrealized P&amp;L from Krepton context. Does not say “buy more”.
-
-**Why it passes:** System prompt IN SCOPE includes the holding block.
 
 ---
 
@@ -70,7 +64,7 @@ English: "What are the company's risks right now?"
 
 **Assistant (typical):** Refers to the previous turn (price move). History is sent as `history[]` (max 12 messages, 12 000 chars). The thread stays in this browser tab (`sessionStorage`, per ticker). The same chat button on other app pages reopens that ticker's thread. Closing the drawer only hides it. **New chat**, logout, or closing the tab starts a fresh conversation.
 
-**Why it passes:** Rubric: keep conversation history **within a session**. We deliberately do **not** persist chat in PostgreSQL (privacy).
+Chat history is not stored in PostgreSQL.
 
 ---
 

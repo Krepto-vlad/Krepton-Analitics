@@ -87,7 +87,6 @@
 ### Accessibility
 
 - Theme tokens aimed at WCAG 2.1 AA contrast (4.5:1 text)
-- Full Adaptive UI / Refined UX **criteria are not declared**; tablet should not break the demo
 
 ### Reliability
 
