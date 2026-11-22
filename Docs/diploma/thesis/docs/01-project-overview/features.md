@@ -34,8 +34,8 @@
 
 | ID | User Story | Acceptance Criteria | Priority | Status |
 |----|------------|---------------------|----------|--------|
-| US-020 | As an investor, I want current weights vs target, so that I see drift | Dashboard uses quotes + positions | Must | ✅ |
-| US-021 | As an investor, I want a deposit split, so that I rebalance without selling | Input cash → suggested buys; not a broker order | Must | ✅ |
+| US-020 | As an investor, I want current weights vs a saved target, so that I see drift | Dashboard and rebalancing use the same server analysis. No broker order | Must | ✅ |
+| US-021 | As an investor, I want a deposit split, so that I rebalance without selling | Input cash → suggested buys; not a broker order | Nice | Open |
 
 ### Epic 4–5: Market data and AI
 
@@ -72,7 +72,7 @@
 | Requirement | Target | Measurement |
 |-------------|--------|-------------|
 | Quote path | In-memory cache ~30 s | Backend cache service |
-| AI reply | < 10 s typical | Lab p95 until staging exists |
+| AI reply | < 10 s typical | Lab numbers; production SLA is not measured |
 | Concurrent AI | Design for ≥ 10 users (quota + rate limit) | Rate limiter + Gemini errors |
 
 ### Security
@@ -95,7 +95,7 @@
 |--------|--------|
 | Quotes | Best-effort Yahoo; zeros/errors instead of crash |
 | AI | Timeout / 429 handled; quota recorded |
-| Deploy | Public URL required before Cloud/Backend expert |
+| Deploy | Public URL is live: `www.kreptonanalytics.com` |
 
 ### Compatibility
 

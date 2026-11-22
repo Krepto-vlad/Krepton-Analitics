@@ -28,8 +28,8 @@ React 19 + Vite + TypeScript + React Router + Redux Toolkit + SCSS modules. Page
 ### Consequences
 
 **Positive:** Matches Frontend min architecture list.  
-**Negative:** Playwright e2e still waits for a public staging URL.  
-**Neutral:** Adaptive UI / Refined UX as **separate criteria** are not declared. Frontend max target is 7–8 via lazy + RTK + charts. Lighthouse is a walkthrough (prod build, landing + dashboard), not a promise of Performance ≥ 90 on the chart-heavy dashboard. Accessibility is an evidence check (Lighthouse a11y + keyboard + axe), not a WCAG criterion.
+**Negative:** Responsive screenshots for the thesis are still not in `docs/assets/screenshots/`. Playwright itself runs in CI.  
+**Neutral:** Adaptive UI / Refined UX as **separate criteria** are not declared. Frontend max target is 7–8 via lazy + RTK + charts. Lighthouse is a walkthrough (prod build, landing + dashboard), not a promise of Performance ≥ 90 on the chart-heavy dashboard. Accessibility is an evidence check, not a WCAG criterion. The keyboard pass is done.
 
 ## Implementation Details
 
@@ -135,11 +135,11 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 | 8 | ESLint + Prettier | ✅ | |
 | 9 | Global errors + user-visible messages | ✅ | Interceptor, ErrorBanner, AppErrorBoundary |
 | 10 | Skeleton/loading on async fetches | ✅ | `Skeleton`, `AsyncStatePanel` presets; search/auth keep button spinners |
-| 11 | Unit tests ≥ 3 components + 1–2 e2e | ⚠️ | React Testing Library is in place; Playwright smoke is the product check |
+| 11 | Unit tests ≥ 3 components + 1–2 e2e | ✅ | React Testing Library; Playwright `frontend/e2e/login.spec.ts` in CI against Postgres |
 | 12 | No tokens in code | ✅ | |
 | 13 | Max: lazy routes + RTK + charts/theme | ✅ | Three directions already in code |
 | 14 | Max: performance evidence | ⚠️ | Lighthouse walkthrough 2026-08-21 (`vite preview`); bundle visualizer TBD; dashboard Performance 90 not claimed |
-| 15 | Max: accessibility check | ✅ | Contrast/landmarks/labels/headings; Lighthouse a11y on landing, auth, pricing, security, app screens (light/dark). Not Adaptive UI |
+| 15 | Max: accessibility check | ✅ | Contrast, landmarks, labels, headings, and a keyboard pass. Lighthouse a11y on landing, auth, pricing, security, and app screens (light/dark). Not Adaptive UI |
 | 16 | Max skip | — | No FSD, Next, Figma-as-Frontend, Storybook, Sentry, toast lib, PWA |
 | 17 | Later (not max) | — | i18n EN+RU after the eight criteria; defense stays EN UI |
 
@@ -147,10 +147,8 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 
 | Limitation | Impact | Plan |
 |------------|--------|------|
-| No Playwright smoke | Frontend min e2e + Auto tests | Staging URL in D4 or local API |
-| Tablet screenshots | Responsive evidence | Capture before pre-defense |
-| Dashboard Lighthouse Performance 45 (dev, 2026-08-19) | Expert may ask for 90 | Walk through report on **prod build** (2026-08-21 preview); accept charts/polling; do not fake the score |
-| Accessibility not a declared criterion | Still need evidence | Lighthouse a11y walkthrough 2026-08-21; remaining (keyboard/axe, HTTPS staging) in appendix / D4 |
+| Tablet screenshots | Not in `docs/assets/screenshots/` | |
+| Dashboard Lighthouse Performance 45 (dev, 2026-08-19); prod preview 2026-08-21 | Performance 90 is not the claim | |
 
 ## References
 

@@ -17,7 +17,7 @@ Experts want automatic lint, build, and tests on push/PR, with at least a simple
 GitHub Actions workflow `.github/workflows/ci.yml`:
 
 - **backend:** lint, Prettier check, `tsc`, Jest with **80% coverage gate**, upload `coverage/` (HTML + lcov).
-- **frontend:** lint, Prettier check, production build, Jest **coverage report** (no percent gate — SPA unit coverage is ~7%).
+- **frontend:** lint, Prettier check, production build, Jest **coverage report** (no percent gate — the 2026-11-20 full run was about 87% lines).
 - **audit:** `npm audit --audit-level=critical` per package; JSON report uploaded.
 - **docker:** `docker compose config` plus `docker build` for API and web (no registry push).
 - **e2e:** Playwright against a real Postgres service.
@@ -47,7 +47,7 @@ This closes the CI/CD **min** hole that used to require phase D4.
 ### Consequences
 
 **Positive:** Same CI pipeline serves Backend coverage + Auto tests logs; CD cannot ship a red build.  
-**Negative:** `pre-push` is slower (backend + frontend coverage). Frontend coverage is collected but not gated (~7%).
+**Negative:** `pre-push` is slower (backend + frontend coverage). Frontend coverage is collected but not gated. The 2026-11-20 full run was about 87% lines.
 
 ## Pipeline
 
@@ -92,7 +92,7 @@ flowchart LR
 | Limitation | Impact | Plan |
 |------------|--------|------|
 | Backend branches ~62%, not gated | Not the diploma counter | Leave ungated |
-| Frontend coverage ~7%, not gated | Honest: RTL min, not an 80% SPA | Collect the report in CI; do not fake a threshold |
+| Frontend coverage is not gated | The 2026-11-20 full run was about 87% lines | |
 | `workflow_dispatch` can deploy without a new CI run | Emergency Portal-fix path | Use rarely; default path is CI → CD |
 | No blue/green or automated rollback | A bad image replaces the previous revision | Container Apps keeps prior revisions; Portal rollback is documented |
 

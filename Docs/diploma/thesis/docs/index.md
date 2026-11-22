@@ -1,22 +1,22 @@
-<!-- prev: none | next: 01-project-overview/index.md -->
+
 
 # Krepton Analytics
 
 ## Project Information
 
-| Field | Value |
-|-------|-------|
-| **Student** | [Full Name] |
-| **Group** | [Group Number] |
-| **Supervisor** | [Supervisor Name] |
-| **Date** | [Submission Date] |
+| Field          | Value               |
+| -------------- | ------------------- |
+| **Student**    | Uladzislau Barsukou |
+| **Group**      | 23-HR-JS1           |
+| **Supervisor** | Katsiaryna Shylina  |
 
 ## Links
 
 | Resource | URL |
 |----------|-----|
-| Production | [Deployed Application URL — Azure, phase D4] |
-| Repository | [GitHub URL] |
+| Production | [https://www.kreptonanalytics.com](https://www.kreptonanalytics.com) |
+| API | [https://api.kreptonanalytics.com](https://api.kreptonanalytics.com) |
+| Repository | [https://github.com/Krepto-vlad/Krepton-Analitics](https://github.com/Krepto-vlad/Krepton-Analitics) |
 | API Docs | `backend/openapi.yaml` (Swagger UI in non-prod) |
 | Design | [Figma URL if published] |
 
@@ -28,16 +28,16 @@ Krepton Analytics is a privacy-first web hub for retail investors who already ho
 
 | # | Criterion | Status | Documentation |
 |---|-----------|--------|---------------|
-| 1 | Business Analysis | ⚠️ draft | [business-analysis.md](02-technical/criteria/business-analysis.md) |
-| 2 | Backend | ⚠️ in progress | [backend.md](02-technical/criteria/backend.md) |
-| 3 | Frontend | ⚠️ in progress | [frontend.md](02-technical/criteria/frontend.md) |
-| 4 | Database | ⚠️ in progress | [database.md](02-technical/criteria/database.md) |
-| 5 | AI Assistant / Chatbot | ⚠️ in progress | [ai-assistant.md](02-technical/criteria/ai-assistant.md) |
-| 6 | Cloud | ❌ not deployed yet | [cloud.md](02-technical/criteria/cloud.md) |
-| 7 | CI/CD | ⚠️ partial | [cicd.md](02-technical/criteria/cicd.md) |
-| 8 | Automated tests 70%+ | ⚠️ partial | [automated-tests.md](02-technical/criteria/automated-tests.md) |
+| 1 | Business Analysis | ✅ submitted | [business-analysis.md](02-technical/criteria/business-analysis.md) |
+| 2 | Backend | ✅ live. OpenAPI lint, log screenshot, and a 5xx alert are still open | [backend.md](02-technical/criteria/backend.md) |
+| 3 | Frontend | ✅ live. Thesis screenshots are still open | [frontend.md](02-technical/criteria/frontend.md) |
+| 4 | Database | ✅ | [database.md](02-technical/criteria/database.md) |
+| 5 | AI Assistant / Chatbot | ✅ live. Chat and briefing screenshots, and a production latency run, are still open | [ai-assistant.md](02-technical/criteria/ai-assistant.md) |
+| 6 | Cloud | ✅ live since 2026-09-02 | [cloud.md](02-technical/criteria/cloud.md) |
+| 7 | CI/CD | ✅ | [cicd.md](02-technical/criteria/cicd.md) |
+| 8 | Automated tests 70%+ | ✅ backend gate is 80%. A screenshot of green CI is still open | [automated-tests.md](02-technical/criteria/automated-tests.md) |
 
-Status is for the student tracker. Before expert slots, replace ⚠️/❌ with evidence links (coverage report, public URL, diagrams).
+
 
 ## Documentation Navigation
 

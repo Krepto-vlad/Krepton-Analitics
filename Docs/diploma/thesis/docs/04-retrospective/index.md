@@ -2,7 +2,7 @@
 
 # 4. Retrospective
 
-Fill this chapter honestly before pre-defense. Below are known facts as of 2026-08-18 — not a victory essay.
+Facts as of 2026-11-22.
 
 ## What Went Well
 
@@ -21,7 +21,7 @@ Fill this chapter honestly before pre-defense. Below are known facts as of 2026-
 
 | Planned | Actual | Cause | Impact |
 |---------|--------|-------|--------|
-| Live Azure from day one | Deferred to D4 | Cost | Cloud/Backend deploy still open |
+| Live Azure from day one | Live since 2026-09-02 | Cost pushed it to D4 | Cloud and Backend deploy are closed |
 | Raw SQL only | Drizzle added for ORM min | Rubric names “ORM” | Two access styles |
 | Sub-second quotes | ~30 s cache | Yahoo free tier | Real-time Analytics not declared |
 
@@ -35,21 +35,21 @@ Fill this chapter honestly before pre-defense. Below are known facts as of 2026-
 
 | ID | Issue | Severity | Potential fix |
 |----|-------|----------|---------------|
-| TD-001 | Coverage not proven ≥ 70% | High | Done for backend unit; keep the CI artifact |
-| TD-002 | `\du` screenshot not captured | Low | Defense / staging DB |
-| TD-003 | OpenAPI vs TypeScript drift | Medium | Generate or lint spec |
+| TD-001 | Coverage not proven ≥ 70% | Closed | Backend Jest gate is 80% statements, lines, and functions. Frontend coverage is reported and is not gated |
+| TD-002 | `\du` screenshot not captured | Low | Roles page points at the Azure screenshot; confirm the image is in the packet |
+| TD-003 | OpenAPI vs TypeScript drift | Medium | Spectral lint is not in CI |
 | TD-004 | HMAC domain still raw SQL | Low | Map in Drizzle later |
-| TD-005 | No public URL | High | Azure D4 |
+| TD-005 | No public URL | Closed | `www.kreptonanalytics.com` and `api.kreptonanalytics.com` |
 
 ## Future Improvements
 
 ### High priority (product, after defense)
 
 - Deposit-based rebalancing polish
-- Extra broker formats
 
 ### Not this diploma
 
+- More broker-file formats
 - Microservices, Redis, own ML model, bank aggregation
 
 ## Lessons Learned
@@ -58,8 +58,4 @@ Fill this chapter honestly before pre-defense. Below are known facts as of 2026-
 |--------|-------------|
 | Name the criterion artifact (diagram, coverage HTML) or the expert treats it as missing | Keep checklists in `02-technical/criteria/` |
 | Privacy architecture must be visible in the schema, not only in a slide | HMAC + migrations comments |
-| Do not declare Real-time if delay is 30 s | Honest NFRs |
-
----
-
-*Update the date when the defense draft is frozen.*
+| Quote delay is about 30 s, so the product is not described as real-time | Yahoo cache TTL |

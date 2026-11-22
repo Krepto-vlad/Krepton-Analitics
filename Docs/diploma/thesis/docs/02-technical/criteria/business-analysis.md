@@ -4,9 +4,9 @@
 
 ### Status
 
-**Status:** Proposed (committee packet — fill remaining BA max items after topic approval)
+**Status:** Accepted. The committee packet is submitted.
 
-**Date:** 2026-08-18
+**Date:** 2026-08-18 (draft) → submitted
 
 ### Context
 
@@ -26,9 +26,9 @@ Document Krepton as a **privacy-first analytics hub**: in-scope import/dashboard
 
 ### Consequences
 
-**Positive:** Clear non-goals reduce expert scope fights.  
-**Negative:** BA max (personas matrix, full user-story fields, MoSCoW everywhere) is not finished.  
-**Neutral:** Product docs in `Docs/` remain internal and are not the submission.
+**Positive:** Clear non-goals reduce expert scope fights. The submitted packet is in `Docs/BA/`.  
+**Negative:** None.  
+**Neutral:** Section [01-project-overview](../../01-project-overview/index.md) restates the same scope.
 
 ## Requirements Checklist
 
@@ -42,15 +42,9 @@ Document Krepton as a **privacy-first analytics hub**: in-scope import/dashboard
 | 6 | Proposed solution + landscape | ✅ | [02-technical/index.md](../index.md) |
 | 7 | Epics + user-story skeleton | ✅ | [features.md](../../01-project-overview/features.md) |
 | 8 | Non-functional requirements | ✅ | features.md NFR table |
-| 9 | Regulatory (GDPR, disclaimers) | ⚠️ | Overview here; legal PDFs live with the app |
-| 10 | Use case diagram | ✅ | features.md |
-| 11 | BA max (matrix, KPIs, full stories, MoSCoW, risks) | ❌ | After topic approval if targeting 10 |
-
-## Known Limitations
-
-| Limitation | Impact | Plan |
-|------------|--------|------|
-| KPIs still qualitative | Weaker BA-max grade | Add measurable targets when staging exists |
+| 9 | Regulatory (GDPR, disclaimers) | ✅ | Privacy Policy in the app; the same boundary is in the submitted packet |
+| 10 | Use case diagram | ✅ | features.md and `Docs/BA/diagrams/` |
+| 11 | BA max (matrix, KPIs, full stories, MoSCoW, risks) | ✅ | Submitted packet in `Docs/BA/` |
 
 ## References
 

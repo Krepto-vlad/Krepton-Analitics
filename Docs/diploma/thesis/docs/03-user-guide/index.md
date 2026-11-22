@@ -21,11 +21,9 @@
 
 ### Accessing the Application
 
-1. Open the production URL (after Azure deploy) or `http://localhost:5173` locally.
+1. Open [https://www.kreptonanalytics.com](https://www.kreptonanalytics.com), or `http://localhost:5173` locally.
 2. Create an account (email + password) or use Google sign-in if configured.
 3. Confirm email if verification is enabled in that environment.
-
-Screenshots: add files under `assets/screenshots/` before the video/defense (`login.png`, `dashboard.png`).
 
 ### First Launch
 

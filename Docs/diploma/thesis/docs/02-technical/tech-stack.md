@@ -17,9 +17,9 @@
 | **Logs** | pino | JSON logs + request id (Backend min) |
 | **AI** | Gemini via backend gateway | News + ticker chat; not a ChatGPT iframe |
 | **Market data** | yahoo-finance2 | Free public quotes, server-side |
-| **Tests** | Jest + Testing Library | Unit/component; Playwright planned for e2e |
-| **CI** | GitHub Actions (planned/partial) | Lint, test, build |
-| **Cloud** | Azure (planned D4) | Course Cloud + EU residency |
+| **Tests** | Jest + Testing Library + Playwright | Unit/component; e2e login smoke in CI against Postgres |
+| **CI** | GitHub Actions | Lint, format, coverage, build, audit, Playwright; deploy on green `main` |
+| **Cloud** | Azure | Static Web Apps, Container Apps, PostgreSQL Flexible Server. Live since 2026-09-02 |
 
 No Redis, Kafka, or extra microservice — those would be other criteria we are **not** declaring.
 
@@ -62,4 +62,4 @@ Drizzle covers the typed tables. The HMAC portfolio stays raw SQL so the anonymi
 | Yahoo Finance | Quotes, search, headlines | Free / unofficial — best effort |
 | Google Gemini | Briefing + ticker chat | Free tier + quota in our DB |
 | Google OAuth | Optional login | Free |
-| Azure | Hosting + managed Postgres (D4) | Paid near pre-defense |
+| Azure | Hosting + managed Postgres | Live. Static Web Apps free tier; Container Apps scale-to-zero; smallest Postgres Burstable SKU |

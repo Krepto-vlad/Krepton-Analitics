@@ -52,5 +52,3 @@ Exact example dialogs: [AI dialog appendix](../appendices/ai-dialogs.md).
 | Krepton quote strip | Live Yahoo quote (and your position if you hold it) checked against the reply |
 | Numbers aligned… | The model stated a different price/position; we appended Krepton figures |
 | Web search | Google Search may run in the background; Krepton does not show outbound source links |
-
-Screenshots (`ticker-chat.png`, `news-briefing.png`) go in `docs/assets/screenshots/` before the expert slot.

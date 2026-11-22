@@ -14,7 +14,7 @@ Backend is a required criterion. The API must be a real server (not static JSON)
 
 ### Decision
 
-Node.js + Express + TypeScript. Routes → middleware → controllers → services → repositories. Drizzle ORM for `users`, `watchlist`, AI cache/quota; HMAC portfolio SQL stays explicit. pino JSON logs. OpenAPI file in Git. Deploy to Azure in phase D4.
+Node.js + Express + TypeScript. Routes → middleware → controllers → services → repositories. Drizzle ORM for `users`, `watchlist`, AI cache/quota; HMAC portfolio SQL stays explicit. pino JSON logs. OpenAPI file in Git. The API is live at `https://api.kreptonanalytics.com`.
 
 ### Alternatives Considered
 
@@ -108,7 +108,7 @@ See [architecture](../index.md). This page is the diploma description of the lay
 | Limitation | Impact | Plan |
 |------------|--------|------|
 | Branch coverage ~62% | Not the diploma counter (statements/lines/functions) | Optional later |
-| No public URL | Backend min + Cloud | Closed (`api.kreptonanalytics.com`) |
+| Public URL | Closed | `https://api.kreptonanalytics.com` |
 | Max list not fully claimed | Expert may ask “where is Redis?” | ADR in this file: single instance, in-process quote cache |
 
 ## References

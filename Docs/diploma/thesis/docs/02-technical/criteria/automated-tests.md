@@ -4,7 +4,7 @@
 
 ### Status
 
-**Status:** In progress (backend unit 70% in CI; FE RTL min done; Playwright e2e added, runs in CI against a real Postgres service)
+**Status:** Minimum accepted. The max item still open is a screenshot of a green CI run and the coverage percent in the appendix.
 
 **Date:** 2026-08-25
 
@@ -65,7 +65,7 @@ cd frontend && npm run test:coverage
 | Limitation | Impact | Plan |
 |------------|--------|------|
 | Yahoo/Gemini mocked in unit tests | Not a live-market integration | Staging smoke later; keep mocks in CI |
-| FE coverage not gated | Honest: RTL min, ~7% today, not 70%/80% SPA | Collect CI artifact; do not gate |
+| FE coverage not gated | The 2026-11-20 full run was about 87% lines | |
 | Jest HTTP suite still mocks the DB | `httpApi.test.ts` alone is not "API+Postgres" | Covered instead by the Playwright `e2e` CI job (real `services: postgres`) |
 | Branches ~62% | Not the diploma counter | Leave ungated |
 
