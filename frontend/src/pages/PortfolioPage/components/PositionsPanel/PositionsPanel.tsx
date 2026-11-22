@@ -1,37 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, HandCoins, Search, TrendingUp } from 'lucide-react';
-import { Button, AsyncStatePanel, ContentSkeleton, TickerAvatar } from '../../../../components/ui';
+import { Plus, TrendingUp } from 'lucide-react';
+import { Button, AsyncStatePanel } from '../../../../components/ui';
 import { buildLogoByTicker } from '../../../../utils/tickerLogos';
-import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import { isIncludedInPortfolioAnalysis } from '../../../../utils/portfolioAnalysisScope';
 import { useAppSelector } from '../../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../../hooks/useAppDispatch';
 import {
-  buildTickerDetailPath,
   PORTFOLIO_IMPORTER_PATH,
-  EQUITY_PERIODS,
-  OUTSIDE_ANALYSIS_ANALYZED_EMPTY,
-  OUTSIDE_ANALYSIS_HOLDINGS_NOTE,
-  OUTSIDE_ANALYSIS_HOLDINGS_TITLE,
   HOLDINGS_TABLE_HEADER_HEIGHT_PX,
   HOLDINGS_TABLE_ROW_HEIGHT_PX,
   LOADING_MESSAGES,
 } from '../../../../constants';
-import type { Currency } from '../../../../constants';
-import { useEquityChart, formatChartPrice } from '../../../../hooks/useEquityChart';
-import type { EquityPeriod } from '../../../../hooks/useEquityChart';
 import {
-  formatMoney,
   formatMoneyWhole,
-  formatSignedMoney,
   resolveInvestmentSummaryForDisplay,
 } from '../../../../utils/moneyDisplay';
-import type {
-  EquityDataPoint,
-  PortfolioPosition,
-  PortfolioTransaction,
-} from '../../../../types/portfolio.types';
+import type { PortfolioPosition } from '../../../../types/portfolio.types';
 import {
   fetchPortfolioSummaryThunk,
   fetchInvestmentSummaryThunk,
@@ -45,288 +30,16 @@ import { AddPositionModal } from '../AddPositionModal/AddPositionModal';
 import { DeleteConfirmModal } from '../DeleteConfirmModal/DeleteConfirmModal';
 import { ClosePositionModal } from '../ClosePositionModal/ClosePositionModal';
 import styles from './PositionsPanel.module.scss';
+import { DonutChart } from './SectorDonutChart';
+import { buildSectorAllocations } from './sectorAllocations';
+import { HoldingsTable } from './HoldingsTable';
+import { OutsideHoldingsTable } from './OutsideHoldingsTable';
+import { TransactionHistory } from './TransactionHistory';
+import { MiniEquityChart } from './MiniEquityChart';
+import { formatPercent, formatPnl } from './positionsPanelFormat';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const SECTOR_COLORS = [
-  '#3b82f6',
-  '#6366f1',
-  '#10b981',
-  '#f59e0b',
-  '#ec4899',
-  '#ef4444',
-  '#8b5cf6',
-  '#14b8a6',
-] as const;
-
-type SortField = 'marketValue' | 'pnlAbs' | 'pnlPct';
-type SortDir = 'asc' | 'desc';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatUsdDecimal(value: number, currency: Currency): string {
-  return formatMoney(value, currency);
-}
-
-function formatPercent(value: number): string {
-  const prefix = value >= 0 ? '+' : '';
-  return `${prefix}${value.toFixed(2)}%`;
-}
-
-function formatPnl(value: number, currency: Currency): string {
-  return formatSignedMoney(value, currency);
-}
-
-function formatTransactionDate(transaction: PortfolioTransaction): string {
-  const fallback = transaction.createdAt.slice(0, 10);
-  const raw = transaction.transactionDate ?? fallback;
-
-  let normalized = fallback;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    normalized = raw;
-  } else {
-    const parsed = new Date(raw);
-    if (!Number.isNaN(parsed.getTime())) {
-      normalized = parsed.toISOString().slice(0, 10);
-    }
-  }
-
-  const [year, month, day] = normalized.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-interface SectorAllocationSlice {
-  sector: string;
-  percentage: number;
-  displayPercentage: number;
-  color: string;
-}
-
-/**
- * Distributes integer display percentages that always sum to 100
- * using the largest-remainder method (avoids 100% + 0% when a small sector exists).
- */
-function buildSectorAllocations(
-  positions: Array<{ sector: string | null; marketValue: number }>,
-  totalMarketValue: number
-): SectorAllocationSlice[] {
-  if (totalMarketValue === 0) return [];
-
-  const sectorMap: Record<string, number> = {};
-  positions.forEach((position) => {
-    const sector = position.sector ?? 'Other';
-    sectorMap[sector] = (sectorMap[sector] ?? 0) + position.marketValue;
-  });
-
-  const entries = Object.entries(sectorMap).sort(([, valueA], [, valueB]) => valueB - valueA);
-
-  const slices = entries.map(([sector, value], index) => {
-    const exactPercentage = (value / totalMarketValue) * 100;
-    return {
-      sector,
-      percentage: exactPercentage,
-      displayPercentage: Math.floor(exactPercentage),
-      remainder: exactPercentage - Math.floor(exactPercentage),
-      color: SECTOR_COLORS[index % SECTOR_COLORS.length],
-    };
-  });
-
-  let remainingPoints = 100 - slices.reduce((sum, slice) => sum + slice.displayPercentage, 0);
-  const rankedByRemainder = [...slices].sort((a, b) => b.remainder - a.remainder);
-
-  for (let index = 0; index < rankedByRemainder.length && remainingPoints > 0; index += 1) {
-    rankedByRemainder[index].displayPercentage += 1;
-    remainingPoints -= 1;
-  }
-
-  return slices.map((slice) => ({
-    sector: slice.sector,
-    percentage: slice.percentage,
-    displayPercentage: slice.displayPercentage,
-    color: slice.color,
-  }));
-}
-
-// ─── Mini equity chart ────────────────────────────────────────────────────────
-
-interface MiniEquityChartProps {
-  equityHistory: EquityDataPoint[];
-  totalPnl: number;
-  totalInvested: number;
-  currency: Currency;
-}
-
-function MiniEquityChart({
-  equityHistory,
-  totalPnl,
-  totalInvested,
-  currency,
-}: MiniEquityChartProps) {
-  const { containerRef, selectedPeriod, setSelectedPeriod, currentValue } = useEquityChart(
-    equityHistory,
-    '1Y',
-    currency
-  );
-
-  const returnPct = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
-  const isPositive = totalPnl >= 0;
-
-  return (
-    <div className={styles.chartCard}>
-      <div className={styles.chartCardHeader}>
-        <div>
-          <p className={styles.chartCardLabel}>
-            <TrendingUp size={12} />
-            PORTFOLIO VALUE OVER TIME
-          </p>
-          <p className={styles.chartCardValue}>{formatChartPrice(currentValue, currency)}</p>
-        </div>
-        <span
-          className={`${styles.chartChangeBadge} ${isPositive ? styles.positive : styles.negative}`}
-        >
-          {isPositive ? '+' : ''}
-          {returnPct.toFixed(2)}%
-        </span>
-      </div>
-
-      <div className={styles.periodSelector}>
-        {EQUITY_PERIODS.map((period) => (
-          <button
-            key={period.value}
-            className={`${styles.periodButton} ${selectedPeriod === period.value ? styles.periodButtonActive : ''}`}
-            onClick={() => setSelectedPeriod(period.value as EquityPeriod)}
-          >
-            {period.label}
-          </button>
-        ))}
-      </div>
-
-      <div ref={containerRef} className={styles.chartContainer} />
-    </div>
-  );
-}
-
-// ─── Donut chart ──────────────────────────────────────────────────────────────
-
-interface DonutChartProps {
-  sectors: SectorAllocationSlice[];
-}
-
-function DonutChart({ sectors }: DonutChartProps) {
-  const cx = 90;
-  const cy = 90;
-  const radius = 72;
-  const innerRadius = 48;
-  const ringRadius = (radius + innerRadius) / 2;
-  const ringWidth = radius - innerRadius;
-
-  const chartSectors = sectors.filter((sector) => sector.percentage > 0);
-
-  // SVG arc cannot represent a full 360° path (start = end → degenerate).
-  const isSingleFullSector = chartSectors.length === 1;
-
-  if (isSingleFullSector) {
-    return (
-      <div className={styles.allocationCard}>
-        <p className={styles.allocationTitle}>SECTOR ALLOCATION</p>
-        <div className={styles.allocationBody}>
-          <svg width={180} height={180} viewBox="0 0 180 180" className={styles.donutSvg}>
-            <circle
-              className={styles.donutRing}
-              cx={cx}
-              cy={cy}
-              r={ringRadius}
-              strokeWidth={ringWidth}
-              style={toCssCustomProperties({ '--swatch-color': chartSectors[0].color })}
-            />
-          </svg>
-          <ul className={styles.allocationLegend}>
-            {sectors.map((sector) => (
-              <li key={sector.sector} className={styles.legendItem}>
-                <span
-                  className={styles.legendDot}
-                  style={toCssCustomProperties({ '--swatch-color': sector.color })}
-                />
-                <span className={styles.legendLabel}>{sector.sector}</span>
-                <span className={styles.legendValue}>{sector.displayPercentage}%</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    );
-  }
-
-  const slices = chartSectors.reduce<Array<SectorAllocationSlice & { path: string }>>(
-    (acc, sector) => {
-      const startPercent = acc.reduce((sum, slice) => sum + slice.percentage, 0);
-      const endPercent = startPercent + sector.percentage;
-
-      const startAngle = (startPercent / 100) * 360 - 90;
-      const endAngle = (endPercent / 100) * 360 - 90;
-
-      const startRad = (startAngle * Math.PI) / 180;
-      const endRad = (endAngle * Math.PI) / 180;
-
-      const x1 = cx + radius * Math.cos(startRad);
-      const y1 = cy + radius * Math.sin(startRad);
-      const x2 = cx + radius * Math.cos(endRad);
-      const y2 = cy + radius * Math.sin(endRad);
-
-      const ix1 = cx + innerRadius * Math.cos(startRad);
-      const iy1 = cy + innerRadius * Math.sin(startRad);
-      const ix2 = cx + innerRadius * Math.cos(endRad);
-      const iy2 = cy + innerRadius * Math.sin(endRad);
-
-      const largeArc = sector.percentage > 50 ? 1 : 0;
-
-      const path = [
-        `M ${x1} ${y1}`,
-        `A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`,
-        `L ${ix2} ${iy2}`,
-        `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${ix1} ${iy1}`,
-        'Z',
-      ].join(' ');
-
-      return [...acc, { ...sector, path }];
-    },
-    []
-  );
-
-  return (
-    <div className={styles.allocationCard}>
-      <p className={styles.allocationTitle}>SECTOR ALLOCATION</p>
-      <div className={styles.allocationBody}>
-        <svg width={180} height={180} viewBox="0 0 180 180" className={styles.donutSvg}>
-          {slices.map((slice) => (
-            <path
-              key={slice.sector}
-              className={styles.donutSlice}
-              d={slice.path}
-              style={toCssCustomProperties({ '--swatch-color': slice.color })}
-            />
-          ))}
-        </svg>
-        <ul className={styles.allocationLegend}>
-          {sectors.map((sector) => (
-            <li key={sector.sector} className={styles.legendItem}>
-              <span
-                className={styles.legendDot}
-                style={toCssCustomProperties({ '--swatch-color': sector.color })}
-              />
-              <span className={styles.legendLabel}>{sector.sector}</span>
-              <span className={styles.legendValue}>{sector.displayPercentage}%</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
+type HoldingsSortField = 'marketValue' | 'pnlAbs' | 'pnlPct';
+type HoldingsSortDirection = 'asc' | 'desc';
 
 // ─── Main PositionsPanel ──────────────────────────────────────────────────────
 
@@ -349,8 +62,8 @@ export function PositionsPanel() {
   const displayCurrency = useAppSelector((state) => state.ui.currency);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('marketValue');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [sortField, setSortField] = useState<HoldingsSortField>('marketValue');
+  const [sortDir, setSortDir] = useState<HoldingsSortDirection>('desc');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<PortfolioPosition | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
@@ -423,7 +136,7 @@ export function PositionsPanel() {
     [computedSummaryPositions, totalMarketValue]
   );
 
-  function handleSortClick(field: SortField) {
+  function handleSortClick(field: HoldingsSortField) {
     if (sortField === field) {
       setSortDir((prev) => (prev === 'desc' ? 'asc' : 'desc'));
     } else {
@@ -594,311 +307,44 @@ export function PositionsPanel() {
         <DonutChart sectors={sectorAllocations} />
       </div>
 
-      {/* ── Holdings table ── */}
-      <div className={styles.holdingsSection}>
-        <div className={styles.holdingsHeader}>
-          <h2 className={styles.holdingsTitle}>Holdings</h2>
-          <div className={styles.holdingsActions}>
-            <div className={styles.searchWrapper}>
-              <Search size={13} className={styles.searchIcon} />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                className={styles.searchInput}
-              />
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Plus size={12} />}
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              Add Position
-            </Button>
-          </div>
-        </div>
+      <HoldingsTable
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onAddPosition={() => setIsAddModalOpen(true)}
+        sortField={sortField}
+        onSort={handleSortClick}
+        hasNoHoldingsSearchMatches={hasNoHoldingsSearchMatches}
+        rows={filteredAndSorted}
+        showOutsideEmptyState={outsideSummaryPositions.length > 0}
+        logoByTicker={logoByTicker}
+        displayCurrency={displayCurrency}
+        onClosePosition={(positionId) =>
+          setCloseTarget(positions.find((position) => position.id === positionId) ?? null)
+        }
+        onDeletePosition={(positionId) =>
+          setDeleteTarget(positions.find((position) => position.id === positionId) ?? null)
+        }
+        hasMore={positionsHasMore}
+        isLoadingMore={isLoadingMorePositions}
+        onLoadMore={handleLoadMorePositions}
+        minHeightPx={holdingsTableMinHeightPx}
+      />
 
-        <div
-          className={styles.tableWrapper}
-          style={toCssCustomProperties({ '--table-min-height': `${holdingsTableMinHeightPx}px` })}
-        >
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.thTicker}>TICKER</th>
-                <th className={styles.thName}>NAME</th>
-                <th className={styles.thNum}>SHARES</th>
-                <th className={styles.thNum}>AVG COST</th>
-                <th className={styles.thNum}>CURRENT PRICE</th>
-                <th
-                  className={`${styles.thNum} ${styles.sortable} ${sortField === 'marketValue' ? styles.sortActive : ''}`}
-                  onClick={() => handleSortClick('marketValue')}
-                >
-                  MARKET VALUE ↕
-                </th>
-                <th
-                  className={`${styles.thNum} ${styles.sortable} ${sortField === 'pnlAbs' ? styles.sortActive : ''}`}
-                  onClick={() => handleSortClick('pnlAbs')}
-                >
-                  P&amp;L ↕
-                </th>
-                <th
-                  className={`${styles.thNum} ${styles.sortable} ${sortField === 'pnlPct' ? styles.sortActive : ''}`}
-                  onClick={() => handleSortClick('pnlPct')}
-                >
-                  % ↕
-                </th>
-                <th className={styles.thActions}>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hasNoHoldingsSearchMatches ? (
-                <tr className={styles.filterEmptyRow}>
-                  <td colSpan={9}>
-                    <div className={styles.filterEmptyState}>
-                      <p className={styles.filterEmptyTitle}>No matching holdings</p>
-                      <p className={styles.filterEmptyText}>
-                        Nothing matches “{searchQuery.trim()}”. Try another ticker or company name.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredAndSorted.length === 0 && outsideSummaryPositions.length > 0 ? (
-                <tr className={styles.filterEmptyRow}>
-                  <td colSpan={9}>
-                    <div className={styles.filterEmptyState}>
-                      <p className={styles.filterEmptyText}>{OUTSIDE_ANALYSIS_ANALYZED_EMPTY}</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredAndSorted.map((position) => {
-                  const sectorLabel = position.sector ?? 'Other';
-                  const isPnlPositive = position.pnlAbs >= 0;
-                  const normalizedTicker = position.ticker.toUpperCase();
+      <OutsideHoldingsTable
+        positions={outsideSummaryPositions}
+        logoByTicker={logoByTicker}
+        displayCurrency={displayCurrency}
+      />
 
-                  return (
-                    <tr key={position.id} className={styles.tableRow}>
-                      <td className={styles.tdTicker}>
-                        <Link
-                          to={buildTickerDetailPath(normalizedTicker)}
-                          className={styles.tickerLink}
-                        >
-                          <TickerAvatar
-                            ticker={normalizedTicker}
-                            logoUrl={position.logoUrl ?? logoByTicker[normalizedTicker] ?? null}
-                            size="sm"
-                          />
-                          <span className={styles.tickerSymbol}>{position.ticker}</span>
-                        </Link>
-                      </td>
-                      <td className={styles.tdName}>
-                        <p className={styles.companyName}>{position.companyName}</p>
-                        <p className={styles.sectorLabel}>{sectorLabel}</p>
-                      </td>
-                      <td className={styles.tdNum}>{position.shares}</td>
-                      <td className={styles.tdNum}>
-                        {formatUsdDecimal(position.avgBuyPrice, displayCurrency)}
-                      </td>
-                      <td className={styles.tdNum}>
-                        {formatUsdDecimal(position.currentPrice, displayCurrency)}
-                      </td>
-                      <td className={styles.tdNum}>
-                        {formatMoneyWhole(position.marketValue, displayCurrency)}
-                      </td>
-                      <td
-                        className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
-                      >
-                        {formatPnl(position.pnlAbs, displayCurrency)}
-                      </td>
-                      <td
-                        className={`${styles.tdNum} ${isPnlPositive ? styles.positive : styles.negative}`}
-                      >
-                        {formatPercent(position.pnlPct)}
-                      </td>
-                      <td className={styles.tdActions}>
-                        <button
-                          className={`${styles.actionBtn} ${styles.actionBtnClose}`}
-                          title="Close Position (Sell)"
-                          onClick={() =>
-                            setCloseTarget(positions.find((p) => p.id === position.id) ?? null)
-                          }
-                        >
-                          <HandCoins size={14} />
-                        </button>
-                        <button
-                          className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                          title="Delete position"
-                          onClick={() =>
-                            setDeleteTarget(positions.find((p) => p.id === position.id) ?? null)
-                          }
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {positionsHasMore && (
-          <div className={styles.loadMoreRow}>
-            <Button
-              variant="outline"
-              size="sm"
-              loading={isLoadingMorePositions}
-              onClick={handleLoadMorePositions}
-            >
-              Load more
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {outsideSummaryPositions.length > 0 && (
-        <div className={styles.holdingsSection}>
-          <div className={styles.holdingsHeader}>
-            <h2 className={styles.holdingsTitle}>{OUTSIDE_ANALYSIS_HOLDINGS_TITLE}</h2>
-          </div>
-          <p className={styles.outsideNote}>{OUTSIDE_ANALYSIS_HOLDINGS_NOTE}</p>
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.thTicker}>TICKER</th>
-                  <th className={styles.thName}>NAME</th>
-                  <th className={styles.thNum}>SHARES</th>
-                  <th className={styles.thNum}>PRICE</th>
-                  <th className={styles.thNum}>MARKET VALUE</th>
-                </tr>
-              </thead>
-              <tbody>
-                {outsideSummaryPositions.map((position) => (
-                  <tr key={position.id} className={styles.tableRow}>
-                    <td className={styles.tdTicker}>
-                      <Link
-                        to={buildTickerDetailPath(position.ticker.toUpperCase())}
-                        className={styles.tickerLink}
-                      >
-                        <TickerAvatar
-                          ticker={position.ticker}
-                          logoUrl={
-                            position.logoUrl ?? logoByTicker[position.ticker.toUpperCase()] ?? null
-                          }
-                          size="sm"
-                        />
-                        <span className={styles.tickerSymbol}>{position.ticker}</span>
-                      </Link>
-                    </td>
-                    <td>{position.companyName}</td>
-                    <td className={styles.tdNum}>{position.shares}</td>
-                    <td className={styles.tdNum}>
-                      {formatUsdDecimal(position.currentPrice, displayCurrency)}
-                    </td>
-                    <td className={styles.tdNum}>
-                      {formatMoneyWhole(position.marketValue, displayCurrency)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ── Transaction history ── */}
-      <div className={styles.holdingsSection}>
-        <div className={styles.holdingsHeader}>
-          <h2 className={styles.holdingsTitle}>History</h2>
-        </div>
-
-        {isLoadingTransactions ? (
-          <ContentSkeleton preset="table" label={LOADING_MESSAGES.PORTFOLIO_TRANSACTIONS} />
-        ) : transactions.length === 0 ? (
-          <p className={styles.emptyHistoryText}>No buy or sell transactions yet.</p>
-        ) : (
-          <>
-            <div className={styles.tableWrapper}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th className={styles.thName}>DATE</th>
-                    <th className={styles.thTicker}>TYPE</th>
-                    <th className={styles.thTicker}>TICKER</th>
-                    <th className={styles.thName}>NAME</th>
-                    <th className={styles.thNum}>SHARES</th>
-                    <th className={styles.thNum}>PRICE</th>
-                    <th className={styles.thNum}>TOTAL</th>
-                    <th className={styles.thNum}>CURRENCY</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((transaction) => {
-                    const totalAmount =
-                      transaction.displayTotalAmount ??
-                      transaction.shares * transaction.pricePerShare;
-                    const isBuy = transaction.transactionType === 'BUY';
-
-                    return (
-                      <tr key={transaction.id} className={styles.tableRow}>
-                        <td className={styles.historyTd}>{formatTransactionDate(transaction)}</td>
-                        <td className={styles.historyTd}>
-                          <span
-                            className={`${styles.typeBadge} ${isBuy ? styles.typeBadgeBuy : styles.typeBadgeSell}`}
-                          >
-                            {transaction.transactionType}
-                          </span>
-                        </td>
-                        <td className={styles.historyTd}>
-                          <div className={styles.historyTickerCell}>
-                            <TickerAvatar
-                              ticker={transaction.ticker}
-                              logoUrl={logoByTicker[transaction.ticker.toUpperCase()] ?? null}
-                              size="sm"
-                            />
-                            <span className={styles.historyTicker}>{transaction.ticker}</span>
-                          </div>
-                        </td>
-                        <td className={styles.historyTd}>{transaction.companyName}</td>
-                        <td className={`${styles.historyTd} ${styles.historyTdNum}`}>
-                          {transaction.shares}
-                        </td>
-                        <td className={`${styles.historyTd} ${styles.historyTdNum}`}>
-                          {formatUsdDecimal(transaction.pricePerShare, displayCurrency)}
-                        </td>
-                        <td className={`${styles.historyTd} ${styles.historyTdNum}`}>
-                          {formatUsdDecimal(totalAmount, displayCurrency)}
-                        </td>
-                        <td className={`${styles.historyTd} ${styles.historyTdNum}`}>
-                          {displayCurrency}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {transactionsHasMore && (
-              <div className={styles.loadMoreRow}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  loading={isLoadingMoreTransactions}
-                  onClick={handleLoadMoreTransactions}
-                >
-                  Load more
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      <TransactionHistory
+        isLoading={isLoadingTransactions}
+        transactions={transactions}
+        logoByTicker={logoByTicker}
+        displayCurrency={displayCurrency}
+        hasMore={transactionsHasMore}
+        isLoadingMore={isLoadingMoreTransactions}
+        onLoadMore={handleLoadMoreTransactions}
+      />
 
       <AddPositionModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
 

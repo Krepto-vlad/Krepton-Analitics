@@ -1,7 +1,14 @@
+import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from '../../store';
 import type { PortfolioStats, SectorAllocation } from '../../types/portfolio.types';
 import { resolveInvestmentSummaryForDisplay } from '../../utils/moneyDisplay';
 import { isIncludedInPortfolioAnalysis } from '../../utils/portfolioAnalysisScope';
+
+const createPortfolioSelector = createSelector.withTypes<RootState>();
+
+const selectSummaryPositions = (state: RootState) => state.portfolio.summaryPositions;
+const selectInvestmentSummary = (state: RootState) => state.portfolio.investmentSummary;
+const selectDisplayCurrency = (state: RootState) => state.ui.currency;
 
 const SECTOR_COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
 
@@ -30,43 +37,44 @@ function buildSectorAllocations(
     }));
 }
 
-export function selectPortfolioStats(state: RootState): PortfolioStats {
-  const { summaryPositions, investmentSummary } = state.portfolio;
-  const displayCurrency = state.ui.currency;
-  const analyzedPositions = summaryPositions.filter(isIncludedInPortfolioAnalysis);
+export const selectPortfolioStats = createPortfolioSelector(
+  [selectSummaryPositions, selectInvestmentSummary, selectDisplayCurrency],
+  (summaryPositions, investmentSummary, displayCurrency): PortfolioStats => {
+    const analyzedPositions = summaryPositions.filter(isIncludedInPortfolioAnalysis);
 
-  const costBasisOpen = analyzedPositions.reduce(
-    (sum, position) => sum + position.shares * position.avgBuyPrice,
-    0
-  );
-  const totalMarketValue = analyzedPositions.reduce(
-    (sum, position) => sum + position.shares * position.currentPrice,
-    0
-  );
+    const costBasisOpen = analyzedPositions.reduce(
+      (sum, position) => sum + position.shares * position.avgBuyPrice,
+      0
+    );
+    const totalMarketValue = analyzedPositions.reduce(
+      (sum, position) => sum + position.shares * position.currentPrice,
+      0
+    );
 
-  const { totalInvested, totalWithdrawn } = resolveInvestmentSummaryForDisplay(
-    investmentSummary,
-    displayCurrency
-  );
-  const effectiveInvested = totalInvested > 0 ? totalInvested : costBasisOpen;
+    const { totalInvested, totalWithdrawn } = resolveInvestmentSummaryForDisplay(
+      investmentSummary,
+      displayCurrency
+    );
+    const effectiveInvested = totalInvested > 0 ? totalInvested : costBasisOpen;
 
-  const unrealizedPnl = totalMarketValue - costBasisOpen;
-  const totalPnl = totalMarketValue + totalWithdrawn - effectiveInvested;
-  const totalPnlPercent = effectiveInvested > 0 ? (totalPnl / effectiveInvested) * 100 : 0;
+    const unrealizedPnl = totalMarketValue - costBasisOpen;
+    const totalPnl = totalMarketValue + totalWithdrawn - effectiveInvested;
+    const totalPnlPercent = effectiveInvested > 0 ? (totalPnl / effectiveInvested) * 100 : 0;
 
-  const dayPnl = 0;
-  const dayPnlPercent = 0;
+    const dayPnl = 0;
+    const dayPnlPercent = 0;
 
-  return {
-    totalValue: totalMarketValue,
-    totalPnl,
-    unrealizedPnl,
-    realizedPnl: totalWithdrawn,
-    dayPnl,
-    totalPnlPercent,
-    dayPnlPercent,
-  };
-}
+    return {
+      totalValue: totalMarketValue,
+      totalPnl,
+      unrealizedPnl,
+      realizedPnl: totalWithdrawn,
+      dayPnl,
+      totalPnlPercent,
+      dayPnlPercent,
+    };
+  }
+);
 
 export function selectSectorAllocations(state: RootState): SectorAllocation[] {
   return buildSectorAllocations(
