@@ -107,7 +107,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/Error'
         '401':
+          $ref: '#/components/responses/Error'
+        '403':
           $ref: '#/components/responses/Error'
         '429':
           $ref: '#/components/responses/Error'
@@ -243,10 +247,38 @@ paths:
       summary: Current user
       responses:
         '200':
+          description: Authenticated user profile
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /api/auth/ai-personal-data:
+    patch:
+      tags: [Auth]
+      summary: Allow or block sending portfolio data to the AI chat
+      description: Stored on the user row and enforced by the server for every chat request. On by default.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/Error'
         '401':
           $ref: '#/components/responses/Error'
 
@@ -548,7 +580,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [ticker, shares, price]
+              required: [ticker, companyName, shares, avgBuyPrice, currency]
               properties:
                 ticker:
                   type: string
@@ -556,7 +588,7 @@ paths:
                   type: string
                 shares:
                   type: number
-                price:
+                avgBuyPrice:
                   type: number
                 currency:
                   type: string
@@ -567,6 +599,10 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
 
   /api/portfolio/{positionId}:
     patch:
@@ -585,6 +621,8 @@ paths:
       responses:
         '204':
           description: Deleted
+        '404':
+          $ref: '#/components/responses/Error'
 
   /api/portfolio/{positionId}/close:
     post:
@@ -719,22 +757,27 @@ paths:
   /api/portfolio/ticker-chat:
     post:
       tags: [AI]
-      summary: Scoped ticker chat (Gemini + guardrails, optional Google Search, quote fact-check)
+      summary: Page-aware chat (Gemini + guardrails, optional Google Search, quote fact-check)
+      description: >-
+        With `ticker` the chat is anchored to that symbol. Without it the chat answers about the
+        open screen and resolves tickers named in the question from fresh quotes.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [ticker, message]
+              required: [message]
               properties:
                 ticker:
                   type: string
+                  description: Open ticker page. Omit on other screens.
                 message:
                   type: string
                   maxLength: 1000
                 history:
                   type: array
+                  description: The server keeps the newest 6 turns, cuts each to 4000 characters, and drops the oldest turns beyond 6000 characters in total.
                   items:
                     type: object
                     properties:
@@ -745,11 +788,23 @@ paths:
                         type: string
                 includeHoldingContext:
                   type: boolean
-                  description: Opt-in to send this ticker's shares, avg buy, and unrealized P/L to Gemini. Default false.
+                  description: Per-request choice to send this ticker's shares, avg buy, and unrealized P/L. Ignored when the profile switch (PATCH /api/auth/ai-personal-data) is off.
+                screenContext:
+                  type: object
+                  description: Summary of the open screen. Personal screen kinds are dropped by the server when the profile switch is off.
+                  additionalProperties: true
       responses:
         '200':
-          $ref: '#/components/responses/Success'
+          description: Reply with disclaimer, remaining quota, and fact-check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TickerChatSuccess'
+        '400':
+          $ref: '#/components/responses/Error'
         '404':
+          $ref: '#/components/responses/Error'
+        '429':
           $ref: '#/components/responses/Error'
 
   /api/portfolio/import/preview:
@@ -883,15 +938,19 @@ paths:
           application/json:
             schema:
               type: object
-              required: [ticker]
+              required: [ticker, companyName]
               properties:
                 ticker:
                   type: string
                 companyName:
                   type: string
       responses:
-        '200':
+        '201':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
 
   /api/portfolio/watchlist/{itemId}:
     delete:
@@ -1114,6 +1173,7 @@ components:
           hasPassword,
           hasGoogle,
           isAdmin,
+          aiPersonalDataEnabled,
           subscription,
           sessionExpiresAt,
         ]
@@ -1135,6 +1195,9 @@ components:
         isAdmin:
           type: boolean
           description: True when the email is listed in ADMIN_EMAILS. Not stored in the user table.
+        aiPersonalDataEnabled:
+          type: boolean
+          description: Whether the AI assistant may receive the user's portfolio data. Enforced server-side.
         subscription:
           $ref: '#/components/schemas/SubscriptionSummary'
         sessionExpiresAt:
@@ -1194,6 +1257,55 @@ components:
           enum: [true]
         data:
           $ref: '#/components/schemas/AuthUser'
+    TickerChatResponse:
+      type: object
+      required:
+        [
+          ticker,
+          reply,
+          disclaimer,
+          quota,
+          sources,
+          groundingEnabled,
+          factCheck,
+          displayBlocks,
+          chartTicker,
+        ]
+      properties:
+        ticker:
+          type: string
+          description: Empty string for a page chat without a ticker.
+        reply:
+          type: string
+        disclaimer:
+          type: string
+        quota:
+          type: object
+        sources:
+          type: array
+          items:
+            type: object
+        groundingEnabled:
+          type: boolean
+        factCheck:
+          type: object
+        displayBlocks:
+          type: array
+          items:
+            type: object
+        chartTicker:
+          type: string
+          nullable: true
+          description: Ticker to chart inside the reply when that chart is not already on the open page.
+    TickerChatSuccess:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/TickerChatResponse'
   responses:
     Success:
       description: Successful JSON envelope
