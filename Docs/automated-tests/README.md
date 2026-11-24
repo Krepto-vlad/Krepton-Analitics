@@ -62,6 +62,22 @@ The run fails when any response is not 2xx, a request errors or times out, or p9
 | `watchlist-read` | 4,000 | 14.2 | 93 | 0 |
 | `transactions-read` | 4,000 | 12.2 | 47 | 0 |
 
+**CI run.** The `Backend (PostgreSQL integration)` job of the CI workflow runs both on every push, against a PostgreSQL 16 service container on a GitHub-hosted runner (run #64 on `develop`):
+
+- Integration and contract suites: 8 suites and 120 tests passed, repositories at 98.23% statements and 83.15% branches.
+
+  ![CI log of the PostgreSQL integration suite: 8 suites passed, coverage table](./screenshots/ci-db-suite.png)
+
+- Load test on the same runner:
+
+  | Scenario | Requests | Average ms | p99 ms | Non-2xx | Errors |
+  |----------|----------|------------|--------|---------|--------|
+  | `health-stress` | 34,650 | 28.5 | 41 | 0 | 0 |
+  | `watchlist-read` | 4,012 | 25.4 | 164 | 0 | 0 |
+  | `transactions-read` | 4,009 | 22.8 | 92 | 0 | 0 |
+
+  ![CI log of the load test: three scenarios passed](./screenshots/ci-load-test.png)
+
 **Faults the suites caught**
 
 - The contract tests found seven places where `backend/openapi.yaml` disagreed with the running API, and the specification was corrected:
@@ -117,12 +133,12 @@ PowerShell: `$env:TEST_DATABASE_URL = 'postgresql://user:password@localhost:5432
 | 3 | Unit tests + edge cases | ✅ | Auth, portfolio, import, AI quota/chat, controllers; property tests for validation, fingerprints, currency math, allocations |
 | 4 | Integration (API, auth, DB) | ✅ | Jest HTTP: `/health`, 401 portfolio, 400 search (mocked). `backend-db` CI job: all migrations, every repository, and the authenticated API contract flow against a **PostgreSQL 16 service container**. Playwright CI job: migrate + `seed:demo` + login → dashboard |
 | 5 | FE component and/or e2e | ✅ | RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel, Skeleton; Playwright: `frontend/e2e/login.spec.ts` (route guard + login → dashboard smoke) |
-| 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` — `backend`, `backend-db`, `frontend`, and `e2e` jobs |
+| 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` — `backend`, `backend-db`, `frontend`, and `e2e` jobs; CI log screenshots in [screenshots/](./screenshots/) |
 | 7 | Naming / folders | ✅ | `*.test.ts` / `__tests__`; DB suite in `__tests__/db`, property tests in `__tests__/property`; e2e in `frontend/e2e/*.spec.ts` |
 | 8 | How to run locally | ✅ | Commands above |
 | 9 | Max: coverage quality gate | ✅ | Backend and frontend: statements, lines, and functions ≥ 80%; backend branches ≥ 60% |
 | 10 | Max: property-based and contract tests | ✅ | `src/__tests__/property/`, `apiContract.db.test.ts` |
-| 11 | Max: load testing | ✅ | `npm run load:test`; CI artifact `backend-load-test-report` |
+| 11 | Max: load testing | ✅ | `npm run load:test`; CI log screenshot above; CI artifact `backend-load-test-report` |
 
 ## References
 
