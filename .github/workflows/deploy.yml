@@ -30,7 +30,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Must match the resource group / names created via Docs/diploma/thesis/docs/02-technical/deployment.md.
+  # Must match the resource group / names created via Docs/cloud/deployment.md.
   AZURE_RESOURCE_GROUP: krepton-analytics-rg
   CONTAINER_APP_NAME: krepton-analytics-api
   # Hardcoded lowercase: GHCR/OCI repository names must be all-lowercase, but the GitHub
