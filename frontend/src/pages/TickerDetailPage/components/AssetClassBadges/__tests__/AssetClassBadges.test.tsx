@@ -17,8 +17,7 @@ describe('AssetClassBadges', () => {
 
   it('shows skeletons while loading, then the badges', async () => {
     let resolveRequest:
-      | ((value: Awaited<ReturnType<typeof fetchStockAssetClass>>) => void)
-      | undefined;
+      ((value: Awaited<ReturnType<typeof fetchStockAssetClass>>) => void) | undefined;
     mockedFetch.mockReturnValue(
       new Promise((resolve) => {
         resolveRequest = resolve;

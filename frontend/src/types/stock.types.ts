@@ -1,12 +1,6 @@
 /** Yahoo marketState values (exchange-aware: US vs Europe hours). */
 export type StockMarketState =
-  | 'PRE'
-  | 'REGULAR'
-  | 'POST'
-  | 'CLOSED'
-  | 'PREPRE'
-  | 'POSTPOST'
-  | string;
+  'PRE' | 'REGULAR' | 'POST' | 'CLOSED' | 'PREPRE' | 'POSTPOST' | string;
 
 export interface StockQuote {
   ticker: string;
