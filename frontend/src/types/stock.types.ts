@@ -1,6 +1,12 @@
 /** Yahoo marketState values (exchange-aware: US vs Europe hours). */
 export type StockMarketState =
-  'PRE' | 'REGULAR' | 'POST' | 'CLOSED' | 'PREPRE' | 'POSTPOST' | string;
+  | 'PRE'
+  | 'REGULAR'
+  | 'POST'
+  | 'CLOSED'
+  | 'PREPRE'
+  | 'POSTPOST'
+  | string;
 
 export interface StockQuote {
   ticker: string;
@@ -50,6 +56,25 @@ export interface StockSearchResult {
 export interface StockSector {
   sector: string;
   industry: string;
+}
+
+export interface StockAssetClassBadge {
+  assetClass: string;
+  label: string;
+}
+
+export interface StockAssetClassBasis {
+  evidence: 'explicit' | 'fallback';
+  quoteType: string | null;
+  categoryName: string | null;
+  nameSignal: string | null;
+  classifiedAt: string;
+}
+
+export interface StockAssetClassResponse {
+  ticker: string;
+  badges: StockAssetClassBadge[];
+  basis: StockAssetClassBasis | null;
 }
 
 export interface StockCompareItem {

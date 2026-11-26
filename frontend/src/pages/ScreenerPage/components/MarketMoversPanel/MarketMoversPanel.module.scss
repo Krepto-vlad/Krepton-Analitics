@@ -141,11 +141,20 @@
   color: $color-foreground-subtle;
 }
 
-.tickerBlock {
+.tickerLink {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: $space-2;
+  color: inherit;
+  text-decoration: none;
+  border-radius: $radius-sm;
+
+  &:hover .ticker {
+    color: $color-primary;
+  }
+
+  @include focus-ring;
 }
 
 .tickerText {

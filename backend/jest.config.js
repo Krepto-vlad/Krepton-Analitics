@@ -13,7 +13,7 @@ module.exports = {
     '^.+\\.ts$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
   },
   testMatch: ['**/__tests__/**/*.test.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/__tests__/db/'],
+  testPathIgnorePatterns: ['/node_modules/', '/__tests__/db/', '/__tests__/sentinel/'],
   collectCoverageFrom: ['src/**/*.ts', '!src/__tests__/**', '!src/index.ts', '!src/scripts/**'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],

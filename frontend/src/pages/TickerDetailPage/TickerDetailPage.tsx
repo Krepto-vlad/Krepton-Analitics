@@ -68,6 +68,7 @@ import {
   formatCompareMetricValue,
   getCompareMetricSecondaryValue,
 } from '../ScreenerPage/utils/compareMatrix';
+import { AssetClassBadges } from './components/AssetClassBadges/AssetClassBadges';
 import { TickerNewsPanel } from './components/TickerNewsPanel';
 import { TickerPriceChartPanel } from './components/TickerPriceChartPanel';
 import styles from './TickerDetailPage.module.scss';
@@ -510,6 +511,7 @@ export function TickerDetailPage() {
                     <h2 className={styles.tickerSymbol}>{ticker}</h2>
                     <p className={styles.companyName}>{companyName}</p>
                     <div className={styles.metaRow}>
+                      <AssetClassBadges ticker={ticker} />
                       {fundamentals?.sector && (
                         <span className={styles.metaChip}>{fundamentals.sector}</span>
                       )}

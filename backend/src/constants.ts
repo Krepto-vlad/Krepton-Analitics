@@ -377,6 +377,7 @@ export const GEMINI_MAX_OUTPUT_TOKENS = 8192;
 export const STOCK_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
 export const STOCK_HISTORY_BROWSER_CACHE_TTL_S = 60;
 export const STOCK_FUNDAMENTALS_BROWSER_CACHE_TTL_S = 60;
+export const STOCK_ASSET_CLASS_BROWSER_CACHE_TTL_S = 60;
 
 // ─── Stock comparison matrix ───────────────────────────────────────────────────
 export const STOCK_COMPARE_MAX_TICKERS = 4;

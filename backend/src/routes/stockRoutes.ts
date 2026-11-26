@@ -6,6 +6,7 @@ import {
   getFundamentals,
   getTickerNews,
   getSectorForTicker,
+  getAssetClassForTicker,
   searchTickers,
   getTickerTape,
   getCompare,
@@ -25,6 +26,7 @@ router.get('/compare', asyncHandler(getCompare));
 router.get('/backtest', asyncHandler(getBacktest));
 router.get('/quote/:ticker', asyncHandler(getQuote));
 router.get('/sector/:ticker', asyncHandler(getSectorForTicker));
+router.get('/asset-class/:ticker', asyncHandler(getAssetClassForTicker));
 router.get('/fundamentals/:ticker', asyncHandler(getFundamentals));
 router.get('/news/:ticker', asyncHandler(getTickerNews));
 router.get('/history/:ticker', asyncHandler(getHistory));

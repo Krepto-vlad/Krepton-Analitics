@@ -6,6 +6,7 @@ import type {
   StockHistoryResponse,
   StockSearchResult,
   StockSector,
+  StockAssetClassResponse,
   StockCompareItem,
   StockCompareResponse,
   StockBacktestResponse,
@@ -75,6 +76,13 @@ export async function fetchStockSector(ticker: string): Promise<StockSector> {
   const { data } = await apiClient.get<ApiSuccessResponse<StockSector> | ApiErrorResponse>(
     `/sector/${ticker}`
   );
+  return assertSuccess(data);
+}
+
+export async function fetchStockAssetClass(ticker: string): Promise<StockAssetClassResponse> {
+  const { data } = await apiClient.get<
+    ApiSuccessResponse<StockAssetClassResponse> | ApiErrorResponse
+  >(`/asset-class/${encodeURIComponent(ticker.trim().toUpperCase())}`);
   return assertSuccess(data);
 }
 

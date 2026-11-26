@@ -17,7 +17,7 @@
 |-----|----------|
 | Health | `GET /health` |
 | Auth | register, login, logout, Google, delete, AI data switch (`PATCH /api/auth/ai-personal-data`) |
-| Stocks | quote, search, ticker tape |
+| Stocks | quote, search, ticker tape, asset-class badges |
 | Portfolio | holdings, rebalancing |
 | Import | multipart upload (memory storage) |
 | Watchlist | CRUD-style items |

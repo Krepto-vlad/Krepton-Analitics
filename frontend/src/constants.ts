@@ -774,6 +774,29 @@ export const REBALANCING_ASSET_CLASS_COLORS = {
   commodities: '#f97316',
 } as const;
 
+/** Ticker-page badge colors (readable without relying on green/red P&L cues). */
+export const ASSET_CLASS_BADGE_COLORS = {
+  equities: '#0f766e',
+  sp500: '#0d9488',
+  us_total: '#14b8a6',
+  intl_stock: '#0284c7',
+  lt_bonds: '#6366f1',
+  it_bonds: '#3b82f6',
+  core_bond: '#4f46e5',
+  gold: '#d97706',
+  commodities: '#c2410c',
+  cash: '#64748b',
+  tbill: '#94a3b8',
+  other: '#64748b',
+} as const;
+
+export const ASSET_CLASS_BADGE_FALLBACK_COLOR = '#64748b';
+export const ASSET_CLASS_BASIS_TITLE = 'Classification basis';
+export const ASSET_CLASS_BASIS_INTRO =
+  'Classified by our rebalancing rules from Yahoo quote type and fund profile data. This describes the instrument; it is not suitability advice.';
+export const ASSET_CLASS_BASIS_CLOSE_LABEL = 'Close';
+export const ASSET_CLASS_BADGE_SKELETON_COUNT = 2;
+
 const REBALANCING_DISPLAY_COLOR_BY_HEX: Record<string, string> = {
   [REBALANCING_ASSET_CLASS_COLORS.lt_bonds]: 'var(--color-rebalancing-lt-bonds)',
 };

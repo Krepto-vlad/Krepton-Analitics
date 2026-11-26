@@ -272,6 +272,16 @@ Breakpoints are tokens in `frontend/src/styles/_mixins.scss`: `sm` 480 px, `md` 
 
 The saved layout holds only display preferences in `localStorage`.
 
+### Asset-class badges on the ticker page
+
+| Piece | Where |
+|-------|-------|
+| Colored badges + basis dialog | `pages/TickerDetailPage/components/AssetClassBadges` |
+| API client | `fetchStockAssetClass` in `api/stockApi.ts` |
+| Badge colors | `ASSET_CLASS_BADGE_COLORS` in `constants.ts` |
+
+Badges appear only when `GET /api/stocks/asset-class/:ticker` returns explicit evidence. Empty list or request failure shows nothing.
+
 ### AI chat drawer
 
 The chat is one drawer that follows the user across screens. The drawer is a container; its parts are separate components.

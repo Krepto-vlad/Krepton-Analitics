@@ -460,6 +460,21 @@ paths:
         '200':
           $ref: '#/components/responses/Success'
 
+  /api/stocks/asset-class/{ticker}:
+    get:
+      tags: [Stocks]
+      summary: Descriptive asset-class badges for a ticker
+      description: >
+        Returns zero or more badges classified by the same rules as rebalancing.
+        Badges appear only for explicit evidence (Yahoo quote type or fund category/name).
+        Fail-closed: missing or fallback classifications return an empty badge list.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TickerPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
   /api/stocks/fundamentals/{ticker}:
     get:
       tags: [Stocks]
