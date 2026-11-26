@@ -277,6 +277,36 @@ describe('buildTickerChatTickerScreen', () => {
       ])
     );
   });
+
+  it('describes an index with levels and skips equity fundamental bars', () => {
+    const screen = buildTickerChatTickerScreen({
+      ticker: '^GSPC',
+      periodLabel: '1Y',
+      fundamentals: compareItem('^GSPC', {
+        name: 'S&P 500',
+        price: 7182.78,
+        peRatio: null,
+        revenueGrowth: null,
+        profitMargin: null,
+      }),
+      startPrice: 5000,
+      endPrice: 7182.78,
+      returnPercent: 43.66,
+    });
+
+    expect(screen.promptText).toContain('market index');
+    expect(screen.promptText).toContain('level 5000.00');
+    expect(screen.promptText).toContain('Latest level 7182.78');
+    expect(screen.promptText).toContain('Equity fundamentals such as P/E do not apply');
+    expect(screen.promptText).not.toContain('USD 7182.78');
+    expect(screen.displayBlocks).toEqual([
+      {
+        kind: 'backtest-bars',
+        title: '1Y',
+        rows: [{ label: '^GSPC', returnPercent: 43.66 }],
+      },
+    ]);
+  });
 });
 
 describe('buildTickerChatPortfolioScreen', () => {

@@ -7,6 +7,11 @@ export function normalizeTickerSymbol(ticker: string): string {
   return ticker.trim().toUpperCase();
 }
 
+/** Yahoo market indices use a caret prefix (`^GSPC`). Their quotes are levels, not money. */
+export function isMarketIndexTicker(ticker: string): boolean {
+  return normalizeTickerSymbol(ticker).startsWith('^');
+}
+
 export function isValidTickerSymbol(ticker: string): boolean {
   const normalizedTicker = normalizeTickerSymbol(ticker);
   return (
