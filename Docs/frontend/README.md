@@ -38,12 +38,12 @@ flowchart TB
 
 ### Alternatives Considered
 
-| Alternative | Why not |
-|-------------|---------|
-| Next.js | SSR not needed; cookie-to-API is simpler as a SPA |
-| LocalStorage JWT | Forbidden by project security rules |
+| Alternative          | Why not                                               |
+| -------------------- | ----------------------------------------------------- |
+| Next.js              | SSR not needed; cookie-to-API is simpler as a SPA     |
+| LocalStorage JWT     | Forbidden by project security rules                   |
 | CSS-in-JS / Tailwind | SCSS modules + tokens already match the design system |
-| No global store | Auth, portfolio, quotes are cross-page |
+| No global store      | Auth, portfolio, quotes are cross-page                |
 
 ## How to open it
 
@@ -71,25 +71,25 @@ npm run test:e2e
 
 ## Where to look
 
-| Path | Contents |
-|------|------------------------|
-| `frontend/src/main.tsx` | Store provider and the 401 handler |
-| `frontend/src/app/App.tsx` | `AppErrorBoundary` around the router |
-| `frontend/src/router/AppRouter.tsx` | Lazy routes and `RequireAuth` |
-| `frontend/src/router/RequireAuth.tsx` | Session check via `GET /api/auth/me` |
-| `frontend/src/store/index.ts` | The one Redux store |
-| `frontend/src/features/` | Slices: `auth`, `portfolio`, `watchlist`, `ticker`, `ui`, `livePolling` |
-| `frontend/src/features/portfolio/portfolioSelectors.ts` | `selectPortfolioStats` (`createSelector`) |
-| `frontend/src/api/apiClient.ts` | Axios instance, `withCredentials: true`, 401 interceptor |
-| `frontend/src/api/*Api.ts` | One module per resource: `authApi`, `portfolioApi`, `watchlistApi`, `stockApi`, `importApi`, `fxApi`, `billingApi`, `brokerSyncApi` |
-| `frontend/src/utils/apiError.ts` | Maps any failed request to an `ApiRequestError` with a user-facing message |
-| `frontend/src/hooks/` | `useHoldingsPolling`, `useWatchlistPolling`, `useSessionExpiry`, `useSessionRenewal`, `useTheme`, `useTickerPriceChart`, `useFocusTrap`, `usePageSeo` |
-| `frontend/src/types/` | Interfaces for API responses and models |
-| `frontend/src/pages/` | One folder per screen |
-| `frontend/src/components/ui/` | Custom kit: `Button`, `Input`, `Select`, `Skeleton` |
-| `frontend/src/styles/` | Tokens, mixins, light/dark theme |
-| `frontend/src/constants.ts` | Routes, copy, and numeric limits |
-| `frontend/e2e/login.spec.ts` | End-to-end login |
+| Path                                                    | Contents                                                                                                                            |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/src/main.tsx`                                 | Store provider and the 401 handler                                                                                                  |
+| `frontend/src/app/App.tsx`                              | `AppErrorBoundary` around the router                                                                                                |
+| `frontend/src/router/AppRouter.tsx`                     | Lazy routes and `RequireAuth`                                                                                                       |
+| `frontend/src/router/RequireAuth.tsx`                   | Session check via `GET /api/auth/me`                                                                                                |
+| `frontend/src/store/index.ts`                           | The one Redux store                                                                                                                 |
+| `frontend/src/features/`                                | Slices: `auth`, `portfolio`, `watchlist`, `ticker`, `ui`, `livePolling`                                                             |
+| `frontend/src/features/portfolio/portfolioSelectors.ts` | `selectPortfolioStats` (`createSelector`)                                                                                           |
+| `frontend/src/api/apiClient.ts`                         | Axios instance, `withCredentials: true`, 401 interceptor                                                                            |
+| `frontend/src/api/*Api.ts`                              | One module per resource: `authApi`, `portfolioApi`, `watchlistApi`, `stockApi`, `importApi`, `fxApi`, `billingApi`, `brokerSyncApi` |
+| `frontend/src/utils/apiError.ts`                        | Maps any failed request to an `ApiRequestError` with a user-facing message                                                          |
+| `frontend/src/hooks/`                                   | Polling, session, theme, charts, focus trap, card navigation, market-index data/visibility, page SEO                                |
+| `frontend/src/types/`                                   | Interfaces for API responses and models                                                                                             |
+| `frontend/src/pages/`                                   | One folder per screen                                                                                                               |
+| `frontend/src/components/ui/`                           | Custom kit: `Button`, `Input`, `Select`, `Skeleton`                                                                                 |
+| `frontend/src/styles/`                                  | Tokens, mixins, light/dark theme                                                                                                    |
+| `frontend/src/constants.ts`                             | Routes, copy, and numeric limits                                                                                                    |
+| `frontend/e2e/login.spec.ts`                            | End-to-end login                                                                                                                    |
 
 Shared portfolio and auth data goes through thunks. Screen-local actions (password change, import, backtest, chat, billing) call `api/` from the page that owns them.
 
@@ -116,16 +116,16 @@ Quotes are not loaded in the browser from Yahoo. The SPA asks the Express API. L
 
 ### Key Implementation Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| RTK + local useState | Shared data in the store; dialog and form state stays on the screen |
-| `createSelector` for portfolio stats | Dashboard reads a stable stats object |
-| `Skeleton` + `AsyncStatePanel` | Page and list fetches use layout placeholders; button and search mutations keep a spinner |
-| `ContentSkeleton` owns `role="status"` | One announcement per pending fetch |
-| `LOADING_MESSAGES` in `constants.ts` | The same string is the accessible name and the visible label |
-| SCSS modules | Component styles stay next to the component |
-| `withCredentials: true` | Cookie session |
-| Central axios + error boundary | HTTP errors and render crashes both have UI |
+| Decision                               | Rationale                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- |
+| RTK + local useState                   | Shared data in the store; dialog and form state stays on the screen                       |
+| `createSelector` for portfolio stats   | Dashboard reads a stable stats object                                                     |
+| `Skeleton` + `AsyncStatePanel`         | Page and list fetches use layout placeholders; button and search mutations keep a spinner |
+| `ContentSkeleton` owns `role="status"` | One announcement per pending fetch                                                        |
+| `LOADING_MESSAGES` in `constants.ts`   | The same string is the accessible name and the visible label                              |
+| SCSS modules                           | Component styles stay next to the component                                               |
+| `withCredentials: true`                | Cookie session                                                                            |
+| Central axios + error boundary         | HTTP errors and render crashes both have UI                                               |
 
 ### Routes and navigation
 
@@ -194,14 +194,14 @@ JWT never enters `localStorage`. Axios uses `withCredentials: true`. Render cras
 
 The contract is [`backend/openapi.yaml`](../../backend/openapi.yaml); the [API reference](../backend/api-reference.md) summarises it. The frontend reaches it only through `frontend/src/api/`. Every success body is `{ "success": true, "data": ... }` and every failure is `{ "success": false, "error": "..." }` with a real HTTP status. Response interfaces live in `frontend/src/types/`.
 
-| Client module | Endpoints |
-|---------------|-----------|
-| `authApi` | `POST /api/auth/login`, `register`, `google`, `logout`; `GET /api/auth/me`; `POST /api/auth/extend`; `PATCH /api/auth/ai-personal-data`; password reset and email verification |
-| `portfolioApi` | `GET/POST /api/portfolio`, `PATCH/DELETE /api/portfolio/{positionId}`, `GET /api/portfolio/transactions`, `investment-summary`, `equity-history`, `rebalancing`, `dividends`, `news`; AI: `news/summary`, `ticker-chat`, `ticker-chat/quota` |
-| `watchlistApi` | `GET/POST /api/portfolio/watchlist`, `DELETE /api/portfolio/watchlist/{itemId}` |
-| `stockApi` | `/api/stocks/*`: quote, search, history, ticker tape |
-| `importApi` | `POST /api/portfolio/import/preview` (multipart, parsed in memory) |
-| `fxApi`, `billingApi`, `brokerSyncApi` | `/api/fx/*`, `/api/billing/*`, broker sync |
+| Client module                          | Endpoints                                                                                                                                                                                                                                    |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authApi`                              | `POST /api/auth/login`, `register`, `google`, `logout`; `GET /api/auth/me`; `POST /api/auth/extend`; `PATCH /api/auth/ai-personal-data`; password reset and email verification                                                               |
+| `portfolioApi`                         | `GET/POST /api/portfolio`, `PATCH/DELETE /api/portfolio/{positionId}`, `GET /api/portfolio/transactions`, `investment-summary`, `equity-history`, `rebalancing`, `dividends`, `news`; AI: `news/summary`, `ticker-chat`, `ticker-chat/quota` |
+| `watchlistApi`                         | `GET/POST /api/portfolio/watchlist`, `DELETE /api/portfolio/watchlist/{itemId}`                                                                                                                                                              |
+| `stockApi`                             | `/api/stocks/*`: quote, search, history, ticker tape, movers, asset-class                                                                                                                                                                    |
+| `importApi`                            | `POST /api/portfolio/import/preview` (multipart, parsed in memory)                                                                                                                                                                           |
+| `fxApi`, `billingApi`, `brokerSyncApi` | `/api/fx/*`, `/api/billing/*`, broker sync                                                                                                                                                                                                   |
 
 Example: add a position.
 
@@ -238,17 +238,17 @@ The backend CI job `backend-db` replays these flows against the specification, s
 
 Every Axios failure passes the response interceptor in `apiClient.ts`, then `toApiRequestError` in `utils/apiError.ts`. The result is an `ApiRequestError` with a `kind` (`network`, `timeout`, `client`, `server`) and a message that is safe to show. The backend message is used for 4xx responses; 5xx responses always show a generic server message.
 
-| Situation | What the user sees | Where handled |
-|-----------|--------------------|---------------|
-| 401 on a signed-in session | The Redux auth state is cleared and `RequireAuth` sends the user to `/login` | Interceptor calls `notifyUnauthorized`; the handler in `main.tsx` runs `expireClientSession` |
-| 401 on `/api/auth/login` and other public auth calls | The form shows the error; no redirect | `PUBLIC_AUTH_API_PATH_MARKERS` in `constants.ts` |
-| 403 | "Forbidden" message | `getStatusFallback` |
-| 404 | "Not found" message | `getStatusFallback` |
-| 409 | Conflict message (for example a duplicate watchlist ticker) | `getStatusFallback` |
-| 429 | Rate-limit message | `getStatusFallback` |
-| 500, 502, 503, 504 | Generic server message | `getStatusFallback` |
-| No response / timeout | Network or timeout message | `classifyErrorKind` |
-| Render crash | Fallback screen and `console.error` | `AppErrorBoundary` |
+| Situation                                            | What the user sees                                                           | Where handled                                                                                |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 401 on a signed-in session                           | The Redux auth state is cleared and `RequireAuth` sends the user to `/login` | Interceptor calls `notifyUnauthorized`; the handler in `main.tsx` runs `expireClientSession` |
+| 401 on `/api/auth/login` and other public auth calls | The form shows the error; no redirect                                        | `PUBLIC_AUTH_API_PATH_MARKERS` in `constants.ts`                                             |
+| 403                                                  | "Forbidden" message                                                          | `getStatusFallback`                                                                          |
+| 404                                                  | "Not found" message                                                          | `getStatusFallback`                                                                          |
+| 409                                                  | Conflict message (for example a duplicate watchlist ticker)                  | `getStatusFallback`                                                                          |
+| 429                                                  | Rate-limit message                                                           | `getStatusFallback`                                                                          |
+| 500, 502, 503, 504                                   | Generic server message                                                       | `getStatusFallback`                                                                          |
+| No response / timeout                                | Network or timeout message                                                   | `classifyErrorKind`                                                                          |
+| Render crash                                         | Fallback screen and `console.error`                                          | `AppErrorBoundary`                                                                           |
 
 Messages appear in `ErrorBanner` (inline) or next to the field that caused them. Loading states use `Skeleton` and `AsyncStatePanel`.
 
@@ -256,19 +256,49 @@ Messages appear in `ErrorBanner` (inline) or next to the field that caused them.
 
 Breakpoints are tokens in `frontend/src/styles/_mixins.scss`: `sm` 480 px, `md` 768 px, `lg` 1024 px, `xl` 1280 px. The mixins `mobile` (below 768 px), `tablet` (below 1024 px), `tablet-up`, and `desktop-up` are the only place media queries are written, so components never hard-code a width. The app content area also uses a container query (`app-content`), which lets a screen react to the space beside the open AI chat drawer rather than to the window. Below 768 px the main navigation becomes a bottom bar (`AppBottomNav`, 48 px tap targets); at wider sizes it is hidden.
 
+### Dashboard cards
+
+| Piece                                                                                                 | Where                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Index cards (level, today's move, one-month line)                                                     | `pages/DashboardPage/components/MarketIndexCard`, `MarketIndicesRow`                                                    |
+| Index data (quotes and daily history from the existing API, refreshed every 5 minutes)                | `hooks/useMarketIndexData.ts`                                                                                           |
+| Index list and defaults                                                                               | `DASHBOARD_MARKET_INDICES` in `constants.ts`                                                                            |
+| Desktop arrange mode (pencil → minus to hide, drag to reorder; list button opens the checkbox dialog) | `MarketIndicesRow`, `hooks/useMarketIndexVisibility.ts`                                                                 |
+| Mobile: pencil opens the dialog; index row sits above News                                            | `DashboardPage.module.scss` (`order` under `mobile`)                                                                    |
+| Saved visibility and order (this browser; survives refresh and re-login)                              | `utils/marketIndexVisibilityStorage.ts`, key `DASHBOARD_MARKET_INDICES_LAYOUT_STORAGE_KEY`                              |
+| Index ticker page (level without `$`, no EUR conversion)                                              | `isMarketIndexTicker` in `utils/tickerRoute.ts`, `utils/indexLevelDisplay.ts`                                           |
+| Whole-card click                                                                                      | `hooks/useCardNavigation.ts`: ignores buttons, links, charts, text selection, double clicks, and viewports below 768 px |
+| Corner arrow link (keyboard and screen reader entry)                                                  | `components/CardCornerLink`                                                                                             |
+
+The saved layout holds only display preferences in `localStorage`.
+
+### Asset-class badges on the ticker page
+
+| Piece                         | Where                                                |
+| ----------------------------- | ---------------------------------------------------- |
+| Colored badges + basis dialog | `pages/TickerDetailPage/components/AssetClassBadges` |
+| API client                    | `fetchStockAssetClass` in `api/stockApi.ts`          |
+| Badge colors                  | `ASSET_CLASS_BADGE_COLORS` in `constants.ts`         |
+
+Badges appear only when `GET /api/stocks/asset-class/:ticker` returns explicit evidence. Empty list or request failure shows nothing.
+
+### Stock Matrix market movers
+
+On `/screener`, `MarketMoversPanel` lists Yahoo gainers and losers. Each ticker name is a link to `/ticker/:ticker`. The `+` button still only adds the symbol to the comparison matrix.
+
 ### AI chat drawer
 
 The chat is one drawer that follows the user across screens. The drawer is a container; its parts are separate components.
 
-| File | Role |
-|------|------|
-| `TickerChatDrawer.tsx` | Container: quota, send, **New chat**, **Previous chat**, open/close |
-| `TickerChatMessageList.tsx` | Messages with markdown, quote strip, and chart card |
-| `ChatTickerChartCard.tsx` | Price chart inside a reply when the question names a ticker that is not on the open page |
-| `TickerChatComposer.tsx` | Input and the **Share my portfolio data with this chat** checkbox |
-| `TickerChatSuggestions.tsx` | Suggestion chips for the open screen |
-| `tickerChatDrawer.helpers.ts` | Builds the screen context and trims the history sent to the API |
-| `utils/tickerChatSession.ts` | Thread storage in `sessionStorage`, including archived threads |
+| File                          | Role                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `TickerChatDrawer.tsx`        | Container: quota, send, **New chat**, **Previous chat**, open/close                      |
+| `TickerChatMessageList.tsx`   | Messages with markdown, quote strip, and chart card                                      |
+| `ChatTickerChartCard.tsx`     | Price chart inside a reply when the question names a ticker that is not on the open page |
+| `TickerChatComposer.tsx`      | Input and the **Share my portfolio data with this chat** checkbox                        |
+| `TickerChatSuggestions.tsx`   | Suggestion chips for the open screen                                                     |
+| `tickerChatDrawer.helpers.ts` | Builds the screen context and trims the history sent to the API                          |
+| `utils/tickerChatSession.ts`  | Thread storage in `sessionStorage`, including archived threads                           |
 
 Rules the code follows:
 
@@ -309,30 +339,30 @@ Chrome Lighthouse on [https://www.kreptonanalytics.com/dashboard](https://www.kr
 
 ## Files in this folder
 
-| Path | Contents |
-|------|----------|
+| Path                           | Contents                                                     |
+| ------------------------------ | ------------------------------------------------------------ |
 | [screenshots/](./screenshots/) | Desktop, phone, and Lighthouse screenshots used on this page |
 
 ## Requirements Checklist
 
-| # | Requirement | Status | Evidence |
-|---|-------------|--------|----------|
-| 1 | SPA + modern framework | ✅ | React 19 + Vite |
-| 2 | Architecture diagram / stack justification | ✅ | This file + [tech-stack](../thesis/docs/02-technical/tech-stack.md) |
-| 3 | 3–4+ routes | ✅ | `frontend/src/router/AppRouter.tsx` |
-| 4 | Global state | ✅ | Redux Toolkit, `frontend/src/store/index.ts` |
-| 5 | Typed API client | ✅ | TypeScript + `frontend/src/api/` |
-| 6 | Forms + validation, lists, filter/search | ✅ | Auth, portfolio holdings, screener |
-| 7 | Responsive desktop + mobile | ✅ | Landing, dashboard, and portfolio screenshots above |
-| 8 | ESLint + Prettier | ✅ | `frontend` scripts `lint`, `format:check` |
-| 9 | Global errors + user-visible messages; 401/403/404/500 | ✅ | Axios interceptor, `toApiRequestError`, `ErrorBanner`, `AppErrorBoundary`; status table in [Error handling](#error-handling) |
-| 10 | Skeleton/loading on async fetches | ✅ | `Skeleton`, `AsyncStatePanel`; search and auth keep a button spinner |
-| 11 | Unit tests ≥ 3 components + 1–2 e2e | ✅ | Jest + React Testing Library, 430 tests in 124 suites, 80% coverage gate (86.9% statements); Playwright `frontend/e2e/login.spec.ts` |
-| 12 | No tokens in code | ✅ | HttpOnly cookie; `localStorage` holds theme and UI preferences only |
-| 13 | Max: lazy routes + RTK + charts/theme | ✅ | Lazy routes, Redux Toolkit, charts, light/dark theme |
-| 14 | Max: performance evidence | ✅ | Production dashboard Lighthouse: Performance 98 (2026-11-22) |
-| 15 | Max: accessibility check | ✅ | Contrast, landmarks, labels, headings, keyboard pass. Lighthouse Accessibility 98 on the same report |
-| 16 | Architecture approach, layers, API documentation, user flows | ✅ | Layer diagram above, [API the client works with](#api-the-client-works-with), route and cookie-session diagrams |
+| #   | Requirement                                                  | Status | Evidence                                                                                                                             |
+| --- | ------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | SPA + modern framework                                       | ✅     | React 19 + Vite                                                                                                                      |
+| 2   | Architecture diagram / stack justification                   | ✅     | This file + [tech-stack](../thesis/docs/02-technical/tech-stack.md)                                                                  |
+| 3   | 3–4+ routes                                                  | ✅     | `frontend/src/router/AppRouter.tsx`                                                                                                  |
+| 4   | Global state                                                 | ✅     | Redux Toolkit, `frontend/src/store/index.ts`                                                                                         |
+| 5   | Typed API client                                             | ✅     | TypeScript + `frontend/src/api/`                                                                                                     |
+| 6   | Forms + validation, lists, filter/search                     | ✅     | Auth, portfolio holdings, screener                                                                                                   |
+| 7   | Responsive desktop + mobile                                  | ✅     | Landing, dashboard, and portfolio screenshots above                                                                                  |
+| 8   | ESLint + Prettier                                            | ✅     | `frontend` scripts `lint`, `format:check`                                                                                            |
+| 9   | Global errors + user-visible messages; 401/403/404/500       | ✅     | Axios interceptor, `toApiRequestError`, `ErrorBanner`, `AppErrorBoundary`; status table in [Error handling](#error-handling)         |
+| 10  | Skeleton/loading on async fetches                            | ✅     | `Skeleton`, `AsyncStatePanel`; search and auth keep a button spinner                                                                 |
+| 11  | Unit tests ≥ 3 components + 1–2 e2e                          | ✅     | Jest + React Testing Library, 483 tests in 135 suites, 80% coverage gate (86.8% statements); Playwright `frontend/e2e/login.spec.ts` |
+| 12  | No tokens in code                                            | ✅     | HttpOnly cookie; `localStorage` holds theme and UI preferences only                                                                  |
+| 13  | Max: lazy routes + RTK + charts/theme                        | ✅     | Lazy routes, Redux Toolkit, charts, light/dark theme                                                                                 |
+| 14  | Max: performance evidence                                    | ✅     | Production dashboard Lighthouse: Performance 98 (2026-11-22)                                                                         |
+| 15  | Max: accessibility check                                     | ✅     | Contrast, landmarks, labels, headings, keyboard pass. Lighthouse Accessibility 98 on the same report                                 |
+| 16  | Architecture approach, layers, API documentation, user flows | ✅     | Layer diagram above, [API the client works with](#api-the-client-works-with), route and cookie-session diagrams                      |
 
 ## References
 

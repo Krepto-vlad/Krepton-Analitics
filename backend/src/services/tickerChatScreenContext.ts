@@ -35,7 +35,11 @@ import type {
   StockQuote,
 } from '../types/stock.types.js';
 import { getTodayIsoDate, parseDisplayCurrency } from '../utils/displayCurrency.js';
-import { assertValidTickerSymbol, TICKER_FORMAT_ERROR_MESSAGE } from '../utils/tickerValidation.js';
+import {
+  assertValidTickerSymbol,
+  isMarketIndexTicker,
+  TICKER_FORMAT_ERROR_MESSAGE,
+} from '../utils/tickerValidation.js';
 import { isBacktestPeriod, runStockBacktest } from './backtestService.js';
 import { convertAmountForDisplay } from './currencyConversionService.js';
 import { getMarketMovers } from './marketMoversService.js';
@@ -67,10 +71,18 @@ function formatPercent(value: number | null): string {
   return value === null ? 'n/a' : `${value.toFixed(1)}%`;
 }
 
+function formatIndexLevel(amount: number): string {
+  return amount.toFixed(2);
+}
+
 function formatPrice(item: StockCompareItem): string {
   const price = readFiniteNumber(item.price);
   if (price === null) {
     return 'n/a';
+  }
+
+  if (isMarketIndexTicker(item.ticker)) {
+    return formatIndexLevel(price);
   }
 
   return `${item.currency} ${price.toFixed(2)}`;
@@ -132,6 +144,12 @@ function isTickerChatChartPeriod(value: string): value is TickerChatChartPeriod 
 
 function formatMoney(currency: string, amount: number): string {
   return `${currency} ${amount.toFixed(2)}`;
+}
+
+function formatChartPoint(ticker: string, currency: string, amount: number): string {
+  return isMarketIndexTicker(ticker)
+    ? `level ${formatIndexLevel(amount)}`
+    : formatMoney(currency, amount);
 }
 
 function periodReturnFromCandles(
@@ -213,31 +231,37 @@ export function buildTickerChatTickerScreen(params: {
 }): ResolvedTickerChatScreen {
   const name = params.fundamentals.name.trim() || params.ticker;
   const currency = params.fundamentals.currency || 'USD';
+  const isIndex = isMarketIndexTicker(params.ticker);
+  const subjectLabel = isIndex ? 'market index' : 'company';
+  const latestLabel = isIndex ? 'Latest level' : 'Latest price';
   const promptText = [
-    'OPEN PAGE SNAPSHOT — the price chart and fundamentals for one company in Krepton.',
+    `OPEN PAGE SNAPSHOT — the chart and fundamentals for one ${subjectLabel} in Krepton.`,
     'Background only. Use these figures only if the user asked about this chart.',
     'Do not tell the user to buy, sell, or size a trade.',
-    'The figures below are Krepton data. Bar cards use the same period return, P/E, revenue growth, and profit margin.',
+    isIndex
+      ? 'The figures below are Krepton index levels (points, not currency). Bar cards use the same period return.'
+      : 'The figures below are Krepton data. Bar cards use the same period return, P/E, revenue growth, and profit margin.',
     'Do not invent different values. Do not describe a zoom level or a drawing that is not listed here.',
     `Period: ${params.periodLabel}.`,
-    `${params.ticker} (${name}): start ${formatMoney(currency, params.startPrice)}, end ${formatMoney(currency, params.endPrice)}, return ${formatSignedPercent(params.returnPercent)}.`,
-    `Latest price ${formatPrice(params.fundamentals)}.`,
-    `P/E ${formatMultiple(metricValue(params.fundamentals, 'peRatio'))}, revenue growth ${formatPercent(metricValue(params.fundamentals, 'revenueGrowth'))}, profit margin ${formatPercent(metricValue(params.fundamentals, 'profitMargin'))}.`,
+    `${params.ticker} (${name}): start ${formatChartPoint(params.ticker, currency, params.startPrice)}, end ${formatChartPoint(params.ticker, currency, params.endPrice)}, return ${formatSignedPercent(params.returnPercent)}.`,
+    `${latestLabel} ${formatPrice(params.fundamentals)}.`,
+    isIndex
+      ? 'Equity fundamentals such as P/E do not apply to this index.'
+      : `P/E ${formatMultiple(metricValue(params.fundamentals, 'peRatio'))}, revenue growth ${formatPercent(metricValue(params.fundamentals, 'revenueGrowth'))}, profit margin ${formatPercent(metricValue(params.fundamentals, 'profitMargin'))}.`,
   ].join('\n');
 
   const referencePrices = [params.startPrice, params.endPrice, params.fundamentals.price].filter(
     (price): price is number => typeof price === 'number' && Number.isFinite(price) && price > 0
   );
 
-  return {
-    promptText,
-    displayBlocks: [
-      {
-        kind: 'backtest-bars',
-        title: params.periodLabel,
-        rows: [{ label: params.ticker, returnPercent: params.returnPercent }],
-      },
-      ...TICKER_CHAT_COMPARE_BAR_METRICS.map((metric) => ({
+  const periodReturnBlock: TickerChatDisplayBlock = {
+    kind: 'backtest-bars',
+    title: params.periodLabel,
+    rows: [{ label: params.ticker, returnPercent: params.returnPercent }],
+  };
+  const fundamentalBlocks: TickerChatDisplayBlock[] = isIndex
+    ? []
+    : TICKER_CHAT_COMPARE_BAR_METRICS.map((metric) => ({
         kind: 'compare-bars' as const,
         metricKey: metric.key,
         title: metric.title,
@@ -249,8 +273,11 @@ export function buildTickerChatTickerScreen(params: {
             value: metricValue(params.fundamentals, metric.key),
           },
         ],
-      })),
-    ],
+      }));
+
+  return {
+    promptText,
+    displayBlocks: [periodReturnBlock, ...fundamentalBlocks],
     referencePrices,
   };
 }

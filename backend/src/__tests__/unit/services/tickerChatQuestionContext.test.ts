@@ -135,4 +135,42 @@ describe('resolveQuestionMarket', () => {
       })
     );
   });
+
+  it('keeps the caret on an explicit index ticker and formats it as a level', async () => {
+    mockedQuotes.mockResolvedValue([
+      {
+        ...buildEmptyStockQuote('^GSPC'),
+        name: 'S&P 500',
+        price: 7182.78,
+        changePercent: -0.25,
+        currency: 'USD',
+      },
+    ]);
+
+    const market = await resolveQuestionMarket('How is ^GSPC today?', null);
+
+    expect(mockedQuotes).toHaveBeenCalledWith(['^GSPC']);
+    expect(market.focusTicker).toBe('^GSPC');
+    expect(market.chartTicker).toBe('^GSPC');
+    expect(market.promptText).toContain('level 7182.78');
+    expect(market.promptText).not.toContain('USD 7182.78');
+  });
+
+  it('resolves a dashboard index alias without a search call', async () => {
+    mockedQuotes.mockResolvedValue([
+      {
+        ...buildEmptyStockQuote('^IXIC'),
+        name: 'NASDAQ Composite',
+        price: 23000,
+        changePercent: 1.2,
+        currency: 'USD',
+      },
+    ]);
+
+    const market = await resolveQuestionMarket('What about the Nasdaq today?', null);
+
+    expect(mockedSearch).not.toHaveBeenCalled();
+    expect(mockedQuotes).toHaveBeenCalledWith(['^IXIC']);
+    expect(market.focusTicker).toBe('^IXIC');
+  });
 });

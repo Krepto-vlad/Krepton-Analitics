@@ -9,6 +9,10 @@ jest.mock('../../../services/stockService.js', () => ({
   getStockFundamentals: jest.fn(),
 }));
 
+jest.mock('../../../services/assetClassService.js', () => ({
+  getStockAssetClass: jest.fn(),
+}));
+
 jest.mock('../../../services/marketMoversService.js', () => ({
   getMarketMovers: jest.fn(),
 }));
@@ -29,6 +33,7 @@ jest.mock('../../../services/backtestService.js', () => {
 });
 
 import {
+  getAssetClassForTicker,
   getBacktest,
   getCompare,
   getFundamentals,
@@ -41,6 +46,7 @@ import {
   getTickerTape,
   searchTickers,
 } from '../../../controllers/stockController.js';
+import { getStockAssetClass } from '../../../services/assetClassService.js';
 import { runStockBacktest } from '../../../services/backtestService.js';
 import { getMarketMovers } from '../../../services/marketMoversService.js';
 import { getPortfolioNews } from '../../../services/newsService.js';
@@ -60,6 +66,7 @@ const mockedQuote = getStockQuote as jest.MockedFunction<typeof getStockQuote>;
 const mockedQuotes = getStockQuotes as jest.MockedFunction<typeof getStockQuotes>;
 const mockedHistory = getStockHistory as jest.MockedFunction<typeof getStockHistory>;
 const mockedSector = getStockSector as jest.MockedFunction<typeof getStockSector>;
+const mockedAssetClass = getStockAssetClass as jest.MockedFunction<typeof getStockAssetClass>;
 const mockedSearch = searchStocks as jest.MockedFunction<typeof searchStocks>;
 const mockedTape = getTickerTapeQuotes as jest.MockedFunction<typeof getTickerTapeQuotes>;
 const mockedCompare = getStockCompare as jest.MockedFunction<typeof getStockCompare>;
@@ -82,6 +89,32 @@ describe('stockController', () => {
     await getSectorForTicker(createMockRequest({ params: { ticker: 'aapl' } }), asResponse(res));
 
     expect(mockedQuote).toHaveBeenCalledWith('AAPL');
+  });
+
+  it('returns asset-class badges for a valid ticker', async () => {
+    mockedAssetClass.mockResolvedValue({
+      ticker: 'VOO',
+      badges: [
+        { assetClass: 'equities', label: 'Equities' },
+        { assetClass: 'sp500', label: 'S&P 500' },
+      ],
+      basis: {
+        evidence: 'explicit',
+        quoteType: 'ETF',
+        categoryName: 'Large Blend',
+        nameSignal: 'S&P 500 / 500 Index in fund name',
+        classifiedAt: '2026-11-26T12:00:00.000Z',
+      },
+    });
+    const res = createMockResponse();
+
+    await getAssetClassForTicker(createMockRequest({ params: { ticker: 'voo' } }), asResponse(res));
+
+    expect(mockedAssetClass).toHaveBeenCalledWith('VOO');
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: expect.objectContaining({ ticker: 'VOO', badges: expect.any(Array) }),
+    });
   });
 
   it('batches quotes and rejects empty or oversized lists', async () => {

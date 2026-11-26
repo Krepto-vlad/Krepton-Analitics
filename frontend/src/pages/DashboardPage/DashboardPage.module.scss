@@ -21,7 +21,12 @@
   gap: $space-4;
 }
 
+.marketIndices {
+  order: 1;
+}
+
 .topRow {
+  order: 2;
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -52,6 +57,7 @@
 }
 
 .middleRow {
+  order: 3;
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: 3fr 2fr;
@@ -81,6 +87,17 @@
 }
 
 .bottomRow {
+  order: 4;
   flex: 0 0 auto;
   min-height: var(--dashboard-panel-height);
+}
+
+@include mobile {
+  .marketIndices {
+    order: 4;
+  }
+
+  .bottomRow {
+    order: 5;
+  }
 }

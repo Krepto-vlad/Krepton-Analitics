@@ -15,6 +15,47 @@ export const REBALANCING_ASSET_CLASSES = [
 
 export type RebalancingAssetClass = (typeof REBALANCING_ASSET_CLASSES)[number];
 
+/** User-facing labels for ticker badges and mapping tables. Match sleeve wording where possible. */
+export const REBALANCING_ASSET_CLASS_LABELS: Record<RebalancingAssetClass, string> = {
+  equities: 'Equities',
+  sp500: 'S&P 500',
+  us_total: 'US Total Stock Market',
+  intl_stock: 'Total International Stocks',
+  lt_bonds: 'Long-Term Bonds',
+  it_bonds: 'Intermediate Bonds',
+  core_bond: 'US Aggregate Bonds',
+  gold: 'Gold',
+  commodities: 'Commodities',
+  cash: 'Short-term Treasuries / cash-like',
+  tbill: 'Treasury Bills',
+  other: 'Other',
+};
+
+/** Equity subclasses also show a parent Equities badge on the ticker page. */
+export const REBALANCING_EQUITY_SUBCLASS_ASSET_CLASSES = [
+  'sp500',
+  'us_total',
+  'intl_stock',
+] as const;
+
+export type RebalancingEquitySubclassAssetClass =
+  (typeof REBALANCING_EQUITY_SUBCLASS_ASSET_CLASSES)[number];
+
+export const REBALANCING_ASSET_CLASS_BADGE_COLORS: Record<RebalancingAssetClass, string> = {
+  equities: '#0f766e',
+  sp500: '#0d9488',
+  us_total: '#14b8a6',
+  intl_stock: '#0284c7',
+  lt_bonds: '#6366f1',
+  it_bonds: '#3b82f6',
+  core_bond: '#4f46e5',
+  gold: '#d97706',
+  commodities: '#c2410c',
+  cash: '#64748b',
+  tbill: '#94a3b8',
+  other: '#64748b',
+};
+
 export const REBALANCING_STRATEGY_IDS = [
   'warren-buffett-9010',
   'ray-dalio-all-weather',

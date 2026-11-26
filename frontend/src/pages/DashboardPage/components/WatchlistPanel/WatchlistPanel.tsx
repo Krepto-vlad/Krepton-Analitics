@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
-import { Radio, ChevronRight, Star } from 'lucide-react';
+import { Radio, Star } from 'lucide-react';
 import type { Currency } from '../../../../constants';
 import {
   buildTickerDetailPath,
+  DASHBOARD_CARD_LINKS,
+  DASHBOARD_ROW_NAVIGATION_ATTRIBUTE,
   LOADING_MESSAGES,
   PORTFOLIO_WATCHLIST_PATH,
 } from '../../../../constants';
@@ -14,8 +16,10 @@ import {
   formatMoney,
   getTodayIsoDate,
 } from '../../../../utils/moneyDisplay';
+import { useCardNavigation } from '../../../../hooks/useCardNavigation';
 import { TickerAvatar } from '../../../../components/ui';
-import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
+import { CardCornerLink } from '../../../../components/CardCornerLink/CardCornerLink';
+import { PanelEmptyState } from '../../../../components/PanelEmptyState/PanelEmptyState';
 import styles from './WatchlistPanel.module.scss';
 
 interface WatchlistPanelProps {
@@ -65,19 +69,20 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
   }
 
   const isEmpty = !isLoading && watchlist.length === 0;
+  const isNavigable = !isLoading && !isEmpty;
+  const handleCardClick = useCardNavigation(isNavigable ? DASHBOARD_CARD_LINKS.watchlist.to : null);
 
   return (
-    <div className={styles.card}>
+    <div
+      className={`${styles.card} ${isNavigable ? styles.cardClickable : ''}`}
+      onClick={handleCardClick}
+    >
       <div className={styles.cardHeader}>
         <div className={styles.headerLeft}>
           <span className={styles.cardLabel}>REAL-TIME FEED</span>
           <span className={styles.cardTitle}>Watchlist</span>
         </div>
         <div className={styles.headerActions}>
-          <Link to={PORTFOLIO_WATCHLIST_PATH} className={styles.portfolioLink}>
-            View Watchlist
-            <ChevronRight size={14} />
-          </Link>
           <div
             className={styles.liveClock}
             data-ready={!isLoading && !isEmpty ? 'true' : 'false'}
@@ -90,7 +95,7 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
       </div>
 
       {isLoading || isEmpty ? (
-        <DashboardPanelEmptyState
+        <PanelEmptyState
           isLoading={isLoading}
           loadingPreset="list"
           loadingMessage={LOADING_MESSAGES.WATCHLIST}
@@ -113,7 +118,11 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
               const isPositive = item.changePercent >= 0;
 
               return (
-                <div key={item.id} className={styles.item}>
+                <div
+                  key={item.id}
+                  className={styles.item}
+                  {...{ [DASHBOARD_ROW_NAVIGATION_ATTRIBUTE]: buildTickerDetailPath(item.ticker) }}
+                >
                   <Link to={buildTickerDetailPath(item.ticker)} className={styles.itemTickerLink}>
                     <div className={styles.itemTicker}>
                       <TickerAvatar ticker={item.ticker} logoUrl={item.logoUrl} />
@@ -138,6 +147,13 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
           </div>
         </>
       )}
+
+      {isNavigable ? (
+        <CardCornerLink
+          to={DASHBOARD_CARD_LINKS.watchlist.to}
+          label={DASHBOARD_CARD_LINKS.watchlist.label}
+        />
+      ) : null}
     </div>
   );
 }

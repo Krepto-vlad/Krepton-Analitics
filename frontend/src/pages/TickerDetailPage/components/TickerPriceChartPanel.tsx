@@ -21,6 +21,7 @@ interface TickerPriceChartPanelProps {
   tradeMarkers?: SeriesMarker<Time>[];
   trades?: PortfolioTransaction[];
   fxRates?: Record<Currency, number>;
+  formatAsIndexLevel?: boolean;
 }
 
 function resolveTradeDateLabel(trade: PortfolioTransaction): string {
@@ -49,12 +50,14 @@ export function TickerPriceChartPanel({
   tradeMarkers = [],
   trades = [],
   fxRates = { USD: 1, EUR: 1 },
+  formatAsIndexLevel = false,
 }: TickerPriceChartPanelProps) {
   const { containerRef, hoveredTrade } = useTickerPriceChart(
     candles,
     currency,
     tradeMarkers,
-    trades
+    trades,
+    { formatAsIndexLevel }
   );
 
   const tradeSourceCurrency = (hoveredTrade?.trade.currency ?? currency) as Currency;

@@ -21,7 +21,7 @@ Six test layers run in CI:
 
 ### Decision
 
-**Default backend suite** (`npm run test:coverage`): Jest with ts-jest, 68 suites and 440 tests (84.7% statements, 65.3% branches). Istanbul gate in `backend/jest.config.js`: statements, lines, and functions at 80% or more, branches at 60% or more. The suite under `src/__tests__/db/` is excluded from this run because it needs a database.
+**Default backend suite** (`npm run test:coverage`): Jest with ts-jest, 70 suites and 451 tests (84.9% statements, 65.5% branches). Istanbul gate in `backend/jest.config.js`: statements, lines, and functions at 80% or more, branches at 60% or more. The suites under `src/__tests__/db/` and `src/__tests__/sentinel/` are excluded from this run (database and live Yahoo respectively).
 
 **Property tests** (`src/__tests__/property/`): fast-check generates 300 cases per property. They cover:
 
@@ -48,19 +48,19 @@ Six test layers run in CI:
 
 **Load test** (`backend/scripts/runLoadTest.ts`, run by `npm run load:test`): starts the real Express app on an ephemeral port and seeds 1000 synthetic anonymous portfolios (5 watchlist items and 10 transactions each) into the test database. Each virtual user gets its own signed JWT cookie, so the per-user read limiter is exercised the way production traffic would exercise it. Three scenarios run for 10 seconds each:
 
-| Scenario | Path | Load |
-|----------|------|------|
-| `health-stress` | `GET /health` | 100 connections, no rate cap |
-| `watchlist-read` | `GET /api/portfolio/watchlist` | 50 connections, 400 requests/s, 1000 different users |
+| Scenario            | Path                              | Load                                                 |
+| ------------------- | --------------------------------- | ---------------------------------------------------- |
+| `health-stress`     | `GET /health`                     | 100 connections, no rate cap                         |
+| `watchlist-read`    | `GET /api/portfolio/watchlist`    | 50 connections, 400 requests/s, 1000 different users |
 | `transactions-read` | `GET /api/portfolio/transactions` | 50 connections, 400 requests/s, 1000 different users |
 
 The run fails when any response is not 2xx, a request errors or times out, or p99 latency exceeds 500 ms. Request logging is switched off (`LOG_LEVEL=silent`), so the numbers cover the API and PostgreSQL. A JSON report is written to `backend/coverage/load-test/` and uploaded as the CI artifact `backend-load-test-report`. A local run on a development laptop produced:
 
-| Scenario | Requests | Average ms | p99 ms | Non-2xx |
-|----------|----------|------------|--------|---------|
-| `health-stress` | 107,307 | 8.7 | 13 | 0 |
-| `watchlist-read` | 4,000 | 14.2 | 93 | 0 |
-| `transactions-read` | 4,000 | 12.2 | 47 | 0 |
+| Scenario            | Requests | Average ms | p99 ms | Non-2xx |
+| ------------------- | -------- | ---------- | ------ | ------- |
+| `health-stress`     | 107,307  | 8.7        | 13     | 0       |
+| `watchlist-read`    | 4,000    | 14.2       | 93     | 0       |
+| `transactions-read` | 4,000    | 12.2       | 47     | 0       |
 
 **CI run.** The `Backend (PostgreSQL integration)` job of the CI workflow runs both on every push, against a PostgreSQL 16 service container on a GitHub-hosted runner (run #64 on `develop`):
 
@@ -70,11 +70,11 @@ The run fails when any response is not 2xx, a request errors or times out, or p9
 
 - Load test on the same runner:
 
-  | Scenario | Requests | Average ms | p99 ms | Non-2xx | Errors |
-  |----------|----------|------------|--------|---------|--------|
-  | `health-stress` | 34,650 | 28.5 | 41 | 0 | 0 |
-  | `watchlist-read` | 4,012 | 25.4 | 164 | 0 | 0 |
-  | `transactions-read` | 4,009 | 22.8 | 92 | 0 | 0 |
+  | Scenario            | Requests | Average ms | p99 ms | Non-2xx | Errors |
+  | ------------------- | -------- | ---------- | ------ | ------- | ------ |
+  | `health-stress`     | 34,650   | 28.5       | 41     | 0       | 0      |
+  | `watchlist-read`    | 4,012    | 25.4       | 164    | 0       | 0      |
+  | `transactions-read` | 4,009    | 22.8       | 92     | 0       | 0      |
 
   ![CI log of the load test: three scenarios passed](./screenshots/ci-load-test.png)
 
@@ -90,16 +90,18 @@ The run fails when any response is not 2xx, a request errors or times out, or p9
   - `POST /api/portfolio/ticker-chat` still required `ticker`, described `includeHoldingContext` as off by default, and omitted `screenContext` and the response schema, although the chat is now page-aware and the profile switch decides what the server sends.
 - Seeded-fault checks: deliberately breaking `portfolioRepository.ts` made two integration tests fail. Breaking trade-fingerprint casing, orphan-sell handling, and allocation rounding made three property tests fail. Each change was reverted afterwards.
 
-**Frontend**: Jest with Testing Library and engine unit tests, gated at 80% in `frontend/jest.config.cjs`; Playwright e2e in `frontend/e2e/`.
+**Asset-class sentinel** (`npm run test:sentinel`, `jest.sentinel.config.js`): live Yahoo checks for a fixed list of known tickers against `getStockAssetClass`. It lives under `src/__tests__/sentinel/` and is not part of the coverage gate. The separate workflow `.github/workflows/asset-class-sentinel.yml` runs it on a nightly schedule and on `workflow_dispatch`; it does not block deploy.
+
+**Frontend**: Jest with Testing Library and engine unit tests, gated at 80% in `frontend/jest.config.cjs` (currently 135 suites / 483 tests, 86.8% statements); Playwright e2e in `frontend/e2e/`.
 
 Coverage HTML/lcov is a **CI artifact**, not a committed folder. Husky `pre-push` and GitHub Actions both run `test:coverage` in `backend/` and `frontend/`.
 
 ### Alternatives Considered
 
-| Alternative | Why not |
-|-------------|---------|
-| Only Cypress later | Component tests use Testing Library; the login flow uses Playwright |
-| Coverage from snapshots | Tests have to exercise the logic, not only a stored snapshot |
+| Alternative              | Why not                                                                                  |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| Only Cypress later       | Component tests use Testing Library; the login flow uses Playwright                      |
+| Coverage from snapshots  | Tests have to exercise the logic, not only a stored snapshot                             |
 | Mocked repositories only | SQL, constraints, and migrations are part of the logic and run against a real PostgreSQL |
 
 ## How to run
@@ -120,30 +122,35 @@ cd backend && TEST_DATABASE_URL=postgresql://user:password@localhost:5432/krepto
 
 # frontend coverage report
 cd frontend && npm run test:coverage
+
+# backend — optional live Yahoo asset-class check (not in CI coverage)
+cd backend && npm run test:sentinel
 ```
 
 PowerShell: `$env:TEST_DATABASE_URL = 'postgresql://user:password@localhost:5432/krepton_test'; npm run test:db`.
 
 ## Requirements Checklist
 
-| # | Requirement | Status | Evidence |
-|---|-------------|--------|----------|
-| 1 | Documented strategy | ✅ | This ADR |
-| 2 | Coverage ≥ 70% + report | ✅ | Jest threshold **80%**; CI artifacts `backend-coverage` and `backend-db-coverage` |
-| 3 | Unit tests + edge cases | ✅ | Auth, portfolio, import, AI quota/chat, controllers; property tests for validation, fingerprints, currency math, allocations |
-| 4 | Integration (API, auth, DB) | ✅ | Jest HTTP: `/health`, 401 portfolio, 400 search (mocked). `backend-db` CI job: all migrations, every repository, and the authenticated API contract flow against a **PostgreSQL 16 service container**. Playwright CI job: migrate + `seed:demo` + login → dashboard |
-| 5 | FE component and/or e2e | ✅ | RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel, Skeleton; Playwright: `frontend/e2e/login.spec.ts` (route guard + login → dashboard smoke) |
-| 6 | Tests in CI logs | ✅ | `.github/workflows/ci.yml` — `backend`, `backend-db`, `frontend`, and `e2e` jobs; CI log screenshots in [screenshots/](./screenshots/) |
-| 7 | Naming / folders | ✅ | `*.test.ts` / `__tests__`; DB suite in `__tests__/db`, property tests in `__tests__/property`; e2e in `frontend/e2e/*.spec.ts` |
-| 8 | How to run locally | ✅ | Commands above |
-| 9 | Max: coverage quality gate | ✅ | Backend and frontend: statements, lines, and functions ≥ 80%; backend branches ≥ 60% |
-| 10 | Max: property-based and contract tests | ✅ | `src/__tests__/property/`, `apiContract.db.test.ts` |
-| 11 | Max: load testing | ✅ | `npm run load:test`; CI log screenshot above; CI artifact `backend-load-test-report` |
+| #   | Requirement                            | Status | Evidence                                                                                                                                                                                                                                                             |
+| --- | -------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Documented strategy                    | ✅     | This ADR                                                                                                                                                                                                                                                             |
+| 2   | Coverage ≥ 70% + report                | ✅     | Jest threshold **80%**; CI artifacts `backend-coverage` and `backend-db-coverage`                                                                                                                                                                                    |
+| 3   | Unit tests + edge cases                | ✅     | Auth, portfolio, import, AI quota/chat, controllers; property tests for validation, fingerprints, currency math, allocations                                                                                                                                         |
+| 4   | Integration (API, auth, DB)            | ✅     | Jest HTTP: `/health`, 401 portfolio, 400 search (mocked). `backend-db` CI job: all migrations, every repository, and the authenticated API contract flow against a **PostgreSQL 16 service container**. Playwright CI job: migrate + `seed:demo` + login → dashboard |
+| 5   | FE component and/or e2e                | ✅     | RTL: ErrorBanner, AppErrorBoundary, RequireAuth, AsyncStatePanel, Skeleton; Playwright: `frontend/e2e/login.spec.ts` (route guard + login → dashboard smoke)                                                                                                         |
+| 6   | Tests in CI logs                       | ✅     | `.github/workflows/ci.yml` — `backend`, `backend-db`, `frontend`, and `e2e` jobs; CI log screenshots in [screenshots/](./screenshots/)                                                                                                                               |
+| 7   | Naming / folders                       | ✅     | `*.test.ts` / `__tests__`; DB suite in `__tests__/db`, property tests in `__tests__/property`, sentinel in `__tests__/sentinel`; e2e in `frontend/e2e/*.spec.ts`                                                                                                     |
+| 8   | How to run locally                     | ✅     | Commands above (including `test:sentinel`)                                                                                                                                                                                                                           |
+| 9   | Max: coverage quality gate             | ✅     | Backend and frontend: statements, lines, and functions ≥ 80%; backend branches ≥ 60%                                                                                                                                                                                 |
+| 10  | Max: property-based and contract tests | ✅     | `src/__tests__/property/`, `apiContract.db.test.ts`                                                                                                                                                                                                                  |
+| 11  | Max: load testing                      | ✅     | `npm run load:test`; CI log screenshot above; CI artifact `backend-load-test-report`                                                                                                                                                                                 |
 
 ## References
 
 - `backend/jest.config.js`
 - `backend/jest.db.config.js`
+- `backend/jest.sentinel.config.js`
 - `backend/scripts/runLoadTest.ts`
 - `backend/openapi.yaml`
+- `.github/workflows/asset-class-sentinel.yml`
 - [cicd.md](../ci-cd/README.md)

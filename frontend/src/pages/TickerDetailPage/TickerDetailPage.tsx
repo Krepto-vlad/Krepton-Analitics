@@ -43,12 +43,14 @@ import {
 } from '../../features/watchlist/watchlistSlice';
 import { AsyncStatePanel, ErrorBanner, Skeleton, TickerAvatar } from '../../components/ui';
 import { getRejectedMessage } from '../../utils/apiError';
+import { isMarketIndexTicker, resolveTickerFromRouteParam } from '../../utils/tickerRoute';
 import {
   buildMarketSessionTooltip,
   buildTickerMarketSessionView,
   getMarketSessionBadgeStyle,
   shouldShowMarketSessionChangeLabel,
 } from '../../utils/marketSession';
+import { formatIndexLevel, formatSignedIndexChange } from '../../utils/indexLevelDisplay';
 import {
   convertAmountToDisplayCurrency,
   convertAmountWithRate,
@@ -66,6 +68,7 @@ import {
   formatCompareMetricValue,
   getCompareMetricSecondaryValue,
 } from '../ScreenerPage/utils/compareMatrix';
+import { AssetClassBadges } from './components/AssetClassBadges/AssetClassBadges';
 import { TickerNewsPanel } from './components/TickerNewsPanel';
 import { TickerPriceChartPanel } from './components/TickerPriceChartPanel';
 import styles from './TickerDetailPage.module.scss';
@@ -90,14 +93,6 @@ const EMPTY_TRANSACTIONS: PortfolioTransaction[] = [];
 const DEFAULT_FX_RATES: Record<Currency, number> = { USD: 1, EUR: 1 };
 
 type StockPeriodValue = (typeof STOCK_PERIODS)[number]['value'];
-
-function resolveTickerFromRouteParam(rawTicker: string): string {
-  try {
-    return decodeURIComponent(rawTicker).trim().toUpperCase();
-  } catch {
-    return '';
-  }
-}
 
 function formatSignedChange(change: number, changePercent: number, currency: Currency): string {
   const changePrefix = change >= 0 ? '+' : '';
@@ -133,6 +128,7 @@ export function TickerDetailPage() {
 
   const ticker = resolveTickerFromRouteParam(rawTicker);
   const isValidTicker = TICKER_FORMAT_PATTERN.test(ticker);
+  const isIndexTicker = isMarketIndexTicker(ticker);
   const sessionTooltipId = useId();
 
   const [selectedPeriod, setSelectedPeriod] = useState<StockPeriodValue>(
@@ -228,10 +224,14 @@ export function TickerDetailPage() {
   const marketSessionTooltip = marketSession ? buildMarketSessionTooltip(marketSession) : '';
 
   const displayCandles = useMemo(() => {
+    if (isIndexTicker) {
+      return candles;
+    }
+
     const chartCurrency =
       hasLiveFxRates || priceCurrency === displayCurrency ? displayCurrency : priceCurrency;
     return convertCandlesToDisplayCurrency(candles, priceCurrency, chartCurrency, fxRates);
-  }, [candles, displayCurrency, fxRates, hasLiveFxRates, priceCurrency]);
+  }, [candles, displayCurrency, fxRates, hasLiveFxRates, isIndexTicker, priceCurrency]);
 
   const tradeMarkers = useMemo(
     () => buildTradeChartMarkers(tickerTransactions, displayCandles),
@@ -379,30 +379,36 @@ export function TickerDetailPage() {
 
   const companyName = quote?.name ?? fundamentals?.name ?? ticker;
   const displayPrice = marketSession
-    ? convertAmountToDisplayCurrency(
-        marketSession.displayPrice,
-        priceCurrency,
-        quoteMoneyCurrency,
-        fxRates
-      )
+    ? isIndexTicker
+      ? marketSession.displayPrice
+      : convertAmountToDisplayCurrency(
+          marketSession.displayPrice,
+          priceCurrency,
+          quoteMoneyCurrency,
+          fxRates
+        )
     : null;
   const displayFiftyTwoWeekLow =
     quote?.fiftyTwoWeekLow != null
-      ? convertAmountToDisplayCurrency(
-          quote.fiftyTwoWeekLow,
-          priceCurrency,
-          quoteMoneyCurrency,
-          fxRates
-        )
+      ? isIndexTicker
+        ? quote.fiftyTwoWeekLow
+        : convertAmountToDisplayCurrency(
+            quote.fiftyTwoWeekLow,
+            priceCurrency,
+            quoteMoneyCurrency,
+            fxRates
+          )
       : null;
   const displayFiftyTwoWeekHigh =
     quote?.fiftyTwoWeekHigh != null
-      ? convertAmountToDisplayCurrency(
-          quote.fiftyTwoWeekHigh,
-          priceCurrency,
-          quoteMoneyCurrency,
-          fxRates
-        )
+      ? isIndexTicker
+        ? quote.fiftyTwoWeekHigh
+        : convertAmountToDisplayCurrency(
+            quote.fiftyTwoWeekHigh,
+            priceCurrency,
+            quoteMoneyCurrency,
+            fxRates
+          )
       : null;
   const isInitialLoading =
     isValidTicker &&
@@ -505,6 +511,7 @@ export function TickerDetailPage() {
                     <h2 className={styles.tickerSymbol}>{ticker}</h2>
                     <p className={styles.companyName}>{companyName}</p>
                     <div className={styles.metaRow}>
+                      <AssetClassBadges ticker={ticker} />
                       {fundamentals?.sector && (
                         <span className={styles.metaChip}>{fundamentals.sector}</span>
                       )}
@@ -523,7 +530,9 @@ export function TickerDetailPage() {
                     <>
                       <div className={styles.priceHeader}>
                         <p className={styles.price}>
-                          {formatMoney(displayPrice, quoteMoneyCurrency)}
+                          {isIndexTicker
+                            ? formatIndexLevel(displayPrice)
+                            : formatMoney(displayPrice, quoteMoneyCurrency)}
                         </p>
                         <span className={styles.sessionBadgeWrap}>
                           <button
@@ -557,22 +566,26 @@ export function TickerDetailPage() {
 
                       {marketSession.lines.map((line) => {
                         const isPositive = line.changePercent >= 0;
-                        const displayChange = convertAmountToDisplayCurrency(
-                          line.change,
-                          priceCurrency,
-                          quoteMoneyCurrency,
-                          fxRates
-                        );
+                        const displayChange = isIndexTicker
+                          ? line.change
+                          : convertAmountToDisplayCurrency(
+                              line.change,
+                              priceCurrency,
+                              quoteMoneyCurrency,
+                              fxRates
+                            );
                         return (
                           <p
                             key={line.label}
                             className={`${styles.change} ${isPositive ? styles.positive : styles.negative}`}
                           >
-                            {formatSignedChange(
-                              displayChange,
-                              line.changePercent,
-                              quoteMoneyCurrency
-                            )}
+                            {isIndexTicker
+                              ? formatSignedIndexChange(displayChange, line.changePercent)
+                              : formatSignedChange(
+                                  displayChange,
+                                  line.changePercent,
+                                  quoteMoneyCurrency
+                                )}
                             {shouldShowMarketSessionChangeLabel(
                               line.label,
                               marketSession.sessionLabel
@@ -629,6 +642,7 @@ export function TickerDetailPage() {
                   tradeMarkers={tradeMarkers}
                   trades={tickerTransactions}
                   fxRates={fxRates}
+                  formatAsIndexLevel={isIndexTicker}
                 />
                 <p className={styles.chartZoomHint}>
                   <span className={styles.chartZoomHintPointer}>Ctrl / ⌘ + scroll to zoom</span>
@@ -732,8 +746,9 @@ export function TickerDetailPage() {
                         <div className={styles.statsRow}>
                           <dt className={styles.statLabel}>52-Week Range</dt>
                           <dd className={styles.statValue}>
-                            {formatMoney(displayFiftyTwoWeekLow, quoteMoneyCurrency)} –{' '}
-                            {formatMoney(displayFiftyTwoWeekHigh, quoteMoneyCurrency)}
+                            {isIndexTicker
+                              ? `${formatIndexLevel(displayFiftyTwoWeekLow)} – ${formatIndexLevel(displayFiftyTwoWeekHigh)}`
+                              : `${formatMoney(displayFiftyTwoWeekLow, quoteMoneyCurrency)} – ${formatMoney(displayFiftyTwoWeekHigh, quoteMoneyCurrency)}`}
                           </dd>
                         </div>
                       )}

@@ -66,6 +66,9 @@ export const ROUTES = {
 /** Watchlist UI lives on Portfolio; `/watchlist` redirects here. */
 export const PORTFOLIO_WATCHLIST_PATH = `${ROUTES.PORTFOLIO}?section=watchlist`;
 
+/** Open positions list on the Portfolio page. */
+export const PORTFOLIO_POSITIONS_PATH = `${ROUTES.PORTFOLIO}?section=positions`;
+
 /** Statement importer + SnapTrade connect live on Portfolio. */
 export const PORTFOLIO_IMPORTER_PATH = `${ROUTES.PORTFOLIO}?section=importer`;
 export const BROKER_SYNC_RETURN_QUERY = 'brokerSync';
@@ -506,6 +509,65 @@ export const DASHBOARD_NEWS_INITIAL_VISIBLE = 6;
 export const DASHBOARD_NEWS_LOAD_MORE_STEP = 6;
 /** Locked dashboard panel height so load does not push sibling rows (CLS). */
 export const DASHBOARD_PANEL_HEIGHT_PX = 520;
+/** Arrow in the bottom-right corner of a dashboard card that opens the related page. */
+export const DASHBOARD_CARD_LINK_ICON_SIZE_PX = 16;
+/**
+ * Wait before a card click navigates, so a double or triple click can select a word
+ * or line without leaving the page.
+ */
+export const DASHBOARD_CARD_NAVIGATION_DELAY_MS = 250;
+/** Phones and small tablets: cards keep only the corner arrow, so taps cannot open a page by accident. Matches `mobile` in `_mixins.scss`. */
+export const DASHBOARD_CARD_MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
+/** A row inside a card that opens its own page instead of the card's page. */
+export const DASHBOARD_ROW_NAVIGATION_ATTRIBUTE = 'data-row-navigation-path';
+/** Marks the corner arrow so the card can highlight it while the card is hovered. */
+export const DASHBOARD_CARD_ARROW_ATTRIBUTE = 'data-card-arrow';
+/** Parts of a card that keep their own behaviour and never trigger card navigation. */
+export const DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE = 'data-card-navigation-ignore';
+export const DASHBOARD_CARD_NAVIGATION_IGNORE_SELECTOR = [
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'canvas',
+  `[${DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE}]`,
+].join(',');
+// ─── Dashboard market indices ──────────────────────────────────────────────────
+/** Most followed US benchmarks, shown for reference only (they never count as holdings). */
+export const DASHBOARD_MARKET_INDICES = [
+  { ticker: '^GSPC', label: 'S&P 500' },
+  { ticker: '^IXIC', label: 'Nasdaq Composite' },
+  { ticker: '^DJI', label: 'Dow Jones' },
+  { ticker: '^RUT', label: 'Russell 2000' },
+] as const;
+export const DASHBOARD_INDEX_HISTORY_PERIOD = '1mo';
+export const DASHBOARD_INDEX_HISTORY_INTERVAL = '1d';
+export const DASHBOARD_INDEX_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+export const DASHBOARD_INDEX_LEVEL_FRACTION_DIGITS = 2;
+export const DASHBOARD_INDEX_CHART_COLOR_FALLBACKS = { up: '#2dd4bf', down: '#f87171' } as const;
+export const DASHBOARD_INDEX_SETTINGS_ICON_SIZE_PX = 16;
+/** Legacy key: hidden tickers only. Migrated into the layout preference on first read. */
+export const DASHBOARD_HIDDEN_INDICES_STORAGE_KEY = 'krepton_dashboard_hidden_indices_v1';
+/** Visible index order for this browser. Survives refresh and re-login on the same device. */
+export const DASHBOARD_MARKET_INDICES_LAYOUT_STORAGE_KEY =
+  'krepton_dashboard_market_indices_layout_v2';
+export const DASHBOARD_INDEX_UNAVAILABLE_MESSAGE = 'Index data is unavailable right now.';
+export const DASHBOARD_INDEX_ACCESSIBLE_LABEL_PREFIX = 'Open';
+export const DASHBOARD_INDEX_EDIT_MODE_LABEL = 'Arrange market indices';
+export const DASHBOARD_INDEX_DONE_EDITING_LABEL = 'Done arranging';
+export const DASHBOARD_INDEX_CHOOSE_VISIBLE_LABEL = 'Choose visible market indices';
+export const DASHBOARD_INDEX_HIDE_CARD_LABEL_PREFIX = 'Hide';
+export const DASHBOARD_INDEX_DRAG_HINT = 'Drag to reorder';
+
+/** Destination and spoken name of each dashboard card link. */
+export const DASHBOARD_CARD_LINKS = {
+  health: { to: ROUTES.REBALANCING, label: 'Open rebalancing' },
+  equity: { to: PORTFOLIO_POSITIONS_PATH, label: 'Open portfolio' },
+  positions: { to: PORTFOLIO_POSITIONS_PATH, label: 'Open portfolio positions' },
+  watchlist: { to: PORTFOLIO_WATCHLIST_PATH, label: 'Open watchlist' },
+} as const;
 /** Placeholder sector rows while alignment data hydrates — matches All-Weather buckets. */
 export const DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT = 5;
 export const TICKER_AVATAR_SIZE_PX = {
@@ -673,6 +735,9 @@ export const STRATEGY_DRIFT_ALERT_SESSION_STORAGE_KEY = 'krepton_strategy_drift_
 export const REBALANCING_ALLOCATION_CANCEL_LABEL = 'Cancel';
 export const REBALANCING_PERMANENT_CASH_BUCKET_ID = 'cash';
 export const REBALANCING_PERMANENT_STRATEGY_ID = 'harry-browne-permanent';
+export const REBALANCING_HEALTH_BADGE_HINT_LABEL = 'How to match tickers to these buckets';
+export const REBALANCING_HEALTH_BADGE_HINT_TEXT =
+  'Open a ticker and look at its colored asset-class badges. The names match the buckets on this page, so you can look for stocks and funds that fit a sleeve you are short. Ask the AI chat whether that ticker fits.';
 export const REBALANCING_CASH_SLEEVE_HELP_LABEL = 'How this cash sleeve is counted';
 export const REBALANCING_CASH_SLEEVE_HELP_TEXT =
   'The app counts only Treasury bill funds it can see, such as a 0–3 month T-bill ETF or a Treasury money-market fund. Cash you keep yourself, in a bank or anywhere this portfolio cannot see, is not included. Turn this sleeve off if you hold that reserve yourself. The other three sleeves are then scored as the whole 100%.';
@@ -711,6 +776,29 @@ export const REBALANCING_ASSET_CLASS_COLORS = {
   gold: '#f59e0b',
   commodities: '#f97316',
 } as const;
+
+/** Ticker-page badge colors (readable without relying on green/red P&L cues). */
+export const ASSET_CLASS_BADGE_COLORS = {
+  equities: '#0f766e',
+  sp500: '#0d9488',
+  us_total: '#14b8a6',
+  intl_stock: '#0284c7',
+  lt_bonds: '#6366f1',
+  it_bonds: '#3b82f6',
+  core_bond: '#4f46e5',
+  gold: '#d97706',
+  commodities: '#c2410c',
+  cash: '#64748b',
+  tbill: '#94a3b8',
+  other: '#64748b',
+} as const;
+
+export const ASSET_CLASS_BADGE_FALLBACK_COLOR = '#64748b';
+export const ASSET_CLASS_BASIS_TITLE = 'Classification basis';
+export const ASSET_CLASS_BASIS_INTRO =
+  'Classified by our rebalancing rules from Yahoo quote type and fund profile data. This describes the instrument; it is not suitability advice.';
+export const ASSET_CLASS_BASIS_CLOSE_LABEL = 'Close';
+export const ASSET_CLASS_BADGE_SKELETON_COUNT = 2;
 
 const REBALANCING_DISPLAY_COLOR_BY_HEX: Record<string, string> = {
   [REBALANCING_ASSET_CLASS_COLORS.lt_bonds]: 'var(--color-rebalancing-lt-bonds)',

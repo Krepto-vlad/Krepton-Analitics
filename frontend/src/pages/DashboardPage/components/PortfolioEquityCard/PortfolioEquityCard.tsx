@@ -1,11 +1,19 @@
 import { TrendingUp } from 'lucide-react';
 import type { PortfolioStats, EquityDataPoint } from '../../../../types/portfolio.types';
-import { EQUITY_PERIODS, LOADING_MESSAGES, ROUTES } from '../../../../constants';
+import {
+  DASHBOARD_CARD_LINKS,
+  DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE,
+  EQUITY_PERIODS,
+  LOADING_MESSAGES,
+  PORTFOLIO_POSITIONS_PATH,
+} from '../../../../constants';
+import { useCardNavigation } from '../../../../hooks/useCardNavigation';
 import { useEquityChart } from '../../../../hooks/useEquityChart';
 import type { EquityPeriod } from '../../../../hooks/useEquityChart';
 import type { Currency } from '../../../../constants';
 import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
-import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
+import { CardCornerLink } from '../../../../components/CardCornerLink/CardCornerLink';
+import { PanelEmptyState } from '../../../../components/PanelEmptyState/PanelEmptyState';
 import styles from './PortfolioEquityCard.module.scss';
 
 interface PortfolioEquityCardProps {
@@ -32,10 +40,15 @@ export function PortfolioEquityCard({
   const hasPortfolioData = stats.totalValue > 0 || equityHistory.length > 0;
   // Hide partial/stale numbers while dashboard bootstrap (or currency reload) is in flight.
   const showEmptyState = !isLoading && !hasPortfolioData;
+  const isNavigable = hasPortfolioData && !isLoading;
+  const handleCardClick = useCardNavigation(isNavigable ? DASHBOARD_CARD_LINKS.equity.to : null);
   const showLoadingState = isLoading;
 
   return (
-    <div className={styles.card}>
+    <div
+      className={`${styles.card} ${isNavigable ? styles.cardClickable : ''}`}
+      onClick={handleCardClick}
+    >
       <div className={styles.cardHeader}>
         <div className={styles.cardLabelRow}>
           <TrendingUp size={13} className={styles.cardLabelIcon} />
@@ -63,7 +76,7 @@ export function PortfolioEquityCard({
       </div>
 
       {showEmptyState ? (
-        <DashboardPanelEmptyState
+        <PanelEmptyState
           isLoading={false}
           loadingPreset="chart"
           loadingMessage={LOADING_MESSAGES.PORTFOLIO_EQUITY}
@@ -71,7 +84,7 @@ export function PortfolioEquityCard({
           title="No equity history yet"
           description="Upload holdings or import a broker report to see portfolio value, P&L, and performance over time."
           actionLabel="Add Position"
-          actionTo={`${ROUTES.PORTFOLIO}?section=positions`}
+          actionTo={PORTFOLIO_POSITIONS_PATH}
         />
       ) : (
         <>
@@ -136,9 +149,17 @@ export function PortfolioEquityCard({
       <div
         ref={containerRef}
         className={styles.chartContainer}
+        {...{ [DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE]: '' }}
         data-chart-ready={hasPortfolioData && !isLoading ? 'true' : 'false'}
         aria-hidden={isLoading || !hasPortfolioData}
       />
+
+      {isNavigable ? (
+        <CardCornerLink
+          to={DASHBOARD_CARD_LINKS.equity.to}
+          label={DASHBOARD_CARD_LINKS.equity.label}
+        />
+      ) : null}
     </div>
   );
 }

@@ -90,6 +90,8 @@ describe('MarketMoversPanel', () => {
     );
 
     expect(await screen.findByText('$NVDA')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open NVDA' })).toHaveAttribute('href', '/ticker/NVDA');
+    expect(screen.getByRole('link', { name: 'Open SAP' })).toHaveAttribute('href', '/ticker/SAP');
     expect(screen.getByRole('button', { name: 'NVDA already in comparison' })).toBeDisabled();
     await user.click(screen.getByRole('button', { name: 'Add SAP to comparison' }));
     expect(onAddTicker).toHaveBeenCalledWith({ ticker: 'SAP', name: 'SAP' });

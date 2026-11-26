@@ -9,6 +9,7 @@ import {
   getStockCompare,
   getStockFundamentals,
 } from '../services/stockService.js';
+import { getStockAssetClass } from '../services/assetClassService.js';
 import { getMarketMovers } from '../services/marketMoversService.js';
 import { getPortfolioNews } from '../services/newsService.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -22,6 +23,7 @@ import {
   STOCK_COMPARE_MIN_TICKERS,
   STOCK_HISTORY_BROWSER_CACHE_TTL_S,
   STOCK_FUNDAMENTALS_BROWSER_CACHE_TTL_S,
+  STOCK_ASSET_CLASS_BROWSER_CACHE_TTL_S,
   STOCK_NEWS_BROWSER_CACHE_TTL_S,
   MARKET_MOVERS_BROWSER_CACHE_TTL_S,
   BACKTEST_MAX_TICKERS,
@@ -38,6 +40,7 @@ import type {
   StockHistoryResponse,
   StockSearchResult,
   StockSector,
+  StockAssetClassResponse,
   StockCompareItem,
   StockCompareResponse,
   StockBacktestResponse,
@@ -157,6 +160,17 @@ export async function getSectorForTicker(
 ): Promise<void> {
   const ticker = (req.params as { ticker: string }).ticker;
   const result = await getStockSector(ticker.toUpperCase());
+  res.json({ success: true, data: result });
+}
+
+export async function getAssetClassForTicker(
+  req: Request,
+  res: Response<ApiResponse<StockAssetClassResponse>>
+): Promise<void> {
+  const ticker = (req.params as { ticker: string }).ticker;
+  const normalizedTicker = parseTickerParam(ticker);
+  const result = await getStockAssetClass(normalizedTicker);
+  res.set('Cache-Control', `private, max-age=${STOCK_ASSET_CLASS_BROWSER_CACHE_TTL_S}`);
   res.json({ success: true, data: result });
 }
 

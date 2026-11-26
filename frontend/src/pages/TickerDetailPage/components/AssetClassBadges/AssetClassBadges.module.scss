@@ -1,0 +1,127 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+}
+
+.skeleton {
+  width: 5.5rem;
+  height: 1.5rem;
+  border-radius: $radius-full;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: $space-6;
+  padding: $space-1 $space-3;
+  border-radius: $radius-full;
+  border: 1px solid color-mix(in srgb, var(--asset-class-badge-color) 55%, $color-border);
+  background: color-mix(in srgb, var(--asset-class-badge-color) 22%, $color-surface);
+  color: var(--asset-class-badge-color);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background: color-mix(in srgb, var(--asset-class-badge-color) 32%, $color-surface);
+    border-color: color-mix(in srgb, var(--asset-class-badge-color) 70%, $color-border);
+  }
+
+  @include focus-ring;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: $z-modal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-4;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  width: min(100%, 26rem);
+  padding: $space-6;
+  background: $color-surface-elevated;
+  border: 1px solid $color-border;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-lg;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  line-height: 1.3;
+}
+
+.description {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  line-height: 1.55;
+}
+
+.details {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  background: $color-surface;
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-3 $space-4;
+
+  & + & {
+    border-top: 1px solid $color-border;
+  }
+
+  dt {
+    margin: 0;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: $color-foreground-subtle;
+    letter-spacing: 0.02em;
+  }
+
+  dd {
+    margin: 0;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-foreground;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -187,3 +187,17 @@ The AI tab sends the current saved analysis to an explanation endpoint. The mode
 The dashboard health card reads the same analysis. 85 and above is labeled well aligned, 60 to 84 is moderate drift, and below 60 is high drift. A dismissible alert can point at the largest gap. Dismissing it is remembered in the browser for that strategy, not on the server.
 
 While the rebalancing page is open, the chat drawer is told that the screen is the rebalancing target in the current display currency. The chat can talk about that screen. It does not write the strategy.
+
+## Ticker-page asset-class badges
+
+The ticker detail page can show one or two colored badges next to the grey Yahoo chips (sector, industry, exchange). The badges use the same class ids as the rebalancing calculator. They describe the instrument; they do not say whether it fits a strategy. The health card on the rebalancing page has a help icon that points the user at those badges and at asking the AI chat whether a ticker fits a bucket.
+
+| Piece | Where |
+| --- | --- |
+| Classification with evidence | `backend/src/services/rebalancingClassification.ts` (`classifyRebalancingAssetClassDetailed`) |
+| Badge assembly | `backend/src/services/assetClassService.ts` |
+| HTTP | `GET /api/stocks/asset-class/:ticker` |
+| UI chips and basis dialog | `frontend/src/pages/TickerDetailPage/components/AssetClassBadges` |
+| Nightly Yahoo check | `.github/workflows/asset-class-sentinel.yml` (`npm run test:sentinel`) |
+
+A badge is shown only when evidence is `explicit`: Yahoo quote type `EQUITY` or `MONEYMARKET`, or a fund category/name rule from the table above. There is no badge for fallback paths (missing quote type, stock-position heuristic, unmatched fund, class `other`, leveraged/inverse equity products, balanced and target-date funds). An S&P 500 / US total / total international fund shows a parent **Equities** badge plus the specific class. Short government and money-market cash uses the label **Short-term Treasuries / cash-like**. Clicking a badge opens a basis panel with quote type, Yahoo category, name signal, and classification time.

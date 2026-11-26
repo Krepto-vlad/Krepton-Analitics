@@ -60,6 +60,25 @@ export interface StockSector {
   industry: string;
 }
 
+export interface StockAssetClassBadge {
+  assetClass: string;
+  label: string;
+}
+
+export interface StockAssetClassBasis {
+  evidence: 'explicit' | 'fallback';
+  quoteType: string | null;
+  categoryName: string | null;
+  nameSignal: string | null;
+  classifiedAt: string;
+}
+
+export interface StockAssetClassResponse {
+  ticker: string;
+  badges: StockAssetClassBadge[];
+  basis: StockAssetClassBasis | null;
+}
+
 export interface StockCompareItem {
   ticker: string;
   name: string;

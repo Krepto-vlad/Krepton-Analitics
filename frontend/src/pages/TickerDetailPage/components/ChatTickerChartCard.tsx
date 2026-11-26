@@ -9,6 +9,8 @@ import { fetchStockHistory, fetchStockQuote } from '../../../api/stockApi';
 import { useTickerPriceChart } from '../../../hooks/useTickerPriceChart';
 import type { OhlcvCandle, StockQuote } from '../../../types/stock.types';
 import { toCssCustomProperties } from '../../../utils/cssCustomProperties';
+import { formatIndexLevel } from '../../../utils/indexLevelDisplay';
+import { isMarketIndexTicker } from '../../../utils/tickerRoute';
 import styles from './TickerChatDrawer.module.scss';
 
 interface ChatTickerChartCardProps {
@@ -18,6 +20,14 @@ interface ChatTickerChartCardProps {
 function formatChartChange(changePercent: number): string {
   const sign = changePercent > 0 ? '+' : '';
   return `${sign}${changePercent.toFixed(2)}%`;
+}
+
+function formatInlineQuotePrice(quote: StockQuote, isIndexTicker: boolean): string {
+  if (isIndexTicker) {
+    return formatIndexLevel(quote.price);
+  }
+
+  return `${quote.currency} ${quote.price.toFixed(2)}`;
 }
 
 /**
@@ -30,7 +40,10 @@ export function ChatTickerChartCard({ ticker }: ChatTickerChartCardProps) {
   const [candles, setCandles] = useState<OhlcvCandle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { containerRef } = useTickerPriceChart(candles, quote?.currency ?? 'USD');
+  const isIndexTicker = isMarketIndexTicker(ticker);
+  const { containerRef } = useTickerPriceChart(candles, quote?.currency ?? 'USD', [], [], {
+    formatAsIndexLevel: isIndexTicker,
+  });
   const chartStyle = toCssCustomProperties({
     '--chat-inline-chart-height': `${TICKER_CHAT_INLINE_CHART_HEIGHT_PX}px`,
   });
@@ -83,12 +96,15 @@ export function ChatTickerChartCard({ ticker }: ChatTickerChartCardProps) {
     changePercent < 0 ? styles.inlineChartChangeDown : styles.inlineChartChangeUp;
 
   return (
-    <section className={styles.inlineChart} aria-label={`${ticker} price chart`}>
+    <section
+      className={styles.inlineChart}
+      aria-label={isIndexTicker ? `${ticker} index chart` : `${ticker} price chart`}
+    >
       <div className={styles.inlineChartHeader}>
         <div>
           <p className={styles.inlineChartTicker}>{ticker}</p>
           <p className={styles.inlineChartPrice}>
-            {quote ? `${quote.currency} ${quote.price.toFixed(2)}` : ticker}
+            {quote ? formatInlineQuotePrice(quote, isIndexTicker) : ticker}
           </p>
         </div>
         {quote ? <p className={changeClassName}>{formatChartChange(quote.changePercent)}</p> : null}

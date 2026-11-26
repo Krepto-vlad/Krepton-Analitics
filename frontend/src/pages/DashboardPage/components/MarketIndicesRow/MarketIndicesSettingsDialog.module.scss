@@ -1,0 +1,98 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $space-4;
+}
+
+.modal {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-xl;
+  padding: $space-6;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 32px 96px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+}
+
+.description {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+  line-height: 1.5;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  min-height: $space-10;
+  padding: $space-1 $space-3;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-row-hover;
+  }
+
+  &:has(.checkbox:focus-visible) {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.checkbox {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: $color-primary;
+  cursor: pointer;
+}
+
+.optionLabel {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-foreground;
+}
+
+.optionTicker {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

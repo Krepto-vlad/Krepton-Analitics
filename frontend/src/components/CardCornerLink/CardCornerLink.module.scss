@@ -1,0 +1,54 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// The link reaches into the card padding so the target stays large
+// (at least 48px tall) while the visible highlight is a small circle.
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin: 0 calc(#{$space-3} * -1) calc(#{$space-3} * -1) 0;
+}
+
+.link {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: $space-12;
+  min-height: $space-12;
+  padding: $space-4 $space-5;
+  color: $color-foreground-muted;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    width: $space-8;
+    height: $space-8;
+    border-radius: 50%;
+    transition:
+      background $transition-fast,
+      outline-color $transition-fast;
+  }
+
+  &:hover {
+    color: $color-primary;
+
+    &::before {
+      background: $color-primary-muted;
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::before {
+      outline: 2px solid $color-primary;
+      outline-offset: 2px;
+    }
+  }
+}

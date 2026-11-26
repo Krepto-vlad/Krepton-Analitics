@@ -342,6 +342,22 @@ export const AI_TICKER_CHAT_COMPANY_ALIASES = [
   { ticker: 'TSLA', names: ['tesla', 'тесла', 'теслы', 'теслу'] },
   { ticker: 'META', names: ['meta', 'facebook', 'мета', 'фейсбук'] },
   { ticker: 'NFLX', names: ['netflix', 'нетфликс'] },
+  {
+    ticker: '^GSPC',
+    names: ['s&p 500', 's&p500', 'sp500', 'spx', 'эс энд пи', 'эсэндпи'],
+  },
+  {
+    ticker: '^IXIC',
+    names: ['nasdaq composite', 'nasdaq', 'наздак', 'насдак'],
+  },
+  {
+    ticker: '^DJI',
+    names: ['dow jones', 'dow', 'доу джонс', 'доу'],
+  },
+  {
+    ticker: '^RUT',
+    names: ['russell 2000', 'russell2000', 'рассел 2000', 'расел 2000'],
+  },
 ] as const;
 export const AI_CHAT_TICKER_TYPO_MAX_DISTANCE = 2;
 export const AI_CHAT_TICKER_TYPO_MIN_TICKER_LENGTH = 3;
@@ -377,6 +393,7 @@ export const GEMINI_MAX_OUTPUT_TOKENS = 8192;
 export const STOCK_HISTORY_CACHE_TTL_MS = 10 * 60 * 1000;
 export const STOCK_HISTORY_BROWSER_CACHE_TTL_S = 60;
 export const STOCK_FUNDAMENTALS_BROWSER_CACHE_TTL_S = 60;
+export const STOCK_ASSET_CLASS_BROWSER_CACHE_TTL_S = 60;
 
 // ─── Stock comparison matrix ───────────────────────────────────────────────────
 export const STOCK_COMPARE_MAX_TICKERS = 4;

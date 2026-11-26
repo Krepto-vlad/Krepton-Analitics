@@ -6,13 +6,15 @@ import {
 } from '../constants.js';
 import type { TickerChatDisplayBlock } from '../types/ai.types.js';
 import type { StockCompareItem, StockQuote } from '../types/stock.types.js';
-import { isValidTickerSymbol } from '../utils/tickerValidation.js';
+import { isMarketIndexTicker, isValidTickerSymbol } from '../utils/tickerValidation.js';
 import { logger } from '../utils/logger.js';
 import { getCachedStockQuotes } from './quoteCacheService.js';
 import { getStockCompare, searchStocks } from './stockService.js';
 import { buildTickerChatCompareScreen } from './tickerChatScreenContext.js';
 
-const QUESTION_TOKEN_PATTERN = /[A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9.\-=^]*/g;
+/** Leading `^` keeps Yahoo index symbols (`^GSPC`) intact; without it the caret is dropped. */
+const QUESTION_TOKEN_PATTERN =
+  /(\^[A-Za-z0-9.\-=]{1,9}|[A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9.\-=^]*)/g;
 const COMPARE_INTENT_PATTERN = /\b(compare|comparison|versus|vs\.?)\b|сравн/iu;
 const LATIN_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9.&-]{2,}$/;
 const SEARCH_MIN_LENGTH = 4;
@@ -325,11 +327,19 @@ async function resolveMentionedTickers(message: string): Promise<string[]> {
   return tickers;
 }
 
+function formatQuoteLevel(quote: StockQuote): string {
+  if (isMarketIndexTicker(quote.ticker)) {
+    return `level ${quote.price.toFixed(2)}`;
+  }
+
+  const currency = quote.currency || 'USD';
+  return `${currency} ${quote.price.toFixed(2)}`;
+}
+
 function buildQuoteLines(quotes: StockQuote[]): string[] {
   return quotes.map((quote) => {
     const name = quote.name.trim() || quote.ticker;
-    const currency = quote.currency || 'USD';
-    return `- ${quote.ticker} (${name}): ${currency} ${quote.price.toFixed(2)} (${formatSignedPercent(quote.changePercent)}).`;
+    return `- ${quote.ticker} (${name}): ${formatQuoteLevel(quote)} (${formatSignedPercent(quote.changePercent)}).`;
   });
 }
 
@@ -394,13 +404,16 @@ export async function resolveQuestionMarket(
     ...comparePrices.filter((price) => Number.isFinite(price)),
   ];
 
+  const namesIndex = quotes.some((quote) => isMarketIndexTicker(quote.ticker));
+  const subjectLabel = namesIndex ? 'symbols' : 'companies';
   const promptText = [
-    'QUESTION MARKET DATA — fresh Krepton quotes for the companies named in this message.',
-    'Answer about these companies. These are the only prices you may state for them.',
+    `QUESTION MARKET DATA — fresh Krepton quotes for the ${subjectLabel} named in this message.`,
+    `Answer about these ${subjectLabel}. These are the only prices or index levels you may state for them.`,
     'Do not reuse prices from earlier chat messages.',
+    'Index levels are points, not currency amounts.',
     ...buildQuoteLines(quotes),
     ...(compareLines.length > 0
-      ? ['Comparison metrics for the companies named in the question:', ...compareLines]
+      ? [`Comparison metrics for the ${subjectLabel} named in the question:`, ...compareLines]
       : []),
   ].join('\n');
 

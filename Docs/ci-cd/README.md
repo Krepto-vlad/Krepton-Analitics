@@ -25,6 +25,8 @@ GitHub Actions workflow `.github/workflows/ci.yml`:
 
 Triggers: `push` to `main` / `master` / `develop`, and every `pull_request`. npm cache via `package-lock.json`. Jobs fail on lint/build/test errors.
 
+A separate workflow, `.github/workflows/asset-class-sentinel.yml`, runs the live Yahoo asset-class check on a nightly schedule (and `workflow_dispatch`). It is not part of the CI gate and does not trigger deploy.
+
 Local push: Husky `pre-push` runs lint, format check, and `test:coverage` for **both** `backend/` and `frontend/` so a red backend coverage number never reaches GitHub. `pre-commit` is lint-staged only (fast).
 
 CD is a separate workflow, `.github/workflows/deploy.yml`:
@@ -36,11 +38,11 @@ CD is a separate workflow, `.github/workflows/deploy.yml`:
 
 ### Alternatives Considered
 
-| Alternative | Why not |
-|-------------|---------|
-| Only Husky | Checks also run in GitHub Actions |
-| Manual FTP of `dist` | GitHub Actions builds and deploys |
-| Full Kubernetes CD | The API runs as an Azure Container App |
+| Alternative                       | Why not                                                                                        |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Only Husky                        | Checks also run in GitHub Actions                                                              |
+| Manual FTP of `dist`              | GitHub Actions builds and deploys                                                              |
+| Full Kubernetes CD                | The API runs as an Azure Container App                                                         |
 | Fail CI on every `npm audit` high | `xlsx` has no patched community build; we fail on **critical** and record high in the artifact |
 
 ## Pipeline
@@ -69,17 +71,17 @@ flowchart LR
 
 ## Requirements Checklist
 
-| # | Requirement | Status | Evidence |
-|---|-------------|--------|----------|
-| 1 | Pipeline diagram | ✅ | Mermaid above; [deployment.md](../cloud/deployment.md) |
-| 2 | Tool described | ✅ | GitHub Actions |
-| 3 | CI ≥ 3 stages (lint, build, test) | ✅ | `.github/workflows/ci.yml` |
-| 4 | Some CD (even manual trigger) | ✅ | `.github/workflows/deploy.yml` — after green CI on `main`, plus `workflow_dispatch` |
-| 5 | Auto on push/PR + dependency cache | ✅ | `on.push` / `on.pull_request`; `cache: npm` |
-| 6 | Artifacts | ✅ | `backend-coverage`, `backend-db-coverage`, `backend-load-test-report`, `frontend-coverage`, `npm-audit-*`, `*-dist` |
-| 7 | Fail on error | ✅ | Non-zero Jest/lint/build/docker build fails the job |
-| 8 | Secrets store, not YAML | ✅ | `AZURE_CREDENTIALS`, `AZURE_STATIC_WEB_APPS_API_TOKEN`, `VITE_GOOGLE_CLIENT_ID` in GitHub Secrets |
-| 9 | Security scan (`npm audit`) | ✅ | `audit` job + working note |
+| #   | Requirement                        | Status | Evidence                                                                                                            |
+| --- | ---------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------- |
+| 1   | Pipeline diagram                   | ✅     | Mermaid above; [deployment.md](../cloud/deployment.md)                                                              |
+| 2   | Tool described                     | ✅     | GitHub Actions                                                                                                      |
+| 3   | CI ≥ 3 stages (lint, build, test)  | ✅     | `.github/workflows/ci.yml`                                                                                          |
+| 4   | Some CD (even manual trigger)      | ✅     | `.github/workflows/deploy.yml` — after green CI on `main`, plus `workflow_dispatch`                                 |
+| 5   | Auto on push/PR + dependency cache | ✅     | `on.push` / `on.pull_request`; `cache: npm`                                                                         |
+| 6   | Artifacts                          | ✅     | `backend-coverage`, `backend-db-coverage`, `backend-load-test-report`, `frontend-coverage`, `npm-audit-*`, `*-dist` |
+| 7   | Fail on error                      | ✅     | Non-zero Jest/lint/build/docker build fails the job                                                                 |
+| 8   | Secrets store, not YAML            | ✅     | `AZURE_CREDENTIALS`, `AZURE_STATIC_WEB_APPS_API_TOKEN`, `VITE_GOOGLE_CLIENT_ID` in GitHub Secrets                   |
+| 9   | Security scan (`npm audit`)        | ✅     | `audit` job + working note                                                                                          |
 
 ## References
 

@@ -1,0 +1,67 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+$index-card-min-width: 13.75rem;
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.heading {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground-subtle;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-foreground-muted;
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  margin-left: auto;
+}
+
+.settingsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $space-8;
+  height: $space-8;
+  padding: 0;
+  color: $color-foreground-muted;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    color $transition-fast,
+    background $transition-fast;
+
+  &:hover {
+    color: $color-primary;
+    background: $color-primary-muted;
+  }
+
+  @include focus-ring;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(#{$index-card-min-width}, 1fr));
+  gap: $space-4;
+}

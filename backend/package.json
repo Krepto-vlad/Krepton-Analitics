@@ -11,6 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:db": "jest --config jest.db.config.js --coverage",
+    "test:sentinel": "jest --config jest.sentinel.config.js --runInBand",
     "load:test": "tsx scripts/runLoadTest.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",

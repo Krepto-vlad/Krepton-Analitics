@@ -73,4 +73,19 @@ describe('AppHeader', () => {
 
     expect(screen.getByRole('heading', { name: 'MSFT' })).toBeInTheDocument();
   });
+
+  it('titles an index route with its decoded symbol', () => {
+    renderWithProviders(
+      <AppHeader
+        currency="USD"
+        onCurrencyChange={jest.fn()}
+        isSidebarExpanded={false}
+        theme="dark"
+        onThemeToggle={jest.fn()}
+      />,
+      { route: buildTickerDetailPath('^GSPC') }
+    );
+
+    expect(screen.getByRole('heading', { name: '^GSPC' })).toBeInTheDocument();
+  });
 });

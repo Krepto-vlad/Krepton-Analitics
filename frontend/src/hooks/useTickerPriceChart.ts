@@ -12,8 +12,13 @@ import type {
 import type { PortfolioTransaction } from '../api/portfolioApi';
 import { CHART_COLORS } from '../constants';
 import { useAppSelector } from './useAppSelector';
-import { formatChartPrice } from './useEquityChart';
+import { formatChartIndexLevel, formatChartPrice } from './useEquityChart';
 import type { OhlcvCandle } from '../types/stock.types';
+
+export interface UseTickerPriceChartOptions {
+  /** Index quotes are levels (points), so the axis must not show a currency symbol. */
+  formatAsIndexLevel?: boolean;
+}
 
 const CHART_FALLBACK_HEIGHT_PX = 360;
 
@@ -58,12 +63,22 @@ export interface UseTickerPriceChartResult {
  * Container must stay mounted (same pattern as useEquityChart) so createChart
  * does not race against conditional render of the chart div.
  */
+function formatTickerChartValue(
+  value: number,
+  currency: string,
+  formatAsIndexLevel: boolean
+): string {
+  return formatAsIndexLevel ? formatChartIndexLevel(value) : formatChartPrice(value, currency);
+}
+
 export function useTickerPriceChart(
   candles: OhlcvCandle[],
   currency: string,
   tradeMarkers: SeriesMarker<Time>[] = [],
-  trades: PortfolioTransaction[] = []
+  trades: PortfolioTransaction[] = [],
+  options: UseTickerPriceChartOptions = {}
 ): UseTickerPriceChartResult {
+  const formatAsIndexLevel = options.formatAsIndexLevel === true;
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
@@ -114,7 +129,8 @@ export function useTickerPriceChart(
         axisDoubleClickReset: true,
       },
       localization: {
-        priceFormatter: (value: number) => formatChartPrice(value, currency),
+        priceFormatter: (value: number) =>
+          formatTickerChartValue(value, currency, formatAsIndexLevel),
       },
     });
 
@@ -205,7 +221,8 @@ export function useTickerPriceChart(
 
     chartRef.current.applyOptions({
       localization: {
-        priceFormatter: (value: number) => formatChartPrice(value, currency),
+        priceFormatter: (value: number) =>
+          formatTickerChartValue(value, currency, formatAsIndexLevel),
       },
       layout: {
         textColor: themeColors.text,
@@ -219,7 +236,7 @@ export function useTickerPriceChart(
       lineColor: themeColors.line,
       topColor: themeColors.areaTop,
     });
-  }, [currency, theme]);
+  }, [currency, formatAsIndexLevel, theme]);
 
   useEffect(() => {
     if (!isChartReady || !seriesRef.current || !chartRef.current) {

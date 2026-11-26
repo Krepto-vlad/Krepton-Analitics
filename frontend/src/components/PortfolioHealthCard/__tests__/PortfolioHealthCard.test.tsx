@@ -1,8 +1,14 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ROUTES } from '../../../../../constants';
-import { renderWithProviders } from '../../../../../__tests__/renderWithProviders';
-import type { PortfolioHealthDeviation } from '../../../../../types/portfolio.types';
+import {
+  DASHBOARD_CARD_LINKS,
+  PORTFOLIO_POSITIONS_PATH,
+  REBALANCING_HEALTH_BADGE_HINT_LABEL,
+  REBALANCING_HEALTH_BADGE_HINT_TEXT,
+  ROUTES,
+} from '../../../constants';
+import { renderWithProviders } from '../../../__tests__/renderWithProviders';
+import type { PortfolioHealthDeviation } from '../../../types/portfolio.types';
 import { PortfolioHealthCard } from '../PortfolioHealthCard';
 
 const overweight: PortfolioHealthDeviation = {
@@ -54,8 +60,9 @@ describe('PortfolioHealthCard', () => {
     expect(screen.getByText('No alignment data yet')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Add Position' })).toHaveAttribute(
       'href',
-      `${ROUTES.PORTFOLIO}?section=positions`
+      PORTFOLIO_POSITIONS_PATH
     );
+    expect(screen.queryByRole('link', { name: 'Open rebalancing' })).not.toBeInTheDocument();
   });
 
   it('shows loading placeholders without a score', () => {
@@ -71,9 +78,10 @@ describe('PortfolioHealthCard', () => {
 
     expect(screen.getByLabelText('Loading strategy alignment score')).toBeInTheDocument();
     expect(screen.queryByText('No alignment data yet')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open rebalancing' })).not.toBeInTheDocument();
   });
 
-  it('renders a well aligned score, deviations, and the rebalancing link', () => {
+  it('renders a well aligned score, deviations, and the corner link to rebalancing', () => {
     renderWithProviders(
       <PortfolioHealthCard
         alignmentScore={90}
@@ -81,12 +89,13 @@ describe('PortfolioHealthCard', () => {
         strategyName="All Weather"
         deviations={[optimal, overweight]}
         isLoading={false}
+        navigation={DASHBOARD_CARD_LINKS.health}
       />
     );
 
     expect(screen.getByText('Well Aligned')).toBeInTheDocument();
     expect(screen.getByText('All Weather')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Open rebalancing engine' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Open rebalancing' })).toHaveAttribute(
       'href',
       ROUTES.REBALANCING
     );
@@ -166,5 +175,69 @@ describe('PortfolioHealthCard', () => {
         isLoading={false}
       />
     );
+  });
+
+  it('has no corner link when the page gives no navigation target', () => {
+    renderWithProviders(
+      <PortfolioHealthCard
+        alignmentScore={90}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[optimal]}
+        isLoading={false}
+      />
+    );
+
+    expect(screen.getByText('Well Aligned')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('shows the badge hint only when the rebalancing page asks for it', () => {
+    const { rerender } = renderWithProviders(
+      <PortfolioHealthCard
+        alignmentScore={72}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[underweight]}
+        isLoading={false}
+        showDriftAlert={false}
+      />
+    );
+
+    expect(
+      screen.queryByRole('button', { name: REBALANCING_HEALTH_BADGE_HINT_LABEL })
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <PortfolioHealthCard
+        alignmentScore={72}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[underweight]}
+        isLoading={false}
+        showDriftAlert={false}
+        showAssetClassHint
+      />
+    );
+
+    const hintButton = screen.getByRole('button', { name: REBALANCING_HEALTH_BADGE_HINT_LABEL });
+    expect(hintButton).toHaveAttribute('aria-describedby', screen.getByRole('tooltip').id);
+    expect(screen.getByRole('tooltip')).toHaveTextContent(REBALANCING_HEALTH_BADGE_HINT_TEXT);
+  });
+
+  it('hides the drift banner when the page turns it off but keeps the deviations', () => {
+    renderWithProviders(
+      <PortfolioHealthCard
+        alignmentScore={50}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[overweight]}
+        isLoading={false}
+        showDriftAlert={false}
+      />
+    );
+
+    expect(screen.queryByText('Strategy drift detected')).not.toBeInTheDocument();
+    expect(screen.getByText('Stocks')).toBeInTheDocument();
   });
 });

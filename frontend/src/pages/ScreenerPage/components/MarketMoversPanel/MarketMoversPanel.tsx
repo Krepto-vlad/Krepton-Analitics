@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Loader2, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
 import {
   ERROR_MESSAGES,
   LOADING_MESSAGES,
   MARKET_MOVERS_COUNT,
+  buildTickerDetailPath,
   type Currency,
 } from '../../../../constants';
 import { fetchLiveFxRates } from '../../../../api/fxApi';
@@ -65,7 +67,11 @@ function MoverRow({
   return (
     <li className={styles.row}>
       <span className={styles.rank}>{rank}</span>
-      <div className={styles.tickerBlock}>
+      <Link
+        to={buildTickerDetailPath(item.ticker)}
+        className={styles.tickerLink}
+        aria-label={`Open ${item.ticker}`}
+      >
         <TickerAvatar ticker={item.ticker} size="sm" />
         <div className={styles.tickerText}>
           <span className={styles.ticker}>${item.ticker}</span>
@@ -73,7 +79,7 @@ function MoverRow({
             {item.name}
           </span>
         </div>
-      </div>
+      </Link>
       <div className={styles.priceBlock}>
         <span className={styles.price}>{formatMoney(displayPrice, displayCurrency)}</span>
         <span className={isPositive ? styles.changePositive : styles.changeNegative}>
@@ -207,8 +213,8 @@ export function MarketMoversPanel({
             <h2 className={styles.title}>Market Movers</h2>
           </div>
           <p className={styles.subtitle}>
-            Top {MARKET_MOVERS_COUNT} US gainers and losers today from Yahoo Finance. Click + to add
-            a ticker to comparison.
+            Top {MARKET_MOVERS_COUNT} US gainers and losers today from Yahoo Finance. Open a ticker
+            for its page, or click + to add it to comparison.
           </p>
         </div>
 

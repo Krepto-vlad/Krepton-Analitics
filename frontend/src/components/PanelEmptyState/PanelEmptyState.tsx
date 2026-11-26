@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import { LOADING_MESSAGES } from '../../../../constants';
-import { ContentSkeleton, type ContentSkeletonPreset } from '../../../../components/ui';
-import styles from './DashboardPanelEmptyState.module.scss';
+import { LOADING_MESSAGES } from '../../constants';
+import { ContentSkeleton, type ContentSkeletonPreset } from '../ui';
+import styles from './PanelEmptyState.module.scss';
 
-interface DashboardPanelEmptyStateProps {
+interface PanelEmptyStateProps {
   isLoading?: boolean;
   loadingMessage?: string;
   loadingPreset?: ContentSkeletonPreset;
@@ -16,7 +16,7 @@ interface DashboardPanelEmptyStateProps {
   actionTo: string;
 }
 
-export function DashboardPanelEmptyState({
+export function PanelEmptyState({
   isLoading = false,
   loadingMessage = LOADING_MESSAGES.DEFAULT,
   loadingPreset = 'list',
@@ -25,7 +25,7 @@ export function DashboardPanelEmptyState({
   description,
   actionLabel,
   actionTo,
-}: DashboardPanelEmptyStateProps) {
+}: PanelEmptyStateProps) {
   if (isLoading) {
     return (
       <div className={styles.panelBody}>

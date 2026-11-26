@@ -1,0 +1,43 @@
+name: Asset-class sentinel
+
+# Nightly live Yahoo check. Does not gate deploy.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asset-class-sentinel
+  cancel-in-progress: true
+
+jobs:
+  sentinel:
+    name: Classify known tickers against Yahoo
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: test
+      JWT_SECRET: sentinel-jwt-secret-not-for-production
+      PORTFOLIO_SECRET: sentinel-portfolio-secret-not-for-production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run asset-class sentinel
+        run: npm run test:sentinel

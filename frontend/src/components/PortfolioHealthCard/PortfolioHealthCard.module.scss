@@ -1,5 +1,5 @@
-@use '../../../../styles/variables' as *;
-@use '../../../../styles/mixins' as *;
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .card {
   @include card($space-5);
@@ -7,6 +7,41 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+// Wide pages: header on top, gauge on the left, allocation bars on the right.
+// Narrow content falls back to the stacked layout.
+.cardWide {
+  height: auto;
+
+  @container app-content (min-width: #{$breakpoint-lg}) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    column-gap: $space-8;
+    align-content: start;
+
+    > * {
+      grid-column: 1 / -1;
+    }
+
+    .gaugeSection {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .sectors {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: center;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+  }
+}
+
+.cardClickable {
+  @include clickable-card;
 }
 
 // ─── Header ──────────────────────────────────────────────────────────────────
@@ -22,6 +57,63 @@
   align-items: center;
   gap: $space-1;
   color: $color-foreground-subtle;
+}
+
+.helpAnchor {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid $color-border;
+  border-radius: $radius-full;
+  background: $color-surface;
+  color: $color-foreground-muted;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-primary-border;
+    color: $color-primary-on-muted;
+    outline: none;
+  }
+}
+
+.helpText {
+  position: absolute;
+  top: calc(100% + #{$space-2});
+  right: 0;
+  z-index: $z-dropdown;
+  width: 18rem;
+  max-width: 70vw;
+  margin: 0;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface-elevated;
+  box-shadow: $shadow-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-regular;
+  letter-spacing: normal;
+  text-transform: none;
+  line-height: 1.5;
+  color: $color-foreground;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.helpAnchor:hover .helpText,
+.helpAnchor:focus-within .helpText {
+  visibility: visible;
+  opacity: 1;
 }
 
 .cardLabel {
@@ -53,27 +145,13 @@
   min-height: 1.125rem;
 }
 
-.rebalancingLinkSlot {
-  min-height: 1.125rem;
-}
-
-.rebalancingLink {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-  color: $color-primary;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .riskBadgeSlot {
   min-width: 5.5rem;
   min-height: 1.375rem;
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+  gap: $space-2;
   flex-shrink: 0;
 }
 

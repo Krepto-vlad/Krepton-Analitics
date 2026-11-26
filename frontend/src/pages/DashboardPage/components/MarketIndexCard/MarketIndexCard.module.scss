@@ -1,0 +1,151 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+$chart-height: 6.5rem;
+
+.card {
+  @include card($space-5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+  min-height: 11.5rem;
+}
+
+.cardClickable {
+  @include clickable-card;
+}
+
+.cardEditing {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.cardDropTarget {
+  border-color: $color-primary-border;
+  background: $color-primary-muted;
+}
+
+.hideButton {
+  position: absolute;
+  top: $space-3;
+  left: $space-3;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $space-8;
+  height: $space-8;
+  padding: 0;
+  color: $color-foreground-muted;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    color $transition-fast,
+    background $transition-fast,
+    border-color $transition-fast;
+
+  &:hover {
+    color: $color-chart-down;
+    border-color: $color-chart-down;
+    background: $color-surface;
+  }
+
+  @include focus-ring;
+}
+
+.header {
+  @include flex-between;
+  align-items: flex-start;
+  gap: $space-3;
+  padding-left: 0;
+}
+
+.cardEditing .header {
+  padding-left: $space-10;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.label {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  @include truncate;
+}
+
+.ticker {
+  font-size: $font-size-xs;
+  color: $color-foreground-subtle;
+}
+
+.values {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $space-1;
+  flex-shrink: 0;
+}
+
+.level {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-foreground;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.change {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+}
+
+.positive {
+  color: $color-chart-up;
+}
+
+.negative {
+  color: $color-chart-down;
+}
+
+.valueSkeleton {
+  width: 6rem;
+  height: 2.75rem;
+}
+
+.unavailable {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-foreground-muted;
+}
+
+// The chart ignores the pointer, so a click on it reaches the card like any other spot.
+.chart {
+  flex: 1 1 auto;
+  min-height: $chart-height;
+  height: $chart-height;
+  pointer-events: none;
+
+  &[data-visible='false'] {
+    visibility: hidden;
+  }
+}
+
+.srOnly {
+  @include visually-hidden;
+}

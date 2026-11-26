@@ -5,6 +5,7 @@ import {
   AI_CHAT_FACT_CHECK_SHARES_ABS_TOLERANCE,
 } from '../constants.js';
 import type { TickerChatFactCheck, TickerChatHoldingContext } from '../types/ai.types.js';
+import { isMarketIndexTicker } from '../utils/tickerValidation.js';
 import { logger } from '../utils/logger.js';
 
 export interface TickerChatFactCheckInput {
@@ -95,13 +96,21 @@ function formatMoney(currency: string, amount: number): string {
   return `${currency} ${amount.toFixed(2)}`;
 }
 
+function formatQuoteAmount(ticker: string, currency: string, amount: number): string {
+  if (isMarketIndexTicker(ticker)) {
+    return `level ${amount.toFixed(2)}`;
+  }
+
+  return formatMoney(currency, amount);
+}
+
 function formatSignedPercent(value: number): string {
   const sign = value > 0 ? '+' : '';
   return `${sign}${value.toFixed(2)}%`;
 }
 
 function buildCorrectionAppendix(input: TickerChatFactCheckInput): string {
-  const quoteLine = `${formatMoney(input.currency, input.price)} (${formatSignedPercent(input.changePercent)})`;
+  const quoteLine = `${formatQuoteAmount(input.ticker, input.currency, input.price)} (${formatSignedPercent(input.changePercent)})`;
   const holdingLine = input.holding
     ? `${input.holding.shares} shares @ ${formatMoney(input.holding.currency, input.holding.avgBuyPrice)}`
     : `no open ${input.ticker} position in Krepton`;
