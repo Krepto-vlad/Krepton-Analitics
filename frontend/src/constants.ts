@@ -735,6 +735,9 @@ export const STRATEGY_DRIFT_ALERT_SESSION_STORAGE_KEY = 'krepton_strategy_drift_
 export const REBALANCING_ALLOCATION_CANCEL_LABEL = 'Cancel';
 export const REBALANCING_PERMANENT_CASH_BUCKET_ID = 'cash';
 export const REBALANCING_PERMANENT_STRATEGY_ID = 'harry-browne-permanent';
+export const REBALANCING_HEALTH_BADGE_HINT_LABEL = 'How to match tickers to these buckets';
+export const REBALANCING_HEALTH_BADGE_HINT_TEXT =
+  'Open a ticker and look at its colored asset-class badges. The names match the buckets on this page, so you can look for stocks and funds that fit a sleeve you are short. Ask the AI chat whether that ticker fits.';
 export const REBALANCING_CASH_SLEEVE_HELP_LABEL = 'How this cash sleeve is counted';
 export const REBALANCING_CASH_SLEEVE_HELP_TEXT =
   'The app counts only Treasury bill funds it can see, such as a 0–3 month T-bill ETF or a Treasury money-market fund. Cash you keep yourself, in a bank or anywhere this portfolio cannot see, is not included. Turn this sleeve off if you hold that reserve yourself. The other three sleeves are then scored as the whole 100%.';

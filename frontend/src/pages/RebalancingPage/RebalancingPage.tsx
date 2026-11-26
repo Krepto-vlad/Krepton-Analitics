@@ -348,6 +348,7 @@ export function RebalancingPage() {
               deviations={hasHoldings ? analysis.deviations : []}
               isLoading={isSaving}
               showDriftAlert={false}
+              showAssetClassHint
               layout="wide"
             />
 

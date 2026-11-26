@@ -61,12 +61,14 @@ jest.mock('../../../components/PortfolioHealthCard/PortfolioHealthCard', () => (
     alignmentScore: number | null;
     strategyName: string | null;
     showDriftAlert?: boolean;
+    showAssetClassHint?: boolean;
     navigation?: unknown;
   }) => (
     <div>
       Health card {props.strategyName}: {props.alignmentScore ?? 'no score'}
       {props.showDriftAlert === false ? ' without drift banner' : ''}
       {props.navigation ? ' with link' : ' without link'}
+      {props.showAssetClassHint ? ' with badge hint' : ''}
     </div>
   ),
 }));
@@ -184,7 +186,9 @@ describe('RebalancingPage', () => {
     renderWithProviders(<RebalancingPage />);
 
     expect(
-      await screen.findByText('Health card All Weather: 72.4 without drift banner without link')
+      await screen.findByText(
+        'Health card All Weather: 72.4 without drift banner without link with badge hint'
+      )
     ).toBeInTheDocument();
   });
 

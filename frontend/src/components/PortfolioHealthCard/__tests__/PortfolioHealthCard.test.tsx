@@ -1,6 +1,12 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DASHBOARD_CARD_LINKS, PORTFOLIO_POSITIONS_PATH, ROUTES } from '../../../constants';
+import {
+  DASHBOARD_CARD_LINKS,
+  PORTFOLIO_POSITIONS_PATH,
+  REBALANCING_HEALTH_BADGE_HINT_LABEL,
+  REBALANCING_HEALTH_BADGE_HINT_TEXT,
+  ROUTES,
+} from '../../../constants';
 import { renderWithProviders } from '../../../__tests__/renderWithProviders';
 import type { PortfolioHealthDeviation } from '../../../types/portfolio.types';
 import { PortfolioHealthCard } from '../PortfolioHealthCard';
@@ -184,6 +190,39 @@ describe('PortfolioHealthCard', () => {
 
     expect(screen.getByText('Well Aligned')).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('shows the badge hint only when the rebalancing page asks for it', () => {
+    const { rerender } = renderWithProviders(
+      <PortfolioHealthCard
+        alignmentScore={72}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[underweight]}
+        isLoading={false}
+        showDriftAlert={false}
+      />
+    );
+
+    expect(
+      screen.queryByRole('button', { name: REBALANCING_HEALTH_BADGE_HINT_LABEL })
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <PortfolioHealthCard
+        alignmentScore={72}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[underweight]}
+        isLoading={false}
+        showDriftAlert={false}
+        showAssetClassHint
+      />
+    );
+
+    const hintButton = screen.getByRole('button', { name: REBALANCING_HEALTH_BADGE_HINT_LABEL });
+    expect(hintButton).toHaveAttribute('aria-describedby', screen.getByRole('tooltip').id);
+    expect(screen.getByRole('tooltip')).toHaveTextContent(REBALANCING_HEALTH_BADGE_HINT_TEXT);
   });
 
   it('hides the drift banner when the page turns it off but keeps the deviations', () => {

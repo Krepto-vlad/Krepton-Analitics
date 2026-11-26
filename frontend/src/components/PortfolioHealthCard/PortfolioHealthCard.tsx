@@ -1,11 +1,14 @@
-import { useState } from 'react';
-import { AlertTriangle, Minus, ShieldAlert } from 'lucide-react';
+import { useId, useState } from 'react';
+import { AlertTriangle, CircleHelp, Minus, ShieldAlert } from 'lucide-react';
 import {
+  DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE,
   DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT,
   LOADING_MESSAGES,
   PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
   PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
   PORTFOLIO_POSITIONS_PATH,
+  REBALANCING_HEALTH_BADGE_HINT_LABEL,
+  REBALANCING_HEALTH_BADGE_HINT_TEXT,
 } from '../../constants';
 import type { PortfolioHealthDeviation } from '../../types/portfolio.types';
 import {
@@ -36,6 +39,8 @@ interface PortfolioHealthCardProps {
   showDriftAlert?: boolean;
   /** `wide` puts the gauge beside the allocation bars when the page is wide enough. */
   layout?: PortfolioHealthCardLayout;
+  /** Rebalancing page only: how to match a ticker to these buckets via badges and chat. */
+  showAssetClassHint?: boolean;
 }
 
 export type PortfolioHealthCardLayout = 'stacked' | 'wide';
@@ -89,7 +94,9 @@ export function PortfolioHealthCard({
   navigation,
   showDriftAlert: isDriftAlertAllowed = true,
   layout = 'stacked',
+  showAssetClassHint = false,
 }: PortfolioHealthCardProps) {
+  const assetClassHintId = useId();
   const [dismissedForStrategyId, setDismissedForStrategyId] = useState<string | null>(null);
 
   const isDriftAlertDismissed =
@@ -151,6 +158,25 @@ export function PortfolioHealthCard({
             {!isLoading && healthLevel && healthLabel ? (
               <span className={`${styles.riskBadge} ${styles[`risk${healthLevel}`]}`}>
                 {healthLabel}
+              </span>
+            ) : null}
+            {showAssetClassHint ? (
+              <span
+                className={styles.helpAnchor}
+                {...{ [DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE]: '' }}
+              >
+                <button
+                  type="button"
+                  className={styles.helpButton}
+                  aria-label={REBALANCING_HEALTH_BADGE_HINT_LABEL}
+                  aria-describedby={assetClassHintId}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <CircleHelp size={14} />
+                </button>
+                <p id={assetClassHintId} role="tooltip" className={styles.helpText}>
+                  {REBALANCING_HEALTH_BADGE_HINT_TEXT}
+                </p>
               </span>
             ) : null}
           </span>

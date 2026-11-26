@@ -59,6 +59,63 @@
   color: $color-foreground-subtle;
 }
 
+.helpAnchor {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid $color-border;
+  border-radius: $radius-full;
+  background: $color-surface;
+  color: $color-foreground-muted;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-primary-border;
+    color: $color-primary-on-muted;
+    outline: none;
+  }
+}
+
+.helpText {
+  position: absolute;
+  top: calc(100% + #{$space-2});
+  right: 0;
+  z-index: $z-dropdown;
+  width: 18rem;
+  max-width: 70vw;
+  margin: 0;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface-elevated;
+  box-shadow: $shadow-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-regular;
+  letter-spacing: normal;
+  text-transform: none;
+  line-height: 1.5;
+  color: $color-foreground;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.helpAnchor:hover .helpText,
+.helpAnchor:focus-within .helpText {
+  visibility: visible;
+  opacity: 1;
+}
+
 .cardLabel {
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
@@ -94,6 +151,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+  gap: $space-2;
   flex-shrink: 0;
 }
 
