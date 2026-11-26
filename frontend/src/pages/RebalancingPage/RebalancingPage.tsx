@@ -16,6 +16,7 @@ import {
 import { getRejectedMessage } from '../../utils/apiError';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { ErrorBanner, ContentSkeleton } from '../../components/ui';
+import { PortfolioHealthCard } from '../../components/PortfolioHealthCard/PortfolioHealthCard';
 import type {
   RebalancingAnalysisResponse,
   RebalancingPrebuiltStrategyId,
@@ -90,6 +91,9 @@ export function RebalancingPage() {
 
   const isLoading = loadedForCurrency !== displayCurrency;
   const showContent = analysis !== null && loadedForCurrency === displayCurrency;
+  // Same rule as the dashboard: no score or deviations until the user has real holdings.
+  const hasHoldings =
+    analysis !== null && analysis.totalPortfolioValue > 0 && analysis.tickerMappings.length > 0;
 
   const baselineAllocations = useMemo(
     () => resolveBaselineAllocations(selectedStrategyId, strategies, savedCustomStrategy),
@@ -337,6 +341,16 @@ export function RebalancingPage() {
       ) : showContent ? (
         activeTab === 'technical' ? (
           <>
+            <PortfolioHealthCard
+              alignmentScore={hasHoldings ? analysis.alignmentScore : null}
+              strategyId={analysis.strategyId}
+              strategyName={analysis.strategyName}
+              deviations={hasHoldings ? analysis.deviations : []}
+              isLoading={isSaving}
+              showDriftAlert={false}
+              layout="wide"
+            />
+
             <div className={styles.grid}>
               <StrategyPanel
                 strategyOptions={strategyOptions}
@@ -380,7 +394,7 @@ export function RebalancingPage() {
             strategyName={analysis.strategyName}
             alignmentScore={analysis.alignmentScore}
             displayCurrency={displayCurrency}
-            hasHoldings={analysis.tickerMappings.length > 0 && analysis.totalPortfolioValue > 0}
+            hasHoldings={hasHoldings}
           />
         )
       ) : null}

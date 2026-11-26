@@ -1,5 +1,5 @@
-@use '../../../../styles/variables' as *;
-@use '../../../../styles/mixins' as *;
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .card {
   @include card($space-5);
@@ -7,6 +7,37 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+// Wide pages: header on top, gauge on the left, allocation bars on the right.
+// Narrow content falls back to the stacked layout.
+.cardWide {
+  height: auto;
+
+  @container app-content (min-width: #{$breakpoint-lg}) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    column-gap: $space-8;
+    align-content: start;
+
+    > * {
+      grid-column: 1 / -1;
+    }
+
+    .gaugeSection {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .sectors {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: center;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+  }
 }
 
 .cardClickable {

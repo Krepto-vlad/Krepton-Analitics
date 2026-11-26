@@ -56,6 +56,21 @@ jest.mock('../components/AllocationComparisonChart/AllocationComparisonChart', (
   AllocationComparisonChart: () => <div>Allocation chart</div>,
 }));
 
+jest.mock('../../../components/PortfolioHealthCard/PortfolioHealthCard', () => ({
+  PortfolioHealthCard: (props: {
+    alignmentScore: number | null;
+    strategyName: string | null;
+    showDriftAlert?: boolean;
+    navigation?: unknown;
+  }) => (
+    <div>
+      Health card {props.strategyName}: {props.alignmentScore ?? 'no score'}
+      {props.showDriftAlert === false ? ' without drift banner' : ''}
+      {props.navigation ? ' with link' : ' without link'}
+    </div>
+  ),
+}));
+
 jest.mock('../components/TickerMappingPanel/TickerMappingPanel', () => ({
   TickerMappingPanel: () => <div>Ticker mappings</div>,
 }));
@@ -161,6 +176,24 @@ describe('RebalancingPage', () => {
     expect(await screen.findByText('Selected strategy: ray-dalio-all-weather')).toBeInTheDocument();
     expect(screen.getByText('Allocation chart')).toBeInTheDocument();
     expect(screen.getByText('Ticker mappings')).toBeInTheDocument();
+  });
+
+  it('shows the portfolio health card from the same analysis, without link or drift banner', async () => {
+    mockSuccessfulLoad();
+
+    renderWithProviders(<RebalancingPage />);
+
+    expect(
+      await screen.findByText('Health card All Weather: 72.4 without drift banner without link')
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the health card empty until the portfolio has holdings', async () => {
+    mockSuccessfulLoad(analysis({ totalPortfolioValue: 0, tickerMappings: [] }));
+
+    renderWithProviders(<RebalancingPage />);
+
+    expect(await screen.findByText(/Health card All Weather: no score/)).toBeInTheDocument();
   });
 
   it('shows an error banner when loading fails', async () => {

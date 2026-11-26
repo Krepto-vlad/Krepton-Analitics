@@ -1,11 +1,11 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../../../../__tests__/renderWithProviders';
-import { DashboardCardLink } from '../DashboardCardLink';
+import { renderWithProviders } from '../../../__tests__/renderWithProviders';
+import { CardCornerLink } from '../CardCornerLink';
 
-describe('DashboardCardLink', () => {
+describe('CardCornerLink', () => {
   it('exposes one named link to the related page', () => {
-    renderWithProviders(<DashboardCardLink to="/rebalancing" label="Open rebalancing" />);
+    renderWithProviders(<CardCornerLink to="/rebalancing" label="Open rebalancing" />);
 
     const link = screen.getByRole('link', { name: 'Open rebalancing' });
     expect(link).toHaveAttribute('href', '/rebalancing');
@@ -13,7 +13,7 @@ describe('DashboardCardLink', () => {
   });
 
   it('hides the arrow icon from assistive technology', () => {
-    renderWithProviders(<DashboardCardLink to="/rebalancing" label="Open rebalancing" />);
+    renderWithProviders(<CardCornerLink to="/rebalancing" label="Open rebalancing" />);
 
     const icon = screen.getByRole('link', { name: 'Open rebalancing' }).querySelector('svg');
     expect(icon).toHaveAttribute('aria-hidden', 'true');
@@ -21,7 +21,7 @@ describe('DashboardCardLink', () => {
 
   it('can be reached with the keyboard', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<DashboardCardLink to="/rebalancing" label="Open rebalancing" />);
+    renderWithProviders(<CardCornerLink to="/rebalancing" label="Open rebalancing" />);
 
     await user.tab();
 

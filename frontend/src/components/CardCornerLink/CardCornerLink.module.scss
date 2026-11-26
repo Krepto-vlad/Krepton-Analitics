@@ -1,5 +1,5 @@
-@use '../../../../styles/variables' as *;
-@use '../../../../styles/mixins' as *;
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 // The link reaches into the card padding so the target stays large
 // (at least 48px tall) while the visible highlight is a small circle.

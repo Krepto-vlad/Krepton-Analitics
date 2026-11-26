@@ -12,8 +12,8 @@ import type { PortfolioPosition } from '../../../../types/portfolio.types';
 import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
 import { useCardNavigation } from '../../../../hooks/useCardNavigation';
 import { TickerAvatar } from '../../../../components/ui';
-import { DashboardCardLink } from '../DashboardCardLink/DashboardCardLink';
-import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
+import { CardCornerLink } from '../../../../components/CardCornerLink/CardCornerLink';
+import { PanelEmptyState } from '../../../../components/PanelEmptyState/PanelEmptyState';
 import styles from './PositionsTable.module.scss';
 
 interface PositionsTableProps {
@@ -73,7 +73,7 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
       </div>
 
       {isLoading || isEmpty ? (
-        <DashboardPanelEmptyState
+        <PanelEmptyState
           isLoading={isLoading}
           loadingPreset="table"
           loadingMessage={LOADING_MESSAGES.PORTFOLIO_POSITIONS}
@@ -166,7 +166,7 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
       )}
 
       {isNavigable ? (
-        <DashboardCardLink
+        <CardCornerLink
           to={DASHBOARD_CARD_LINKS.positions.to}
           label={DASHBOARD_CARD_LINKS.positions.label}
         />

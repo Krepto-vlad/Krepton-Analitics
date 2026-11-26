@@ -14,9 +14,13 @@ import { buildLogoByTicker } from '../../utils/tickerLogos';
 import { isIncludedInPortfolioAnalysis } from '../../utils/portfolioAnalysisScope';
 import { ErrorBanner } from '../../components/ui';
 import { toCssCustomProperties } from '../../utils/cssCustomProperties';
-import { DASHBOARD_PANEL_HEIGHT_PX, BEGINNER_TUTORIAL_ANCHORS } from '../../constants';
+import {
+  BEGINNER_TUTORIAL_ANCHORS,
+  DASHBOARD_CARD_LINKS,
+  DASHBOARD_PANEL_HEIGHT_PX,
+} from '../../constants';
 import { savePortfolioChatScreen } from '../../utils/tickerChatSession';
-import { PortfolioHealthCard } from './components/PortfolioHealthCard/PortfolioHealthCard';
+import { PortfolioHealthCard } from '../../components/PortfolioHealthCard/PortfolioHealthCard';
 import { PortfolioEquityCard } from './components/PortfolioEquityCard/PortfolioEquityCard';
 import { PositionsTable } from './components/PositionsTable/PositionsTable';
 import { WatchlistPanel } from './components/WatchlistPanel/WatchlistPanel';
@@ -110,6 +114,7 @@ export function DashboardPage() {
             strategyId={portfolioHealth.strategyId}
             strategyName={portfolioHealth.strategyName}
             deviations={portfolioHealth.deviations}
+            navigation={DASHBOARD_CARD_LINKS.health}
             isLoading={isDashboardBootstrapping}
           />
           <PortfolioEquityCard

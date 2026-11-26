@@ -18,8 +18,8 @@ import {
 } from '../../../../utils/moneyDisplay';
 import { useCardNavigation } from '../../../../hooks/useCardNavigation';
 import { TickerAvatar } from '../../../../components/ui';
-import { DashboardCardLink } from '../DashboardCardLink/DashboardCardLink';
-import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
+import { CardCornerLink } from '../../../../components/CardCornerLink/CardCornerLink';
+import { PanelEmptyState } from '../../../../components/PanelEmptyState/PanelEmptyState';
 import styles from './WatchlistPanel.module.scss';
 
 interface WatchlistPanelProps {
@@ -95,7 +95,7 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
       </div>
 
       {isLoading || isEmpty ? (
-        <DashboardPanelEmptyState
+        <PanelEmptyState
           isLoading={isLoading}
           loadingPreset="list"
           loadingMessage={LOADING_MESSAGES.WATCHLIST}
@@ -149,7 +149,7 @@ export function WatchlistPanel({ watchlist, currency, isLoading = false }: Watch
       )}
 
       {isNavigable ? (
-        <DashboardCardLink
+        <CardCornerLink
           to={DASHBOARD_CARD_LINKS.watchlist.to}
           label={DASHBOARD_CARD_LINKS.watchlist.label}
         />

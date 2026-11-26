@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PORTFOLIO_POSITIONS_PATH, ROUTES } from '../../../../../constants';
-import { renderWithProviders } from '../../../../../__tests__/renderWithProviders';
-import type { PortfolioHealthDeviation } from '../../../../../types/portfolio.types';
+import { DASHBOARD_CARD_LINKS, PORTFOLIO_POSITIONS_PATH, ROUTES } from '../../../constants';
+import { renderWithProviders } from '../../../__tests__/renderWithProviders';
+import type { PortfolioHealthDeviation } from '../../../types/portfolio.types';
 import { PortfolioHealthCard } from '../PortfolioHealthCard';
 
 const overweight: PortfolioHealthDeviation = {
@@ -83,6 +83,7 @@ describe('PortfolioHealthCard', () => {
         strategyName="All Weather"
         deviations={[optimal, overweight]}
         isLoading={false}
+        navigation={DASHBOARD_CARD_LINKS.health}
       />
     );
 
@@ -168,5 +169,36 @@ describe('PortfolioHealthCard', () => {
         isLoading={false}
       />
     );
+  });
+
+  it('has no corner link when the page gives no navigation target', () => {
+    renderWithProviders(
+      <PortfolioHealthCard
+        alignmentScore={90}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[optimal]}
+        isLoading={false}
+      />
+    );
+
+    expect(screen.getByText('Well Aligned')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('hides the drift banner when the page turns it off but keeps the deviations', () => {
+    renderWithProviders(
+      <PortfolioHealthCard
+        alignmentScore={50}
+        strategyId="ray-dalio-all-weather"
+        strategyName="All Weather"
+        deviations={[overweight]}
+        isLoading={false}
+        showDriftAlert={false}
+      />
+    );
+
+    expect(screen.queryByText('Strategy drift detected')).not.toBeInTheDocument();
+    expect(screen.getByText('Stocks')).toBeInTheDocument();
   });
 });

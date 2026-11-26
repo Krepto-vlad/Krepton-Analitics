@@ -12,8 +12,8 @@ import { useEquityChart } from '../../../../hooks/useEquityChart';
 import type { EquityPeriod } from '../../../../hooks/useEquityChart';
 import type { Currency } from '../../../../constants';
 import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
-import { DashboardCardLink } from '../DashboardCardLink/DashboardCardLink';
-import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
+import { CardCornerLink } from '../../../../components/CardCornerLink/CardCornerLink';
+import { PanelEmptyState } from '../../../../components/PanelEmptyState/PanelEmptyState';
 import styles from './PortfolioEquityCard.module.scss';
 
 interface PortfolioEquityCardProps {
@@ -76,7 +76,7 @@ export function PortfolioEquityCard({
       </div>
 
       {showEmptyState ? (
-        <DashboardPanelEmptyState
+        <PanelEmptyState
           isLoading={false}
           loadingPreset="chart"
           loadingMessage={LOADING_MESSAGES.PORTFOLIO_EQUITY}
@@ -155,7 +155,7 @@ export function PortfolioEquityCard({
       />
 
       {isNavigable ? (
-        <DashboardCardLink
+        <CardCornerLink
           to={DASHBOARD_CARD_LINKS.equity.to}
           label={DASHBOARD_CARD_LINKS.equity.label}
         />

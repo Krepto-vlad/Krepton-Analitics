@@ -1,12 +1,9 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import {
-  DASHBOARD_CARD_ARROW_ATTRIBUTE,
-  DASHBOARD_CARD_LINK_ICON_SIZE_PX,
-} from '../../../../constants';
-import styles from './DashboardCardLink.module.scss';
+import { DASHBOARD_CARD_ARROW_ATTRIBUTE, DASHBOARD_CARD_LINK_ICON_SIZE_PX } from '../../constants';
+import styles from './CardCornerLink.module.scss';
 
-interface DashboardCardLinkProps {
+interface CardCornerLinkProps {
   to: string;
   /** Spoken name and tooltip, for example "Open watchlist". */
   label: string;
@@ -16,7 +13,7 @@ interface DashboardCardLinkProps {
  * The only focusable and announced way into the related page. Mouse users can also click
  * anywhere on the card (see `useCardNavigation`); the arrow shows that the card is clickable.
  */
-export function DashboardCardLink({ to, label }: DashboardCardLinkProps) {
+export function CardCornerLink({ to, label }: CardCornerLinkProps) {
   return (
     <div className={styles.footer}>
       <Link

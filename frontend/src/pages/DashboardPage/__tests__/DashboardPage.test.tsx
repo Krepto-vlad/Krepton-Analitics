@@ -30,7 +30,7 @@ jest.mock('../../../api/portfolioApi', () => ({
   fetchPortfolioNews: jest.fn().mockResolvedValue([]),
 }));
 
-jest.mock('../components/PortfolioHealthCard/PortfolioHealthCard', () => ({
+jest.mock('../../../components/PortfolioHealthCard/PortfolioHealthCard', () => ({
   PortfolioHealthCard: (props: { strategyName: string | null; isLoading: boolean }) => (
     <div>
       Health {props.strategyName ?? 'empty'}

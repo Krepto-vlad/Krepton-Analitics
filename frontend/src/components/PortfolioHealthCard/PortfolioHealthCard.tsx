@@ -1,23 +1,22 @@
 import { useState } from 'react';
 import { AlertTriangle, Minus, ShieldAlert } from 'lucide-react';
 import {
-  DASHBOARD_CARD_LINKS,
   DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT,
   LOADING_MESSAGES,
   PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
   PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
   PORTFOLIO_POSITIONS_PATH,
-} from '../../../../constants';
-import type { PortfolioHealthDeviation } from '../../../../types/portfolio.types';
+} from '../../constants';
+import type { PortfolioHealthDeviation } from '../../types/portfolio.types';
 import {
   dismissStrategyDriftAlert,
   isStrategyDriftAlertDismissed,
-} from '../../../../utils/strategyDriftAlertStorage';
-import { useCardNavigation } from '../../../../hooks/useCardNavigation';
-import { Skeleton } from '../../../../components/ui';
-import { DashboardCardLink } from '../DashboardCardLink/DashboardCardLink';
-import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
-import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
+} from '../../utils/strategyDriftAlertStorage';
+import { useCardNavigation } from '../../hooks/useCardNavigation';
+import { Skeleton } from '../ui';
+import { CardCornerLink } from '../CardCornerLink/CardCornerLink';
+import { PanelEmptyState } from '../PanelEmptyState/PanelEmptyState';
+import { toCssCustomProperties } from '../../utils/cssCustomProperties';
 import styles from './PortfolioHealthCard.module.scss';
 
 const HEALTH_SECTOR_PLACEHOLDER_KEYS = Array.from(
@@ -31,6 +30,19 @@ interface PortfolioHealthCardProps {
   strategyName: string | null;
   deviations: PortfolioHealthDeviation[];
   isLoading: boolean;
+  /** Where the card and its corner arrow lead. Leave out on the page the card already explains. */
+  navigation?: CardNavigation;
+  /** The drift banner repeats the deviation table on the rebalancing page, so that page hides it. */
+  showDriftAlert?: boolean;
+  /** `wide` puts the gauge beside the allocation bars when the page is wide enough. */
+  layout?: PortfolioHealthCardLayout;
+}
+
+export type PortfolioHealthCardLayout = 'stacked' | 'wide';
+
+export interface CardNavigation {
+  to: string;
+  label: string;
 }
 
 type HealthLevel = 'Low' | 'Medium' | 'High';
@@ -74,6 +86,9 @@ export function PortfolioHealthCard({
   strategyName,
   deviations,
   isLoading,
+  navigation,
+  showDriftAlert: isDriftAlertAllowed = true,
+  layout = 'stacked',
 }: PortfolioHealthCardProps) {
   const [dismissedForStrategyId, setDismissedForStrategyId] = useState<string | null>(null);
 
@@ -82,8 +97,8 @@ export function PortfolioHealthCard({
     (dismissedForStrategyId === strategyId || isStrategyDriftAlertDismissed(strategyId));
 
   const hasScore = alignmentScore !== null;
-  const isNavigable = hasScore && !isLoading;
-  const handleCardClick = useCardNavigation(isNavigable ? DASHBOARD_CARD_LINKS.health.to : null);
+  const isNavigable = hasScore && !isLoading && navigation !== undefined;
+  const handleCardClick = useCardNavigation(isNavigable ? navigation.to : null);
   const showEmptyState = !isLoading && !hasScore;
   const healthLevel = hasScore ? getHealthLevel(alignmentScore) : null;
   const healthLabel = healthLevel ? getHealthLabel(healthLevel) : null;
@@ -101,6 +116,7 @@ export function PortfolioHealthCard({
       : null;
 
   const showDriftAlert =
+    isDriftAlertAllowed &&
     hasScore &&
     !isDriftAlertDismissed &&
     (alignmentScore < PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD || topDeviation !== null);
@@ -116,7 +132,7 @@ export function PortfolioHealthCard({
 
   return (
     <div
-      className={`${styles.card} ${isNavigable ? styles.cardClickable : ''}`}
+      className={`${styles.card} ${layout === 'wide' ? styles.cardWide : ''} ${isNavigable ? styles.cardClickable : ''}`}
       onClick={handleCardClick}
     >
       <div className={styles.cardHeader}>
@@ -142,7 +158,7 @@ export function PortfolioHealthCard({
       </div>
 
       {showEmptyState ? (
-        <DashboardPanelEmptyState
+        <PanelEmptyState
           isLoading={false}
           loadingPreset="stats"
           loadingMessage={LOADING_MESSAGES.PORTFOLIO_ALIGNMENT}
@@ -190,31 +206,33 @@ export function PortfolioHealthCard({
               </text>
             </svg>
 
-            <div className={styles.alertSlot}>
-              {showDriftAlert && topDeviation ? (
-                <div className={styles.alertBanner}>
-                  <AlertTriangle size={13} className={styles.alertIcon} />
-                  <span className={styles.alertContent}>
-                    <span className={styles.alertHighlight}>Strategy drift detected</span>
-                    <span className={styles.alertBody}>
-                      {' '}
-                      {topDeviation.label} is{' '}
-                      {topDeviation.status === 'overweight' ? 'over-weight' : 'under-weight'} by{' '}
-                      {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
+            {isDriftAlertAllowed ? (
+              <div className={styles.alertSlot}>
+                {showDriftAlert && topDeviation ? (
+                  <div className={styles.alertBanner}>
+                    <AlertTriangle size={13} className={styles.alertIcon} />
+                    <span className={styles.alertContent}>
+                      <span className={styles.alertHighlight}>Strategy drift detected</span>
+                      <span className={styles.alertBody}>
+                        {' '}
+                        {topDeviation.label} is{' '}
+                        {topDeviation.status === 'overweight' ? 'over-weight' : 'under-weight'} by{' '}
+                        {Math.abs(topDeviation.deviationPercent).toFixed(1)}% vs target.
+                      </span>
                     </span>
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.alertDismissButton}
-                    onClick={handleDismissDriftAlert}
-                    aria-label="Dismiss strategy drift alert"
-                    title="Dismiss"
-                  >
-                    <Minus size={14} />
-                  </button>
-                </div>
-              ) : null}
-            </div>
+                    <button
+                      type="button"
+                      className={styles.alertDismissButton}
+                      onClick={handleDismissDriftAlert}
+                      aria-label="Dismiss strategy drift alert"
+                      title="Dismiss"
+                    >
+                      <Minus size={14} />
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.sectors}>
@@ -265,12 +283,7 @@ export function PortfolioHealthCard({
         </>
       )}
 
-      {isNavigable ? (
-        <DashboardCardLink
-          to={DASHBOARD_CARD_LINKS.health.to}
-          label={DASHBOARD_CARD_LINKS.health.label}
-        />
-      ) : null}
+      {isNavigable ? <CardCornerLink to={navigation.to} label={navigation.label} /> : null}
     </div>
   );
 }
