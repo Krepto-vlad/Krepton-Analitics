@@ -1,19 +1,21 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { AlertTriangle, Minus, ShieldAlert } from 'lucide-react';
 import {
+  DASHBOARD_CARD_LINKS,
   DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT,
   LOADING_MESSAGES,
   PORTFOLIO_ALIGNMENT_MODERATE_THRESHOLD,
   PORTFOLIO_ALIGNMENT_OPTIMAL_THRESHOLD,
-  ROUTES,
+  PORTFOLIO_POSITIONS_PATH,
 } from '../../../../constants';
 import type { PortfolioHealthDeviation } from '../../../../types/portfolio.types';
 import {
   dismissStrategyDriftAlert,
   isStrategyDriftAlertDismissed,
 } from '../../../../utils/strategyDriftAlertStorage';
+import { useCardNavigation } from '../../../../hooks/useCardNavigation';
 import { Skeleton } from '../../../../components/ui';
+import { DashboardCardLink } from '../DashboardCardLink/DashboardCardLink';
 import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import { toCssCustomProperties } from '../../../../utils/cssCustomProperties';
 import styles from './PortfolioHealthCard.module.scss';
@@ -80,6 +82,8 @@ export function PortfolioHealthCard({
     (dismissedForStrategyId === strategyId || isStrategyDriftAlertDismissed(strategyId));
 
   const hasScore = alignmentScore !== null;
+  const isNavigable = hasScore && !isLoading;
+  const handleCardClick = useCardNavigation(isNavigable ? DASHBOARD_CARD_LINKS.health.to : null);
   const showEmptyState = !isLoading && !hasScore;
   const healthLevel = hasScore ? getHealthLevel(alignmentScore) : null;
   const healthLabel = healthLevel ? getHealthLabel(healthLevel) : null;
@@ -111,7 +115,10 @@ export function PortfolioHealthCard({
   }
 
   return (
-    <div className={styles.card}>
+    <div
+      className={`${styles.card} ${isNavigable ? styles.cardClickable : ''}`}
+      onClick={handleCardClick}
+    >
       <div className={styles.cardHeader}>
         <div className={styles.cardLabelRow}>
           <ShieldAlert size={13} />
@@ -132,13 +139,6 @@ export function PortfolioHealthCard({
             ) : null}
           </span>
         </div>
-        <div className={styles.rebalancingLinkSlot}>
-          {hasScore ? (
-            <Link to={ROUTES.REBALANCING} className={styles.rebalancingLink}>
-              Open rebalancing engine
-            </Link>
-          ) : null}
-        </div>
       </div>
 
       {showEmptyState ? (
@@ -150,7 +150,7 @@ export function PortfolioHealthCard({
           title="No alignment data yet"
           description="Add holdings or import a broker report to measure how your portfolio tracks the selected strategy."
           actionLabel="Add Position"
-          actionTo={`${ROUTES.PORTFOLIO}?section=positions`}
+          actionTo={PORTFOLIO_POSITIONS_PATH}
         />
       ) : (
         <>
@@ -264,6 +264,13 @@ export function PortfolioHealthCard({
           </div>
         </>
       )}
+
+      {isNavigable ? (
+        <DashboardCardLink
+          to={DASHBOARD_CARD_LINKS.health.to}
+          label={DASHBOARD_CARD_LINKS.health.label}
+        />
+      ) : null}
     </div>
   );
 }

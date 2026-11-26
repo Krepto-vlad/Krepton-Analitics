@@ -10,6 +10,10 @@
   overflow: hidden;
 }
 
+.cardClickable {
+  @include clickable-card;
+}
+
 .cardHeader {
   @include flex-between;
   gap: $space-3;
@@ -41,32 +45,6 @@
   justify-content: flex-end;
   gap: $space-3;
   min-height: 2rem;
-  min-width: 14rem;
-}
-
-.portfolioLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: $space-2 $space-3;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-  color: $color-foreground-muted;
-  text-decoration: none;
-  border: 1px solid $color-border;
-  border-radius: $radius-md;
-  background: $color-overlay;
-  white-space: nowrap;
-  transition:
-    color $transition-fast,
-    border-color $transition-fast,
-    background $transition-fast;
-
-  &:hover {
-    color: $color-primary;
-    border-color: $color-primary-border;
-    background: $color-primary-muted;
-  }
 }
 
 .liveClock {
@@ -165,6 +143,8 @@
   min-width: 0;
   text-decoration: none;
   color: inherit;
+  border-radius: $radius-sm;
+  @include focus-ring;
 
   &:hover .tickerSymbol {
     color: $color-primary;

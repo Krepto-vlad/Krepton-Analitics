@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ROUTES } from '../../../../../constants';
+import { PORTFOLIO_POSITIONS_PATH, ROUTES } from '../../../../../constants';
 import { renderWithProviders } from '../../../../../__tests__/renderWithProviders';
 import type { PortfolioHealthDeviation } from '../../../../../types/portfolio.types';
 import { PortfolioHealthCard } from '../PortfolioHealthCard';
@@ -54,8 +54,9 @@ describe('PortfolioHealthCard', () => {
     expect(screen.getByText('No alignment data yet')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Add Position' })).toHaveAttribute(
       'href',
-      `${ROUTES.PORTFOLIO}?section=positions`
+      PORTFOLIO_POSITIONS_PATH
     );
+    expect(screen.queryByRole('link', { name: 'Open rebalancing' })).not.toBeInTheDocument();
   });
 
   it('shows loading placeholders without a score', () => {
@@ -71,9 +72,10 @@ describe('PortfolioHealthCard', () => {
 
     expect(screen.getByLabelText('Loading strategy alignment score')).toBeInTheDocument();
     expect(screen.queryByText('No alignment data yet')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open rebalancing' })).not.toBeInTheDocument();
   });
 
-  it('renders a well aligned score, deviations, and the rebalancing link', () => {
+  it('renders a well aligned score, deviations, and the corner link to rebalancing', () => {
     renderWithProviders(
       <PortfolioHealthCard
         alignmentScore={90}
@@ -86,7 +88,7 @@ describe('PortfolioHealthCard', () => {
 
     expect(screen.getByText('Well Aligned')).toBeInTheDocument();
     expect(screen.getByText('All Weather')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Open rebalancing engine' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Open rebalancing' })).toHaveAttribute(
       'href',
       ROUTES.REBALANCING
     );

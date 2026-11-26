@@ -66,6 +66,9 @@ export const ROUTES = {
 /** Watchlist UI lives on Portfolio; `/watchlist` redirects here. */
 export const PORTFOLIO_WATCHLIST_PATH = `${ROUTES.PORTFOLIO}?section=watchlist`;
 
+/** Open positions list on the Portfolio page. */
+export const PORTFOLIO_POSITIONS_PATH = `${ROUTES.PORTFOLIO}?section=positions`;
+
 /** Statement importer + SnapTrade connect live on Portfolio. */
 export const PORTFOLIO_IMPORTER_PATH = `${ROUTES.PORTFOLIO}?section=importer`;
 export const BROKER_SYNC_RETURN_QUERY = 'brokerSync';
@@ -506,6 +509,38 @@ export const DASHBOARD_NEWS_INITIAL_VISIBLE = 6;
 export const DASHBOARD_NEWS_LOAD_MORE_STEP = 6;
 /** Locked dashboard panel height so load does not push sibling rows (CLS). */
 export const DASHBOARD_PANEL_HEIGHT_PX = 520;
+/** Arrow in the bottom-right corner of a dashboard card that opens the related page. */
+export const DASHBOARD_CARD_LINK_ICON_SIZE_PX = 16;
+/**
+ * Wait before a card click navigates, so a double or triple click can select a word
+ * or line without leaving the page.
+ */
+export const DASHBOARD_CARD_NAVIGATION_DELAY_MS = 250;
+/** Phones and small tablets: cards keep only the corner arrow, so taps cannot open a page by accident. Matches `mobile` in `_mixins.scss`. */
+export const DASHBOARD_CARD_MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
+/** A row inside a card that opens its own page instead of the card's page. */
+export const DASHBOARD_ROW_NAVIGATION_ATTRIBUTE = 'data-row-navigation-path';
+/** Marks the corner arrow so the card can highlight it while the card is hovered. */
+export const DASHBOARD_CARD_ARROW_ATTRIBUTE = 'data-card-arrow';
+/** Parts of a card that keep their own behaviour and never trigger card navigation. */
+export const DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE = 'data-card-navigation-ignore';
+export const DASHBOARD_CARD_NAVIGATION_IGNORE_SELECTOR = [
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'canvas',
+  `[${DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE}]`,
+].join(',');
+/** Destination and spoken name of each dashboard card link. */
+export const DASHBOARD_CARD_LINKS = {
+  health: { to: ROUTES.REBALANCING, label: 'Open rebalancing' },
+  equity: { to: PORTFOLIO_POSITIONS_PATH, label: 'Open portfolio' },
+  positions: { to: PORTFOLIO_POSITIONS_PATH, label: 'Open portfolio positions' },
+  watchlist: { to: PORTFOLIO_WATCHLIST_PATH, label: 'Open watchlist' },
+} as const;
 /** Placeholder sector rows while alignment data hydrates — matches All-Weather buckets. */
 export const DASHBOARD_HEALTH_SECTOR_PLACEHOLDER_COUNT = 5;
 export const TICKER_AVATAR_SIZE_PX = {

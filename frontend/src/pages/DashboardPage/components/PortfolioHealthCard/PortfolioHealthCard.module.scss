@@ -9,6 +9,10 @@
   overflow: hidden;
 }
 
+.cardClickable {
+  @include clickable-card;
+}
+
 // ─── Header ──────────────────────────────────────────────────────────────────
 
 .cardHeader {
@@ -51,21 +55,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-height: 1.125rem;
-}
-
-.rebalancingLinkSlot {
-  min-height: 1.125rem;
-}
-
-.rebalancingLink {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-  color: $color-primary;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .riskBadgeSlot {

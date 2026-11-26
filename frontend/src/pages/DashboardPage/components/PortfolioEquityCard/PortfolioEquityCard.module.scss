@@ -10,6 +10,10 @@
   overflow: hidden;
 }
 
+.cardClickable {
+  @include clickable-card;
+}
+
 .cardHeader {
   @include flex-between;
   align-items: flex-start;

@@ -1,10 +1,18 @@
 import { Link } from 'react-router-dom';
-import { Briefcase, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown } from 'lucide-react';
 import type { Currency } from '../../../../constants';
-import { buildTickerDetailPath, LOADING_MESSAGES, ROUTES } from '../../../../constants';
+import {
+  buildTickerDetailPath,
+  DASHBOARD_CARD_LINKS,
+  DASHBOARD_ROW_NAVIGATION_ATTRIBUTE,
+  LOADING_MESSAGES,
+  PORTFOLIO_POSITIONS_PATH,
+} from '../../../../constants';
 import type { PortfolioPosition } from '../../../../types/portfolio.types';
 import { formatMoney, formatSignedMoney } from '../../../../utils/moneyDisplay';
+import { useCardNavigation } from '../../../../hooks/useCardNavigation';
 import { TickerAvatar } from '../../../../components/ui';
+import { DashboardCardLink } from '../DashboardCardLink/DashboardCardLink';
 import { DashboardPanelEmptyState } from '../DashboardPanelEmptyState/DashboardPanelEmptyState';
 import styles from './PositionsTable.module.scss';
 
@@ -49,18 +57,19 @@ function formatDate(dateStr: string | null): string {
 export function PositionsTable({ positions, currency, isLoading = false }: PositionsTableProps) {
   const computedPositions = computePositions(positions);
   const isEmpty = !isLoading && computedPositions.length === 0;
+  const isNavigable = !isLoading && !isEmpty;
+  const handleCardClick = useCardNavigation(isNavigable ? DASHBOARD_CARD_LINKS.positions.to : null);
 
   return (
-    <div className={styles.card}>
+    <div
+      className={`${styles.card} ${isNavigable ? styles.cardClickable : ''}`}
+      onClick={handleCardClick}
+    >
       <div className={styles.cardHeader}>
         <div className={styles.headerLeft}>
           <span className={styles.cardLabel}>ACTIVE POSITIONS</span>
           <span className={styles.cardTitle}>Transactions &amp; P&amp;L Matrix</span>
         </div>
-        <Link to={`${ROUTES.PORTFOLIO}?section=positions`} className={styles.portfolioLink}>
-          View Portfolio
-          <ChevronRight size={14} />
-        </Link>
       </div>
 
       {isLoading || isEmpty ? (
@@ -72,7 +81,7 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
           title="No positions yet"
           description="You haven't added any holdings yet. Add a position or import a broker report to track your P&L here."
           actionLabel="Add Position"
-          actionTo={`${ROUTES.PORTFOLIO}?section=positions`}
+          actionTo={PORTFOLIO_POSITIONS_PATH}
         />
       ) : (
         <div className={styles.tableWrapper}>
@@ -92,7 +101,13 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
               {computedPositions.map((position) => {
                 const isPositive = position.pnlAmount >= 0;
                 return (
-                  <tr key={position.id} className={styles.row}>
+                  <tr
+                    key={position.id}
+                    className={styles.row}
+                    {...{
+                      [DASHBOARD_ROW_NAVIGATION_ATTRIBUTE]: buildTickerDetailPath(position.ticker),
+                    }}
+                  >
                     <td className={styles.td}>
                       <Link
                         to={buildTickerDetailPath(position.ticker)}
@@ -149,6 +164,13 @@ export function PositionsTable({ positions, currency, isLoading = false }: Posit
           </table>
         </div>
       )}
+
+      {isNavigable ? (
+        <DashboardCardLink
+          to={DASHBOARD_CARD_LINKS.positions.to}
+          label={DASHBOARD_CARD_LINKS.positions.label}
+        />
+      ) : null}
     </div>
   );
 }

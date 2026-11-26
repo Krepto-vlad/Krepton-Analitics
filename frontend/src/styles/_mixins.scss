@@ -71,6 +71,27 @@ $breakpoint-xl: 1280px;
   padding: $padding;
 }
 
+// A card that opens a page when clicked anywhere; its corner arrow lights up on hover.
+// Phones keep only the arrow (see DASHBOARD_CARD_MOBILE_VIEWPORT_QUERY).
+@mixin clickable-card {
+  @include tablet-up {
+    cursor: pointer;
+    transition: border-color $transition-fast;
+
+    &:hover {
+      border-color: $color-primary-border;
+
+      [data-card-arrow] {
+        color: $color-primary;
+
+        &::before {
+          background: $color-primary-muted;
+        }
+      }
+    }
+  }
+}
+
 // ─── Fixed viewport cell grid ─────────────────────────────────────────────────
 // Section clips a viewport-fixed grid so content scrolls while cells stay put.
 
