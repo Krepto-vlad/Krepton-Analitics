@@ -190,7 +190,7 @@ While the rebalancing page is open, the chat drawer is told that the screen is t
 
 ## Ticker-page asset-class badges
 
-The ticker detail page can show one or two colored badges next to the grey Yahoo chips (sector, industry, exchange). The badges use the same class ids as the rebalancing calculator. They describe the instrument; they do not say whether it fits a strategy.
+The ticker detail page can show one or two colored badges next to the grey Yahoo chips (sector, industry, exchange). The badges use the same class ids as the rebalancing calculator. They describe the instrument; they do not say whether it fits a strategy. The health card on the rebalancing page has a help icon that points the user at those badges and at asking the AI chat whether a ticker fits a bucket.
 
 | Piece | Where |
 | --- | --- |

@@ -4,36 +4,36 @@
 
 ## Overview
 
-| Item | Value |
-|------|--------|
-| Local base URL | `http://localhost:3001` |
-| Auth | HttpOnly cookie `accessToken` (not `Authorization: Bearer` in LocalStorage) |
-| Success body | `{ "success": true, "data": ... }` |
-| Error body | `{ "success": false, "error": "..." }` with a real HTTP status |
+| Item           | Value                                                                       |
+| -------------- | --------------------------------------------------------------------------- |
+| Local base URL | `http://localhost:3001`                                                     |
+| Auth           | HttpOnly cookie `accessToken` (not `Authorization: Bearer` in LocalStorage) |
+| Success body   | `{ "success": true, "data": ... }`                                          |
+| Error body     | `{ "success": false, "error": "..." }` with a real HTTP status              |
 
 ## Resource groups
 
-| Tag | Examples |
-|-----|----------|
-| Health | `GET /health` |
-| Auth | register, login, logout, Google, delete, AI data switch (`PATCH /api/auth/ai-personal-data`) |
-| Stocks | quote, search, ticker tape, asset-class badges |
-| Portfolio | holdings, rebalancing |
-| Import | multipart upload (memory storage) |
-| Watchlist | CRUD-style items |
-| AI | news summary, ticker chat, quota |
-| Docs | OpenAPI / Swagger in non-prod |
+| Tag       | Examples                                                                                     |
+| --------- | -------------------------------------------------------------------------------------------- |
+| Health    | `GET /health`                                                                                |
+| Auth      | register, login, logout, Google, delete, AI data switch (`PATCH /api/auth/ai-personal-data`) |
+| Stocks    | quote, search, history, ticker tape, movers, `GET /api/stocks/asset-class/:ticker`           |
+| Portfolio | holdings, rebalancing                                                                        |
+| Import    | multipart upload (memory storage)                                                            |
+| Watchlist | CRUD-style items                                                                             |
+| AI        | news summary, ticker chat, quota                                                             |
+| Docs      | OpenAPI / Swagger in non-prod                                                                |
 
 ## Typical errors
 
-| Status | When |
-|--------|------|
-| 400 | Validation (`AppError`) |
-| 401 | Missing/invalid cookie |
-| 403 | Authenticated but not allowed |
-| 404 | Unknown ticker or resource |
-| 429 | Rate limit or AI quota |
-| 500 | Unexpected; logged with request id |
+| Status | When                               |
+| ------ | ---------------------------------- |
+| 400    | Validation (`AppError`)            |
+| 401    | Missing/invalid cookie             |
+| 403    | Authenticated but not allowed      |
+| 404    | Unknown ticker or resource         |
+| 429    | Rate limit or AI quota             |
+| 500    | Unexpected; logged with request id |
 
 ## Getting started for a developer
 

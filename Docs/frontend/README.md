@@ -71,25 +71,25 @@ npm run test:e2e
 
 ## Where to look
 
-| Path                                                    | Contents                                                                                                                                              |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `frontend/src/main.tsx`                                 | Store provider and the 401 handler                                                                                                                    |
-| `frontend/src/app/App.tsx`                              | `AppErrorBoundary` around the router                                                                                                                  |
-| `frontend/src/router/AppRouter.tsx`                     | Lazy routes and `RequireAuth`                                                                                                                         |
-| `frontend/src/router/RequireAuth.tsx`                   | Session check via `GET /api/auth/me`                                                                                                                  |
-| `frontend/src/store/index.ts`                           | The one Redux store                                                                                                                                   |
-| `frontend/src/features/`                                | Slices: `auth`, `portfolio`, `watchlist`, `ticker`, `ui`, `livePolling`                                                                               |
-| `frontend/src/features/portfolio/portfolioSelectors.ts` | `selectPortfolioStats` (`createSelector`)                                                                                                             |
-| `frontend/src/api/apiClient.ts`                         | Axios instance, `withCredentials: true`, 401 interceptor                                                                                              |
-| `frontend/src/api/*Api.ts`                              | One module per resource: `authApi`, `portfolioApi`, `watchlistApi`, `stockApi`, `importApi`, `fxApi`, `billingApi`, `brokerSyncApi`                   |
-| `frontend/src/utils/apiError.ts`                        | Maps any failed request to an `ApiRequestError` with a user-facing message                                                                            |
-| `frontend/src/hooks/`                                   | `useHoldingsPolling`, `useWatchlistPolling`, `useSessionExpiry`, `useSessionRenewal`, `useTheme`, `useTickerPriceChart`, `useFocusTrap`, `usePageSeo` |
-| `frontend/src/types/`                                   | Interfaces for API responses and models                                                                                                               |
-| `frontend/src/pages/`                                   | One folder per screen                                                                                                                                 |
-| `frontend/src/components/ui/`                           | Custom kit: `Button`, `Input`, `Select`, `Skeleton`                                                                                                   |
-| `frontend/src/styles/`                                  | Tokens, mixins, light/dark theme                                                                                                                      |
-| `frontend/src/constants.ts`                             | Routes, copy, and numeric limits                                                                                                                      |
-| `frontend/e2e/login.spec.ts`                            | End-to-end login                                                                                                                                      |
+| Path                                                    | Contents                                                                                                                            |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/src/main.tsx`                                 | Store provider and the 401 handler                                                                                                  |
+| `frontend/src/app/App.tsx`                              | `AppErrorBoundary` around the router                                                                                                |
+| `frontend/src/router/AppRouter.tsx`                     | Lazy routes and `RequireAuth`                                                                                                       |
+| `frontend/src/router/RequireAuth.tsx`                   | Session check via `GET /api/auth/me`                                                                                                |
+| `frontend/src/store/index.ts`                           | The one Redux store                                                                                                                 |
+| `frontend/src/features/`                                | Slices: `auth`, `portfolio`, `watchlist`, `ticker`, `ui`, `livePolling`                                                             |
+| `frontend/src/features/portfolio/portfolioSelectors.ts` | `selectPortfolioStats` (`createSelector`)                                                                                           |
+| `frontend/src/api/apiClient.ts`                         | Axios instance, `withCredentials: true`, 401 interceptor                                                                            |
+| `frontend/src/api/*Api.ts`                              | One module per resource: `authApi`, `portfolioApi`, `watchlistApi`, `stockApi`, `importApi`, `fxApi`, `billingApi`, `brokerSyncApi` |
+| `frontend/src/utils/apiError.ts`                        | Maps any failed request to an `ApiRequestError` with a user-facing message                                                          |
+| `frontend/src/hooks/`                                   | Polling, session, theme, charts, focus trap, card navigation, market-index data/visibility, page SEO                                |
+| `frontend/src/types/`                                   | Interfaces for API responses and models                                                                                             |
+| `frontend/src/pages/`                                   | One folder per screen                                                                                                               |
+| `frontend/src/components/ui/`                           | Custom kit: `Button`, `Input`, `Select`, `Skeleton`                                                                                 |
+| `frontend/src/styles/`                                  | Tokens, mixins, light/dark theme                                                                                                    |
+| `frontend/src/constants.ts`                             | Routes, copy, and numeric limits                                                                                                    |
+| `frontend/e2e/login.spec.ts`                            | End-to-end login                                                                                                                    |
 
 Shared portfolio and auth data goes through thunks. Screen-local actions (password change, import, backtest, chat, billing) call `api/` from the page that owns them.
 
@@ -199,7 +199,7 @@ The contract is [`backend/openapi.yaml`](../../backend/openapi.yaml); the [API r
 | `authApi`                              | `POST /api/auth/login`, `register`, `google`, `logout`; `GET /api/auth/me`; `POST /api/auth/extend`; `PATCH /api/auth/ai-personal-data`; password reset and email verification                                                               |
 | `portfolioApi`                         | `GET/POST /api/portfolio`, `PATCH/DELETE /api/portfolio/{positionId}`, `GET /api/portfolio/transactions`, `investment-summary`, `equity-history`, `rebalancing`, `dividends`, `news`; AI: `news/summary`, `ticker-chat`, `ticker-chat/quota` |
 | `watchlistApi`                         | `GET/POST /api/portfolio/watchlist`, `DELETE /api/portfolio/watchlist/{itemId}`                                                                                                                                                              |
-| `stockApi`                             | `/api/stocks/*`: quote, search, history, ticker tape                                                                                                                                                                                         |
+| `stockApi`                             | `/api/stocks/*`: quote, search, history, ticker tape, movers, asset-class                                                                                                                                                                    |
 | `importApi`                            | `POST /api/portfolio/import/preview` (multipart, parsed in memory)                                                                                                                                                                           |
 | `fxApi`, `billingApi`, `brokerSyncApi` | `/api/fx/*`, `/api/billing/*`, broker sync                                                                                                                                                                                                   |
 
@@ -274,13 +274,17 @@ The saved layout holds only display preferences in `localStorage`.
 
 ### Asset-class badges on the ticker page
 
-| Piece | Where |
-|-------|-------|
+| Piece                         | Where                                                |
+| ----------------------------- | ---------------------------------------------------- |
 | Colored badges + basis dialog | `pages/TickerDetailPage/components/AssetClassBadges` |
-| API client | `fetchStockAssetClass` in `api/stockApi.ts` |
-| Badge colors | `ASSET_CLASS_BADGE_COLORS` in `constants.ts` |
+| API client                    | `fetchStockAssetClass` in `api/stockApi.ts`          |
+| Badge colors                  | `ASSET_CLASS_BADGE_COLORS` in `constants.ts`         |
 
 Badges appear only when `GET /api/stocks/asset-class/:ticker` returns explicit evidence. Empty list or request failure shows nothing.
+
+### Stock Matrix market movers
+
+On `/screener`, `MarketMoversPanel` lists Yahoo gainers and losers. Each ticker name is a link to `/ticker/:ticker`. The `+` button still only adds the symbol to the comparison matrix.
 
 ### AI chat drawer
 
@@ -353,7 +357,7 @@ Chrome Lighthouse on [https://www.kreptonanalytics.com/dashboard](https://www.kr
 | 8   | ESLint + Prettier                                            | ✅     | `frontend` scripts `lint`, `format:check`                                                                                            |
 | 9   | Global errors + user-visible messages; 401/403/404/500       | ✅     | Axios interceptor, `toApiRequestError`, `ErrorBanner`, `AppErrorBoundary`; status table in [Error handling](#error-handling)         |
 | 10  | Skeleton/loading on async fetches                            | ✅     | `Skeleton`, `AsyncStatePanel`; search and auth keep a button spinner                                                                 |
-| 11  | Unit tests ≥ 3 components + 1–2 e2e                          | ✅     | Jest + React Testing Library, 430 tests in 124 suites, 80% coverage gate (86.9% statements); Playwright `frontend/e2e/login.spec.ts` |
+| 11  | Unit tests ≥ 3 components + 1–2 e2e                          | ✅     | Jest + React Testing Library, 483 tests in 135 suites, 80% coverage gate (86.8% statements); Playwright `frontend/e2e/login.spec.ts` |
 | 12  | No tokens in code                                            | ✅     | HttpOnly cookie; `localStorage` holds theme and UI preferences only                                                                  |
 | 13  | Max: lazy routes + RTK + charts/theme                        | ✅     | Lazy routes, Redux Toolkit, charts, light/dark theme                                                                                 |
 | 14  | Max: performance evidence                                    | ✅     | Production dashboard Lighthouse: Performance 98 (2026-11-22)                                                                         |
