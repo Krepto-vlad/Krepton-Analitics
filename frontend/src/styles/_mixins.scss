@@ -164,6 +164,16 @@ $breakpoint-xl: 1280px;
 
 // ─── Focus ring ──────────────────────────────────────────────────────────────
 
+// Readable by screen readers, invisible on screen.
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
 @mixin focus-ring {
   &:focus-visible {
     outline: 2px solid $color-primary;

@@ -534,6 +534,33 @@ export const DASHBOARD_CARD_NAVIGATION_IGNORE_SELECTOR = [
   'canvas',
   `[${DASHBOARD_CARD_NAVIGATION_IGNORE_ATTRIBUTE}]`,
 ].join(',');
+// ─── Dashboard market indices ──────────────────────────────────────────────────
+/** Most followed US benchmarks, shown for reference only (they never count as holdings). */
+export const DASHBOARD_MARKET_INDICES = [
+  { ticker: '^GSPC', label: 'S&P 500' },
+  { ticker: '^IXIC', label: 'Nasdaq Composite' },
+  { ticker: '^DJI', label: 'Dow Jones' },
+  { ticker: '^RUT', label: 'Russell 2000' },
+] as const;
+export const DASHBOARD_INDEX_HISTORY_PERIOD = '1mo';
+export const DASHBOARD_INDEX_HISTORY_INTERVAL = '1d';
+export const DASHBOARD_INDEX_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+export const DASHBOARD_INDEX_LEVEL_FRACTION_DIGITS = 2;
+export const DASHBOARD_INDEX_CHART_COLOR_FALLBACKS = { up: '#2dd4bf', down: '#f87171' } as const;
+export const DASHBOARD_INDEX_SETTINGS_ICON_SIZE_PX = 16;
+/** Legacy key: hidden tickers only. Migrated into the layout preference on first read. */
+export const DASHBOARD_HIDDEN_INDICES_STORAGE_KEY = 'krepton_dashboard_hidden_indices_v1';
+/** Visible index order for this browser. Survives refresh and re-login on the same device. */
+export const DASHBOARD_MARKET_INDICES_LAYOUT_STORAGE_KEY =
+  'krepton_dashboard_market_indices_layout_v2';
+export const DASHBOARD_INDEX_UNAVAILABLE_MESSAGE = 'Index data is unavailable right now.';
+export const DASHBOARD_INDEX_ACCESSIBLE_LABEL_PREFIX = 'Open';
+export const DASHBOARD_INDEX_EDIT_MODE_LABEL = 'Arrange market indices';
+export const DASHBOARD_INDEX_DONE_EDITING_LABEL = 'Done arranging';
+export const DASHBOARD_INDEX_CHOOSE_VISIBLE_LABEL = 'Choose visible market indices';
+export const DASHBOARD_INDEX_HIDE_CARD_LABEL_PREFIX = 'Hide';
+export const DASHBOARD_INDEX_DRAG_HINT = 'Drag to reorder';
+
 /** Destination and spoken name of each dashboard card link. */
 export const DASHBOARD_CARD_LINKS = {
   health: { to: ROUTES.REBALANCING, label: 'Open rebalancing' },

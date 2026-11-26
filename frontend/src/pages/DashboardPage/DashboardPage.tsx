@@ -21,6 +21,7 @@ import {
 } from '../../constants';
 import { savePortfolioChatScreen } from '../../utils/tickerChatSession';
 import { PortfolioHealthCard } from '../../components/PortfolioHealthCard/PortfolioHealthCard';
+import { MarketIndicesRow } from './components/MarketIndicesRow/MarketIndicesRow';
 import { PortfolioEquityCard } from './components/PortfolioEquityCard/PortfolioEquityCard';
 import { PositionsTable } from './components/PositionsTable/PositionsTable';
 import { WatchlistPanel } from './components/WatchlistPanel/WatchlistPanel';
@@ -105,6 +106,10 @@ export function DashboardPage() {
       )}
 
       <div className={styles.layout} data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.dashboard}>
+        <div className={styles.marketIndices}>
+          <MarketIndicesRow />
+        </div>
+
         <div
           className={styles.topRow}
           data-tutorial-anchor={BEGINNER_TUTORIAL_ANCHORS.dashboardCard}

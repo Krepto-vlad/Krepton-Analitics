@@ -53,6 +53,14 @@ export function formatChartPrice(value: number, currency = 'USD'): string {
   return formatted;
 }
 
+/** Index levels are points, not money — no currency symbol and no FX. */
+export function formatChartIndexLevel(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    notation: value >= 1_000 ? 'compact' : 'standard',
+    maximumFractionDigits: value >= 1_000 ? 1 : 0,
+  }).format(value);
+}
+
 export interface UseEquityChartResult {
   containerRef: React.RefObject<HTMLDivElement | null>;
   selectedPeriod: EquityPeriod;

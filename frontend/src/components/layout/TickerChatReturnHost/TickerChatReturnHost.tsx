@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { matchPath, useLocation } from 'react-router-dom';
+import { resolveTickerFromRouteParam } from '../../../utils/tickerRoute';
 import {
   APP_SHELL_ELEMENT_ATTRIBUTE,
   BEGINNER_TUTORIAL_CHAT_OPEN_VALUE,
@@ -60,12 +61,7 @@ function clearScreenContextOutsideDataPages(pathname: string): void {
 
 function readPageTicker(pathname: string): string | undefined {
   const match = matchPath({ path: ROUTES.TICKER, end: true }, pathname);
-  const rawTicker = match?.params.ticker;
-  if (!rawTicker) {
-    return undefined;
-  }
-
-  return rawTicker.trim().toUpperCase();
+  return resolveTickerFromRouteParam(match?.params.ticker ?? '') || undefined;
 }
 
 function shouldOpenChatFromSearch(search: string): boolean {

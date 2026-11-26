@@ -4,6 +4,7 @@ import { Bell, Sun, Moon } from 'lucide-react';
 import { ROUTES, CURRENCY_OPTIONS } from '../../../constants';
 import type { Currency } from '../../../constants';
 import type { Theme } from '../../../constants';
+import { resolveTickerFromRouteParam } from '../../../utils/tickerRoute';
 import { HeaderTickerSearch } from './HeaderTickerSearch';
 import styles from './AppHeader.module.scss';
 
@@ -38,9 +39,9 @@ function resolvePageTitle(pathname: string): string {
   }
 
   const tickerMatch = matchPath(ROUTES.TICKER, pathname);
-  const ticker = tickerMatch?.params.ticker;
+  const ticker = resolveTickerFromRouteParam(tickerMatch?.params.ticker ?? '');
   if (ticker) {
-    return ticker.toUpperCase();
+    return ticker;
   }
 
   return 'Krepton Analytics';

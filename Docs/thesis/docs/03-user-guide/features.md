@@ -16,9 +16,11 @@ Register or log in. The session cookie is HttpOnly; you cannot copy a JWT from D
 
 Dashboard and the rebalancing page show current weights against a published or saved target. They do not calculate how to spend a new deposit, and they do not place an order at a broker. Treat the score as a description of the gap, not as a trade.
 
+The top of the dashboard shows the main US indices (S&P 500, Nasdaq Composite, Dow Jones, Russell 2000) with the current level, today's move, and a one-month line. Click a card to open the index page. On desktop the pencil enters arrange mode: minus hides a card, drag changes the order, and a separate list button opens the checkbox dialog to bring cards back. On a phone the pencil opens that dialog directly, and the index row sits just above News. Visibility and order stay in this browser after refresh and re-login. On the other dashboard cards, a click anywhere on the card opens the related page; on a phone only the arrow in the card corner navigates.
+
 ## Market data and ticker page
 
-Search and open a ticker. Charts and quotes come from the API (Yahoo on the server). If Yahoo is down, the UI must show a failure, not hang forever.
+Search and open a ticker. Charts and quotes come from the API (Yahoo on the server). Index symbols (for example `^GSPC`) show a level without a currency symbol and do not convert when you switch USD/EUR. If Yahoo is down, the UI must show a failure, not hang forever.
 
 ## News briefing
 
